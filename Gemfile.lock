@@ -115,4 +115,5 @@ DEPENDENCIES
   active_model_serializers!
   byebug
   forest_rails!
+  rake
   sqlite3

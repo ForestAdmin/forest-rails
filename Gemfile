@@ -14,3 +14,7 @@ gemspec
 gem 'byebug', group: [:development, :test]
 
 gem 'active_model_serializers', git: 'git://github.com/rails-api/active_model_serializers.git'
+
+group :test do
+  gem 'rake'
+end

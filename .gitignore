@@ -8,6 +8,7 @@
 /test/tmp/
 /test/version_tmp/
 /test/dummy/log/
+/test/dummy/db/
 /tmp/
 
 ## Specific to RubyMotion:
