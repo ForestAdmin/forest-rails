@@ -9,15 +9,13 @@ Gem::Specification.new do |s|
   s.version     = ForestRails::VERSION
   s.authors     = ["Sandro Munda"]
   s.email       = ["sandro@munda.me"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of ForestRails."
-  s.description = "TODO: Description of ForestRails."
+  s.homepage    = nil
+  s.summary     = "Forest Rails Liana"
+  s.description = "Forest Rails Liana"
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 4.2.1"
-
-  s.add_development_dependency "sqlite3"
+  s.add_dependency "rails", "~> 4.0"
 end

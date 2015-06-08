@@ -8,8 +8,8 @@ GIT
 PATH
   remote: .
   specs:
-    forest_rails (0.0.1)
-      rails (~> 4.2.1)
+    forest_rails (0.0.2)
+      rails (~> 4.0)
 
 GEM
   remote: https://rubygems.org/
