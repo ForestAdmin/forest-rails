@@ -8,7 +8,7 @@ GIT
 PATH
   remote: .
   specs:
-    forest_rails (0.0.2)
+    forest_rails (0.0.3)
       active_model_serializers (= 0.10.0.rc1)
       rails (~> 4.0)
 
