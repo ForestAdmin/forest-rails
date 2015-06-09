@@ -22,7 +22,7 @@ module ForestRails
     end
 
     def add_associations
-      @model.reflections.each do |field, association|
+      @model.reflect_on_all_associations.each do |association|
         if schema = column_association(@collection, association)
           schema[:ref] = get_ref_for(association)
         else
