@@ -57,6 +57,8 @@ module ForestRails
         'Date'
       when :string
         'String'
+      when :text
+        'String'
       when :boolean
         'Boolean'
       end
@@ -71,7 +73,7 @@ module ForestRails
     end
 
     def get_type_for_association(association)
-      if association.instance_of?(ActiveRecord::Reflection::HasManyReflection)
+      if association.macro == :has_many
         '[Number]'
       else
         'Number'
