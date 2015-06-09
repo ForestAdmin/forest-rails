@@ -9,6 +9,7 @@ PATH
   remote: .
   specs:
     forest_rails (0.0.2)
+      active_model_serializers (= 0.10.0.rc1)
       rails (~> 4.0)
 
 GEM
