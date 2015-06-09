@@ -11,7 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150608150016) do
+ActiveRecord::Schema.define(version: 20150609114636) do
+
+  create_table "belongs_to_class_name_fields", force: :cascade do |t|
+    t.integer "foo_id"
+  end
+
+  add_index "belongs_to_class_name_fields", ["foo_id"], name: "index_belongs_to_class_name_fields_on_foo_id"
 
   create_table "belongs_to_fields", force: :cascade do |t|
     t.integer "has_one_field_id"

@@ -63,7 +63,7 @@ module ForestRails
     end
 
     def get_ref_for(association)
-      "#{association.name.to_s.tableize}.id"
+      "#{association.class_name.to_s.tableize}.id"
     end
 
     def column_association(collection, field)
