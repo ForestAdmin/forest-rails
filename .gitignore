@@ -8,7 +8,7 @@
 /test/tmp/
 /test/version_tmp/
 /test/dummy/log/
-/test/dummy/db/
+/test/dummy/db/*.sqlite3
 /tmp/
 
 ## Specific to RubyMotion:
