@@ -12,7 +12,8 @@ module ForestRails
         end
       end
 
-      render json: result, each_serializer: ApimapSerializer
+      render json: result, each_serializer: ApimapSerializer,
+        adapter: :json_api
     end
   end
 end
