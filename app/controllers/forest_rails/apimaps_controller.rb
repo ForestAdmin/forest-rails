@@ -1,7 +1,5 @@
-require_dependency "forest_rails/application_controller"
-
 module ForestRails
-  class ApimapsController < ApplicationController
+  class ApimapsController < ForestRails::ApplicationController
     def index
       result = []
 

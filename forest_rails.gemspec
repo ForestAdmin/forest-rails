@@ -19,4 +19,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "rails", "~> 4.0"
   s.add_runtime_dependency "active_model_serializers", "0.10.0.rc1"
+  s.add_runtime_dependency "jwt", "~> 1.5"
 end
