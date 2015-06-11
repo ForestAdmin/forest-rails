@@ -14,6 +14,11 @@ module ForestRails
         adapter: :json_api
     end
 
+    def create
+      record = @resource.create!(resource_params)
+      render json: record, serializer: @serializer, adapter: :json_api
+    end
+
     private
 
     def find_resource
@@ -33,6 +38,10 @@ module ForestRails
 
     def define_serializers
       @serializer = SerializerFactory.new.serializer_for(@resource)
+    end
+
+    def resource_params
+      ResourceDeserializer.new(params).perform
     end
 
   end
