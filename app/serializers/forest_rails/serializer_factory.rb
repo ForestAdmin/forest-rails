@@ -32,7 +32,7 @@ module ForestRails
       serializer.attributes(*column_names)
       associations.each do |association|
         serializer.send(
-          association.macro, association.name,
+          serializer_association(association), association.name,
           serializer: serializer_for(association.active_record))
       end
       serializer
@@ -41,5 +41,15 @@ module ForestRails
     def key(active_record_class)
       active_record_class.to_s.tableize.to_sym
     end
+
+    def serializer_association(association)
+      case association.macro
+      when :has_one, :belongs_to
+        :has_one
+      when :has_many, :has_and_belongs_to_many
+        :has_many
+      end
+    end
+
   end
 end
