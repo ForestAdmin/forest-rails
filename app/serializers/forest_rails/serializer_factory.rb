@@ -24,17 +24,17 @@ module ForestRails
     end
 
     def generated_serializer(active_record_class)
-      associations = active_record_class.reflect_on_all_associations
-      column_names = active_record_class.column_names
-      key = key(active_record_class)
+      serializer = @serializers[key(active_record_class)] =
+        Class.new(ActiveModel::Serializer)
 
-      serializer = @serializers[key] = Class.new(ActiveModel::Serializer)
-      serializer.attributes(*column_names)
-      associations.each do |association|
+      serializer.attributes(attributes(active_record_class))
+
+      associations(active_record_class).each do |association|
         serializer.send(
           serializer_association(association), association.name,
           serializer: serializer_for(association.active_record))
       end
+
       serializer
     end
 
@@ -48,6 +48,26 @@ module ForestRails
         :has_one
       when :has_many, :has_and_belongs_to_many
         :has_many
+      end
+    end
+
+    def attributes(active_record_class)
+      active_record_class.column_names.select do |column_name|
+        !association?(active_record_class, column_name)
+      end
+    end
+
+    def associations(active_record_class)
+      active_record_class.reflect_on_all_associations
+    end
+
+    def association?(active_record_class, column_name)
+      foreign_keys(active_record_class).include?(column_name)
+    end
+
+    def foreign_keys(active_record_class)
+      associations(active_record_class).map do |association|
+        association.foreign_key
       end
     end
 
