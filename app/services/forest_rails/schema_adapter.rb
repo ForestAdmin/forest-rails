@@ -25,6 +25,7 @@ module ForestRails
       @model.reflect_on_all_associations.each do |association|
         if schema = column_association(@collection, association)
           schema[:ref] = get_ref_for(association)
+          schema[:field] = deforeign_key(schema[:field])
         else
           @collection.fields << get_schema_for_association(association)
         end
@@ -77,6 +78,14 @@ module ForestRails
         '[Number]'
       else
         'Number'
+      end
+    end
+
+    def deforeign_key(column_name)
+      if column_name[-3..-1] == '_id'
+        column_name[0..-4]
+      else
+        column_name
       end
     end
 

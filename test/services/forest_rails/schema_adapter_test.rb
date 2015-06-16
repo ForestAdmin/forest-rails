@@ -38,7 +38,7 @@ module ForestRails
     test 'belongsTo relationship' do
       schema = SchemaAdapter.new(BelongsToField).perform
       assert schema.fields.include?({
-        field: 'has_one_field_id',
+        field: 'has_one_field',
         type: 'Number',
         ref: 'has_one_fields.id'
       })
@@ -65,7 +65,7 @@ module ForestRails
     test 'belongsTo relationhip with specified class_name' do
       schema = SchemaAdapter.new(BelongsToClassNameField).perform
       assert schema.fields.include?({
-        field: 'foo_id',
+        field: 'foo',
         type: 'Number',
         ref: 'has_one_fields.id'
       })
