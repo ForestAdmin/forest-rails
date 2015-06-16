@@ -66,7 +66,11 @@ module ForestRails
     end
 
     def get_ref_for(association)
-      "#{association.class_name.to_s.tableize}.id"
+      if association.options[:polymorphic] == true
+        '*.id'
+      else
+        "#{association.class_name.to_s.tableize}.id"
+      end
     end
 
     def column_association(collection, field)
