@@ -40,7 +40,7 @@ module ForestRails
       assert schema.fields.include?({
         field: 'has_one_field',
         type: 'Number',
-        ref: 'has_one_fields.id'
+        reference: 'has_one_fields.id'
       })
     end
 
@@ -49,7 +49,7 @@ module ForestRails
       assert schema.fields.include?({
         field: 'belongs_to_field',
         type: 'Number',
-        ref: 'belongs_to_fields.id'
+        reference: 'belongs_to_fields.id'
       })
     end
 
@@ -58,7 +58,7 @@ module ForestRails
       assert schema.fields.include?({
         field: 'belongs_to_field',
         type: '[Number]',
-        ref: 'belongs_to_fields.id'
+        reference: 'belongs_to_fields.id'
       })
     end
 
@@ -67,7 +67,7 @@ module ForestRails
       assert schema.fields.include?({
         field: 'foo',
         type: 'Number',
-        ref: 'has_one_fields.id'
+        reference: 'has_one_fields.id'
       })
     end
 
@@ -76,7 +76,7 @@ module ForestRails
       assert schema.fields.include?({
         field: 'has_one_field',
         type: 'Number',
-        ref: '*.id'
+        reference: '*.id'
       })
     end
 
