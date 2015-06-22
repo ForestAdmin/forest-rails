@@ -24,7 +24,7 @@ module ForestRails
     def add_associations
       @model.reflect_on_all_associations.each do |association|
         if schema = column_association(@collection, association)
-          schema[:ref] = get_ref_for(association)
+          schema[:reference] = get_ref_for(association)
           schema[:field] = deforeign_key(schema[:field])
         else
           @collection.fields << get_schema_for_association(association)
@@ -40,7 +40,7 @@ module ForestRails
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        ref: "#{association.name.to_s.tableize}.id"
+        reference: "#{association.name.to_s.tableize}.id"
       }
     end
 
