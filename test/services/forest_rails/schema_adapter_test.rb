@@ -80,5 +80,14 @@ module ForestRails
       })
     end
 
+    test 'hasMany relationhip with specified class_name' do
+      schema = SchemaAdapter.new(HasManyClassNameField).perform
+      assert schema.fields.include?({
+        field: 'foo',
+        type: '[Number]',
+        reference: 'belongs_to_fields.id'
+      })
+    end
+
   end
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150616150629) do
+ActiveRecord::Schema.define(version: 20150623115554) do
 
   create_table "belongs_to_class_name_fields", force: :cascade do |t|
     t.integer "foo_id"
@@ -42,6 +42,9 @@ ActiveRecord::Schema.define(version: 20150616150629) do
   end
 
   create_table "has_and_belongs_to_many_fields", force: :cascade do |t|
+  end
+
+  create_table "has_many_class_name_fields", force: :cascade do |t|
   end
 
   create_table "has_many_fields", force: :cascade do |t|

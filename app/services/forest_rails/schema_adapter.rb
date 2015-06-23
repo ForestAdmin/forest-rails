@@ -40,7 +40,7 @@ module ForestRails
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        reference: "#{association.name.to_s.tableize}.id"
+        reference: "#{association.class_name.to_s.tableize}.id"
       }
     end
 
