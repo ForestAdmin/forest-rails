@@ -30,6 +30,9 @@ module ForestRails
       serializer.attributes(attributes(active_record_class))
 
       associations(active_record_class).each do |association|
+        # ignore polymorphic associations for now
+        next if association.options[:polymorphic]
+
         serializer.send(
           serializer_association(association), association.name,
           serializer: serializer_for(association.active_record))
