@@ -71,15 +71,6 @@ module ForestRails
       })
     end
 
-    test 'polymorphic relationship' do
-      schema = SchemaAdapter.new(PolymorphicField).perform
-      assert schema.fields.include?({
-        field: 'has_one_field',
-        type: 'Number',
-        reference: '*.id'
-      })
-    end
-
     test 'hasMany relationhip with specified class_name' do
       schema = SchemaAdapter.new(HasManyClassNameField).perform
       assert schema.fields.include?({

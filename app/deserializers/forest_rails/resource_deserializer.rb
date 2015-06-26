@@ -17,8 +17,8 @@ module ForestRails
     end
 
     def extract_relationships
-      if @params[:relationships]
-        @params[:relationships].each do |name, relationship|
+      if @params[:data][:relationships]
+        @params[:data][:relationships].each do |name, relationship|
           data = relationship[:data]
 
           if data.is_a?(Hash)
