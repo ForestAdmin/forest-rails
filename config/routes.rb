@@ -4,6 +4,6 @@ ForestRails::Engine.routes.draw do
   get ':resource/:id' => 'resources#show'
   get ':resource/:id' => 'resources#show'
   post ':resource' => 'resources#create'
-  put ':resource/:id' => 'resources#update'
+  patch ':resource/:id' => 'resources#update'
   delete ':resource/:id' => 'resources#destroy'
 end

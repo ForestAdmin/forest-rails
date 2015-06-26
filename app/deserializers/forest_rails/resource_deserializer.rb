@@ -13,7 +13,7 @@ module ForestRails
     end
 
     def extract_attributes
-      @params.require(:attributes).permit!
+      @params.require(:data).require(:attributes).permit!
     end
 
     def extract_relationships

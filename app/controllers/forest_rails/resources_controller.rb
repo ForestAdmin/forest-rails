@@ -19,6 +19,12 @@ module ForestRails
       render json: record, serializer: @serializer, adapter: :json_api
     end
 
+    def update
+      record = @resource.find(params[:id])
+      record.update_attributes!(resource_params)
+      render json: record, serializer: @serializer, adapter: :json_api
+    end
+
     private
 
     def find_resource
