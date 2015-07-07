@@ -5,7 +5,7 @@ module ForestRails
     before_filter :define_serializers
 
     def index
-      render json: @resource.limit(20), each_serializer: @serializer,
+      render json: @resource.limit(10), each_serializer: @serializer,
         adapter: :json_api
     end
 

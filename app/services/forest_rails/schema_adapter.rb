@@ -23,9 +23,12 @@ module ForestRails
 
     def add_associations
       @model.reflect_on_all_associations.each do |association|
+        next if association.options[:through]
+
         if schema = column_association(@collection, association)
           schema[:reference] = get_ref_for(association)
           schema[:field] = deforeign_key(schema[:field])
+          #schema[:inverseOf] = association.inverse_of.try(:name).try(:to_s)
         else
           @collection.fields << get_schema_for_association(association)
         end
@@ -40,7 +43,8 @@ module ForestRails
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        reference: "#{association.class_name.to_s.tableize}.id"
+        reference: "#{association.class_name.to_s.tableize}.id",
+        inverseOf: deforeign_key(association.foreign_key)
       }
     end
 
@@ -79,7 +83,7 @@ module ForestRails
 
     def get_type_for_association(association)
       if association.macro == :has_many
-        '[Number]'
+        ['Number']
       else
         'Number'
       end

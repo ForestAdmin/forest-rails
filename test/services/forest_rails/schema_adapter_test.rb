@@ -49,7 +49,8 @@ module ForestRails
       assert schema.fields.include?({
         field: 'belongs_to_field',
         type: 'Number',
-        reference: 'belongs_to_fields.id'
+        reference: 'belongs_to_fields.id',
+        inverseOf: 'has_one_field'
       })
     end
 
@@ -57,8 +58,9 @@ module ForestRails
       schema = SchemaAdapter.new(HasManyField).perform
       assert schema.fields.include?({
         field: 'belongs_to_field',
-        type: '[Number]',
-        reference: 'belongs_to_fields.id'
+        type: ['Number'],
+        reference: 'belongs_to_fields.id',
+        inverseOf: 'has_many_field'
       })
     end
 
@@ -75,8 +77,9 @@ module ForestRails
       schema = SchemaAdapter.new(HasManyClassNameField).perform
       assert schema.fields.include?({
         field: 'foo',
-        type: '[Number]',
-        reference: 'belongs_to_fields.id'
+        type: ['Number'],
+        reference: 'belongs_to_fields.id',
+        inverseOf: 'has_many_class_name_field'
       })
     end
 

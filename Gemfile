@@ -18,4 +18,4 @@ group :test do
   gem 'sqlite3'
 end
 
-gem 'active_model_serializers', git: 'git://github.com/rails-api/active_model_serializers.git'
+gem 'active_model_serializers', path: '~/workspace/internal/active_model_serializers'

@@ -1,17 +1,16 @@
-GIT
-  remote: git://github.com/rails-api/active_model_serializers.git
-  revision: f67fd976ecbe41305c484e4689003758e8631998
-  specs:
-    active_model_serializers (0.10.0.rc1)
-      activemodel (>= 4.0)
-
 PATH
   remote: .
   specs:
     forest_rails (0.0.4)
-      active_model_serializers (= 0.10.0.rc1)
+      active_model_serializers (= 0.10.0.rc2)
       jwt (~> 1.5)
       rails (~> 4.0)
+
+PATH
+  remote: ~/workspace/internal/active_model_serializers
+  specs:
+    active_model_serializers (0.10.0.rc2)
+      activemodel (>= 4.0)
 
 GEM
   remote: https://rubygems.org/
