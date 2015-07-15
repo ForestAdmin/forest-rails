@@ -22,7 +22,7 @@ module ForestRails
           data = relationship[:data]
 
           if data.is_a?(Hash)
-            @attributes[data[:type].singularize.foreign_key] = data[:id]
+            @attributes[name.foreign_key] = data[:id]
           end
 
         end
