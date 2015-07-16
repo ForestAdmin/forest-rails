@@ -25,6 +25,11 @@ module ForestRails
       render json: record, serializer: @serializer, adapter: :json_api
     end
 
+    def destroy
+      @resource.destroy_all(id: params[:id])
+      render nothing: true, status: 204
+    end
+
     private
 
     def find_resource
