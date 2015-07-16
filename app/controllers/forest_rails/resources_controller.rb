@@ -5,7 +5,19 @@ module ForestRails
     before_filter :define_serializers
 
     def index
-      render json: @resource.limit(10), each_serializer: @serializer,
+      if params[:search]
+        records = @resource.where(search_query)
+      else
+        records = @resource.all
+      end
+
+      if @resource.column_names.include?('created_at')
+        records = records.order('created_at DESC')
+      elsif @resource.column_names.include?('id')
+        records = records.order('id DESC')
+      end
+
+      render json: records.limit(10), each_serializer: @serializer,
         adapter: :json_api
     end
 
@@ -52,7 +64,23 @@ module ForestRails
     end
 
     def resource_params
-      ResourceDeserializer.new(params).perform
+      ResourceDeserializer.new(@resource, params).perform
+    end
+
+    def search_query
+      query = ""
+
+      @resource.columns.each do |column|
+        if column.name == 'id'
+          query += ' OR ' unless query.empty?
+          query += "id = #{params[:search].to_i}"
+        elsif column.type == :string
+          query += ' OR ' unless query.empty?
+          query += "lower(#{column.name}) LIKE '#{params[:search].downcase}%'"
+        end
+      end
+
+      query
     end
 
   end

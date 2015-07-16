@@ -1,8 +1,9 @@
 module ForestRails
   class ResourceDeserializer
 
-    def initialize(params)
+    def initialize(resource, params)
       @params = params
+      @resource = resource
     end
 
     def perform
@@ -21,13 +22,16 @@ module ForestRails
         @params[:data][:relationships].each do |name, relationship|
           data = relationship[:data]
 
-          if data.is_a?(Hash)
+          if data.is_a?(Hash) && column?(name.foreign_key)
             @attributes[name.foreign_key] = data[:id]
           end
 
         end
       end
+    end
 
+    def column?(attribute)
+      @resource.columns.find {|x| x.name == attribute}.present?
     end
 
   end
