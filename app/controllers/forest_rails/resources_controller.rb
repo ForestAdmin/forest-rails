@@ -18,7 +18,7 @@ module ForestRails
       end
 
       render json: records.limit(10), each_serializer: @serializer,
-        adapter: :json_api
+        adapter: :json_api, meta: { total: records.count }
     end
 
     def show
