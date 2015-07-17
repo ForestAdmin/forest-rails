@@ -1,5 +1,5 @@
 require 'test_helper'
-module ForestRails
+module Forest
   class ResourceDeserializerTest < ActiveSupport::TestCase
     test 'JSONAPI payload should extract attributes' do
       json = { data: { type: 'users', attributes: { name: 'forest' }}}.as_json

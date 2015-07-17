@@ -1,5 +1,5 @@
-module ForestRails
-  class ApimapsController < ForestRails::ApplicationController
+module Forest
+  class ApimapsController < Forest::ApplicationController
     def index
       result = []
 

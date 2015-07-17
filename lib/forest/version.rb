@@ -1,3 +1,3 @@
-module ForestRails
+module Forest
   VERSION = "0.0.4"
 end

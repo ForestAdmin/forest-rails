@@ -1,4 +1,4 @@
-module ForestRails
+module Forest
   class ResourceDeserializer
 
     def initialize(resource, params)

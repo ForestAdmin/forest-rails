@@ -1,4 +1,4 @@
-module ForestRails
+module Forest
   class SerializerFactory
     def initialize
       @serializers = {}
@@ -14,7 +14,7 @@ module ForestRails
 
     def overriden_serializer(active_record_class)
       begin
-        "ForestRails::#{active_record_class}Serializer".constantize;
+        "Forest::#{active_record_class}Serializer".constantize;
       rescue
       end
     end

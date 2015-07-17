@@ -1,4 +1,4 @@
 Rails.application.routes.draw do
 
-  mount ForestRails::Engine => "/forest_rails"
+  mount Forest::Engine => "/forest"
 end

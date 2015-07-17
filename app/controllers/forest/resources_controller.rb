@@ -1,5 +1,5 @@
-module ForestRails
-  class ResourcesController < ForestRails::ApplicationController
+module Forest
+  class ResourcesController < Forest::ApplicationController
 
     before_filter :find_resource
     before_filter :define_serializers

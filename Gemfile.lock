@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_rails (0.0.4)
+    forest (0.0.4)
       active_model_serializers (= 0.10.0.rc2)
       jwt (~> 1.5)
       rails (~> 4.0)
@@ -116,6 +116,6 @@ PLATFORMS
 DEPENDENCIES
   active_model_serializers!
   byebug
-  forest_rails!
+  forest!
   rake
   sqlite3

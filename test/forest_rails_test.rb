@@ -1,7 +1,7 @@
 require 'test_helper'
 
-class ForestRailsTest < ActiveSupport::TestCase
+class ForestTest < ActiveSupport::TestCase
   test "truth" do
-    assert_kind_of Module, ForestRails
+    assert_kind_of Module, Forest
   end
 end

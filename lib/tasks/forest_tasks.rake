@@ -1,4 +1,4 @@
 # desc "Explaining what the task does"
-# task :forest_rails do
+# task :forest do
 #   # Task goes here
 # end

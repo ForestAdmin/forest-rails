@@ -1,4 +1,4 @@
-module ForestRails
+module Forest
   class Collection
 
     include ActiveModel::Validations

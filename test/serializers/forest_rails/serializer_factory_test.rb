@@ -1,4 +1,4 @@
-module ForestRails
+module Forest
   class SerializerFactoryTest < ActiveSupport::TestCase
     test 'Fields should be serialize as attributes' do
       serializer = SerializerFactory.new.serializer_for(StringField)

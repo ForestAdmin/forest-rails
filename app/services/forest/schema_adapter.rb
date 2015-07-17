@@ -1,4 +1,4 @@
-module ForestRails
+module Forest
   class SchemaAdapter
 
     def initialize(model)
