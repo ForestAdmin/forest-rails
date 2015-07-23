@@ -7,31 +7,34 @@ module Forest
     end
 
     def perform
-      query = ""
+      search_param
+      filter_param
+      associations_param
 
+      @resource
+    end
+
+    def search_param
       if @params[:search]
-        @resource.columns.each do |column|
-          if column.name == 'id'
-            if query.empty?
-              query += '('
-            else
-              query += ' OR '
-            end
+        conditions = []
 
-            query += "id = #{@params[:search].to_i}"
+        @resource.columns.each_with_index do |column, index|
+          if column.name == 'id'
+            conditions << @resource.where(id: @params[:search])
           elsif column.type == :string || column.type == :text
-            query += ' OR ' unless query.empty?
-            query += "lower(#{column.name}) LIKE
-              '#{@params[:search].downcase}%'"
+            conditions << @resource.where(
+              @resource.arel_table[column.name].matches(
+                "%#{@params[:search].downcase}%"))
           end
         end
 
-        query += ')'
+        @resource = @resource.where.or(*conditions)
       end
+    end
 
+    def filter_param
       if @params[:filter]
         @params[:filter].each do |field, value|
-          query += ' AND ' unless query.empty?
 
           operator = nil
           if value.first == '!'
@@ -44,11 +47,23 @@ module Forest
             operator = '='
           end
 
-          query += "#{field} #{operator} '#{value}'"
+          @resource = @resource.where("#{field} #{operator} '#{value}'")
         end
       end
+    end
 
-      query
+    def associations_param
+      associations = @resource.reflect_on_all_associations
+        .select {|x| x.macro == :belongs_to}
+
+      associations.each do |association|
+        name = association.name.to_s
+
+        if @params[name + 'Id']
+          @resource = @resource.where("#{name.foreign_key} =
+                                      #{@params[name + 'Id']}")
+        end
+      end
     end
 
   end

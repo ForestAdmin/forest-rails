@@ -22,10 +22,13 @@ module Forest
         @params[:data][:relationships].each do |name, relationship|
           data = relationship[:data]
 
-          if data.is_a?(Hash) && column?(name.foreign_key)
-            @attributes[name.foreign_key] = data[:id]
+          if column?(name.foreign_key)
+            if data.is_a?(Hash)
+              @attributes[name.foreign_key] = data[:id]
+            elsif !data
+              @attributes[name.foreign_key] = nil
+            end
           end
-
         end
       end
     end

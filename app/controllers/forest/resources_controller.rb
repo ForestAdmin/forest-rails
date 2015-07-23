@@ -5,7 +5,7 @@ module Forest
     before_filter :define_serializers
 
     def index
-      records = @resource.where(search_query)
+      records = search_query
 
       if @resource.column_names.include?('created_at')
         records = records.order('created_at DESC')
