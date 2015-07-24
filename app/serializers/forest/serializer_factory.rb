@@ -1,3 +1,5 @@
+require 'jsonapi-serializers'
+
 module Forest
   class SerializerFactory
     def initialize
@@ -25,9 +27,38 @@ module Forest
 
     def generated_serializer(active_record_class)
       serializer = @serializers[key(active_record_class)] =
-        Class.new(ActiveModel::Serializer)
+        Class.new {
+          include JSONAPI::Serializer
 
-      serializer.attributes(attributes(active_record_class))
+          def self_link
+            "/forest#{super}"
+          end
+
+          def format_name(attribute_name)
+            attribute_name.to_s
+          end
+
+          def unformat_name(attribute_name)
+            attribute_name.to_s.underscore
+          end
+
+          def relationship_self_link(attribute_name)
+            nil
+          end
+
+          def relationship_related_link(attribute_name)
+            relationship_records = object.send(attribute_name)
+            return nil unless relationship_records.respond_to?(:each)
+
+            {
+              meta: { count: relationship_records.count }
+            }
+          end
+        }
+
+      attributes(active_record_class).each do |attr|
+        serializer.attribute(attr)
+      end
 
       associations(active_record_class).each do |association|
         # ignore polymorphic associations for now
@@ -37,6 +68,7 @@ module Forest
                           association.class_name.constantize))
       end
 
+      Forest.const_set("#{active_record_class.name}Serializer", serializer)
       serializer
     end
 

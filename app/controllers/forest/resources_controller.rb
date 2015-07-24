@@ -5,32 +5,32 @@ module Forest
     before_filter :define_serializers
 
     def index
-      records = search_query
+      getter = ResourcesGetter.new(@resource, params)
+      getter.perform
 
-      if @resource.column_names.include?('created_at')
-        records = records.order('created_at DESC')
-      elsif @resource.column_names.include?('id')
-        records = records.order('id DESC')
-      end
-
-      render json: records.limit(10), each_serializer: @serializer,
-        adapter: :json_api, meta: { total: records.count }
+      render json: serialize_models(getter.records.limit(10),
+                                    include: includes,
+                                    count: getter.records.count)
     end
 
     def show
-      render json: @resource.find(params[:id]), serializer: @serializer,
-        adapter: :json_api
+      getter = ResourceGetter.new(@resource, params)
+      getter.perform
+
+      render json: serialize_model(getter.record, include: includes)
     end
 
     def create
       record = @resource.create!(resource_params)
-      render json: record, serializer: @serializer, adapter: :json_api
+      render json: record, serializer: @serializer, adapter: :json_api,
+        include: includes
     end
 
     def update
       record = @resource.find(params[:id])
       record.update_attributes!(resource_params)
-      render json: record, serializer: @serializer, adapter: :json_api
+      render json: record, serializer: @serializer, adapter: :json_api,
+        include: includes
     end
 
     def destroy
@@ -63,8 +63,11 @@ module Forest
       ResourceDeserializer.new(@resource, params).perform
     end
 
-    def search_query
-      SearchQueryBuilder.new(@resource, params).perform
+    def includes
+      @resource
+        .reflect_on_all_associations
+        .select {|a| a.macro == :belongs_to}
+        .map {|a| a.name.to_s }
     end
 
   end

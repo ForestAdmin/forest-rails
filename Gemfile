@@ -18,4 +18,5 @@ group :test do
   gem 'sqlite3'
 end
 
-gem 'active_model_serializers', path: '~/workspace/internal/active_model_serializers'
+#gem 'active_model_serializers', path: '~/workspace/internal/active_model_serializers'
+gem 'jsonapi-serializers'
