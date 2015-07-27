@@ -66,7 +66,7 @@ module Forest
     def includes
       @resource
         .reflect_on_all_associations
-        .select {|a| a.macro == :belongs_to}
+        .select {|a| a.macro == :belongs_to && !a.options[:polymorphic] }
         .map {|a| a.name.to_s }
     end
 
