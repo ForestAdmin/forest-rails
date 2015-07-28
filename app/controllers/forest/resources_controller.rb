@@ -8,9 +8,10 @@ module Forest
       getter = ResourcesGetter.new(@resource, params)
       getter.perform
 
-      render json: serialize_models(getter.records.limit(10),
+      render json: serialize_models(getter.records,
                                     include: includes,
-                                    count: getter.records.count)
+                                    count: getter.count,
+                                    params: params)
     end
 
     def show
@@ -22,15 +23,14 @@ module Forest
 
     def create
       record = @resource.create!(resource_params)
-      render json: record, serializer: @serializer, adapter: :json_api,
-        include: includes
+      render json: serialize_model(record, include: includes)
     end
 
     def update
       record = @resource.find(params[:id])
       record.update_attributes!(resource_params)
-      render json: record, serializer: @serializer, adapter: :json_api,
-        include: includes
+
+      render json: serialize_model(record, include: includes)
     end
 
     def destroy

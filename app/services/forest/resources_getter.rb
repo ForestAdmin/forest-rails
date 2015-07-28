@@ -1,7 +1,5 @@
 module Forest
   class ResourcesGetter
-    attr_accessor :records
-
     def initialize(resource, params)
       @resource = resource
       @params = params
@@ -11,10 +9,18 @@ module Forest
       @records = search_query
 
       if @resource.column_names.include?('created_at')
-        @records = records.order('created_at DESC')
+        @records = @records.order('created_at DESC')
       elsif @resource.column_names.include?('id')
-        @records = records.order('id DESC')
+        @records = @records.order('id DESC')
       end
+    end
+
+    def records
+      @records.offset(offset).limit(limit)
+    end
+
+    def count
+      @records.count
     end
 
     private
@@ -27,6 +33,31 @@ module Forest
       @resource
         .reflect_on_all_associations
         .map {|a| a.name }
+    end
+
+    def offset
+      return 0 unless pagination?
+
+      number = @params[:page][:number]
+      if number && number.to_i > 0
+        (number.to_i - 1) * limit
+      else
+        0
+      end
+    end
+
+    def limit
+      return 10 unless pagination?
+
+      if @params[:page][:size]
+        @params[:page][:size].to_i
+      else
+        10
+      end
+    end
+
+    def pagination?
+      @params[:page] && @params[:page][:number]
     end
 
   end
