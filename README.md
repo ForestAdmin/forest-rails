@@ -9,4 +9,4 @@ The official Rails liana for Forest.
 
 # License
 
-[MIT](https://github.com/SeyZ/forest-rails/blob/master/LICENSE)
+[GPL v3](https://github.com/SeyZ/forest-rails/blob/master/LICENSE)
