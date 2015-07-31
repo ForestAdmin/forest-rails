@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class ResourceGetter
     attr_accessor :record
 

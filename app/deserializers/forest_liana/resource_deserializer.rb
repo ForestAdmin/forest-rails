@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class ResourceDeserializer
 
     def initialize(resource, params)

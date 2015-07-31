@@ -1,6 +1,6 @@
 require 'jwt'
 
-module Forest
+module ForestLiana
   class ApplicationController < ActionController::Base
     before_filter :authenticate_user_from_jwt
 
@@ -23,7 +23,7 @@ module Forest
 
     def authenticate_user_from_jwt
       JWT.decode request.headers[:Authorization].split[1],
-        Forest.jwt_signing_key
+        ForestLiana.jwt_signing_key
     end
 
   end

@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class SchemaAdapter
 
     def initialize(model)
@@ -82,7 +82,8 @@ module Forest
     end
 
     def get_type_for_association(association)
-      if association.macro == :has_many
+      if association.macro == :has_many ||
+        association.macro == :has_and_belongs_to_many
         ['Number']
       else
         'Number'

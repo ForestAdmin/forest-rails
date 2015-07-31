@@ -20,3 +20,4 @@ end
 
 #gem 'active_model_serializers', path: '~/workspace/internal/active_model_serializers'
 gem 'jsonapi-serializers'
+gem 'rack-cors', :require => 'rack/cors'

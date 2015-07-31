@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class SchemaAdapterTest < ActiveSupport::TestCase
     test 'Date should have the type `Date`' do
       schema = SchemaAdapter.new(DateField).perform

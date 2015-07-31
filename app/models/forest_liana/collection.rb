@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class Collection
 
     include ActiveModel::Validations

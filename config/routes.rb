@@ -1,4 +1,4 @@
-Forest::Engine.routes.draw do
+ForestLiana::Engine.routes.draw do
   get '/' => 'apimaps#index'
   get ':resource' => 'resources#index'
   get ':resource/:id' => 'resources#show'

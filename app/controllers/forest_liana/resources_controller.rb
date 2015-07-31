@@ -1,5 +1,5 @@
-module Forest
-  class ResourcesController < Forest::ApplicationController
+module ForestLiana
+  class ResourcesController < ForestLiana::ApplicationController
 
     before_filter :find_resource
     before_filter :define_serializers

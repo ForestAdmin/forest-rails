@@ -1,12 +1,12 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "forest/version"
+require "forest_liana/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "forest"
-  s.version     = Forest::VERSION
+  s.name        = "forest_liana"
+  s.version     = ForestLiana::VERSION
   s.authors     = ["Sandro Munda"]
   s.email       = ["sandro@munda.me"]
   s.homepage    = nil
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 
   s.add_runtime_dependency "rails", "~> 4.0"
-  #s.add_runtime_dependency "active_model_serializers", "0.10.0.rc2"
   s.add_runtime_dependency "jsonapi-serializers", "~> 0.2.6"
   s.add_runtime_dependency "jwt", "~> 1.5"
+  s.add_runtime_dependency "rack-cors", "~> 0.4.0"
 end

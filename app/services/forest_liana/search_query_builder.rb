@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class SearchQueryBuilder
 
     def initialize(resource, params)

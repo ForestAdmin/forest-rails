@@ -1,4 +1,4 @@
-module Forest
+module ForestLiana
   class ResourcesGetter
     def initialize(resource, params)
       @resource = resource

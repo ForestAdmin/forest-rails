@@ -1,5 +1,7 @@
-module Forest
-  class ApimapsController < Forest::ApplicationController
+require 'jsonapi-serializers'
+
+module ForestLiana
+  class ApimapsController < ForestLiana::ApplicationController
     def index
       result = []
 
@@ -12,8 +14,7 @@ module Forest
         end
       end
 
-      render json: result, each_serializer: ApimapSerializer,
-        adapter: :json_api
+      render json: serialize_models(result, serializer: ApimapSerializer)
     end
   end
 end
