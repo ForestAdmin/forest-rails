@@ -21,29 +21,50 @@ module ForestLiana
     private
 
     def search_query
-      SearchQueryBuilder.new(@resource.includes(includes), @params).perform
+      SearchQueryBuilder.new(@resource.joins(includes), @params).perform
     end
 
     def sort_query
-      query = {}
+      query = nil
 
       if @params[:sort]
         @params[:sort].split(',').each do |field|
-          order = :asc
-          if field[0] === '-'
-            order = :desc
-            field.slice!(0)
-          end
+          order = detect_sort_order(@params[:sort])
+          field.slice!(0) if order == :desc
+          field = detect_reference(field)
 
-          query[field] = order
+          query = "#{field} #{order.upcase}"
         end
       elsif @resource.column_names.include?('created_at')
-        query[:created_at] = :desc
+        query = 'created_at DESC'
       elsif @resource.column_names.include?('id')
-        query[:id] = :desc
+        query = 'id DESC'
+      else
+        return @records
       end
 
       @records.order(query)
+    end
+
+    def detect_sort_order(field)
+      return (if field[0] == '-' then :desc else :asc end)
+    end
+
+    def detect_reference(param)
+      ref, field = param.split('.')
+
+      if ref && field
+        association = @resource.reflect_on_all_associations
+          .find {|a| a.name == ref.to_sym }
+
+        if association
+          "#{association.class_name.to_s.underscore.pluralize}.#{field}"
+        else
+          param
+        end
+      else
+        param
+      end
     end
 
     def includes
