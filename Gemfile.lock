@@ -114,7 +114,7 @@ PLATFORMS
 DEPENDENCIES
   byebug
   forest_liana!
-  jsonapi-serializers
+  jsonapi-serializers (~> 0.2.6)
   rack-cors
   rake
   sqlite3
