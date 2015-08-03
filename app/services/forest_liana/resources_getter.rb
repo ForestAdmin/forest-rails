@@ -68,8 +68,10 @@ module ForestLiana
     end
 
     def includes
+      # avoid .joins on polymorphic associations
       @resource
         .reflect_on_all_associations
+        .select {|a| a.options[:polymorphic].blank?}
         .map {|a| a.name }
     end
 
