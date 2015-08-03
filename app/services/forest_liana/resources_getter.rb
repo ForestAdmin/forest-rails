@@ -7,12 +7,7 @@ module ForestLiana
 
     def perform
       @records = search_query
-
-      if @resource.column_names.include?('created_at')
-        @records = @records.order('created_at DESC')
-      elsif @resource.column_names.include?('id')
-        @records = @records.order('id DESC')
-      end
+      @records = sort_query
     end
 
     def records
@@ -27,6 +22,28 @@ module ForestLiana
 
     def search_query
       SearchQueryBuilder.new(@resource.includes(includes), @params).perform
+    end
+
+    def sort_query
+      query = {}
+
+      if @params[:sort]
+        @params[:sort].split(',').each do |field|
+          order = :asc
+          if field[0] === '-'
+            order = :desc
+            field.slice!(0)
+          end
+
+          query[field] = order
+        end
+      elsif @resource.column_names.include?('created_at')
+        query[:created_at] = :desc
+      elsif @resource.column_names.include?('id')
+        query[:id] = :desc
+      end
+
+      @records.order(query)
     end
 
     def includes
