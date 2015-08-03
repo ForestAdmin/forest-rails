@@ -3,9 +3,9 @@ The official Rails liana for Forest.
 
 ## Installation
 
-1. Add this line `gem 'forest-rails'` to your application's Gemfile
+1. Add this line `gem 'forest_liana'` to your application's Gemfile
 2. Run `$ bundle`
-3. Run `$ rails g forest:install`
+3. Run `$ rails g forest_liana:install`
 
 # License
 
