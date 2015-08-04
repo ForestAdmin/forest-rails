@@ -17,8 +17,8 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_runtime_dependency "rails", "~> 4.0"
-  s.add_runtime_dependency "jsonapi-serializers", "~> 0.2.6"
-  s.add_runtime_dependency "jwt", "~> 1.5"
-  s.add_runtime_dependency "rack-cors", "~> 0.4.0"
+  s.add_runtime_dependency "rails", ">= 3.0"
+  s.add_runtime_dependency "jsonapi-serializers"
+  s.add_runtime_dependency "jwt"
+  s.add_runtime_dependency "rack-cors"
 end

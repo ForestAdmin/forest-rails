@@ -22,7 +22,7 @@ module ForestLiana
     end
 
     def authenticate_user_from_jwt
-      JWT.decode request.headers[:Authorization].split[1],
+      JWT.decode request.headers['Authorization'].split[1],
         ForestLiana.jwt_signing_key
     end
 

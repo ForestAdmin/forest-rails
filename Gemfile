@@ -11,12 +11,12 @@ gemspec
 # your gem to rubygems.org.
 
 # To use a debugger
-gem 'byebug', group: [:development, :test]
+#gem 'byebug', group: [:development, :test]
 
 group :test do
   gem 'rake'
   gem 'sqlite3'
 end
 
-gem 'jsonapi-serializers', '~> 0.2.6'
-gem 'rack-cors', :require => 'rack/cors'
+gem 'jsonapi-serializers'
+gem 'rack-cors'

@@ -21,7 +21,7 @@ module ForestLiana
     private
 
     def search_query
-      SearchQueryBuilder.new(@resource.joins(includes), @params).perform
+      SearchQueryBuilder.new(@resource.includes(includes), @params).perform
     end
 
     def sort_query
@@ -68,10 +68,8 @@ module ForestLiana
     end
 
     def includes
-      # avoid .joins on polymorphic associations
       @resource
         .reflect_on_all_associations
-        .select {|a| a.options[:polymorphic].blank?}
         .map {|a| a.name }
     end
 

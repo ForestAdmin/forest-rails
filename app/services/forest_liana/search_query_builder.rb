@@ -20,15 +20,14 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           if column.name == 'id'
-            conditions << @resource.where(id: @params[:search])
+            conditions << "id = #{@params[:search].to_i}"
           elsif column.type == :string || column.type == :text
-            conditions << @resource.where(
-              @resource.arel_table[column.name].matches(
-                "%#{@params[:search].downcase}%"))
+            conditions <<
+              "#{column.name} LIKE '%#{@params[:search].downcase}%'"
           end
         end
 
-        @resource = @resource.where.or(*conditions)
+        @resource = @resource.where(conditions.join(' OR '))
       end
     end
 
