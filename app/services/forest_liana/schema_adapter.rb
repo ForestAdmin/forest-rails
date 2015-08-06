@@ -1,6 +1,5 @@
 module ForestLiana
   class SchemaAdapter
-
     def initialize(model)
       @model = model
     end
@@ -22,17 +21,34 @@ module ForestLiana
     end
 
     def add_associations
-      @model.reflect_on_all_associations.each do |association|
-        next if association.options[:through]
-
-        if schema = column_association(@collection, association)
-          schema[:reference] = get_ref_for(association)
-          schema[:field] = deforeign_key(schema[:field])
-          #schema[:inverseOf] = association.inverse_of.try(:name).try(:to_s)
-        else
-          @collection.fields << get_schema_for_association(association)
+      SchemaUtils.associations(@model).each do |association|
+        begin
+          if schema = column_association(@collection, association)
+            schema[:reference] = get_ref_for(association)
+            schema[:field] = deforeign_key(schema[:field])
+            schema[:inverseOf] = inverse_of(association)
+          else
+            @collection.fields << get_schema_for_association(association)
+          end
+        rescue => error
+          puts error.inspect
         end
       end
+    end
+
+    def inverse_of(association)
+      association.inverse_of.try(:name).try(:to_s) ||
+        automatic_inverse_of(association)
+    end
+
+    def automatic_inverse_of(association)
+      name = association.active_record.name.demodulize.underscore
+
+      inverse_association = association.klass.reflections.keys.find do |k|
+        k.to_s == name || k.to_s == name.pluralize
+      end
+
+      inverse_association.try(:to_s)
     end
 
     def get_schema_for_column(column)
@@ -44,7 +60,7 @@ module ForestLiana
         field: association.name.to_s,
         type: get_type_for_association(association),
         reference: "#{association.class_name.to_s.tableize}.id",
-        inverseOf: deforeign_key(association.foreign_key)
+        inverseOf: inverse_of(association)
       }
     end
 

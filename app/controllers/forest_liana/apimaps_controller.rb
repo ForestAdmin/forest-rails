@@ -5,16 +5,14 @@ module ForestLiana
     def index
       result = []
 
-      ActiveRecord::Base.connection.tables.map do |model_name|
-        begin
-          model = model_name.classify.constantize
-          result << SchemaAdapter.new(model).perform
-        rescue => error
-          puts error.inspect
-        end
+      SchemaUtils.tables_names.map do |table_name|
+        model = SchemaUtils.find_model_from_table_name(table_name)
+        result << SchemaAdapter.new(model).perform if model.try(:table_exists?)
       end
 
       render json: serialize_models(result, serializer: ApimapSerializer)
     end
+
+
   end
 end

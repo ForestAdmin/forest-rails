@@ -2,6 +2,12 @@ require 'jsonapi-serializers'
 
 module ForestLiana
   class SerializerFactory
+
+    def self.define_serializer(active_record_class, serializer)
+      ForestLiana.const_set("#{active_record_class.name.demodulize}Serializer",
+                           serializer)
+    end
+
     def serializer_for(active_record_class)
       serializer = Class.new {
         include JSONAPI::Serializer
@@ -40,13 +46,12 @@ module ForestLiana
         serializer.attribute(attr)
       end
 
-      associations(active_record_class).each do |association|
-        # ignore polymorphic associations for now
-        next if association.options[:polymorphic]
-        serializer.send(serializer_association(association), association.name)
+      SchemaUtils.associations(active_record_class).each do |a|
+        serializer.send(serializer_association(a), a.name)
       end
 
-      ForestLiana.const_set("#{active_record_class.name}Serializer", serializer)
+      SerializerFactory.define_serializer(active_record_class, serializer)
+
       serializer
     end
 
@@ -71,21 +76,12 @@ module ForestLiana
       end
     end
 
-    def associations(active_record_class)
-      active_record_class.reflect_on_all_associations
-    end
-
     def association?(active_record_class, column_name)
       foreign_keys(active_record_class).include?(column_name)
     end
 
     def foreign_keys(active_record_class)
-      associations(active_record_class).map do |association|
-        if association.foreign_key.blank?
-          byebug
-        end
-        association.foreign_key
-      end
+      SchemaUtils.associations(active_record_class).map(&:foreign_key)
     end
 
   end

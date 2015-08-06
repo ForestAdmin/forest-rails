@@ -68,9 +68,8 @@ module ForestLiana
     end
 
     def includes
-      @resource
-        .reflect_on_all_associations
-        .map {|a| a.name }
+      SchemaUtils.associations(@resource).select {|x| !x.options[:through]}
+        .map(&:name)
     end
 
     def offset

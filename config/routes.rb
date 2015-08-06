@@ -4,6 +4,6 @@ ForestLiana::Engine.routes.draw do
   get ':resource/:id' => 'resources#show'
   get ':resource/:id' => 'resources#show'
   post ':resource' => 'resources#create'
-  patch ':resource/:id' => 'resources#update'
+  put ':resource/:id' => 'resources#update'
   delete ':resource/:id' => 'resources#destroy'
 end

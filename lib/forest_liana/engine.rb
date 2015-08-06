@@ -12,10 +12,17 @@ module ForestLiana
     end
 
     config.after_initialize do
-      ActiveRecord::Base.connection.tables.map do |model_name|
-        begin
-          SerializerFactory.new.serializer_for(model_name.classify.constantize)
-        rescue NameError
+      SchemaUtils.tables_names.map do |table_name|
+        model = SchemaUtils.find_model_from_table_name(table_name)
+        SerializerFactory.new.serializer_for(model) if \
+          model.try(:table_exists?)
+      end
+
+      # Monkey patch the find_serializer_class_name method to specify the good
+      # serializer to use.
+      JSONAPI::Serializer.class_eval do
+        def self.find_serializer_class_name(obj)
+          "ForestLiana::#{obj.class.name.demodulize}Serializer"
         end
       end
     end
