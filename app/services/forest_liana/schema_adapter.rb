@@ -59,7 +59,7 @@ module ForestLiana
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        reference: "#{association.class_name.to_s.tableize}.id",
+        reference: "#{association.klass.table_name.dasherize}.id",
         inverseOf: inverse_of(association)
       }
     end
@@ -89,7 +89,7 @@ module ForestLiana
       if association.options[:polymorphic] == true
         '*.id'
       else
-        "#{association.class_name.to_s.tableize}.id"
+        "#{association.klass.table_name.dasherize}.id"
       end
     end
 

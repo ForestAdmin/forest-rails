@@ -22,7 +22,7 @@ module ForestLiana
       # serializer to use.
       JSONAPI::Serializer.class_eval do
         def self.find_serializer_class_name(obj)
-          "ForestLiana::#{obj.class.name.demodulize}Serializer"
+          SerializerFactory.get_serializer_name(obj.class)
         end
       end
     end
