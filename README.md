@@ -1,4 +1,4 @@
-# Forest Rails Liana [![Build Status](https://travis-ci.org/SeyZ/forest-rails.svg?branch=master)](https://travis-ci.org/SeyZ/forest-rails)
+# Forest Rails Liana [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
 The official Rails liana for Forest.
 
 ## Installation
