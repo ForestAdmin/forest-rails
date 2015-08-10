@@ -40,7 +40,8 @@ module ForestLiana
       assert schema.fields.include?({
         field: 'has_one_field',
         type: 'Number',
-        reference: 'has_one_fields.id'
+        reference: 'has_one_fields.id',
+        inverseOf: 'belongs_to_field'
       })
     end
 
@@ -64,15 +65,6 @@ module ForestLiana
       })
     end
 
-    test 'belongsTo relationhip with specified class_name' do
-      schema = SchemaAdapter.new(BelongsToClassNameField).perform
-      assert schema.fields.include?({
-        field: 'foo',
-        type: 'Number',
-        reference: 'has_one_fields.id'
-      })
-    end
-
     test 'hasMany relationhip with specified class_name' do
       schema = SchemaAdapter.new(HasManyClassNameField).perform
       assert schema.fields.include?({
@@ -80,6 +72,16 @@ module ForestLiana
         type: ['Number'],
         reference: 'belongs_to_fields.id',
         inverseOf: 'has_many_class_name_field'
+      })
+    end
+
+    test 'belongsTo relationhip with specified class_name' do
+      schema = SchemaAdapter.new(BelongsToClassNameField).perform
+      assert schema.fields.include?({
+        field: 'foo',
+        type: 'Number',
+        reference: 'has_one_fields.id',
+        inverseOf: 'belongs_to_class_name_field'
       })
     end
 
