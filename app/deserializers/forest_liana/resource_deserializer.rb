@@ -14,13 +14,13 @@ module ForestLiana
     end
 
     def extract_attributes
-      @params.require(:data).require(:attributes).permit!
+      @params['data']['attributes']
     end
 
     def extract_relationships
-      if @params[:data][:relationships]
-        @params[:data][:relationships].each do |name, relationship|
-          data = relationship[:data]
+      if @params['data']['relationships']
+        @params['data']['relationships'].each do |name, relationship|
+          data = relationship['data']
 
           if column?(name.foreign_key)
             if data.is_a?(Hash)

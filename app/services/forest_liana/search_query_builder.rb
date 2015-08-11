@@ -52,8 +52,7 @@ module ForestLiana
     end
 
     def associations_param
-      associations = @resource.reflect_on_all_associations
-        .select {|x| x.macro == :belongs_to}
+      associations = @resource.reflect_on_all_associations(:belongs_to)
 
       associations.each do |association|
         name = association.name.to_s

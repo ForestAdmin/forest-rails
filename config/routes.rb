@@ -1,9 +1,9 @@
 ForestLiana::Engine.routes.draw do
   get '/' => 'apimaps#index'
-  get ':resource' => 'resources#index'
-  get ':resource/:id' => 'resources#show'
-  get ':resource/:id' => 'resources#show'
-  post ':resource' => 'resources#create'
-  put ':resource/:id' => 'resources#update'
-  delete ':resource/:id' => 'resources#destroy'
+  get ':collection' => 'resources#index'
+  get ':collection/:id' => 'resources#show'
+  get ':collection/:id' => 'resources#show'
+  post ':collection' => 'resources#create'
+  put ':collection/:id' => 'resources#update'
+  delete ':collection/:id' => 'resources#destroy'
 end

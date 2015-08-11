@@ -21,13 +21,13 @@ module ForestLiana
     end
 
     def create
-      record = @resource.create!(resource_params)
+      record = @resource.create!(resource_params, without_protection: true)
       render json: serialize_model(record, include: includes)
     end
 
     def update
       record = @resource.find(params[:id])
-      record.update_attributes!(resource_params)
+      record.update_attributes!(resource_params, without_protection: true)
 
       render json: serialize_model(record, include: includes)
     end
@@ -40,7 +40,7 @@ module ForestLiana
     private
 
     def find_resource
-      @resource = SchemaUtils.find_model_from_table_name(params[:resource])
+      @resource = SchemaUtils.find_model_from_table_name(params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
         render json: {status: 404}, status: :not_found
@@ -48,7 +48,7 @@ module ForestLiana
     end
 
     def resource_params
-      ResourceDeserializer.new(@resource, params).perform
+      ResourceDeserializer.new(@resource, params[:resource]).perform
     end
 
     def includes
