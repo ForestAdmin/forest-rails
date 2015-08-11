@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.0.0.beta7)
+    forest_liana (1.0.0)
       jsonapi-serializers
       jwt
       rack-cors
