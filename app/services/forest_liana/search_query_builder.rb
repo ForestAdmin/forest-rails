@@ -23,7 +23,7 @@ module ForestLiana
             conditions << "id = #{@params[:search].to_i}"
           elsif column.type == :string || column.type == :text
             conditions <<
-              "#{column.name} LIKE '%#{@params[:search].downcase}%'"
+              "#{column.name} ILIKE '%#{@params[:search].downcase}%'"
           end
         end
 
@@ -40,7 +40,7 @@ module ForestLiana
             operator = '!='
             value.slice!(0)
           elsif value.include?('*')
-            operator = 'LIKE'
+            operator = 'ILIKE'
             value.gsub!('*', '%')
           else
             operator = '='
