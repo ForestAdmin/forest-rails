@@ -20,7 +20,8 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           if column.name == 'id'
-            conditions << "id = #{@params[:search].to_i}"
+            conditions << "#{@resource.table_name}.id =
+              #{@params[:search].to_i}"
           elsif column.type == :string || column.type == :text
             conditions <<
               "#{column.name} ILIKE '%#{@params[:search].downcase}%'"
