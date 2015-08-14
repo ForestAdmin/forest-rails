@@ -1,0 +1,29 @@
+has_many_through_field_1:
+  id: 1
+
+has_many_through_field_2:
+  id: 2
+
+has_many_through_field_3:
+  id: 3
+
+has_many_through_field_4:
+  id: 4
+
+has_many_through_field_5:
+  id: 5
+
+has_many_through_field_6:
+  id: 6
+
+has_many_through_field_7:
+  id: 7
+
+has_many_through_field_8:
+  id: 8
+
+has_many_through_field_9:
+  id: 9
+
+has_many_through_field_10:
+  id: 10

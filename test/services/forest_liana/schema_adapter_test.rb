@@ -58,7 +58,7 @@ module ForestLiana
     test 'hasMany relationship' do
       schema = SchemaAdapter.new(HasManyField).perform
       assert schema.fields.include?({
-        field: 'belongs_to_field',
+        field: 'belongs_to_fields',
         type: ['Number'],
         reference: 'belongs_to_fields.id',
         inverseOf: 'has_many_field'
