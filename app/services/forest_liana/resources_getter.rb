@@ -31,7 +31,7 @@ module ForestLiana
           field.slice!(0) if order == :desc
           field = detect_reference(field)
 
-          association = @resource.reflections[field.to_sym]
+          association = @resource.reflect_on_association(field.to_sym)
           if association.try(:macro) == :has_many
             @records = has_many_sort(association, order)
           elsif association.try(:macro) == :has_and_belongs_to_many

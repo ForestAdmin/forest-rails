@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150623115554) do
+ActiveRecord::Schema.define(version: 20150814081918) do
 
   create_table "belongs_to_class_name_fields", force: :cascade do |t|
     t.integer "foo_id"
@@ -21,8 +21,12 @@ ActiveRecord::Schema.define(version: 20150623115554) do
 
   create_table "belongs_to_fields", force: :cascade do |t|
     t.integer "has_one_field_id"
+    t.integer "has_many_class_name_field_id"
+    t.integer "has_many_field_id"
   end
 
+  add_index "belongs_to_fields", ["has_many_class_name_field_id"], name: "index_belongs_to_fields_on_has_many_class_name_field_id"
+  add_index "belongs_to_fields", ["has_many_field_id"], name: "index_belongs_to_fields_on_has_many_field_id"
   add_index "belongs_to_fields", ["has_one_field_id"], name: "index_belongs_to_fields_on_has_one_field_id"
 
   create_table "boolean_fields", force: :cascade do |t|
@@ -48,6 +52,12 @@ ActiveRecord::Schema.define(version: 20150623115554) do
   end
 
   create_table "has_many_fields", force: :cascade do |t|
+    t.integer "has_many_through_field_id"
+  end
+
+  add_index "has_many_fields", ["has_many_through_field_id"], name: "index_has_many_fields_on_has_many_through_field_id"
+
+  create_table "has_many_through_fields", force: :cascade do |t|
   end
 
   create_table "has_one_fields", force: :cascade do |t|
