@@ -20,3 +20,4 @@ end
 
 gem 'jsonapi-serializers'
 gem 'rack-cors'
+gem 'arel-helpers'

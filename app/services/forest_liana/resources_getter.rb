@@ -32,14 +32,8 @@ module ForestLiana
           field = detect_reference(field)
 
           association = @resource.reflect_on_association(field.to_sym)
-          if association.try(:macro) == :has_many
-            if association.options[:through]
-              @records = has_many_through_sort(association, order)
-            else
-              @records = has_many_sort(association, order)
-            end
-          elsif association.try(:macro) == :has_and_belongs_to_many
-            @records = has_and_belongs_to_many(association, order)
+          if [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
+            @records = has_many_sort(association, order)
           else
             @records = @records.order("#{field} #{order.upcase}")
           end
@@ -57,34 +51,12 @@ module ForestLiana
 
     def has_many_sort(association, order)
       @records
-        .select("t1.*, COUNT(t2.id) has_many_count")
-        .joins("AS t1 LEFT JOIN #{association.klass.table_name} AS t2
-               ON t1.id = t2.#{association.foreign_key}")
-      .group("t1.id")
-      .order("has_many_count #{order.upcase}")
-    end
-
-    def has_many_through_sort(association, order)
-      @records
-        .select("t1.*, COUNT(t3.id) has_many_count")
-        .joins("AS t1 LEFT JOIN #{association.options[:through]} AS t2
-               ON t1.id = t2.#{association.active_record.name.foreign_key}")
-        .joins("LEFT JOIN #{association.klass.table_name} AS t3
-               ON t3.#{association.foreign_key} = t2.id")
-      .group("t1.id")
-      .order("has_many_count #{order.upcase}")
-    end
-
-    def has_and_belongs_to_many(association, order)
-      @records
-        .select("t1.*, COUNT(t3.id) has_many_count")
-        .joins("AS t1 LEFT JOIN #{association.options[:join_table]} AS t2
-               ON t1.id = t2.#{association.foreign_key}")
-        .joins("LEFT JOIN #{association.klass.table_name} AS t3
-               ON t3.id = t2.#{association.options[:association_foreign_key] ||
-                association.klass.name.foreign_key}")
-      .group("t1.id")
-      .order("has_many_count #{order.upcase}")
+        .select("#{@resource.table_name}.*,
+                COUNT(#{association.table_name}.id) has_many_count")
+        .joins(ArelHelpers.join_association(@resource, association.name,
+                                            Arel::Nodes::OuterJoin))
+        .group("#{@resource.table_name}.id")
+        .order("has_many_count #{order.upcase}")
     end
 
     def detect_sort_order(field)

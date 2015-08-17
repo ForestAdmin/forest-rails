@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "jsonapi-serializers"
   s.add_runtime_dependency "jwt"
   s.add_runtime_dependency "rack-cors"
+  s.add_runtime_dependency "arel-helpers"
 end
