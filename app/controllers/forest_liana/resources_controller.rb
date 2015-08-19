@@ -21,13 +21,23 @@ module ForestLiana
     end
 
     def create
-      record = @resource.create!(resource_params, without_protection: true)
+      if Rails::VERSION::MAJOR == 4
+        record = @resource.create!(resource_params.permit!)
+      else
+        record = @resource.create!(resource_params, without_protection: true)
+      end
+
       render json: serialize_model(record, include: includes)
     end
 
     def update
       record = @resource.find(params[:id])
-      record.update_attributes!(resource_params, without_protection: true)
+
+      if Rails::VERSION::MAJOR == 4
+        record.update_attributes!(resource_params.permit!)
+      else
+        record.update_attributes!(resource_params, without_protection: true)
+      end
 
       render json: serialize_model(record, include: includes)
     end
