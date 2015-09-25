@@ -40,6 +40,12 @@ module ForestLiana
           if value.first == '!'
             operator = '!='
             value.slice!(0)
+          elsif value.first == '>'
+            operator = '>'
+            value.slice!(0)
+          elsif value.first == '<'
+            operator = '<'
+            value.slice!(0)
           elsif value.include?('*')
             operator = 'ILIKE'
             value.gsub!('*', '%')
