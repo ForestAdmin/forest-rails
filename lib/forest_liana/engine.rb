@@ -1,4 +1,5 @@
 require 'rack/cors'
+require 'stripe'
 
 module ForestLiana
   class Engine < ::Rails::Engine

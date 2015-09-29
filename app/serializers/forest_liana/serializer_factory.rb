@@ -14,13 +14,17 @@ module ForestLiana
     end
 
     def self.get_serializer_name(active_record_class)
-      class_name = active_record_class.table_name.classify
-      module_name = class_name.deconstantize
+      if active_record_class == Stripe::Charge
+        "ForestLiana::StripePaymentSerializer"
+      else
+        class_name = active_record_class.table_name.classify
+        module_name = class_name.deconstantize
 
-      name = module_name if module_name
-      name += class_name.demodulize
+        name = module_name if module_name
+        name += class_name.demodulize
 
-      "ForestLiana::#{name}Serializer"
+        "ForestLiana::#{name}Serializer"
+      end
     end
 
     def serializer_for(active_record_class)
