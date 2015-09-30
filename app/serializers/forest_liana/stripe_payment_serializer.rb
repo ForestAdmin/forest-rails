@@ -3,12 +3,13 @@ module ForestLiana
     include JSONAPI::Serializer
 
     attribute :description
-    attribute :customer
     attribute :refunded
     attribute :currency
     attribute :status
     attribute :amount
     attribute :created
+
+    has_one :customer
 
     def self_link
       "/forest#{super}"
@@ -27,6 +28,10 @@ module ForestLiana
     end
 
     def relationship_self_link(attribute_name)
+      nil
+    end
+
+    def relationship_related_link(attribute_name)
       nil
     end
   end
