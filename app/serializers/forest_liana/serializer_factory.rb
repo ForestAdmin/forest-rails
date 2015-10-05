@@ -16,6 +16,8 @@ module ForestLiana
     def self.get_serializer_name(active_record_class)
       if active_record_class == Stripe::Charge
         "ForestLiana::StripePaymentSerializer"
+      elsif active_record_class == Stripe::Card
+        "ForestLiana::StripeCardSerializer"
       else
         class_name = active_record_class.table_name.classify
         module_name = class_name.deconstantize

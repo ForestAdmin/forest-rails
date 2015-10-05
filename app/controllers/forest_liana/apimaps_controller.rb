@@ -12,7 +12,5 @@ module ForestLiana
 
       render json: serialize_models(result, serializer: ApimapSerializer)
     end
-
-
   end
 end

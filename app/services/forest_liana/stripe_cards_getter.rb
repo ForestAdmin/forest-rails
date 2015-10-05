@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripePaymentsGetter
+  class StripeCardsGetter
     attr_accessor :records
 
     def initialize(params, secret_key, reference)
@@ -9,7 +9,7 @@ module ForestLiana
     end
 
     def count
-      @charges.try(:total_count) || 0
+      @cards.try(:total_count) || 0
     end
 
     def perform
@@ -23,28 +23,20 @@ module ForestLiana
           if @params[:page][:firstItemId]
       end
 
-      if reference_model_id
         resource = @reference_model.find(reference_model_id)
-        params[:customer] = resource[@reference_field]
+        @customer = resource[@reference_field]
 
-        if params[:customer]
-          fetch_charges(params)
-        else
-          @records = []
-        end
-      else
-        fetch_charges(params)
-      end
+        fetch_cards(params)
     end
 
-    def fetch_charges(params)
+    def fetch_cards(params)
+      params[:limit] = 10
+      params[:object] = 'card'
       params['include[]'] = 'total_count'
 
-      @charges = Stripe::Charge.all(params)
-      @records = @charges.data.map do |d|
-        d.created = Time.at(d.created).to_datetime
-        d.amount /= 100
+      @cards = Stripe::Customer.retrieve(@customer).sources.all(params)
 
+      @records = @cards.data.map do |d|
         query = {}
         query[@reference_field] = d.customer
         d.customer = @reference_model.find_by(query)

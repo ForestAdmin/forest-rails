@@ -18,7 +18,7 @@ module ForestLiana
         json[:meta][:count] = options[:count]
       end
 
-      if options[:has_more]
+      if !options[:has_more].nil?
         json[:meta] = {} unless json[:meta]
         json[:meta][:has_more] = options[:has_more]
       end
