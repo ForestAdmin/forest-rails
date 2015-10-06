@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripeCardsGetter
+  class StripeInvoicesGetter
     attr_accessor :records
 
     def initialize(params, secret_key, reference)
@@ -9,29 +9,38 @@ module ForestLiana
     end
 
     def count
-      @cards.try(:total_count) || 0
+      @invoices.try(:total_count) || 0
     end
 
     def perform
-      params = { limit: limit, offset: offset, object: 'card' }
-      params['include[]'] = 'total_count'
+      query = { limit: limit, offset: offset }
 
-      resource = @reference_model.find(reference_model_id)
-      customer = resource[@reference_field]
+      if reference_model_id
+        resource = @reference_model.find(reference_model_id)
+        query[:customer] = resource[@reference_field]
+      end
 
-      fetch_cards(customer, params)
-    end
+      query['include[]'] = 'total_count'
+      @invoices = fetch_invoices(query)
 
-    def fetch_cards(customer, params)
-      @cards = Stripe::Customer.retrieve(customer).sources.all(params)
+      @records = @invoices.data.map do |d|
+        d.date = Time.at(d.date).to_datetime
+        d.period_start = Time.at(d.period_start).to_datetime
+        d.period_end = Time.at(d.period_end).to_datetime
+        d.subtotal /= 100
+        d.total /= 100
 
-      @records = @cards.data.map do |d|
         query = {}
         query[@reference_field] = d.customer
         d.customer = @reference_model.find_by(query)
 
         d
       end
+    end
+
+    def fetch_invoices(params)
+      return if reference_model_id && params[:customer].blank?
+      Stripe::Invoice.all(params)
     end
 
     def reference_model(reference)
@@ -69,5 +78,7 @@ module ForestLiana
     def pagination?
       @params[:page] && @params[:page][:number]
     end
+
   end
 end
+

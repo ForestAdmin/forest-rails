@@ -1,6 +1,8 @@
 ForestLiana::Engine.routes.draw do
   get 'stripe_payments' => 'stripe#payments'
+  post 'stripe_payments/refunds' => 'stripe#refund'
   get 'stripe_cards' => 'stripe#cards'
+  get 'stripe_invoices' => 'stripe#invoices'
 
   get '/' => 'apimaps#index'
   get ':collection' => 'resources#index'

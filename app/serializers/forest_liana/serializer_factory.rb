@@ -18,6 +18,8 @@ module ForestLiana
         "ForestLiana::StripePaymentSerializer"
       elsif active_record_class == Stripe::Card
         "ForestLiana::StripeCardSerializer"
+      elsif active_record_class == Stripe::Invoice
+        "ForestLiana::StripeInvoiceSerializer"
       else
         class_name = active_record_class.table_name.classify
         module_name = class_name.deconstantize
