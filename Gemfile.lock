@@ -1,12 +1,13 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.0.7)
+    forest_liana (1.0.8)
       arel-helpers
       jsonapi-serializers
       jwt
       rack-cors
       rails (>= 3.0)
+      stripe
 
 GEM
   remote: https://rubygems.org/
