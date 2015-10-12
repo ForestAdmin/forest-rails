@@ -1,5 +1,6 @@
 require 'rack/cors'
 require 'stripe'
+require 'jsonapi-serializers'
 
 module ForestLiana
   class Engine < ::Rails::Engine
