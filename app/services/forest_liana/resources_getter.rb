@@ -39,7 +39,7 @@ module ForestLiana
           end
         end
       elsif @resource.column_names.include?('created_at')
-        @records = @records.order('created_at DESC')
+        @records = @records.order("#{@resource.table_name}.created_at DESC")
       elsif @resource.column_names.include?('id')
         @records = @records.order("#{@resource.table_name}.id DESC")
       else
