@@ -27,8 +27,12 @@ module ForestLiana
     end
 
     def authenticate_user_from_jwt
-      JWT.decode request.headers['Authorization'].split[1],
-        ForestLiana.jwt_signing_key
+      if request.headers['Authorization']
+        JWT.decode request.headers['Authorization'].split[1],
+          ForestLiana.jwt_signing_key
+      else
+        render nothing: true, status: 401
+      end
     end
 
   end
