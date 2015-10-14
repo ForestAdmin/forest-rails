@@ -2,16 +2,17 @@ module ForestLiana
   class SearchQueryBuilder
 
     def initialize(resource, params)
-      @resource = resource
+      @resource = @records = resource
       @params = params
     end
 
     def perform
-      search_param
-      filter_param
-      associations_param
+      @records = search_param
+      @records = filter_param
+      @records = associations_param
+      @records = has_many_filter
 
-      @resource
+      @records
     end
 
     def search_param
@@ -28,34 +29,35 @@ module ForestLiana
           end
         end
 
-        @resource = @resource.where(conditions.join(' OR '))
+        @records = @resource.where(conditions.join(' OR '))
       end
+
+      @records
     end
 
     def filter_param
       if @params[:filter]
         @params[:filter].each do |field, value|
+          next if association?(field)
 
-          operator = nil
-          if value.first == '!'
-            operator = '!='
-            value.slice!(0)
-          elsif value.first == '>'
-            operator = '>'
-            value.slice!(0)
-          elsif value.first == '<'
-            operator = '<'
-            value.slice!(0)
-          elsif value.include?('*')
-            operator = 'ILIKE'
-            value.gsub!('*', '%')
-          else
-            operator = '='
-          end
-
-          @resource = @resource.where("#{field} #{operator} '#{value}'")
+          operator, value = OperatorValueParser.parse(value)
+          @records = @resource.where("#{field} #{operator} '#{value}'")
         end
       end
+
+      @records
+    end
+
+    def association?(field)
+      field = field.split(':').first if field.include?(':')
+      @resource.reflect_on_association(field.to_sym).present?
+    end
+
+    def has_many_association?(field)
+      field = field.split(':').first if field.include?(':')
+      association = @resource.reflect_on_association(field.to_sym)
+
+      association.try(:macro) === :has_many
     end
 
     def associations_param
@@ -65,12 +67,62 @@ module ForestLiana
         name = association.name.to_s
 
         if @params[name + 'Id']
-          @resource = @resource.where("#{name.foreign_key} =
-                                      #{@params[name + 'Id']}")
+          @records = @resource.where("#{name.foreign_key} =
+                                     #{@params[name + 'Id']}")
         end
       end
+
+      @records
     end
 
+    def has_many_filter
+      if @params[:filter]
+        @params[:filter].each do |field, value|
+          next unless has_many_association?(field)
+
+          if field.include?(':')
+            @records = has_many_subfield_filter(field, value)
+          else
+            @records = has_many_field_filter(field, value)
+          end
+        end
+      end
+
+      @records
+    end
+
+    def has_many_field_filter(field, value)
+      association = @resource.reflect_on_association(field.to_sym)
+      return if association.blank?
+
+      operator, value = OperatorValueParser.parse(value)
+
+      @records = @records
+        .select("#{@resource.table_name}.*,
+                COUNT(#{association.table_name}.id)
+                #{association.table_name}_has_many_count")
+        .joins(ArelHelpers.join_association(@resource, association.name,
+                                            Arel::Nodes::OuterJoin))
+        .group("#{@resource.table_name}.id")
+        .having("COUNT(#{association.table_name}) #{operator} #{value}")
+    end
+
+    def has_many_subfield_filter(field, value)
+      field, subfield = field.split(':')
+
+      association = @resource.reflect_on_association(field.to_sym)
+      return if association.blank?
+
+      operator, value = OperatorValueParser.parse(value)
+
+      @records = @records
+        .select("#{@resource.table_name}.*,
+                COUNT(#{association.table_name}.id)
+                #{association.table_name}_has_many_count")
+        .joins(ArelHelpers.join_association(@resource, association.name,
+                                            Arel::Nodes::OuterJoin))
+        .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
+        .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
+    end
   end
 end
-

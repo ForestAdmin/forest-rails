@@ -6,8 +6,10 @@ module ForestLiana
     end
 
     def perform
-      @records_without_sort = @records = search_query
+      @records = search_query
       @records = sort_query
+
+      @records
     end
 
     def records
@@ -15,7 +17,7 @@ module ForestLiana
     end
 
     def count
-      @records_without_sort.count
+      @records.to_a.count
     end
 
     private
@@ -52,11 +54,12 @@ module ForestLiana
     def has_many_sort(association, order)
       @records
         .select("#{@resource.table_name}.*,
-                COUNT(#{association.table_name}.id) has_many_count")
+                COUNT(#{association.table_name}.id)
+                #{association.table_name}_has_many_count")
         .joins(ArelHelpers.join_association(@resource, association.name,
                                             Arel::Nodes::OuterJoin))
         .group("#{@resource.table_name}.id")
-        .order("has_many_count #{order.upcase}")
+        .order("#{association.table_name}_has_many_count #{order.upcase}")
     end
 
     def detect_sort_order(field)
