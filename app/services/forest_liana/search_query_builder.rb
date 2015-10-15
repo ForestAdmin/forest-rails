@@ -61,6 +61,11 @@ module ForestLiana
     end
 
     def associations_param
+      @records = belongs_to_associations_param
+      @records = has_and_belongs_to_many_associations_param
+    end
+
+    def belongs_to_associations_param
       associations = @resource.reflect_on_all_associations(:belongs_to)
 
       associations.each do |association|
@@ -69,6 +74,24 @@ module ForestLiana
         if @params[name + 'Id']
           @records = @resource.where("#{name.foreign_key} =
                                      #{@params[name + 'Id']}")
+        end
+      end
+
+      @records
+    end
+
+    def has_and_belongs_to_many_associations_param
+      associations = @resource
+        .reflect_on_all_associations(:has_and_belongs_to_many)
+
+      associations.each do |association|
+        name = association.name.to_s
+
+        if @params[name.singularize + 'Id']
+          query = {}
+          query[name] = { id: "#{@params[name.singularize + 'Id']}"}
+
+          @records = @resource.includes(name).where(query)
         end
       end
 

@@ -64,7 +64,10 @@ module ForestLiana
     def includes
       @resource
         .reflect_on_all_associations
-        .select {|a| a.macro == :belongs_to && !a.options[:polymorphic] }
+        .select do |a|
+          [:belongs_to, :has_and_belongs_to_many].include?(a.macro) &&
+            !a.options[:polymorphic]
+        end
         .map {|a| a.name.to_s }
     end
 

@@ -34,7 +34,8 @@ module ForestLiana
           field = detect_reference(field)
 
           association = @resource.reflect_on_association(field.to_sym)
-          if [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
+          if [:has_many, :has_and_belongs_to_many].include?(
+            association.try(:macro))
             @records = has_many_sort(association, order)
           else
             @records = @records.order("#{field} #{order.upcase}")
