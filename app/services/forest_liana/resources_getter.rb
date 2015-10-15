@@ -23,7 +23,7 @@ module ForestLiana
     private
 
     def search_query
-      SearchQueryBuilder.new(@resource, @params).perform
+      SearchQueryBuilder.new(@resource.includes(includes), @params).perform
     end
 
     def sort_query
