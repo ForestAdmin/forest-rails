@@ -36,7 +36,7 @@ module ForestLiana
         include JSONAPI::Serializer
 
         def self_link
-          "/forest#{super}"
+          "/forest#{super.underscore}"
         end
 
         def type
@@ -56,12 +56,16 @@ module ForestLiana
         end
 
         def relationship_related_link(attribute_name)
-          relationship_records = object.send(attribute_name)
-          return nil unless relationship_records.respond_to?(:each)
-
-          {
-            meta: { count: relationship_records.count }
+          ret = {
+            href: "#{self_link}/#{format_name(attribute_name)}"
           }
+
+          relationship_records = object.send(attribute_name)
+          if relationship_records.respond_to?(:each)
+            ret[:meta] = { count: relationship_records.count }
+          end
+
+          ret
         end
       }
 

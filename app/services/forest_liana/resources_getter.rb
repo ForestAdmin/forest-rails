@@ -23,7 +23,7 @@ module ForestLiana
     private
 
     def search_query
-      SearchQueryBuilder.new(@resource.includes(includes), @params).perform
+      SearchQueryBuilder.new(@resource, @params).perform
     end
 
     def sort_query
@@ -85,8 +85,7 @@ module ForestLiana
     end
 
     def includes
-      SchemaUtils.associations(@resource).select {|x| !x.options[:through]}
-        .map(&:name)
+      SchemaUtils.associations(@resource).map(&:name)
     end
 
     def offset
