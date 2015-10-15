@@ -19,7 +19,11 @@ module ForestLiana
       resource = @reference_model.find(reference_model_id)
       customer = resource[@reference_field]
 
-      fetch_cards(customer, params)
+      if customer.blank?
+        @records = []
+      else
+        fetch_cards(customer, params)
+      end
     end
 
     def fetch_cards(customer, params)
