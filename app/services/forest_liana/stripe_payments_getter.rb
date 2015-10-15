@@ -27,7 +27,7 @@ module ForestLiana
 
       @records = @charges.data.map do |d|
         d.created = Time.at(d.created).to_datetime
-        d.amount /= 100
+        d.amount /= 100.00
 
         query = {}
         query[@reference_field] = d.customer

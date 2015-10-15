@@ -27,8 +27,9 @@ module ForestLiana
         d.date = Time.at(d.date).to_datetime
         d.period_start = Time.at(d.period_start).to_datetime
         d.period_end = Time.at(d.period_end).to_datetime
-        d.subtotal /= 100
-        d.total /= 100
+        d.subtotal /= 100.00
+        d.total /= 100.00
+        d.amount_due /= 100.00
 
         query = {}
         query[@reference_field] = d.customer
