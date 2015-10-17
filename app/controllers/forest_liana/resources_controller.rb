@@ -31,15 +31,10 @@ module ForestLiana
     end
 
     def update
-      record = @resource.find(params[:id])
+      getter = ResourceUpdater.new(@resource, params)
+      getter.perform
 
-      if Rails::VERSION::MAJOR == 4
-        record.update_attributes!(resource_params.permit!)
-      else
-        record.update_attributes!(resource_params, without_protection: true)
-      end
-
-      render json: serialize_model(record, include: includes)
+      render json: serialize_model(getter.record, include: includes)
     end
 
     def destroy

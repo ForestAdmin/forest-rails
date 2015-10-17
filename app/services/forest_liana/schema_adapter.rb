@@ -18,6 +18,13 @@ module ForestLiana
       @model.columns.each do |column|
         @collection.fields << get_schema_for_column(column)
       end
+
+      # Paperclip url attribute
+      if @model.try(:attachment_definitions)
+        @model.attachment_definitions.each do |key, value|
+          @collection.fields << { field: key, type: 'File' }
+        end
+      end
     end
 
     def add_associations

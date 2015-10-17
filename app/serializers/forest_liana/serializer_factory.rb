@@ -73,6 +73,13 @@ module ForestLiana
         serializer.attribute(attr)
       end
 
+      # Paperclip url attribute
+      if active_record_class.try(:attachment_definitions)
+        active_record_class.attachment_definitions.each do |key, value|
+          serializer.attribute(key) { |x| object.send(key) }
+        end
+      end
+
       SchemaUtils.associations(active_record_class).each do |a|
         serializer.send(serializer_association(a), a.name)
       end
