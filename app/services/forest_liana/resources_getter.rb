@@ -23,7 +23,7 @@ module ForestLiana
     private
 
     def search_query
-      SearchQueryBuilder.new(@resource.includes(includes), @params).perform
+      SearchQueryBuilder.new(@resource, @params).perform
     end
 
     def sort_query
@@ -31,8 +31,11 @@ module ForestLiana
         @params[:sort].split(',').each do |field|
           order = detect_sort_order(@params[:sort])
           field.slice!(0) if order == :desc
-          field = detect_reference(field)
 
+          ref = field.split('.')[0]
+          @records = @records.includes(ref) if association?(ref)
+
+          field = detect_reference(field)
           association = @resource.reflect_on_association(field.to_sym)
           if [:has_many, :has_and_belongs_to_many].include?(
             association.try(:macro))
@@ -82,6 +85,10 @@ module ForestLiana
       else
         param
       end
+    end
+
+    def association?(field)
+      @resource.reflect_on_association(field.to_sym).present?
     end
 
     def includes
