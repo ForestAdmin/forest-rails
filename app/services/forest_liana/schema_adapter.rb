@@ -5,7 +5,11 @@ module ForestLiana
     end
 
     def perform
-      @collection = Collection.new({ name: @model.name.tableize, fields: [] })
+      @collection = ForestLiana::Collection.new({
+        name: @model.name.tableize,
+        fields: []
+      })
+
       add_columns
       add_associations
 
