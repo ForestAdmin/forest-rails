@@ -23,11 +23,15 @@ module ForestLiana
         @params['data']['relationships'].each do |name, relationship|
           data = relationship['data']
 
-          if column?(name.foreign_key)
+          if column?(name.foreign_key) # belongs_to
             if data.is_a?(Hash)
               @attributes[name.foreign_key] = data[:id]
             elsif !data
               @attributes[name.foreign_key] = nil
+            end
+          elsif data # has_many
+            @attributes[name] = data.map do |x|
+              associated_record(x[:type], x[:id])
             end
           end
         end
@@ -57,6 +61,11 @@ module ForestLiana
 
     def column?(attribute)
       @resource.columns.find {|x| x.name == attribute}.present?
+    end
+
+    def associated_record(type, id)
+      resource = SchemaUtils.find_model_from_table_name(type.underscore)
+      resource.find(id)
     end
 
   end
