@@ -33,7 +33,11 @@ module ForestLiana
 
         query = {}
         query[@reference_field] = d.customer
-        d.customer = @reference_model.find_by(query)
+        if @reference_model
+          d.customer = @reference_model.find_by(query)
+        else
+          d.customer = nil
+        end
 
         d
       end
@@ -52,7 +56,9 @@ module ForestLiana
     end
 
     def reference_model_id
-      @params["#{@reference_model.table_name.singularize()}Id"]
+      if @reference_model
+        @params["#{@reference_model.table_name.singularize()}Id"]
+      end
     end
 
     def offset
