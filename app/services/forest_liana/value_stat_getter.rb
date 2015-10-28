@@ -8,10 +8,32 @@ module ForestLiana
     end
 
     def perform
-      if @params[:aggregate].try(:downcase) == 'count'
-        value = @resource.count
-        @record = Stat.new(value: value)
+      return if @params[:aggregate].blank?
+      value = @resource
+
+      @params[:filters].try(:each) do |filter|
+        operator, filter_value = OperatorValueParser.parse(filter[:value])
+        value = value.where("#{filter[:field]} #{operator} '#{filter_value}'")
       end
+
+      @record = Stat.new(value: count(value))
+    end
+
+    private
+
+    def count(value)
+      uniq = @params[:aggregate].downcase == 'count'
+
+      if Rails::VERSION::MAJOR == 4
+        value = value.uniq if uniq
+        value.send(@params[:aggregate].downcase, aggregate_field)
+      else
+        value.send(@params[:aggregate], aggregate_field, distinct: uniq)
+      end
+    end
+
+    def aggregate_field
+      @params[:aggregate_field] || :id
     end
 
   end

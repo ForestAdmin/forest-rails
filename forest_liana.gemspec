@@ -23,4 +23,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rack-cors"
   s.add_runtime_dependency "arel-helpers"
   s.add_runtime_dependency "stripe"
+  s.add_runtime_dependency "groupdate"
 end

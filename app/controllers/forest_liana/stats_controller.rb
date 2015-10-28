@@ -8,43 +8,12 @@ module ForestLiana
         stat = ValueStatGetter.new(@resource, stat_params)
       when 'pie'
         stat = PieStatGetter.new(@resource, stat_params)
+      when 'line'
+        stat = LineStatGetter.new(@resource, stat_params)
       end
 
       stat.perform
       render json: serialize_model(stat.record)
-
-      #if params[:aggregate].try(:downcase) == 'total'
-        #render json: {
-          #data: {
-            #id: SecureRandom.uuid,
-            #type: 'stats',
-            #attributes: {
-              #value: @resource.count
-            #}
-          #}
-        #}
-      #elsif params[:aggregate].try(:downcase) == 'count'
-        #values = @resource.group(params[:field]).count.map do |key, value|
-          #{
-            #label: key,
-            #value: value,
-            #color: "#%06x" % (rand * 0xffffff),
-            #highlight: "#%06x" % (rand * 0xffffff)
-          #}
-        #end
-
-        #render json: {
-          #data: {
-            #id: SecureRandom.uuid,
-            #type: 'stats',
-            #attributes: {
-              #value: values
-            #}
-          #}
-        #}
-      #else
-        #render json: {status: 404}, status: :not_found
-      #end
     end
 
     private
@@ -59,7 +28,10 @@ module ForestLiana
 
     def stat_params
       params.require(:stat).permit(:type, :collection, :aggregate,
-                                   :aggregate_field, :group_by_field)
+                                   :aggregate_field, :group_by_field,
+                                   :group_by_date_field, :filters => [
+                                     :field, :value
+                                   ])
     end
 
   end

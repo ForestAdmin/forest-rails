@@ -3,6 +3,7 @@ PATH
   specs:
     forest_liana (1.1.4)
       arel-helpers
+      groupdate
       jsonapi-serializers
       jwt
       rack-cors
@@ -59,6 +60,8 @@ GEM
     erubis (2.7.0)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
+    groupdate (2.5.0)
+      activesupport (>= 3)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
     i18n (0.7.0)
@@ -134,6 +137,7 @@ DEPENDENCIES
   arel-helpers
   byebug
   forest_liana!
+  groupdate
   jsonapi-serializers
   rack-cors
   rake

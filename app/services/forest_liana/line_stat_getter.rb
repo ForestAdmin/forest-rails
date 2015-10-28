@@ -1,5 +1,5 @@
 module ForestLiana
-  class PieStatGetter
+  class LineStatGetter
     attr_accessor :record
 
     def initialize(resource, params)
@@ -16,14 +16,33 @@ module ForestLiana
           value = value.where("#{filter[:field]} #{operator} '#{filter_value}'")
         end
 
-
-        value = value.group(@params[:group_by_field])
+        value = value.group_by_week(@params[:group_by_date_field])
+          .group(group_by_field)
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
           .map do |k, v|
-            { key: k, value: v }
+            {
+              label: k[0],
+              values: {
+                key: k[1],
+                value: v
+              }
+            }
           end
 
         @record = Stat.new(value: value)
+      end
+    end
+
+    private
+
+    def group_by_field
+      field_name = @params[:group_by_field]
+      association = @resource.reflect_on_association(field_name)
+
+      if association
+        association.foreign_key
+      else
+        field_name
       end
     end
 

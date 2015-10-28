@@ -1,6 +1,7 @@
 require 'rack/cors'
 require 'stripe'
 require 'jsonapi-serializers'
+require 'groupdate'
 
 module ForestLiana
   class Engine < ::Rails::Engine
