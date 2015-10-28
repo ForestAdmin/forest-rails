@@ -5,6 +5,7 @@ module ForestLiana
     def initialize(resource, params)
       @resource = resource
       @params = params
+      @populates = {}
     end
 
     def perform
@@ -23,7 +24,7 @@ module ForestLiana
             {
               label: k[0],
               values: {
-                key: k[1],
+                key: populate(k[1]),
                 value: v
               }
             }
@@ -43,6 +44,19 @@ module ForestLiana
         association.foreign_key
       else
         field_name
+      end
+    end
+
+    def populate(id)
+      @populates[id] ||= begin
+        field_name = @params[:group_by_field]
+        association = @resource.reflect_on_association(field_name)
+
+        if association
+          association.klass.find(id)
+        else
+          id
+        end
       end
     end
 
