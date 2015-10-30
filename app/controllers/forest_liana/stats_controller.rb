@@ -31,7 +31,7 @@ module ForestLiana
     end
 
     def stat_params
-      params.require(:stat).permit(:type, :collection, :aggregate,
+      params.require(:stat).permit(:type, :collection, :aggregate, :time_range,
                                    :aggregate_field, :group_by_field,
                                    :group_by_date_field, :filters => [
                                      :field, :value

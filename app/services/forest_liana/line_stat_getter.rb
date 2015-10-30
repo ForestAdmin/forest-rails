@@ -9,18 +9,19 @@ module ForestLiana
     end
 
     def perform
-      if @params[:group_by_field]
-        value = @resource
+      value = @resource
 
-        @params[:filters].try(:each) do |filter|
-          operator, filter_value = OperatorValueParser.parse(filter[:value])
-          value = value.where("#{filter[:field]} #{operator} '#{filter_value}'")
-        end
+      @params[:filters].try(:each) do |filter|
+        operator, filter_value = OperatorValueParser.parse(filter[:value])
+        value = value.where("#{filter[:field]} #{operator} '#{filter_value}'")
+      end
 
-        value = value.group_by_week(@params[:group_by_date_field])
-          .group(group_by_field)
-          .send(@params[:aggregate].downcase, @params[:aggregate_field])
-          .map do |k, v|
+      value = value.send(time_range, @params[:group_by_date_field])
+      value = value.group(group_by_field || :id) if group_by_field
+
+      value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
+        .map do |k, v|
+          if k.kind_of?(Array)
             {
               label: k[0],
               values: {
@@ -28,10 +29,17 @@ module ForestLiana
                 value: v
               }
             }
+          else
+            {
+              label: k,
+              values: {
+                value: v
+              }
+            }
           end
+        end
 
-        @record = Stat.new(value: value)
-      end
+      @record = Stat.new(value: value)
     end
 
     private
@@ -58,6 +66,10 @@ module ForestLiana
           id
         end
       end
+    end
+
+    def time_range
+      "group_by_#{@params[:time_range].try(:downcase) || 'month'}"
     end
 
   end
