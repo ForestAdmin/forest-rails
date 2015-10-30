@@ -39,7 +39,7 @@ module ForestLiana
     end
 
     def extract_paperclip
-      return unless @resource.try(:attachment_definitions)
+      return unless @resource.respond_to?(:attachment_definitions)
 
       paperclip_attr = @params['data']['attributes']
         .select do |attr|

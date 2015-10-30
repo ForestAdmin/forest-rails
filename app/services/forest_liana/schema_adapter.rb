@@ -24,7 +24,7 @@ module ForestLiana
       end
 
       # Paperclip url attribute
-      if @model.try(:attachment_definitions)
+      if @model.respond_to?(:attachment_definitions)
         @model.attachment_definitions.each do |key, value|
           @collection.fields << { field: key, type: 'File' }
         end

@@ -76,7 +76,7 @@ module ForestLiana
       end
 
       # Paperclip url attribute
-      if active_record_class.try(:attachment_definitions)
+      if active_record_class.respond_to?(:attachment_definitions)
         active_record_class.attachment_definitions.each do |key, value|
           serializer.attribute(key) { |x| object.send(key) }
         end
