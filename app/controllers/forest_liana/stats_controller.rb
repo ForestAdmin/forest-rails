@@ -13,7 +13,11 @@ module ForestLiana
       end
 
       stat.perform
-      render json: serialize_model(stat.record)
+      if stat.record
+        render json: serialize_model(stat.record)
+      else
+        render json: {status: 404}, status: :not_found
+      end
     end
 
     private
