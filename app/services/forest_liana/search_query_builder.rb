@@ -40,7 +40,9 @@ module ForestLiana
           next if association?(field)
 
           operator, value = OperatorValueParser.parse(value)
-          @records = @resource.where("#{field} #{operator} '#{value}'")
+          where = "#{field} #{operator}"
+          where += " '#{value}'" if value
+          @records = @resource.where(where)
         end
       end
 

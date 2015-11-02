@@ -16,6 +16,12 @@ module ForestLiana
       elsif value.include?('*')
         operator = 'ILIKE'
         value.gsub!('*', '%')
+      elsif value === '$present'
+        operator = 'IS NOT NULL'
+        value = nil
+      elsif value === '$blank'
+        operator = 'IS NULL'
+        value = nil
       else
         operator = '='
       end
