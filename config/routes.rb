@@ -6,7 +6,7 @@ ForestLiana::Engine.routes.draw do
   get 'stripe_invoices' => 'stripe#invoices'
 
   # Stats
-  post 'stats' => 'stats#show'
+  post '/stats/:collection' => 'stats#show'
 
   # CRUD
   get '/' => 'apimaps#index'
