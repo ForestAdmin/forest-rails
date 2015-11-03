@@ -42,7 +42,12 @@ module ForestLiana
           apimaps << SchemaAdapter.new(model).perform if model.try(:table_exists?)
         end
 
-        json = JSONAPI::Serializer.serialize(apimaps, { is_collection: true })
+        liana_version = Gem::Specification.find_by_name('forest_liana')
+          .version.to_s
+        json = JSONAPI::Serializer.serialize(apimaps, {
+          is_collection: true,
+          meta: { liana: 'forest-rails', liana_version: liana_version }
+        })
         response = HTTP
           .headers(forest_secret_key: ForestLiana.jwt_signing_key)
           .post("#{forest_url}/forest/apimaps", json: json)
