@@ -34,7 +34,8 @@ module ForestLiana
       end
 
       if ForestLiana.jwt_signing_key
-        forest_url = ENV['FOREST_URL'] || 'https://www.forestadmin.com';
+        forest_url = ENV['FOREST_URL'] ||
+          'https://forestadmin-server.herokuapp.com';
 
         apimaps = []
         SchemaUtils.tables_names.map do |table_name|
