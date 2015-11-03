@@ -4,6 +4,7 @@ PATH
     forest_liana (1.1.8)
       arel-helpers
       groupdate
+      http
       jsonapi-serializers
       jwt
       rack-cors
@@ -48,6 +49,7 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
+    addressable (2.3.8)
     arel (6.0.3)
     arel-helpers (2.1.0)
       activerecord (>= 3.1.0, < 5)
@@ -62,8 +64,15 @@ GEM
       activesupport (>= 4.1.0)
     groupdate (2.5.0)
       activesupport (>= 3)
+    http (0.9.8)
+      addressable (~> 2.3)
+      http-cookie (~> 1.0)
+      http-form_data (~> 1.0.1)
+      http_parser.rb (~> 0.6.0)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
+    http-form_data (1.0.1)
+    http_parser.rb (0.6.0)
     i18n (0.7.0)
     json (1.8.3)
     jsonapi-serializers (0.2.6)
@@ -138,6 +147,7 @@ DEPENDENCIES
   byebug
   forest_liana!
   groupdate
+  http
   jsonapi-serializers
   rack-cors
   rake

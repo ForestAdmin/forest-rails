@@ -22,6 +22,8 @@ module ForestLiana
         "ForestLiana::StripeInvoiceSerializer"
       elsif active_record_class == ForestLiana::Stat
         "ForestLiana::StatSerializer"
+      elsif active_record_class == ForestLiana::Collection
+        "ForestLiana::ApimapSerializer"
       else
         class_name = active_record_class.table_name.classify
         module_name = class_name.deconstantize

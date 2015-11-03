@@ -24,4 +24,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "arel-helpers"
   s.add_runtime_dependency "stripe"
   s.add_runtime_dependency "groupdate"
+  s.add_runtime_dependency "http"
 end
