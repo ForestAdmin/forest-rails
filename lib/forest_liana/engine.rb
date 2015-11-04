@@ -2,7 +2,7 @@ require 'rack/cors'
 require 'stripe'
 require 'jsonapi-serializers'
 require 'groupdate'
-require 'http'
+require "net/http"
 
 module ForestLiana
   class Engine < ::Rails::Engine
@@ -49,13 +49,20 @@ module ForestLiana
           is_collection: true,
           meta: { liana: 'forest-rails', liana_version: liana_version }
         })
-        response = HTTP
-          .headers(forest_secret_key: ForestLiana.jwt_signing_key)
-          .post("#{forest_url}/forest/apimaps", json: json)
 
-        if response.status_code != 204
-          logger.warn "Forest cannot find your project secret key. Please, " \
-            "run `rails g forest_liana:install`."
+
+        uri = URI.parse("#{forest_url}/forest/apimaps")
+        Net::HTTP.new(uri.host, uri.port).start do |client|
+          request = Net::HTTP::Post.new(uri.path)
+          request.body = json.to_json
+          request['Content-Type'] = 'application/json'
+          request['forest-secret-key'] = ForestLiana.jwt_signing_key
+          response = client.request(request)
+
+          if response.is_a?(Net::HTTPNotFound)
+            logger.warn "Forest cannot find your project secret key. " \
+              "Please, run `rails g forest_liana:install`."
+          end
         end
       end
     end
