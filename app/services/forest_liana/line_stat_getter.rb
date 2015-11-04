@@ -46,7 +46,7 @@ module ForestLiana
 
     def group_by_field
       field_name = @params[:group_by_field]
-      association = @resource.reflect_on_association(field_name)
+      association = @resource.reflect_on_association(field_name) if field_name
 
       if association
         association.foreign_key
