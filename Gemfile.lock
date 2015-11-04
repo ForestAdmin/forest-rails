@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.1.11)
+    forest_liana (1.1.12)
       arel-helpers
       groupdate
       jsonapi-serializers

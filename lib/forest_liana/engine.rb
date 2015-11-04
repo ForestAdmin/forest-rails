@@ -52,7 +52,9 @@ module ForestLiana
 
 
         uri = URI.parse("#{forest_url}/forest/apimaps")
-        Net::HTTP.new(uri.host, uri.port).start do |client|
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true if forest_url.start_with?('https')
+        http.start do |client|
           request = Net::HTTP::Post.new(uri.path)
           request.body = json.to_json
           request['Content-Type'] = 'application/json'
