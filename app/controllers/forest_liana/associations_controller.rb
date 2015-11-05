@@ -28,7 +28,9 @@ module ForestLiana
       @association = @resource.reflect_on_association(
         params[:association_name])
 
-      if @association.nil?
+      # Only accept "many" associations
+      if @association.nil? ||
+        [:belongs_to, :has_one].include?(@association.macro)
         render json: {status: 404}, status: :not_found
       end
     end
