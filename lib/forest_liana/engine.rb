@@ -11,7 +11,8 @@ module ForestLiana
 
     config.middleware.insert_before 0, 'Rack::Cors' do
       allow do
-        origins '*'
+        origins 'http://localhost:4200', 'https://www.forestadmin.com',
+          'http://www.forestadmin.com'
         resource '*', headers: :any, methods: :any
       end
     end
