@@ -10,6 +10,7 @@ module ForestLiana
       @records = search_param
       @records = filter_param
       @records = has_many_filter
+      @records = belongs_to_filter
 
       @records
     end
@@ -58,7 +59,7 @@ module ForestLiana
       field = field.split(':').first if field.include?(':')
       association = @resource.reflect_on_association(field.to_sym)
 
-      association.try(:macro) === :has_many
+      [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
     end
 
     def has_many_filter
@@ -110,5 +111,36 @@ module ForestLiana
         .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
         .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
     end
+
+    def belongs_to_association?(field)
+      field = field.split(':').first if field.include?(':')
+      association = @resource.reflect_on_association(field.to_sym)
+      [:belongs_to, :has_one].include?(association.try(:macro))
+    end
+
+    def belongs_to_subfield_filter(field, value)
+      field, subfield = field.split(':')
+
+      association = @resource.reflect_on_association(field.to_sym)
+      return if association.blank?
+
+      operator, value = OperatorValueParser.parse(value)
+
+      @records = @records
+        .joins(field.to_sym)
+        .where("#{association.table_name}.#{subfield} #{operator} '#{value}'")
+    end
+
+    def belongs_to_filter
+      if @params[:filter]
+        @params[:filter].each do |field, value|
+          next unless belongs_to_association?(field)
+          @records = belongs_to_subfield_filter(field, value)
+        end
+      end
+
+      @records
+    end
+
   end
 end
