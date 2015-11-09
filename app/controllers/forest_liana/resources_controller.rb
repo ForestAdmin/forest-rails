@@ -1,5 +1,9 @@
 module ForestLiana
   class ResourcesController < ForestLiana::ApplicationController
+    begin
+      prepend ResourcesExtensions
+    rescue NameError
+    end
 
     before_filter :find_resource
 
