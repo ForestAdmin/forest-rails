@@ -60,13 +60,18 @@ module ForestLiana
         end
 
         def relationship_related_link(attribute_name)
-          ret = {
-            href: "#{self_link}/#{format_name(attribute_name)}"
-          }
+          ret = {}
 
           relationship_records = object.send(attribute_name)
           if relationship_records.respond_to?(:each)
-            ret[:meta] = { count: relationship_records.count }
+
+            if Rails::VERSION::MAJOR == 4
+              ret[:meta] = { count: relationship_records.distinct.count }
+            else
+              ret[:meta] = {
+                count: relationship_records.count(:id, distinct: true)
+              }
+            end
           end
 
           ret
