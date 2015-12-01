@@ -22,6 +22,10 @@ module ForestLiana
 
       query['include[]'] = 'total_count'
       @invoices = fetch_invoices(query)
+      if @invoices.blank?
+        @records = []
+        return
+      end
 
       @records = @invoices.data.map do |d|
         d.date = Time.at(d.date).to_datetime

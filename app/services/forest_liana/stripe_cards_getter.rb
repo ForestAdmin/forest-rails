@@ -28,6 +28,10 @@ module ForestLiana
 
     def fetch_cards(customer, params)
       @cards = Stripe::Customer.retrieve(customer).sources.all(params)
+      if @cards.blank?
+        @records = []
+        return
+      end
 
       @records = @cards.data.map do |d|
         query = {}
