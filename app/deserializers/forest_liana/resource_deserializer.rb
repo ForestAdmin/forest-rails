@@ -32,12 +32,14 @@ module ForestLiana
           when :has_one, :belongs_to
             if data.is_a?(Hash)
               @attributes[name] = association.klass.find(data[:id])
-            elsif !data
+            elsif data.blank?
               @attributes[name] = nil
             end
           when :has_many, :has_and_belongs_to_many
-            @attributes[name] = data.map do |x|
-              association.klass.find(x[:id])
+            if data.is_a?(Hash)
+              @attributes[name] = data.map do |x|
+                association.klass.find(x[:id])
+              end
             end
           end
         end
