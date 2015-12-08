@@ -15,4 +15,7 @@ ForestLiana::Engine.routes.draw do
   post ':collection' => 'resources#create'
   put ':collection/:id' => 'resources#update'
   delete ':collection/:id' => 'resources#destroy'
+
+  # Associations
+  get ':collection/:id/:association_name' => 'associations#index'
 end

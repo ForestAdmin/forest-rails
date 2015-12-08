@@ -8,8 +8,6 @@ module ForestLiana
 
     def perform
       @records = @resource.find(@params[:id]).send(@params[:association_name])
-
-      @records
     end
 
     def records

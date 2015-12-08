@@ -66,8 +66,10 @@ module ForestLiana
           if relationship_records.respond_to?(:each)
 
             if Rails::VERSION::MAJOR == 4
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
               ret[:meta] = { count: relationship_records.distinct.count }
             else
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
               ret[:meta] = {
                 count: relationship_records.count(:id, distinct: true)
               }
