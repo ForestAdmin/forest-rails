@@ -18,7 +18,7 @@ group :test do
   gem 'sqlite3'
 end
 
-gem 'jsonapi-serializers'
+gem 'jsonapi-serializers', '0.3.0'
 gem 'rack-cors'
 gem 'arel-helpers'
 gem 'stripe'

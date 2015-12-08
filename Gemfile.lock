@@ -4,7 +4,7 @@ PATH
     forest_liana (1.1.16)
       arel-helpers
       groupdate
-      jsonapi-serializers
+      jsonapi-serializers (= 0.3.0)
       jwt
       rack-cors
       rails (>= 3.0)
@@ -66,7 +66,7 @@ GEM
       domain_name (~> 0.5)
     i18n (0.7.0)
     json (1.8.3)
-    jsonapi-serializers (0.2.6)
+    jsonapi-serializers (0.3.0)
       activesupport
     jwt (1.5.2)
     loofah (2.0.3)
@@ -138,7 +138,7 @@ DEPENDENCIES
   byebug
   forest_liana!
   groupdate
-  jsonapi-serializers
+  jsonapi-serializers (= 0.3.0)
   rack-cors
   rake
   sqlite3

@@ -15,23 +15,29 @@ module ForestLiana
     end
 
     def extract_attributes
-      @params['data']['attributes'].select {|attr| column?(attr)}
+      if @params[:data][:attributes]
+        @params['data']['attributes'].select {|attr| column?(attr)}
+      else
+        ActionController::Parameters.new()
+      end
     end
 
     def extract_relationships
       if @params['data']['relationships']
         @params['data']['relationships'].each do |name, relationship|
           data = relationship['data']
+          association = @resource.reflect_on_association(name)
 
-          if column?(name.foreign_key) # belongs_to
+          case association.try(:macro)
+          when :has_one, :belongs_to
             if data.is_a?(Hash)
-              @attributes[name.foreign_key] = data[:id]
+              @attributes[name] = association.klass.find(data[:id])
             elsif !data
-              @attributes[name.foreign_key] = nil
+              @attributes[name] = nil
             end
-          elsif data # has_many
+          when :has_many, :has_and_belongs_to_many
             @attributes[name] = data.map do |x|
-              associated_record(x[:type], x[:id])
+              association.klass.find(x[:id])
             end
           end
         end
@@ -62,11 +68,5 @@ module ForestLiana
     def column?(attribute)
       @resource.columns.find {|x| x.name == attribute}.present?
     end
-
-    def associated_record(type, id)
-      resource = SchemaUtils.find_model_from_table_name(type.underscore)
-      resource.find(id)
-    end
-
   end
 end
