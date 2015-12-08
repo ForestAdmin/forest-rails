@@ -25,46 +25,48 @@ module ForestLiana
             model.try(:table_exists?)
         end
 
-        # Monkey patch the find_serializer_class_name method to specify the good
-        # serializer to use.
+        # Monkey patch the find_serializer_class_name method to specify the
+        # good serializer to use.
         JSONAPI::Serializer.class_eval do
           def self.find_serializer_class_name(obj)
             SerializerFactory.get_serializer_name(obj.class)
           end
         end
-      end
 
-      if ForestLiana.jwt_signing_key
-        forest_url = ENV['FOREST_URL'] ||
-          'https://forestadmin-server.herokuapp.com';
+        if ForestLiana.jwt_signing_key
+          forest_url = ENV['FOREST_URL'] ||
+            'https://forestadmin-server.herokuapp.com';
 
-        apimaps = []
-        SchemaUtils.tables_names.map do |table_name|
-          model = SchemaUtils.find_model_from_table_name(table_name)
-          apimaps << SchemaAdapter.new(model).perform if model.try(:table_exists?)
-        end
+          apimaps = []
+          SchemaUtils.tables_names.map do |table_name|
+            model = SchemaUtils.find_model_from_table_name(table_name)
+            if model.try(:table_exists?)
+              apimaps << SchemaAdapter.new(model).perform
+            end
+          end
 
-        liana_version = Gem::Specification.find_by_name('forest_liana')
-          .version.to_s
-        json = JSONAPI::Serializer.serialize(apimaps, {
-          is_collection: true,
-          meta: { liana: 'forest-rails', liana_version: liana_version }
-        })
+          liana_version = Gem::Specification.find_by_name('forest_liana')
+            .version.to_s
+          json = JSONAPI::Serializer.serialize(apimaps, {
+            is_collection: true,
+            meta: { liana: 'forest-rails', liana_version: liana_version }
+          })
 
 
-        uri = URI.parse("#{forest_url}/forest/apimaps")
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true if forest_url.start_with?('https')
-        http.start do |client|
-          request = Net::HTTP::Post.new(uri.path)
-          request.body = json.to_json
-          request['Content-Type'] = 'application/json'
-          request['forest-secret-key'] = ForestLiana.jwt_signing_key
-          response = client.request(request)
+          uri = URI.parse("#{forest_url}/forest/apimaps")
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = true if forest_url.start_with?('https')
+          http.start do |client|
+            request = Net::HTTP::Post.new(uri.path)
+            request.body = json.to_json
+            request['Content-Type'] = 'application/json'
+            request['forest-secret-key'] = ForestLiana.jwt_signing_key
+            response = client.request(request)
 
-          if response.is_a?(Net::HTTPNotFound)
-            logger.warn "Forest cannot find your project secret key. " \
-              "Please, run `rails g forest_liana:install`."
+            if response.is_a?(Net::HTTPNotFound)
+              logger.warn "Forest cannot find your project secret key. " \
+                "Please, run `rails g forest_liana:install`."
+            end
           end
         end
       end
