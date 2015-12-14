@@ -5,7 +5,7 @@ module ForestLiana
     def initialize(params, secret_key, reference)
       @params = params
       @reference_model, @reference_field = reference_model(reference)
-      Stripe.api_key = secret_key
+      Stripe.api_key = ForestLiana.integrations[:stripe][:api_key]
     end
 
     def count

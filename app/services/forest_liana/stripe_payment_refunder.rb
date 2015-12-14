@@ -2,7 +2,7 @@ module ForestLiana
   class StripePaymentRefunder
     def initialize(params)
       @params = params
-      Stripe.api_key = params[:parameters][:stripeSecretKey]
+      Stripe.api_key = ForestLiana.integrations[:stripe][:api_key]
     end
 
     def perform
