@@ -39,11 +39,9 @@ module ForestLiana
       if @params[:filter]
         @params[:filter].each do |field, value|
           next if association?(field)
-
           operator, value = OperatorValueParser.parse(value)
-          where = "#{field} #{operator}"
-          where += " '#{value}'" if value
-          @records = @resource.where(where)
+          @records = OperatorValueParser.add_where(@records, field, operator,
+                                                   value)
         end
       end
 

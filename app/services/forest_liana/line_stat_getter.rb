@@ -13,7 +13,8 @@ module ForestLiana
 
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])
-        value = value.where("#{filter[:field]} #{operator} '#{filter_value}'")
+        value = OperatorValueParser.add_where(value, filter[:field], operator,
+                                              filter_value)
       end
 
       value = value.send(time_range, @params[:group_by_date_field])
