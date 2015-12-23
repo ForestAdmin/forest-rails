@@ -9,6 +9,10 @@ module ForestLiana
     isolate_namespace ForestLiana
     logger = Logger.new(STDOUT)
 
+    initializer 'forest_liana.require_all' do |app|
+      Dir["#{app.root}/app/models/forest/*.rb"].each {|file| require file }
+    end
+
     config.middleware.insert_before 0, 'Rack::Cors' do
       allow do
         origins 'http://localhost:4200', 'https://www.forestadmin.com',
@@ -37,21 +41,19 @@ module ForestLiana
           forest_url = ENV['FOREST_URL'] ||
             'https://forestadmin-server.herokuapp.com';
 
-          apimaps = []
           SchemaUtils.tables_names.map do |table_name|
             model = SchemaUtils.find_model_from_table_name(table_name)
             if model.try(:table_exists?)
-              apimaps << SchemaAdapter.new(model).perform
+              ForestLiana.apimap << SchemaAdapter.new(model).perform
             end
           end
 
           liana_version = Gem::Specification.find_by_name('forest_liana')
             .version.to_s
-          json = JSONAPI::Serializer.serialize(apimaps, {
+          json = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
             is_collection: true,
             meta: { liana: 'forest-rails', liana_version: liana_version }
           })
-
 
           uri = URI.parse("#{forest_url}/forest/apimaps")
           http = Net::HTTP.new(uri.host, uri.port)
