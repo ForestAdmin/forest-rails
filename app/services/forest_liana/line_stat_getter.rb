@@ -40,7 +40,7 @@ module ForestLiana
           end
         end
 
-      @record = Stat.new(value: value)
+      @record = Model::Stat.new(value: value)
     end
 
     private

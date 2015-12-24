@@ -17,7 +17,7 @@ module ForestLiana
                                               filter_value)
       end
 
-      @record = Stat.new(value: count(value))
+      @record = Model::Stat.new(value: count(value))
     end
 
     private

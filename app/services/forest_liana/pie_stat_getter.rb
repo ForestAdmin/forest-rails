@@ -24,7 +24,7 @@ module ForestLiana
             { key: k, value: v }
           end
 
-        @record = Stat.new(value: value)
+        @record = Model::Stat.new(value: value)
       end
     end
 
