@@ -9,10 +9,6 @@ module ForestLiana
     isolate_namespace ForestLiana
     logger = Logger.new(STDOUT)
 
-    initializer 'forest_liana.require_all' do |app|
-      Dir["#{app.root}/app/models/forest/*.rb"].each {|file| require file }
-    end
-
     config.middleware.insert_before 0, 'Rack::Cors' do
       allow do
         origins 'http://localhost:4200', 'https://www.forestadmin.com',
@@ -21,7 +17,7 @@ module ForestLiana
       end
     end
 
-    config.after_initialize do
+    config.after_initialize do |app|
       unless Rails.env.test?
         SchemaUtils.tables_names.map do |table_name|
           model = SchemaUtils.find_model_from_table_name(table_name)
@@ -48,10 +44,13 @@ module ForestLiana
             end
           end
 
+          Dir["#{app.root}/app/models/forest/*.rb"].each {|file| require file }
+
           liana_version = Gem::Specification.find_by_name('forest_liana')
             .version.to_s
           json = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
             is_collection: true,
+            include: ['actions'],
             meta: { liana: 'forest-rails', liana_version: liana_version }
           })
 

@@ -10,7 +10,7 @@ module ForestLiana
         result << SchemaAdapter.new(model).perform if model.try(:table_exists?)
       end
 
-      render json: serialize_models(result, serializer: ApimapSerializer)
+      render json: serialize_models(result)
     end
   end
 end

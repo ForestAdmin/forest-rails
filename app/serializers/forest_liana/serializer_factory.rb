@@ -20,10 +20,12 @@ module ForestLiana
         "ForestLiana::StripeCardSerializer"
       elsif active_record_class == Stripe::Invoice
         "ForestLiana::StripeInvoiceSerializer"
-      elsif active_record_class == ForestLiana::Stat
+      elsif active_record_class == ForestLiana::Model::Stat
         "ForestLiana::StatSerializer"
-      elsif active_record_class == ForestLiana::Collection
-        "ForestLiana::ApimapSerializer"
+      elsif active_record_class == ForestLiana::Model::Collection
+        "ForestLiana::CollectionSerializer"
+      elsif active_record_class == ForestLiana::Model::Action
+        "ForestLiana::ActionSerializer"
       else
         class_name = active_record_class.table_name.classify
         module_name = class_name.deconstantize
