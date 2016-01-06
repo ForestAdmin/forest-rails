@@ -14,7 +14,11 @@ module ForestLiana
     end
 
     def self.get_serializer_name(active_record_class)
-      if active_record_class == Stripe::Charge
+      if active_record_class == ::Intercom::Conversation
+        "ForestLiana::IntercomConversationSerializer"
+      elsif active_record_class == ::Intercom::User
+        "ForestLiana::IntercomAttributeSerializer"
+      elsif active_record_class == Stripe::Charge
         "ForestLiana::StripePaymentSerializer"
       elsif active_record_class == Stripe::Card
         "ForestLiana::StripeCardSerializer"
@@ -64,21 +68,57 @@ module ForestLiana
         def relationship_related_link(attribute_name)
           ret = {}
 
-          relationship_records = object.send(attribute_name)
-          if relationship_records.respond_to?(:each)
+          if intercom_integration?
+            case attribute_name
+            when :intercom_conversations
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/intercom_conversations"
+            when :intercom_attributes
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/intercom_attributes"
+            end
+          end
 
-            if Rails::VERSION::MAJOR == 4
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
-              ret[:meta] = { count: relationship_records.distinct.count }
-            else
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
-              ret[:meta] = {
-                count: relationship_records.count(:id, distinct: true)
-              }
+          if stripe_integration?
+            case attribute_name
+            when :stripe_payments
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/stripe_payments"
+            when :stripe_invoices
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/stripe_invoices"
+            when :stripe_cards
+              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/stripe_cards"
+            end
+          end
+
+          if ret[:href].blank?
+            relationship_records = object.send(attribute_name)
+
+            if relationship_records.respond_to?(:each)
+              if Rails::VERSION::MAJOR == 4
+                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+                ret[:meta] = { count: relationship_records.distinct.count }
+              else
+                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+                ret[:meta] = {
+                  count: relationship_records.count(:id, distinct: true)
+                }
+              end
             end
           end
 
           ret
+        end
+
+        private
+
+        def intercom_integration?
+          object.class.name == ForestLiana.integrations
+            .try(:[], :intercom)
+            .try(:[], :user_collection)
+        end
+
+        def stripe_integration?
+          object.class.name == ForestLiana.integrations
+            .try(:[], :stripe)
+            .try(:[], :user_collection)
         end
       }
 
@@ -95,6 +135,21 @@ module ForestLiana
 
       SchemaUtils.associations(active_record_class).each do |a|
         serializer.send(serializer_association(a), a.name)
+      end
+
+      # Intercom
+      if active_record_class.name == ForestLiana.integrations
+        .try(:[], :intercom).try(:[], :user_collection)
+        serializer.send(:has_many, :intercom_conversations) { }
+        serializer.send(:has_many, :intercom_attributes) { }
+      end
+
+      # Stripe
+      if active_record_class.name == ForestLiana.integrations
+        .try(:[], :stripe).try(:[], :user_collection)
+        serializer.send(:has_many, :stripe_payments) { }
+        serializer.send(:has_many, :stripe_invoices) { }
+        serializer.send(:has_many, :stripe_cards) { }
       end
 
       SerializerFactory.define_serializer(active_record_class, serializer)
@@ -130,6 +185,5 @@ module ForestLiana
     def foreign_keys(active_record_class)
       SchemaUtils.associations(active_record_class).map(&:foreign_key)
     end
-
   end
 end

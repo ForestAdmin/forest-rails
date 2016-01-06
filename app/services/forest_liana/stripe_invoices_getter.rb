@@ -4,7 +4,6 @@ module ForestLiana
 
     def initialize(params, secret_key, reference)
       @params = params
-      @reference_model, @reference_field = reference_model(reference)
       Stripe.api_key = ForestLiana.integrations[:stripe][:api_key]
     end
 
@@ -15,9 +14,9 @@ module ForestLiana
     def perform
       query = { limit: limit, offset: offset }
 
-      if reference_model_id
-        resource = @reference_model.find(reference_model_id)
-        query[:customer] = resource[@reference_field]
+      if @params[:id] && user_collection && user_field
+        resource = user_collection.find(@params[:id])
+        query[:customer] = resource[user_field]
       end
 
       query['include[]'] = 'total_count'
@@ -36,9 +35,9 @@ module ForestLiana
         d.amount_due /= 100.00
 
         query = {}
-        query[@reference_field] = d.customer
-        if @reference_model
-          d.customer = @reference_model.find_by(query)
+        query[user_field] = d.customer
+        if user_collection
+          d.customer = user_collection.find_by(query)
         else
           d.customer = nil
         end
@@ -48,21 +47,8 @@ module ForestLiana
     end
 
     def fetch_invoices(params)
-      return if reference_model_id && params[:customer].blank?
+      return if @params[:id] && params[:customer].blank?
       Stripe::Invoice.all(params)
-    end
-
-    def reference_model(reference)
-      resource_name, reference_field = reference.split('.')
-      reference_model = SchemaUtils.find_model_from_table_name(resource_name)
-
-      [reference_model, reference_field]
-    end
-
-    def reference_model_id
-      if @reference_model
-        @params["#{@reference_model.table_name.singularize()}Id"]
-      end
     end
 
     def offset
@@ -90,6 +76,18 @@ module ForestLiana
       @params[:page] && @params[:page][:number]
     end
 
+    def user_collection
+      ForestLiana.integrations
+        .try(:[], :stripe)
+        .try(:[], :user_collection)
+        .try(:constantize)
+    end
+
+    def user_field
+      ForestLiana.integrations
+        .try(:[], :stripe)
+        .try(:[], :user_field)
+    end
   end
 end
 

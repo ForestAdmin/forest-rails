@@ -23,6 +23,54 @@ module ForestLiana
         @collection.fields << get_schema_for_column(column)
       end
 
+      # Intercom
+      if ForestLiana.integrations.try(:[], :intercom)
+        .try(:[], :user_collection) == @model.name
+        @collection.fields << {
+          field: :intercom_conversations,
+          type: ['String'],
+          reference: 'intercom_conversations.id',
+          column: nil,
+          is_searchable: false
+        }
+
+        @collection.fields << {
+          field: :intercom_attributes,
+          type: 'String',
+          reference: 'intercom_attributes.id',
+          column: nil,
+          is_searchable: false
+        }
+      end
+
+      # Stripe
+      if ForestLiana.integrations.try(:[], :stripe)
+        .try(:[], :user_collection) == @model.name
+        @collection.fields << {
+          field: :stripe_payments,
+          type: ['String'],
+          reference: 'stripe_payments.id',
+          column: nil,
+          is_searchable: false
+        }
+
+        @collection.fields << {
+          field: :stripe_invoices,
+          type: ['String'],
+          reference: 'stripe_invoices.id',
+          column: nil,
+          is_searchable: false
+        }
+
+        @collection.fields << {
+          field: :stripe_cards,
+          type: ['String'],
+          reference: 'stripe_cards.id',
+          column: nil,
+          is_searchable: false
+        }
+      end
+
       # Paperclip url attribute
       if @model.respond_to?(:attachment_definitions)
         @model.attachment_definitions.each do |key, value|

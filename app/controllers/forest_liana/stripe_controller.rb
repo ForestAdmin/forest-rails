@@ -47,6 +47,5 @@ module ForestLiana
         include: ['customer']
       })
     end
-
   end
 end

@@ -5,6 +5,10 @@ class ForestLiana::CollectionSerializer
 
   attribute :name
   attribute :fields
+  attribute :only_for_relationships
+  attribute :is_virtual
+  attribute :is_read_only
+  attribute :is_searchable
 
   has_many :actions do
     object.actions
