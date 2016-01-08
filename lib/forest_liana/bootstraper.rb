@@ -225,7 +225,10 @@ module ForestLiana
     end
 
     def liana_version
-      Gem::Specification.find_by_name('forest_liana').version.to_s
+      Gem::Specification.find_all_by_name('forest_liana')
+        .try(:first)
+        .try(:version)
+        .try(:to_s)
     end
   end
 end
