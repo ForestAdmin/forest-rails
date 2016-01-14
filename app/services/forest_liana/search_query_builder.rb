@@ -37,11 +37,13 @@ module ForestLiana
 
     def filter_param
       if @params[:filter]
-        @params[:filter].each do |field, value|
+        @params[:filter].each do |field, values|
           next if association?(field)
-          operator, value = OperatorValueParser.parse(value)
-          @records = OperatorValueParser.add_where(@records, field, operator,
-                                                   value)
+          values.split(',').each do |value|
+            operator, value = OperatorValueParser.parse(value)
+            @records = OperatorValueParser.add_where(@records, field, operator,
+                                                     value)
+          end
         end
       end
 
@@ -62,13 +64,15 @@ module ForestLiana
 
     def has_many_filter
       if @params[:filter]
-        @params[:filter].each do |field, value|
+        @params[:filter].each do |field, values|
           next unless has_many_association?(field)
 
-          if field.include?(':')
-            @records = has_many_subfield_filter(field, value)
-          else
-            @records = has_many_field_filter(field, value)
+          values.split(',').each do |value|
+            if field.include?(':')
+              @records = has_many_subfield_filter(field, value)
+            else
+              @records = has_many_field_filter(field, value)
+            end
           end
         end
       end
@@ -131,9 +135,12 @@ module ForestLiana
 
     def belongs_to_filter
       if @params[:filter]
-        @params[:filter].each do |field, value|
+        @params[:filter].each do |field, values|
           next unless belongs_to_association?(field)
-          @records = belongs_to_subfield_filter(field, value)
+
+          values.split(',').each do |value|
+            @records = belongs_to_subfield_filter(field, value)
+          end
         end
       end
 
