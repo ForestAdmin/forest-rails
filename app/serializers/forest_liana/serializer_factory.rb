@@ -126,6 +126,13 @@ module ForestLiana
         serializer.attribute(attr)
       end
 
+      # CarrierWave url attribute
+      if active_record_class.respond_to?(:mount_uploader)
+        active_record_class.uploaders.each do |key, value|
+          serializer.attribute(key) { |x| object.send(key).try(:url) }
+        end
+      end
+
       # Paperclip url attribute
       if active_record_class.respond_to?(:attachment_definitions)
         active_record_class.attachment_definitions.each do |key, value|
