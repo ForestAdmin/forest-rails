@@ -20,8 +20,9 @@ module ForestLiana
     end
 
     config.after_initialize do |app|
-      return if Rails.env.test?
-      Bootstraper.new(app).perform
+      unless Rails.env.test?
+        Bootstraper.new(app).perform
+      end
     end
   end
 end
