@@ -65,7 +65,7 @@ module ForestLiana
         response = client.request(request)
 
         if response.is_a?(Net::HTTPNotFound)
-          logger.warn "Forest cannot find your project secret key. " \
+          @logger.warn "Forest cannot find your project secret key. " \
             "Please, run `rails g forest_liana:install`."
         end
       end
@@ -173,12 +173,6 @@ module ForestLiana
             reference: 'customers.id',
             is_searchable: false
           }
-        ],
-        actions: [
-          ForestLiana::Model::Action.new({
-            name: 'Refund',
-            endpoint: '/forest/stripe_payments/refunds'
-          })
         ]
       })
 
