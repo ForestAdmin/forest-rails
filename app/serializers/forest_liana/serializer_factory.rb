@@ -10,7 +10,7 @@ module ForestLiana
       name = module_name if module_name
       name += class_name.demodulize
 
-      ForestLiana.const_set("#{name}Serializer", serializer)
+      ForestLiana::UserSpace.const_set("#{name}Serializer", serializer)
     end
 
     def self.get_serializer_name(active_record_class)
@@ -18,11 +18,11 @@ module ForestLiana
         "ForestLiana::IntercomConversationSerializer"
       elsif active_record_class == ::Intercom::User
         "ForestLiana::IntercomAttributeSerializer"
-      elsif active_record_class == Stripe::Charge
+      elsif active_record_class == ::Stripe::Charge
         "ForestLiana::StripePaymentSerializer"
-      elsif active_record_class == Stripe::Card
+      elsif active_record_class == ::Stripe::Card
         "ForestLiana::StripeCardSerializer"
-      elsif active_record_class == Stripe::Invoice
+      elsif active_record_class == ::Stripe::Invoice
         "ForestLiana::StripeInvoiceSerializer"
       elsif active_record_class == ForestLiana::Model::Stat
         "ForestLiana::StatSerializer"
@@ -37,7 +37,7 @@ module ForestLiana
         name = module_name if module_name
         name += class_name.demodulize
 
-        "ForestLiana::#{name}Serializer"
+        "ForestLiana::UserSpace::#{name}Serializer"
       end
     end
 
