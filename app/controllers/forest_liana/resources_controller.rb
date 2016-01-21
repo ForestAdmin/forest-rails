@@ -25,24 +25,29 @@ module ForestLiana
     end
 
     def create
-      if Rails::VERSION::MAJOR == 4
-        record = @resource.create!(resource_params.permit!)
-      else
-        record = @resource.create!(resource_params, without_protection: true)
-      end
+      getter = ResourceCreator.new(@resource, params)
+      getter.perform
 
-      render json: serialize_model(record, include: includes)
+      ActivityLogger.new.perform(current_user, 'created', params[:collection],
+                                getter.record.id)
+
+      render json: serialize_model(getter.record, include: includes)
     end
 
     def update
       getter = ResourceUpdater.new(@resource, params)
       getter.perform
 
+      ActivityLogger.new.perform(current_user, 'updated', params[:collection],
+                                getter.record.id)
+
       render json: serialize_model(getter.record, include: includes)
     end
 
     def destroy
       @resource.destroy_all(id: params[:id])
+      ActivityLogger.new.perform(current_user, 'deleted', params[:collection],
+                                params[:id])
       render nothing: true, status: 204
     end
 
@@ -64,7 +69,7 @@ module ForestLiana
       @resource
         .reflect_on_all_associations
         .select do |a|
-          [:belongs_to, :has_and_belongs_to_many, :has_one]
+          [:belongs_to, :has_one]
             .include?(a.macro) && !a.options[:polymorphic]
         end
         .map {|a| a.name.to_s }

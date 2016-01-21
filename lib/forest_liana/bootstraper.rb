@@ -26,7 +26,7 @@ module ForestLiana
 
       # Monkey patch the find_serializer_class_name method to specify the
       # good serializer to use.
-      JSONAPI::Serializer.class_eval do
+      ::JSONAPI::Serializer.class_eval do
         def self.find_serializer_class_name(obj)
           SerializerFactory.get_serializer_name(obj.class)
         end

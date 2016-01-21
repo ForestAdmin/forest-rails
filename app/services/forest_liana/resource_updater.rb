@@ -18,7 +18,7 @@ module ForestLiana
     end
 
     def resource_params
-      ResourceDeserializer.new(@resource, @params[:resource]).perform
+      ResourceDeserializer.new(@resource, @record, @params[:resource]).perform
     end
 
   end

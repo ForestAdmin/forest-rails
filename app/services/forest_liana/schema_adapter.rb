@@ -31,7 +31,8 @@ module ForestLiana
           type: ['String'],
           reference: 'intercom_conversations.id',
           column: nil,
-          is_searchable: false
+          is_searchable: false,
+          integration: 'intercom'
         }
 
         @collection.fields << {
@@ -39,7 +40,8 @@ module ForestLiana
           type: 'String',
           reference: 'intercom_attributes.id',
           column: nil,
-          is_searchable: false
+          is_searchable: false,
+          integration: 'intercom'
         }
       end
 
@@ -51,7 +53,8 @@ module ForestLiana
           type: ['String'],
           reference: 'stripe_payments.id',
           column: nil,
-          is_searchable: false
+          is_searchable: false,
+          integration: 'stripe'
         }
 
         @collection.fields << {
@@ -59,7 +62,8 @@ module ForestLiana
           type: ['String'],
           reference: 'stripe_invoices.id',
           column: nil,
-          is_searchable: false
+          is_searchable: false,
+          integration: 'stripe'
         }
 
         @collection.fields << {
@@ -67,7 +71,8 @@ module ForestLiana
           type: ['String'],
           reference: 'stripe_cards.id',
           column: nil,
-          is_searchable: false
+          is_searchable: false,
+          integration: 'stripe'
         }
       end
 

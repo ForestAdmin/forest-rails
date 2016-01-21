@@ -4,6 +4,10 @@ module ForestLiana
   class ApplicationController < ActionController::Base
     before_filter :authenticate_user_from_jwt
 
+    def current_user
+      @jwt_decoded_token
+    end
+
     def serialize_model(model, options = {})
       options[:is_collection] = false
       JSONAPI::Serializer.serialize(model, options)
@@ -28,8 +32,9 @@ module ForestLiana
 
     def authenticate_user_from_jwt
       if request.headers['Authorization']
-        JWT.decode request.headers['Authorization'].split[1],
-          ForestLiana.jwt_signing_key
+        @jwt_decoded_token = JWT.decode(
+          request.headers['Authorization'].split[1],
+          ForestLiana.jwt_signing_key).try(:first)
       else
         render nothing: true, status: 401
       end

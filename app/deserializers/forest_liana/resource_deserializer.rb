@@ -1,9 +1,10 @@
 module ForestLiana
   class ResourceDeserializer
 
-    def initialize(resource, params)
+    def initialize(resource, record, params)
       @params = params
       @resource = resource
+      @record = record
     end
 
     def perform
@@ -36,9 +37,13 @@ module ForestLiana
               @attributes[name] = nil
             end
           when :has_many, :has_and_belongs_to_many
-            if data.is_a?(Hash)
-              @attributes[name] = data.map do |x|
-                association.klass.find(x[:id])
+            if data.is_a?(Array)
+              data.each do |x|
+                existing_records = @record.send(name)
+                new_record = association.klass.find(x[:id])
+                if !existing_records.include?(new_record)
+                  existing_records << new_record
+                end
               end
             end
           end
