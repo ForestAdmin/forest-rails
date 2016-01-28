@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.1.25)
+    forest_liana (1.1.27)
       arel-helpers
       groupdate
       intercom
@@ -152,3 +152,6 @@ DEPENDENCIES
   sqlite3
   stripe
   useragent
+
+BUNDLED WITH
+   1.11.2
