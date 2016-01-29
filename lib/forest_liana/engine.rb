@@ -13,7 +13,11 @@ module ForestLiana
 
     config.middleware.insert_before 0, 'Rack::Cors' do
       allow do
-        origins 'localhost:4200', '*.forestadmin.com'
+        hostnames = ['localhost:4200', 'app.forestadmin.com',
+                     'www.forestadmin.com']
+        hostnames += ENV['CORS_ORIGINS'].split(',') if ENV['CORS_ORIGINS']
+
+        origins hostnames
         resource '*', headers: :any, methods: :any
       end
     end
