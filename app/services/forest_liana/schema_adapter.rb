@@ -6,7 +6,7 @@ module ForestLiana
 
     def perform
       @collection = ForestLiana::Model::Collection.new({
-        name: @model.name.tableize,
+        name: @model.table_name,
         fields: []
       })
 

@@ -25,8 +25,9 @@ module ForestLiana
     end
 
     def find_association
+      # Rails 3 wants a :sym argument.
       @association = @resource.reflect_on_association(
-        params[:association_name])
+        params[:association_name].try(:to_sym))
 
       # Only accept "many" associations
       if @association.nil? ||

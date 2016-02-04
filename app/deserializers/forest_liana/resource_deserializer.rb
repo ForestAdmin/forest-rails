@@ -1,10 +1,9 @@
 module ForestLiana
   class ResourceDeserializer
 
-    def initialize(resource, record, params)
+    def initialize(resource, params)
       @params = params
       @resource = resource
-      @record = record
     end
 
     def perform
@@ -27,24 +26,15 @@ module ForestLiana
       if @params['data']['relationships']
         @params['data']['relationships'].each do |name, relationship|
           data = relationship['data']
-          association = @resource.reflect_on_association(name)
+          # Rails 3 requires a :sym argument for the reflect_on_association
+          # call.
+          association = @resource.reflect_on_association(name.try(:to_sym))
 
-          case association.try(:macro)
-          when :has_one, :belongs_to
+          if [:has_one, :belongs_to].include?(association.try(:macro))
             if data.is_a?(Hash)
               @attributes[name] = association.klass.find(data[:id])
             elsif data.blank?
               @attributes[name] = nil
-            end
-          when :has_many, :has_and_belongs_to_many
-            if data.is_a?(Array)
-              data.each do |x|
-                existing_records = @record.send(name)
-                new_record = association.klass.find(x[:id])
-                if !existing_records.include?(new_record)
-                  existing_records << new_record
-                end
-              end
             end
           end
         end

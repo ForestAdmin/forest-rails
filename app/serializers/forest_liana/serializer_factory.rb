@@ -50,7 +50,7 @@ module ForestLiana
         end
 
         def type
-          object.class.table_name.demodulize.tableize.dasherize
+          object.class.table_name.demodulize.dasherize
         end
 
         def format_name(attribute_name)
@@ -89,18 +89,22 @@ module ForestLiana
           end
 
           if ret[:href].blank?
-            relationship_records = object.send(attribute_name)
+            begin
+              relationship_records = object.send(attribute_name)
 
-            if relationship_records.respond_to?(:each)
-              if Rails::VERSION::MAJOR == 4
-                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
-                ret[:meta] = { count: relationship_records.distinct.count }
-              else
-                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
-                ret[:meta] = {
-                  count: relationship_records.count(:id, distinct: true)
-                }
+              if relationship_records.respond_to?(:each)
+                if Rails::VERSION::MAJOR == 4
+                  ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+                  ret[:meta] = { count: relationship_records.distinct.count }
+                else
+                  ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+                  ret[:meta] = {
+                    count: relationship_records.count(:id, distinct: true)
+                  }
+                end
               end
+            rescue TypeError
+              puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
             end
           end
 
