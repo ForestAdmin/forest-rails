@@ -194,7 +194,14 @@ module ForestLiana
     end
 
     def foreign_keys(active_record_class)
-      SchemaUtils.associations(active_record_class).map(&:foreign_key)
+      begin
+        SchemaUtils.associations(active_record_class).map(&:foreign_key)
+      rescue => err
+        # Association foreign_key triggers an error. Put the stacktrace and
+        # returns no foreign keys.
+        puts err.backtrace
+        []
+      end
     end
   end
 end
