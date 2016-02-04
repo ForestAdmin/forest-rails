@@ -8,9 +8,7 @@ module ForestLiana
     end
 
     def self.find_model_from_table_name(table_name)
-      (table_name.classify.constantize rescue nil) ||
-        (table_name.capitalize.constantize rescue nil) ||
-        (table_name.sub('_', '/').camelize.singularize.constantize rescue nil)
+      ActiveRecord::Base.subclasses.find {|s| s.table_name == table_name}
     end
 
     def self.tables_names
