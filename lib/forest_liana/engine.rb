@@ -24,6 +24,7 @@ module ForestLiana
 
     config.after_initialize do |app|
       unless Rails.env.test?
+        app.eager_load!
         Bootstraper.new(app).perform
       end
     end

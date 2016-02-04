@@ -4,9 +4,6 @@ module ForestLiana
     def initialize(app)
       @app = app
       @logger = Logger.new(STDOUT)
-
-      Dir[Rails.root.join('app', 'models', '**', '*.rb')]
-        .each(&method(:require))
     end
 
     def perform
