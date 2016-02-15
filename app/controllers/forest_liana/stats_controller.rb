@@ -31,6 +31,9 @@ module ForestLiana
     end
 
     def stat_params
+      # Avoid to warn/crash if there's no filters.
+      params[:stat].delete(:filters) if params[:stat][:filters].blank?
+
       params.require(:stat).permit(:type, :collection, :aggregate, :time_range,
                                    :aggregate_field, :group_by_field,
                                    :group_by_date_field, :filters => [
