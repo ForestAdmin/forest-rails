@@ -20,7 +20,7 @@ module ForestLiana
     def create_serializers
       SchemaUtils.tables_names.map do |table_name|
         model = SchemaUtils.find_model_from_table_name(table_name)
-        SerializerFactory.new.serializer_for(model) if \
+        ForestLiana::SerializerFactory.new.serializer_for(model) if \
           model.try(:table_exists?)
       end
 
@@ -28,7 +28,7 @@ module ForestLiana
       # good serializer to use.
       ::JSONAPI::Serializer.class_eval do
         def self.find_serializer_class_name(obj)
-          SerializerFactory.get_serializer_name(obj.class)
+          ForestLiana::SerializerFactory.get_serializer_name(obj.class)
         end
       end
     end

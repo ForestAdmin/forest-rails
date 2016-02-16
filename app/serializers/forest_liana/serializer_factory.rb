@@ -163,7 +163,8 @@ module ForestLiana
         serializer.send(:has_many, :stripe_cards) { }
       end
 
-      SerializerFactory.define_serializer(active_record_class, serializer)
+      ForestLiana::SerializerFactory.define_serializer(active_record_class,
+                                                       serializer)
 
       serializer
     end
