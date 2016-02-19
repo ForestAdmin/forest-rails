@@ -3,13 +3,13 @@ module ForestLiana
     before_filter :find_resource
 
     def show
-      case stat_params[:type].try(:downcase)
+      case params[:type].try(:downcase)
       when 'value'
-        stat = ValueStatGetter.new(@resource, stat_params)
+        stat = ValueStatGetter.new(@resource, params)
       when 'pie'
-        stat = PieStatGetter.new(@resource, stat_params)
+        stat = PieStatGetter.new(@resource, params)
       when 'line'
-        stat = LineStatGetter.new(@resource, stat_params)
+        stat = LineStatGetter.new(@resource, params)
       end
 
       stat.perform
@@ -29,18 +29,6 @@ module ForestLiana
         render json: {status: 404}, status: :not_found
       end
     end
-
-    def stat_params
-      # Avoid to warn/crash if there's no filters.
-      params[:stat].delete(:filters) if params[:stat][:filters].blank?
-
-      params.require(:stat).permit(:type, :collection, :aggregate, :time_range,
-                                   :aggregate_field, :group_by_field,
-                                   :group_by_date_field, :filters => [
-                                     :field, :value
-                                   ])
-    end
-
   end
 end
 
