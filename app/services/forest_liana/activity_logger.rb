@@ -3,7 +3,7 @@ require 'jwt'
 class ForestLiana::ActivityLogger
 
   def perform(user, action, collection_name, resource_id)
-    token = JWT.encode({}, ForestLiana.jwt_signing_key, 'HS256')
+    token = JWT.encode(user, ForestLiana.jwt_signing_key, 'HS256')
     uri = URI.parse("#{forest_url}/api/projects/#{project_id(user)}/activity-logs")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true if forest_url.start_with?('https')
@@ -13,7 +13,6 @@ class ForestLiana::ActivityLogger
       request['Content-Type'] = 'application/json'
       request['Authorization'] = "Bearer #{token}"
       request.body = {
-        session: user['session'],
         action: action,
         collection: collection_name,
         resource: resource_id
