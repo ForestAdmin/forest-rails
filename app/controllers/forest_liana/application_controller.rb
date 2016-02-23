@@ -32,9 +32,15 @@ module ForestLiana
 
     def authenticate_user_from_jwt
       if request.headers['Authorization']
-        @jwt_decoded_token = JWT.decode(
-          request.headers['Authorization'].split[1],
-          ForestLiana.jwt_signing_key).try(:first)
+        begin
+          token = request.headers['Authorization'].split.second
+          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_key, true, {
+            algorithm: 'HS256',
+            leeway: 30
+          }).try(:first)
+        rescue JWT::ExpiredSignature, JWT::VerificationError
+          render json: { error: 'expired_token' }, status: 401
+        end
       else
         render nothing: true, status: 401
       end

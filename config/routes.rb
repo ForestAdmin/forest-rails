@@ -1,4 +1,7 @@
 ForestLiana::Engine.routes.draw do
+  # Login
+  post 'sessions' => 'sessions#create'
+
   # Stripe Integration
   get 'stripe_payments' => 'stripe#payments'
   get ':collection/:id/stripe_payments' => 'stripe#payments'
