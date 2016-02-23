@@ -3,6 +3,7 @@ PATH
   specs:
     forest_liana (1.1.35)
       arel-helpers
+      bcrypt
       groupdate
       intercom
       jsonapi-serializers (= 0.3.0)
@@ -53,6 +54,7 @@ GEM
     arel (6.0.3)
     arel-helpers (2.1.0)
       activerecord (>= 3.1.0, < 5)
+    bcrypt (3.1.10)
     builder (3.2.2)
     byebug (5.0.0)
       columnize (= 0.9.0)
@@ -142,6 +144,7 @@ PLATFORMS
 
 DEPENDENCIES
   arel-helpers
+  bcrypt
   byebug
   forest_liana!
   groupdate

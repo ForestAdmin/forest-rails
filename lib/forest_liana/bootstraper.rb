@@ -4,12 +4,21 @@ module ForestLiana
     def initialize(app)
       @app = app
       @logger = Logger.new(STDOUT)
+
+      if ForestLiana.jwt_signing_key
+         warn "DEPRECATION WARNING: the use of ForestLiana.jwt_signing_key \
+(config/initializers/forest_liana.rb) is deprecated. Use \
+ForestLiana.secret_key and ForestLiana.auth_key instead. \
+More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
+        ForestLiana.secret_key = ForestLiana.jwt_signing_key
+        ForestLiana.auth_key = ForestLiana.jwt_signing_key
+      end
     end
 
     def perform
       create_serializers
 
-      if ForestLiana.jwt_signing_key
+      if ForestLiana.secret_key
         create_apimap
         send_apimap
       end
@@ -61,8 +70,14 @@ module ForestLiana
         request = Net::HTTP::Post.new(uri.path)
         request.body = json.to_json
         request['Content-Type'] = 'application/json'
-        request['forest-secret-key'] = ForestLiana.jwt_signing_key
+        request['forest-secret-key'] = ForestLiana.secret_key
         response = client.request(request)
+
+        ForestLiana.allowed_users = eval(response.body)[:data].map do |d|
+          user = d[:attributes]
+          user[:id] = d[:id]
+          user
+        end
 
         if response.is_a?(Net::HTTPNotFound)
           @logger.warn "Forest cannot find your project secret key. " \
