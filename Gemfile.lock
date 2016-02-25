@@ -150,6 +150,7 @@ DEPENDENCIES
   groupdate
   intercom (~> 3.2.0)
   jsonapi-serializers (= 0.3.0)
+  jwt
   rack-cors
   rake
   sqlite3

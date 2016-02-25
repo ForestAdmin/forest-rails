@@ -17,7 +17,7 @@ module ForestLiana
     end
 
     def count
-      @records.to_a.count
+      search_query.count
     end
 
     private
