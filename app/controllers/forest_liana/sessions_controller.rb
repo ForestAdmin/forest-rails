@@ -3,8 +3,8 @@ module ForestLiana
 
     def create
       user = ForestLiana.allowed_users.find do |allowed_user|
-        allowed_user[:email] == params[:email] &&
-          BCrypt::Password.new(allowed_user[:password]) == params[:password]
+        allowed_user['email'] == params['email'] &&
+          BCrypt::Password.new(allowed_user['password']) == params['password']
       end
 
       if user

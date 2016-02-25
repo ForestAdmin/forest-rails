@@ -5,6 +5,7 @@ require 'groupdate'
 require 'net/http'
 require 'intercom'
 require 'useragent'
+require 'jwt'
 require 'bcrypt'
 require_relative 'bootstraper'
 
