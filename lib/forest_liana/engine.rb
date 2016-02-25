@@ -5,6 +5,7 @@ require 'groupdate'
 require 'net/http'
 require 'intercom'
 require 'useragent'
+require 'bcrypt'
 require_relative 'bootstraper'
 
 module ForestLiana

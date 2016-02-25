@@ -2,20 +2,20 @@ require 'jwt'
 
 class ForestLiana::ActivityLogger
 
-  def perform(user, action, collection_name, resource_id)
-    token = JWT.encode(user, ForestLiana.jwt_signing_key, 'HS256')
-    uri = URI.parse("#{forest_url}/api/projects/#{project_id(user)}/activity-logs")
+  def perform(session, action, collection_name, resource_id)
+    uri = URI.parse("#{forest_url}/api/activity-logs")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true if forest_url.start_with?('https')
 
     http.start do |client|
       request = Net::HTTP::Post.new(uri.path)
-      request['Content-Type'] = 'application/json'
-      request['Authorization'] = "Bearer #{token}"
+      request['Content-Type'] = 'application/vnd.api+json'
+      request['forest-secret-key'] = ForestLiana.secret_key
       request.body = {
         action: action,
         collection: collection_name,
-        resource: resource_id
+        resource: resource_id,
+        user: session['data']['id']
       }.to_json
 
       client.request(request)
@@ -23,10 +23,6 @@ class ForestLiana::ActivityLogger
   end
 
   private
-
-  def project_id(user)
-    user['session']['data']['relationships']['project']['data']['id'];
-  end
 
   def forest_url
     ENV['FOREST_URL'] || 'https://forestadmin-server.herokuapp.com';
