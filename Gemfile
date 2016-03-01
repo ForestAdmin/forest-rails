@@ -18,12 +18,10 @@ group :test do
   gem 'sqlite3'
 end
 
-gem 'jsonapi-serializers', '0.3.0'
+gem 'jsonapi-serializers', '0.6.3'
 gem 'rack-cors'
 gem 'arel-helpers'
-gem 'stripe'
 gem 'groupdate'
-gem 'intercom', '~> 3.2.0'
 gem 'useragent'
 gem 'jwt'
 gem 'bcrypt'

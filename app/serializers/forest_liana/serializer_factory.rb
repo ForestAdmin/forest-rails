@@ -14,15 +14,20 @@ module ForestLiana
     end
 
     def self.get_serializer_name(active_record_class)
-      if active_record_class == ::Intercom::Conversation
+      if defined?(::Intercom::Conversation) &&
+        active_record_class == ::Intercom::Conversation
         "ForestLiana::IntercomConversationSerializer"
-      elsif active_record_class == ::Intercom::User
+      elsif defined?(::Intercom::User) &&
+        active_record_class == ::Intercom::User
         "ForestLiana::IntercomAttributeSerializer"
-      elsif active_record_class == ::Stripe::Charge
+      elsif defined?(::Stripe::Charge) &&
+        active_record_class == ::Stripe::Charge
         "ForestLiana::StripePaymentSerializer"
-      elsif active_record_class == ::Stripe::Card
-        "ForestLiana::StripeCardSerializer"
-      elsif active_record_class == ::Stripe::Invoice
+      elsif defined?(::Stripe::Card) &&
+        active_record_class == ::Stripe::Card
+        "ForestLiana:StripeCardSerializer"
+      elsif defined?(::Stripe::Invoice) &&
+        active_record_class == ::Stripe::Invoice
         "ForestLiana::StripeInvoiceSerializer"
       elsif active_record_class == ForestLiana::Model::Stat
         "ForestLiana::StatSerializer"
@@ -58,7 +63,7 @@ module ForestLiana
         end
 
         def unformat_name(attribute_name)
-          attribute_name.to_s.underscore
+          attribute_name.to_s
         end
 
         def relationship_self_link(attribute_name)
@@ -103,7 +108,7 @@ module ForestLiana
                   }
                 end
               end
-            rescue TypeError
+            rescue TypeError, ActiveRecord::StatementInvalid
               puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
             end
           end

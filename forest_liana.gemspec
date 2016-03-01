@@ -18,13 +18,11 @@ Gem::Specification.new do |s|
   s.test_files = Dir["test/**/*"]
 
   s.add_runtime_dependency "rails", ">= 3.0"
-  s.add_runtime_dependency "jsonapi-serializers", "0.3.0"
+  s.add_runtime_dependency "jsonapi-serializers"
   s.add_runtime_dependency "jwt"
   s.add_runtime_dependency "rack-cors"
   s.add_runtime_dependency "arel-helpers"
-  s.add_runtime_dependency "stripe"
   s.add_runtime_dependency "groupdate"
-  s.add_runtime_dependency "intercom"
   s.add_runtime_dependency "useragent"
   s.add_runtime_dependency "bcrypt"
 end

@@ -128,9 +128,12 @@ module ForestLiana
 
       operator, value = OperatorValueParser.parse(value)
 
+      where = "#{association.table_name}.#{subfield} #{operator}"
+      where += " '#{value}'" if value
+
       @records = @records
         .joins(field.to_sym)
-        .where("#{association.table_name}.#{subfield} #{operator} '#{value}'")
+        .where(where)
     end
 
     def belongs_to_filter
