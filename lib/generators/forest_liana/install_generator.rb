@@ -5,10 +5,10 @@ module ForestLiana
     desc 'Forest Rails Liana installation generator'
 
     def install
-      jwt_signing_key = ask('What\'s your project secret key?')
+      secret_key = ask('What\'s your project secret key?')
       route("mount ForestLiana::Engine => '/forest'")
       initializer 'forest_liana.rb' do
-        "ForestLiana.jwt_signing_key = '#{jwt_signing_key}'"
+        "ForestLiana.secret_key = '#{secret_key}'\nForestLiana.auth_key = '#{SecureRandom.urlsafe_base64}'"
       end
     end
   end
