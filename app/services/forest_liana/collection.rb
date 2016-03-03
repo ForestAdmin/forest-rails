@@ -1,9 +1,11 @@
 class ForestLiana::Collection
   mattr_accessor :collection_name
+  mattr_accessor :is_read_only
 
   def self.fields(fields)
     collection = ForestLiana::Model::Collection.new({
       name: self.collection_name,
+      is_read_only: self.is_read_only,
       fields: fields
     })
 

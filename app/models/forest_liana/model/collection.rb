@@ -10,6 +10,7 @@ class ForestLiana::Model::Collection
   def initialize(attributes = {})
     @actions = []
     @is_searchable = true
+    @is_read_only = false
 
     attributes.each do |name, value|
       send("#{name}=", value)
