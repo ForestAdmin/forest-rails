@@ -29,7 +29,8 @@ module ForestLiana
         value = value.uniq if uniq
         value.send(@params[:aggregate].downcase, aggregate_field)
       else
-        value.send(@params[:aggregate], aggregate_field, distinct: uniq)
+        value.send(@params[:aggregate].downcase, aggregate_field,
+                   distinct: uniq)
       end
     end
 
