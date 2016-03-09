@@ -123,7 +123,7 @@ module ForestLiana
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        reference: "#{association.klass.table_name.underscore}.id",
+        reference: "#{association.klass.table_name}.id",
         inverseOf: inverse_of(association)
       }
     end

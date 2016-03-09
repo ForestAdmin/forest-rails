@@ -25,7 +25,7 @@ module ForestLiana
     end
 
     def type
-      'stripe-invoices'
+      'stripe_invoices'
     end
 
     def format_name(attribute_name)
@@ -33,7 +33,7 @@ module ForestLiana
     end
 
     def unformat_name(attribute_name)
-      attribute_name.to_s.underscore
+      attribute_name.to_s
     end
 
     def relationship_self_link(attribute_name)

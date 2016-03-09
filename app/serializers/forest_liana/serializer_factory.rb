@@ -25,7 +25,7 @@ module ForestLiana
         "ForestLiana::StripePaymentSerializer"
       elsif defined?(::Stripe::Card) &&
         active_record_class == ::Stripe::Card
-        "ForestLiana:StripeCardSerializer"
+        "ForestLiana::StripeCardSerializer"
       elsif defined?(::Stripe::Invoice) &&
         active_record_class == ::Stripe::Invoice
         "ForestLiana::StripeInvoiceSerializer"
@@ -55,7 +55,7 @@ module ForestLiana
         end
 
         def type
-          object.class.table_name.demodulize.dasherize
+          object.class.table_name.demodulize
         end
 
         def format_name(attribute_name)
