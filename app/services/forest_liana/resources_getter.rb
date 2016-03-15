@@ -6,10 +6,9 @@ module ForestLiana
     end
 
     def perform
+      @records = @resource.includes(includes)
       @records = search_query
       @records = sort_query
-
-      @records
     end
 
     def records
@@ -23,7 +22,7 @@ module ForestLiana
     private
 
     def search_query
-      SearchQueryBuilder.new(@resource, @params).perform
+      SearchQueryBuilder.new(@records, @params).perform
     end
 
     def sort_query

@@ -66,13 +66,7 @@ module ForestLiana
     end
 
     def includes
-      @resource
-        .reflect_on_all_associations
-        .select do |a|
-          [:belongs_to, :has_one]
-            .include?(a.macro) && !a.options[:polymorphic]
-        end
-        .map {|a| a.name.to_s }
+      SchemaUtils.one_associations(@resource).map {|a| a.name.to_s}
     end
 
   end
