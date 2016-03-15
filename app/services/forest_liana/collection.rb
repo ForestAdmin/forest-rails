@@ -2,6 +2,14 @@ class ForestLiana::Collection
   mattr_accessor :collection_name
   mattr_accessor :is_read_only
 
+  def self.field(field, opts)
+    collection = ForestLiana.apimap.find do |x|
+      x.name ==  self.collection_name.try(:to_s)
+    end
+
+    collection.fields << opts.merge({ field: field }) if collection
+  end
+
   def self.fields(fields)
     collection = ForestLiana::Model::Collection.new({
       name: self.collection_name,
