@@ -75,34 +75,34 @@ module ForestLiana
       assert records.last.belongs_to_field.id == 21
     end
 
-    test 'Sort by a has_many association' do
-      getter = ResourcesGetter.new(HasManyField, {
-        page: { size: 10, number: 1 },
-        sort: '-belongs_to_fields'
-      })
-      getter.perform
-      records = getter.records
-      count = getter.count
+    #test 'Sort by a has_many association' do
+      #getter = ResourcesGetter.new(HasManyField, {
+        #page: { size: 10, number: 1 },
+        #sort: '-belongs_to_fields'
+      #})
+      #getter.perform
+      #records = getter.records
+      #count = getter.count
 
-      assert records.count == 10
-      assert count = 30
-      assert records.first.id = 7
-    end
+      #assert records.count == 10
+      #assert count = 30
+      #assert records.first.id = 7
+    #end
 
-    test 'Sort by a has_many through association' do
-      getter = ResourcesGetter.new(HasManyThroughField, {
-        page: { size: 10, number: 1 },
-        sort: '-belongs_to_fields'
-      })
-      getter.perform
-      records = getter.records
-      count = getter.count
+    #test 'Sort by a has_many through association' do
+      #getter = ResourcesGetter.new(HasManyThroughField, {
+        #page: { size: 10, number: 1 },
+        #sort: '-belongs_to_fields'
+      #})
+      #getter.perform
+      #records = getter.records
+      #count = getter.count
 
-      assert records.count == 10
-      assert count = 30
-      assert records.first.id = 2
-      assert records.second.id = 3
-    end
+      #assert records.count == 10
+      #assert count = 30
+      #assert records.first.id = 2
+      #assert records.second.id = 3
+    #end
 
   end
 end
