@@ -6,7 +6,7 @@ module ForestLiana
     end
 
     def perform
-      @records = @resource.includes(includes)
+      @records = @resource.unscoped.includes(includes)
       @records = search_query
       @records = sort_query
     end
