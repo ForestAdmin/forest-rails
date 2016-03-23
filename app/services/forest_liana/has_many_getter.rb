@@ -7,7 +7,10 @@ module ForestLiana
     end
 
     def perform
-      @records = @resource.find(@params[:id]).send(@params[:association_name])
+      @records = @resource
+        .unscoped
+        .find(@params[:id])
+        .send(@params[:association_name])
     end
 
     def records
