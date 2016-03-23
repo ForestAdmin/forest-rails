@@ -37,7 +37,11 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       # good serializer to use.
       ::JSONAPI::Serializer.class_eval do
         def self.find_serializer_class_name(obj)
-          ForestLiana::SerializerFactory.get_serializer_name(obj.class)
+          if obj.respond_to?(:jsonapi_serializer_class_name)
+            obj.jsonapi_serializer_class_name.to_s
+          else
+            ForestLiana::SerializerFactory.get_serializer_name(obj.class)
+          end
         end
       end
     end
@@ -50,7 +54,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         end
       end
 
-      Dir["#{@app.root}/app/models/forest/*.rb"].each {|file| require file }
+      Dir["#{@app.root}/app/forest/**/*.rb"].each {|file| require file }
 
       setup_stripe_integration if stripe_integration?
       setup_intercom_integration if intercom_integration?
