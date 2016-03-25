@@ -80,17 +80,6 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         if response.is_a?(Net::HTTPNotFound)
           @logger.warn "Forest cannot find your project secret key. " \
             "Please, run `rails g forest_liana:install`."
-        else
-          body = JSON.parse(response.body)['data']
-          ForestLiana.allowed_users = body.map do |d|
-            user = d['attributes']
-            user['id'] = d['id']
-            user['outlines'] = d['relationships']['outlines']['data'].map {
-              |x| x['id']
-            }
-
-            user
-          end
         end
       end
     end
