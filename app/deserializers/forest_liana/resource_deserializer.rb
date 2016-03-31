@@ -1,3 +1,5 @@
+require_relative '../../../lib/forest_liana/base64_string_io'
+
 module ForestLiana
   class ResourceDeserializer
 
@@ -10,6 +12,7 @@ module ForestLiana
       @attributes = extract_attributes
       extract_relationships
       extract_paperclip
+      extract_carrierwave
 
       @attributes
     end
@@ -53,6 +56,16 @@ module ForestLiana
       @attributes.merge!(paperclip_attr) if paperclip_attr
     end
 
+    def extract_carrierwave
+      return unless @resource.respond_to?(:uploaders)
+
+      @params['data']['attributes'].each do |key, value|
+        if carrierwave_attribute?(key)
+          @attributes[key] = ForestLiana::Base64StringIO.new(value)
+        end
+      end
+    end
+
     def paperclip_handler?(attr)
       begin
         Paperclip.io_adapters.handler_for(attr)
@@ -64,6 +77,10 @@ module ForestLiana
 
     def column?(attribute)
       @resource.columns.find {|x| x.name == attribute}.present?
+    end
+
+    def carrierwave_attribute?(attr)
+      @resource.uploaders.include?(attr.try(:to_sym))
     end
   end
 end

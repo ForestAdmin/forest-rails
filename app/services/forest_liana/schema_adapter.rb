@@ -82,6 +82,14 @@ module ForestLiana
           @collection.fields << { field: key, type: 'File' }
         end
       end
+
+      # CarrierWave attribute
+      if @model.respond_to?(:uploaders)
+        @model.uploaders.each do |key, value|
+          field = @collection.fields.find {|x| x[:field] == key.to_s}
+          field[:type] = 'File' if field
+        end
+      end
     end
 
     def add_associations
