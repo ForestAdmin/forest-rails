@@ -98,15 +98,7 @@ module ForestLiana
               relationship_records = object.send(attribute_name)
 
               if relationship_records.respond_to?(:each)
-                if Rails::VERSION::MAJOR == 4
-                  ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
-                  ret[:meta] = { count: relationship_records.distinct.count }
-                else
-                  ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
-                  ret[:meta] = {
-                    count: relationship_records.count(:id, distinct: true)
-                  }
-                end
+                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
               end
             rescue TypeError, ActiveRecord::StatementInvalid
               puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."

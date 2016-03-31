@@ -91,7 +91,7 @@ module ForestLiana
     end
 
     def includes
-      SchemaUtils.associations(@resource).map(&:name)
+      SchemaUtils.one_associations(@resource).map(&:name)
     end
 
     def offset
