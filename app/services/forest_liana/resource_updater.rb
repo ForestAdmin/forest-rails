@@ -11,7 +11,8 @@ module ForestLiana
       @record = @resource.find(@params[:id])
 
       if Rails::VERSION::MAJOR == 4
-        @record.update_attributes!(resource_params.permit!)
+        @record.update_attributes!(resource_params.permit!,
+                                   without_protection: true)
       else
         @record.update_attributes!(resource_params, without_protection: true)
       end

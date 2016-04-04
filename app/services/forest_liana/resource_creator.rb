@@ -9,7 +9,8 @@ module ForestLiana
 
     def perform
       if Rails::VERSION::MAJOR == 4
-        @record = @resource.create!(resource_params.permit!)
+        @record = @resource.create!(resource_params.permit!,
+                                    without_protection: true)
       else
         @record = @resource.create!(resource_params, without_protection: true)
       end
