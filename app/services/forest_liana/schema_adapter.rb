@@ -13,6 +13,23 @@ module ForestLiana
       add_columns
       add_associations
 
+      # ActsAsTaggable attribute
+      if @model.respond_to?(:acts_as_taggable) && @model.acts_as_taggable.try(:to_a)
+        @model.acts_as_taggable.to_a.each do |key, value|
+          field = @collection.fields.find {|x| x[:field] == key.to_s}
+
+          if field
+            field[:type] = 'String'
+            field[:reference] = nil
+            field[:inverse_of] = nil
+
+            @collection.fields.delete_if do |f|
+              ['taggings', 'base_tags', 'tag_taggings'].include?(f[:field])
+            end
+          end
+        end
+      end
+
       @collection
     end
 

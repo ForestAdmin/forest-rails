@@ -100,7 +100,7 @@ module ForestLiana
               if relationship_records.respond_to?(:each)
                 ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
               end
-            rescue TypeError, ActiveRecord::StatementInvalid
+            rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError
               puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
             end
           end
@@ -138,6 +138,16 @@ module ForestLiana
       if active_record_class.respond_to?(:attachment_definitions)
         active_record_class.attachment_definitions.each do |key, value|
           serializer.attribute(key) { |x| object.send(key) }
+        end
+      end
+
+      # ActsAsTaggable attribute
+      if active_record_class.respond_to?(:acts_as_taggable) &&
+        active_record_class.acts_as_taggable.try(:to_a)
+        active_record_class.acts_as_taggable.to_a.each do |key, value|
+          serializer.attribute(key) do |x|
+            object.send(key).map(&:name)
+          end
         end
       end
 

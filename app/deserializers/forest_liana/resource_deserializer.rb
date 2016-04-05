@@ -13,6 +13,7 @@ module ForestLiana
       extract_relationships
       extract_paperclip
       extract_carrierwave
+      extract_acts_as_taggable
 
       @attributes
     end
@@ -66,6 +67,18 @@ module ForestLiana
       end
     end
 
+    def extract_acts_as_taggable
+      return unless has_acts_as_taggable?
+
+      @params['data']['attributes'].each do |key, value|
+        if acts_as_taggable_attribute?(key)
+          @attributes["#{key.singularize}_list"] = value
+          @attributes.delete(key)
+        end
+      end
+
+    end
+
     def paperclip_handler?(attr)
       begin
         Paperclip.io_adapters.handler_for(attr)
@@ -81,6 +94,15 @@ module ForestLiana
 
     def carrierwave_attribute?(attr)
       @resource.uploaders.include?(attr.try(:to_sym))
+    end
+
+    def acts_as_taggable_attribute?(attr)
+      @resource.acts_as_taggable.to_a.include?(attr)
+    end
+
+    def has_acts_as_taggable?
+      @resource.respond_to?(:acts_as_taggable) &&
+        @resource.acts_as_taggable.try(:to_a)
     end
   end
 end
