@@ -1,5 +1,8 @@
 require 'forest_liana/engine'
 
+module Forest
+end
+
 module ForestLiana
   module UserSpace
   end
