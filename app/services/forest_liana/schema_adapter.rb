@@ -98,6 +98,11 @@ module ForestLiana
         @model.attachment_definitions.each do |key, value|
           @collection.fields << { field: key, type: 'File' }
         end
+
+        @collection.fields.delete_if do |f|
+          ['picture_file_name', 'picture_file_size', 'picture_content_type',
+           'picture_updated_at'].include?(f[:field])
+        end
       end
 
       # CarrierWave attribute
