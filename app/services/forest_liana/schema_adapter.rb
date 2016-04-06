@@ -5,45 +5,59 @@ module ForestLiana
     end
 
     def perform
-      @collection = ForestLiana::Model::Collection.new({
-        name: @model.table_name,
-        fields: []
-      })
-
       add_columns
       add_associations
 
       # ActsAsTaggable attribute
       if @model.respond_to?(:acts_as_taggable) && @model.acts_as_taggable.try(:to_a)
         @model.acts_as_taggable.to_a.each do |key, value|
-          field = @collection.fields.find {|x| x[:field] == key.to_s}
+          field = collection.fields.find {|x| x[:field] == key.to_s}
 
           if field
             field[:type] = 'String'
             field[:reference] = nil
             field[:inverse_of] = nil
 
-            @collection.fields.delete_if do |f|
+            collection.fields.delete_if do |f|
               ['taggings', 'base_tags', 'tag_taggings'].include?(f[:field])
             end
           end
         end
       end
 
-      @collection
+      collection
     end
 
     private
 
+    def collection
+      @collection ||= begin
+        collection = ForestLiana.apimap.find do |x|
+          x.name == @model.table_name
+        end
+
+        if collection.blank?
+          collection = ForestLiana::Model::Collection.new({
+            name: @model.table_name,
+            fields: []
+          })
+
+          ForestLiana.apimap << collection
+        end
+
+        collection
+      end
+    end
+
     def add_columns
       @model.columns.each do |column|
-        @collection.fields << get_schema_for_column(column)
+        collection.fields << get_schema_for_column(column)
       end
 
       # Intercom
       if ForestLiana.integrations.try(:[], :intercom)
         .try(:[], :user_collection) == @model.name
-        @collection.fields << {
+        collection.fields << {
           field: :intercom_conversations,
           type: ['String'],
           reference: 'intercom_conversations.id',
@@ -52,20 +66,7 @@ module ForestLiana
           integration: 'intercom'
         }
 
-        @collection.fields << {
-          field: :intercom_attributes,
-          type: 'String',
-          reference: 'intercom_attributes.id',
-          column: nil,
-          is_searchable: false,
-          integration: 'intercom'
-        }
-      end
-
-      # Stripe
-      if ForestLiana.integrations.try(:[], :stripe)
-        .try(:[], :user_collection) == @model.name
-        @collection.fields << {
+        collection.fields << {
           field: :stripe_payments,
           type: ['String'],
           reference: 'stripe_payments.id',
@@ -74,7 +75,7 @@ module ForestLiana
           integration: 'stripe'
         }
 
-        @collection.fields << {
+        collection.fields << {
           field: :stripe_invoices,
           type: ['String'],
           reference: 'stripe_invoices.id',
@@ -83,7 +84,7 @@ module ForestLiana
           integration: 'stripe'
         }
 
-        @collection.fields << {
+        collection.fields << {
           field: :stripe_cards,
           type: ['String'],
           reference: 'stripe_cards.id',
@@ -96,10 +97,10 @@ module ForestLiana
       # Paperclip url attribute
       if @model.respond_to?(:attachment_definitions)
         @model.attachment_definitions.each do |key, value|
-          @collection.fields << { field: key, type: 'File' }
+          collection.fields << { field: key, type: 'File' }
         end
 
-        @collection.fields.delete_if do |f|
+        collection.fields.delete_if do |f|
           ['picture_file_name', 'picture_file_size', 'picture_content_type',
            'picture_updated_at'].include?(f[:field])
         end
@@ -108,7 +109,7 @@ module ForestLiana
       # CarrierWave attribute
       if @model.respond_to?(:uploaders)
         @model.uploaders.each do |key, value|
-          field = @collection.fields.find {|x| x[:field] == key.to_s}
+          field = collection.fields.find {|x| x[:field] == key.to_s}
           field[:type] = 'File' if field
         end
       end
@@ -117,12 +118,12 @@ module ForestLiana
     def add_associations
       SchemaUtils.associations(@model).each do |association|
         begin
-          if schema = column_association(@collection, association)
+          if schema = column_association(collection, association)
             schema[:reference] = get_ref_for(association)
             schema[:field] = deforeign_key(schema[:field])
             schema[:inverseOf] = inverse_of(association)
           else
-            @collection.fields << get_schema_for_association(association)
+            collection.fields << get_schema_for_association(association)
           end
         rescue => error
           puts error.inspect
