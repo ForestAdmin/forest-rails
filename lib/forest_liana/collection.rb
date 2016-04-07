@@ -25,12 +25,12 @@ module ForestLiana::Collection
 
     def model
       collection = ForestLiana.apimap.find do |x|
-        x.name == self.collection_name.try(:to_s)
+        x.name.to_s == self.collection_name.try(:to_s)
       end
 
       if collection.blank?
         collection = ForestLiana::Model::Collection.new({
-          name: self.collection_name,
+          name: self.collection_name.to_s,
           is_read_only: self.is_read_only,
           is_searchable: self.is_searchable,
           fields: []

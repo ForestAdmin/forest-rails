@@ -33,7 +33,7 @@ module ForestLiana
     def collection
       @collection ||= begin
         collection = ForestLiana.apimap.find do |x|
-          x.name == @model.table_name
+          x.name.to_s == @model.table_name
         end
 
         if collection.blank?
