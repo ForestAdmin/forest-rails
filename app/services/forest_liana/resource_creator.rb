@@ -8,11 +8,10 @@ module ForestLiana
     end
 
     def perform
-      if Rails::VERSION::MAJOR == 4
-        @record = @resource.create!(resource_params.permit!,
-                                    without_protection: true)
+      if @resource.instance_method(:create!).arity == 1
+        @record.create!(resource_params)
       else
-        @record = @resource.create!(resource_params, without_protection: true)
+        @record.create!(resource_params, without_protection: true)
       end
 
       set_has_many_relationships

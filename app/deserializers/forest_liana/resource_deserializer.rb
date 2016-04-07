@@ -15,6 +15,7 @@ module ForestLiana
       extract_carrierwave
       extract_acts_as_taggable
 
+      @attributes.permit! if @attributes.respond_to?(:permit!)
       @attributes
     end
 
