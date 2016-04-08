@@ -62,7 +62,7 @@ module ForestLiana
       return unless @resource.respond_to?(:uploaders)
 
       @params['data']['attributes'].each do |key, value|
-        if carrierwave_attribute?(key)
+        if value && carrierwave_attribute?(key)
           @attributes[key] = ForestLiana::Base64StringIO.new(value)
         end
       end
