@@ -36,7 +36,7 @@ module ForestLiana
           association = @resource.reflect_on_association(name.try(:to_sym))
 
           if [:has_one, :belongs_to].include?(association.try(:macro))
-            if data.is_a?(Hash)
+            if data.is_a?(Hash) && data[:id]
               @attributes[name] = association.klass.find(data[:id])
             elsif data.blank?
               @attributes[name] = nil
