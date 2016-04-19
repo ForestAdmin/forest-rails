@@ -13,7 +13,9 @@ module ForestLiana
       extract_relationships
       extract_paperclip
       extract_carrierwave
+      extract_acts_as_taggable
 
+      @attributes.permit! if @attributes.respond_to?(:permit!)
       @attributes
     end
 
@@ -34,7 +36,7 @@ module ForestLiana
           association = @resource.reflect_on_association(name.try(:to_sym))
 
           if [:has_one, :belongs_to].include?(association.try(:macro))
-            if data.is_a?(Hash)
+            if data.is_a?(Hash) && data[:id]
               @attributes[name] = association.klass.find(data[:id])
             elsif data.blank?
               @attributes[name] = nil
@@ -60,10 +62,22 @@ module ForestLiana
       return unless @resource.respond_to?(:uploaders)
 
       @params['data']['attributes'].each do |key, value|
-        if carrierwave_attribute?(key)
+        if value && carrierwave_attribute?(key)
           @attributes[key] = ForestLiana::Base64StringIO.new(value)
         end
       end
+    end
+
+    def extract_acts_as_taggable
+      return unless has_acts_as_taggable?
+
+      @params['data']['attributes'].each do |key, value|
+        if acts_as_taggable_attribute?(key)
+          @attributes["#{key.singularize}_list"] = value
+          @attributes.delete(key)
+        end
+      end
+
     end
 
     def paperclip_handler?(attr)
@@ -81,6 +95,15 @@ module ForestLiana
 
     def carrierwave_attribute?(attr)
       @resource.uploaders.include?(attr.try(:to_sym))
+    end
+
+    def acts_as_taggable_attribute?(attr)
+      @resource.acts_as_taggable.to_a.include?(attr)
+    end
+
+    def has_acts_as_taggable?
+      @resource.respond_to?(:acts_as_taggable) &&
+        @resource.acts_as_taggable.try(:to_a)
     end
   end
 end

@@ -7,6 +7,7 @@ class ForestLiana::ActionSerializer
   attribute :http_method
   attribute :endpoint
   attribute :fields
+  attribute :redirect
 
   def relationship_related_link(attribute_name)
     nil

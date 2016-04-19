@@ -54,8 +54,6 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         end
       end
 
-      Dir["#{@app.root}/app/forest/**/*.rb"].each {|file| require file }
-
       setup_stripe_integration if stripe_integration?
       setup_intercom_integration if intercom_integration?
     end

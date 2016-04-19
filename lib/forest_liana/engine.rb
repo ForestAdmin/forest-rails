@@ -6,6 +6,7 @@ require 'useragent'
 require 'jwt'
 require 'bcrypt'
 require_relative 'bootstraper'
+require_relative 'collection'
 
 module ForestLiana
   class Engine < ::Rails::Engine
