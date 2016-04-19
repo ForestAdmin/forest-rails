@@ -6,10 +6,10 @@ module ForestLiana
     end
 
     def perform
-      return unless @params[:jsonapis]
+      return unless @params[:data][:attributes][:ids]
 
-      @params[:jsonapis].each do |jsonapi|
-        ch = Stripe::Charge.retrieve(jsonapi[:data][:id])
+      @params[:data][:attributes][:ids].each do |id|
+        ch = Stripe::Charge.retrieve(id)
         ch.refunds.create
       end
     end
