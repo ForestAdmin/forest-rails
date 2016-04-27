@@ -6,19 +6,19 @@ module ForestLiana
     attribute :last_seen_ip
 
     attribute :created_at do
-      object.created_at.utc.try(:iso8601)
+      object.created_at.try(:utc).try(:iso8601)
     end
 
     attribute :updated_at do
-      object.updated_at.utc.try(:iso8601)
+      object.updated_at.try(:utc).try(:iso8601)
     end
 
     attribute :signed_up_at do
-      object.signed_up_at.utc.try(:iso8601)
+      object.signed_up_at.try(:utc).try(:iso8601)
     end
 
     attribute :last_request_at do
-      object.last_request_at.utc.try(:iso8601)
+      object.last_request_at.try(:utc).try(:iso8601)
     end
 
     attribute :country do

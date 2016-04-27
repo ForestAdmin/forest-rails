@@ -23,7 +23,8 @@ module ForestLiana
           if column.name == 'id'
             conditions << "#{@resource.table_name}.id =
               #{@params[:search].to_i}"
-          elsif column.type == :string || column.type == :text
+          elsif !column.array && (column.type == :string ||
+                                  column.type == :text)
             conditions <<
               "#{column.name} ILIKE '%#{@params[:search].downcase}%'"
           end

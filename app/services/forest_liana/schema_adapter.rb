@@ -66,6 +66,19 @@ module ForestLiana
           integration: 'intercom'
         }
 
+        @collection.fields << {
+          field: :intercom_attributes,
+          type: 'String',
+          reference: 'intercom_attributes.id',
+          column: nil,
+          is_searchable: false,
+          integration: 'intercom'
+        }
+      end
+
+      # Stripe
+      if ForestLiana.integrations.try(:[], :stripe)
+        .try(:[], :user_collection) == @model.name
         collection.fields << {
           field: :stripe_payments,
           type: ['String'],
