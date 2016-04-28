@@ -111,11 +111,11 @@ module ForestLiana
       if @model.respond_to?(:attachment_definitions)
         @model.attachment_definitions.each do |key, value|
           collection.fields << { field: key, type: 'File' }
-        end
 
-        collection.fields.delete_if do |f|
-          ['picture_file_name', 'picture_file_size', 'picture_content_type',
-           'picture_updated_at'].include?(f[:field])
+          collection.fields.delete_if do |f|
+            ["#{key}_file_name", "#{key}_file_size", "#{key}_content_type",
+             "#{key}_updated_at"].include?(f[:field])
+          end
         end
       end
 
