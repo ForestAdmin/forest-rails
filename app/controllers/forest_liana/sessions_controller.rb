@@ -16,13 +16,12 @@ module ForestLiana
     private
 
     def fetch_allowed_users
-      AllowedUsersGetter.new.perform
+      AllowedUsersGetter.new.perform(params['renderingId'])
     end
 
     def check_user
       ForestLiana.allowed_users.find do |allowed_user|
         allowed_user['email'] == params['email'] &&
-          allowed_user['outlines'].include?(params['outlineId']) &&
           BCrypt::Password.new(allowed_user['password']) == params['password']
       end
     end
@@ -39,10 +38,10 @@ module ForestLiana
             last_name: user['last_name']
           },
           relationships: {
-            outlines: {
+            renderings: {
               data: [{
-                type: 'outlines',
-                id: params['outlineId']
+                type: 'renderings',
+                id: params['renderingId']
               }]
             }
           }
