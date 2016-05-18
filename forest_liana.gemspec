@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Sandro Munda"]
   s.email       = ["sandro@munda.me"]
   s.homepage    = nil
-  s.summary     = "Forest Rails Liana"
-  s.description = "Forest Rails Liana"
+  s.summary     = "Instant and Customizable Admin Interface."
+  s.description = "Instant and Customizable Admin Interface. This Gem is the official Forest admin Liana for Rails."
   s.license     = "GPL v3"
 
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
