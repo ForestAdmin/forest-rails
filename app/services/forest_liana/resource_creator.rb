@@ -8,12 +8,7 @@ module ForestLiana
     end
 
     def perform
-      if @resource.method(:create).parameters.length < 2
-        @record = @resource.create(resource_params)
-      else
-        @record = @resource.create(resource_params, without_protection: true)
-      end
-
+      @record = @resource.create(resource_params)
       set_has_many_relationships
     end
 
