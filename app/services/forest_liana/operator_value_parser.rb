@@ -30,6 +30,11 @@ module ForestLiana
     end
 
     def self.add_where(query, field, operator, value)
+      match = /^last(\d+)days$/.match(value)
+      if match && match[1]
+        return query = query.where("#{field} >= ?", Integer(match[1]).day.ago)
+      end
+
       case value
       when 'yesterday'
         range = 1.day.ago.beginning_of_day..1.day.ago.end_of_day
