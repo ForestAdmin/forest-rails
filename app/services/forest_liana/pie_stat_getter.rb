@@ -17,8 +17,14 @@ module ForestLiana
                                                 filter_value)
         end
 
+        field = 'all'
+        if @params[:aggregate].downcase == 'sum'
+          field = @params[:aggregate_field].downcase
+        end
 
-        value = value.group(@params[:group_by_field])
+        value = value
+          .group(@params[:group_by_field])
+          .order("#{@params[:aggregate].downcase}_#{field} DESC")
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
           .map do |k, v|
             { key: k, value: v }
