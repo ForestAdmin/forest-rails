@@ -35,7 +35,8 @@ module ForestLiana
           data: {
             email: user['email'],
             first_name: user['first_name'],
-            last_name: user['last_name']
+            last_name: user['last_name'],
+            teams: user['teams']
           },
           relationships: {
             renderings: {
