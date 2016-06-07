@@ -17,8 +17,16 @@ module ForestLiana
                                                 filter_value)
         end
 
+        # NOTICE: The generated alias for a count is "count_all", for a sum the
+        #         alias looks like "sum_#{aggregate_field}"
+        field = 'all'
+        if @params[:aggregate].downcase == 'sum'
+          field = @params[:aggregate_field].downcase
+        end
 
-        value = value.group(@params[:group_by_field])
+        value = value
+          .group(@params[:group_by_field])
+          .order("#{@params[:aggregate].downcase}_#{field} DESC")
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
           .map do |k, v|
             { key: k, value: v }
