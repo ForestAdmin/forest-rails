@@ -9,7 +9,7 @@ class ForestLiana::ActivityLogger
 
     http.start do |client|
       request = Net::HTTP::Post.new(uri.path)
-      request['Content-Type'] = 'application/vnd.api+json'
+      request['Content-Type'] = 'application/json'
       request['forest-secret-key'] = ForestLiana.secret_key
       request.body = {
         action: action,
