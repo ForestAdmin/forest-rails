@@ -40,7 +40,8 @@ module ForestLiana
             association.try(:macro))
             @records = has_many_sort(association, order)
           else
-            @records = @records.order("#{field} #{order.upcase}")
+            @records = @records
+              .order("#{@resource.table_name}.#{field} #{order.upcase}")
           end
         end
       elsif @resource.column_names.include?('created_at')
