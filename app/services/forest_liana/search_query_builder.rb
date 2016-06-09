@@ -26,7 +26,7 @@ module ForestLiana
           elsif !column.array && (column.type == :string ||
                                   column.type == :text)
             conditions <<
-              "#{column.name} ILIKE '%#{@params[:search].downcase}%'"
+              "\"#{column.name}\" ILIKE '%#{@params[:search].downcase}%'"
           end
         end
 
