@@ -11,6 +11,7 @@ module ForestLiana
         .unscoped
         .find(@params[:id])
         .send(@params[:association_name])
+      @records = sort_query
     end
 
     def records
@@ -46,6 +47,23 @@ module ForestLiana
 
     def pagination?
       @params[:page] && @params[:page][:number]
+    end
+
+    def sort_query
+      if @params[:sort]
+        field = @params[:sort]
+        order = detect_sort_order(field)
+        field.slice!(0) if order == :desc
+
+        @records = @records
+          .order("#{@params[:association_name]}.#{field} #{order.upcase}")
+      else
+        @records
+      end
+    end
+
+    def detect_sort_order(field)
+      return (if field[0] == '-' then :desc else :asc end)
     end
 
   end
