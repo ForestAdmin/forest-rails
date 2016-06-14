@@ -30,6 +30,18 @@ module ForestLiana
           end
         end
 
+        SchemaUtils.one_associations(@resource).map(&:name).each do |association|
+          resource = @resource.reflect_on_association(association.to_sym)
+          resource.klass.columns.each do |column|
+            if !column.array && (column.type == :string || column.type == :text)
+              conditions <<
+                "\"#{resource.table_name}\".\"#{column.name}\" ILIKE " +
+                "'%#{@params[:search].downcase}%'"
+            end
+          end
+          @resource = @resource.joins(association.to_sym)
+        end
+
         @records = @resource.where(conditions.join(' OR '))
       end
 
