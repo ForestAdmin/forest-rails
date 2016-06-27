@@ -7,6 +7,10 @@ The official Rails liana for Forest.
 2. Run `$ bundle`
 3. Run `$ rails g forest_liana:install`
 
+## Tests
+
+Run `$ RAILS_ENV=test bundle exec rake --trace db:migrate test`
+
 # License
 
 [GPL v3](https://github.com/SeyZ/forest-rails/blob/master/LICENSE)

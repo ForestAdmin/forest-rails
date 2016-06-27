@@ -35,35 +35,20 @@ module ForestLiana
           @records = @records.includes(ref) if association?(ref)
 
           field = detect_reference(field)
-          association = @resource.reflect_on_association(field.to_sym)
-          if [:has_many, :has_and_belongs_to_many].include?(
-            association.try(:macro))
-            @records = has_many_sort(association, order)
-          else
+          if field.index('.').nil?
             @records = @records
               .order("#{@resource.table_name}.#{field} #{order.upcase}")
+          else
+            @records = @records.order("#{field} #{order.upcase}")
           end
         end
       elsif @resource.column_names.include?('created_at')
         @records = @records.order("#{@resource.table_name}.created_at DESC")
       elsif @resource.column_names.include?('id')
         @records = @records.order("#{@resource.table_name}.id DESC")
-      else
-        @records
       end
 
       @records
-    end
-
-    def has_many_sort(association, order)
-      @records
-        .select("#{@resource.table_name}.*,
-                COUNT(#{association.table_name}.id)
-                #{association.table_name}_has_many_count")
-        .joins(ArelHelpers.join_association(@resource, association.name,
-                                            Arel::Nodes::OuterJoin))
-        .group("#{@resource.table_name}.id")
-        .order("#{association.table_name}_has_many_count #{order.upcase}")
     end
 
     def detect_sort_order(field)

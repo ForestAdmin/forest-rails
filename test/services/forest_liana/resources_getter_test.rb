@@ -74,5 +74,21 @@ module ForestLiana
       assert records.first.belongs_to_field.id == 30
       assert records.last.belongs_to_field.id == 21
     end
+
+    test 'Sort on an ambiguous field name with a filter' do
+      getter = ResourcesGetter.new(Tree, {
+        page: { size: 10, number: 1 },
+        sort: '-name',
+        filter: { 'owner:name' => 'Arnaud Besnier' }
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 3
+      assert count = 3
+      assert records.first.name == 'Oak'
+      assert records.last.name == 'Mapple'
+    end
   end
 end

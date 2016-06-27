@@ -1,0 +1,19 @@
+tree_1:
+  id: 1
+  name: Oak
+  owner_id: 1
+
+tree_2:
+  id: 2
+  name: Mapple
+  owner_id: 2
+
+tree_3:
+  id: 3
+  name: Mapple
+  owner_id: 2
+
+tree_4:
+  id: 4
+  name: Oak
+  owner_id: 2
