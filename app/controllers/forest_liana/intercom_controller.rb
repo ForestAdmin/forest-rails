@@ -4,14 +4,16 @@ module ForestLiana
       getter = IntercomConversationsGetter.new(params)
       getter.perform
 
-      render json: serialize_models(getter.records, { count: getter.count })
+      render serializer: nil, json: serialize_models(getter.records, {
+        count: getter.count
+      })
     end
 
     def attributes
       getter = IntercomAttributesGetter.new(params)
       getter.perform
 
-      render json: serialize_model(getter.records)
+      render json: serialize_model(getter.records), serializer: nil
     end
   end
 end

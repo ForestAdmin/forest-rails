@@ -39,7 +39,7 @@ module ForestLiana
             leeway: 30
           }).try(:first)
         rescue JWT::ExpiredSignature, JWT::VerificationError
-          render json: { error: 'expired_token' }, status: 401
+          render json: { error: 'expired_token' }, status: 401, serializer: nil
         end
       else
         render nothing: true, status: 401

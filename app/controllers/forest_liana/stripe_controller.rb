@@ -7,7 +7,7 @@ module ForestLiana
                                         request.headers['Stripe-Reference'])
       getter.perform
 
-      render json: serialize_models(getter.records, {
+      render serializer: nil, json: serialize_models(getter.records, {
         count: getter.count,
         include: ['customer']
       })
@@ -18,9 +18,9 @@ module ForestLiana
         refunder = StripePaymentRefunder.new(params)
         refunder.perform
 
-        render json: {}
+        render serializer: nil, json: {}
       rescue Stripe::InvalidRequestError => err
-        render json: { error: err.message }, status: 400
+        render serializer: nil, json: { error: err.message }, status: 400
       end
     end
 
@@ -30,7 +30,7 @@ module ForestLiana
                                      request.headers['Stripe-Reference'])
       getter.perform
 
-      render json: serialize_models(getter.records, {
+      render serializer: nil, json: serialize_models(getter.records, {
         count: getter.count,
         include: ['customer']
       })
@@ -42,7 +42,7 @@ module ForestLiana
                                         request.headers['Stripe-Reference'])
       getter.perform
 
-      render json: serialize_models(getter.records, {
+      render serializer: nil, json: serialize_models(getter.records, {
         count: getter.count,
         include: ['customer']
       })

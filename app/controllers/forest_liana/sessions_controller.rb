@@ -7,7 +7,7 @@ module ForestLiana
       token = encode_token(user) if user
 
       if token
-        render json: { token: token }
+        render json: { token: token }, serializer: nil
       else
         render nothing: true, status: 401
       end

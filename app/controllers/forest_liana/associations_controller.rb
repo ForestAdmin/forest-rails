@@ -8,10 +8,10 @@ module ForestLiana
       getter = HasManyGetter.new(@resource, @association, params)
       getter.perform
 
-      render json: serialize_models(getter.records,
-                                    include: includes,
-                                    count: getter.count,
-                                    params: params)
+      render serializer: nil, json: serialize_models(getter.records,
+                                                     include: includes,
+                                                     count: getter.count,
+                                                     params: params)
     end
 
     private
@@ -20,7 +20,7 @@ module ForestLiana
       @resource = SchemaUtils.find_model_from_table_name(params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
-        render json: {status: 404}, status: :not_found
+        render serializer: nil, json: {status: 404}, status: :not_found
       end
     end
 
@@ -32,7 +32,7 @@ module ForestLiana
       # Only accept "many" associations
       if @association.nil? ||
         [:belongs_to, :has_one].include?(@association.macro)
-        render json: {status: 404}, status: :not_found
+        render serializer: nil, json: {status: 404}, status: :not_found
       end
     end
 

@@ -11,17 +11,18 @@ module ForestLiana
       getter = ResourcesGetter.new(@resource, params)
       getter.perform
 
-      render json: serialize_models(getter.records,
-                                    include: includes,
-                                    count: getter.count,
-                                    params: params)
+      render serializer: nil, json: serialize_models(getter.records,
+                                                     include: includes,
+                                                     count: getter.count,
+                                                     params: params)
     end
 
     def show
       getter = ResourceGetter.new(@resource, params)
       getter.perform
 
-      render json: serialize_model(getter.record, include: includes)
+      render serializer: nil, json:
+        serialize_model(getter.record, include: includes)
     end
 
     def create
@@ -31,7 +32,8 @@ module ForestLiana
       ActivityLogger.new.perform(current_user, 'created', params[:collection],
                                 getter.record.id)
 
-      render json: serialize_model(getter.record, include: includes)
+      render serializer: nil,
+        json: serialize_model(getter.record, include: includes)
     end
 
     def update
@@ -41,7 +43,8 @@ module ForestLiana
       ActivityLogger.new.perform(current_user, 'updated', params[:collection],
                                 getter.record.id)
 
-      render json: serialize_model(getter.record, include: includes)
+      render serializer: nil,
+        json: serialize_model(getter.record, include: includes)
     end
 
     def destroy
@@ -57,7 +60,7 @@ module ForestLiana
       @resource = SchemaUtils.find_model_from_table_name(params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
-        render json: {status: 404}, status: :not_found
+        render serializer: nil, json: {status: 404}, status: :not_found
       end
     end
 

@@ -14,9 +14,9 @@ module ForestLiana
 
       stat.perform
       if stat.record
-        render json: serialize_model(stat.record)
+        render json: serialize_model(stat.record), serializer: nil
       else
-        render json: {status: 404}, status: :not_found
+        render json: {status: 404}, status: :not_found, serializer: nil
       end
     end
 
@@ -26,7 +26,7 @@ module ForestLiana
       @resource = SchemaUtils.find_model_from_table_name(params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
-        render json: {status: 404}, status: :not_found
+        render json: {status: 404}, status: :not_found, serializer: nil
       end
     end
   end
