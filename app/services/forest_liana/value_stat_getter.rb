@@ -14,7 +14,7 @@ module ForestLiana
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])
         value = OperatorValueParser.add_where(value, filter[:field], operator,
-                                              filter_value)
+                                              filter_value, @resource)
       end
 
       @record = Model::Stat.new(value: count(value))

@@ -14,7 +14,7 @@ module ForestLiana
         @params[:filters].try(:each) do |filter|
           operator, filter_value = OperatorValueParser.parse(filter[:value])
           value = OperatorValueParser.add_where(value, filter[:field], operator,
-                                                filter_value)
+                                                filter_value, @resource)
         end
 
         # NOTICE: The generated alias for a count is "count_all", for a sum the

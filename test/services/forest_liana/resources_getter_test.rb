@@ -75,6 +75,25 @@ module ForestLiana
       assert records.last.belongs_to_field.id == 21
     end
 
+    test 'Filter on ambiguous field' do
+      getter = ResourcesGetter.new(Tree, {
+        page: { size: 10, number: 1 },
+        filter: {
+          'created_at' => '>2015-06-18 08:00:00',
+          'owner:name' => 'Arnaud Besnier'
+        }
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 1
+      assert count = 1
+      assert records.first.id == 4
+      assert records.first.name == 'Oak'
+      assert records.first.owner.name == 'Arnaud Besnier'
+    end
+
     test 'Sort on an ambiguous field name with a filter' do
       getter = ResourcesGetter.new(Tree, {
         page: { size: 10, number: 1 },
@@ -89,6 +108,38 @@ module ForestLiana
       assert count = 3
       assert records.first.name == 'Oak'
       assert records.last.name == 'Mapple'
+    end
+
+    test 'Filter on an updated_at field of the main collection' do
+      getter = ResourcesGetter.new(Owner, {
+        page: { size: 10, number: 1 },
+        filter: {
+          'updated_at' => '<lastYear',
+        }
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 1
+      assert count = 1
+      assert records.first.id == 3
+    end
+
+    test 'Filter on an updated_at field of an associated collection' do
+      getter = ResourcesGetter.new(Tree, {
+        page: { size: 10, number: 1 },
+        filter: {
+          'owner:updated_at' => '<lastYear',
+        }
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 1
+      assert count = 1
+      assert records.first.id == 5
     end
   end
 end

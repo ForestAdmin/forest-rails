@@ -14,7 +14,7 @@ module ForestLiana
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])
         value = OperatorValueParser.add_where(value, filter[:field], operator,
-                                              filter_value)
+                                              filter_value, @resource)
       end
 
       value = value.send(time_range, @params[:group_by_date_field])

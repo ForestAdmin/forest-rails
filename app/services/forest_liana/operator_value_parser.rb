@@ -29,33 +29,41 @@ module ForestLiana
       [operator, value]
     end
 
-    def self.add_where(query, field, operator, value)
+    def self.add_where(query, field, operator, value, resource)
+      if field.split(':').size < 2
+        field_name = "\"#{resource.table_name}\".\"#{field}\""
+      else
+        association = field.split(':')[0].pluralize
+        field_name = "\"#{association}\".\"#{field.split(':')[1]}\""
+      end
+
       match = /^last(\d+)days$/.match(value)
       if match && match[1]
-        return query = query.where("#{field} >= ?", Integer(match[1]).day.ago)
+        return query = query.where("#{field_name} >= ?",
+          Integer(match[1]).day.ago)
       end
 
       case value
       when 'yesterday'
-        range = 1.day.ago.beginning_of_day..1.day.ago.end_of_day
-        query = query.where(created_at: range)
+        query = query.where("#{field_name} BETWEEN " +
+          "'#{1.day.ago.beginning_of_day}' AND '#{1.day.ago.end_of_day}'")
       when 'lastWeek'
-        range = 1.week.ago.beginning_of_week..1.week.ago.end_of_week
-        query = query.where(created_at: range)
+        query = query.where("#{field_name} BETWEEN " +
+          "'#{1.week.ago.beginning_of_week}' AND '#{1.week.ago.end_of_week}'")
       when 'last2Weeks'
-        range = 2.week.ago.beginning_of_week..1.week.ago.end_of_week
-        query = query.where(created_at: range)
+        query = query.where("#{field_name} BETWEEN " +
+          "'#{2.week.ago.beginning_of_week}' AND '#{1.week.ago.end_of_week}'")
       when 'lastMonth'
-        range = 1.month.ago.beginning_of_month..1.month.ago.end_of_month
-        query = query.where(created_at: range)
+        query = query.where("#{field_name} BETWEEN " +
+          "'#{1.month.ago.beginning_of_month}' AND '#{1.month.ago.end_of_month}'")
       when 'last3Months'
-        range = 3.month.ago.beginning_of_month..1.month.ago.end_of_month
-        query = query.where(created_at: range)
+        query = query.where("#{field_name} BETWEEN " +
+          "'#{3.month.ago.beginning_of_month}' AND '#{1.month.ago.end_of_month}'")
       when 'lastYear'
-        range = 1.year.ago.beginning_of_year..1.year.ago.end_of_year
-        query = query.where(created_at: range)
+        query = query.where("#{field_name} BETWEEN " +
+          "'#{1.year.ago.beginning_of_year}' AND '#{1.year.ago.end_of_year}'")
       else
-        where = "#{field} #{operator}"
+        where = "#{field_name} #{operator}"
         where += " '#{value}'" if value
         query = query.where(where)
       end

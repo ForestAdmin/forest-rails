@@ -11,8 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160627172951) do
-
+ActiveRecord::Schema.define(version: 20160628173505) do
   create_table "belongs_to_class_name_fields", force: :cascade do |t|
     t.integer "foo_id"
   end
@@ -68,7 +67,9 @@ ActiveRecord::Schema.define(version: 20160627172951) do
   end
 
   create_table "owners", force: :cascade do |t|
-    t.string "name"
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "polymorphic_fields", force: :cascade do |t|
@@ -82,8 +83,10 @@ ActiveRecord::Schema.define(version: 20160627172951) do
   end
 
   create_table "trees", force: :cascade do |t|
-    t.string  "name"
-    t.integer "owner_id"
+    t.string   "name"
+    t.integer  "owner_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "trees", ["owner_id"], name: "index_trees_on_owner_id"

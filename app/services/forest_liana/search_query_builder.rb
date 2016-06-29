@@ -51,11 +51,11 @@ module ForestLiana
     def filter_param
       if @params[:filter]
         @params[:filter].each do |field, values|
-          next if association?(field)
+          next if has_many_association?(field)
           values.split(',').each do |value|
             operator, value = OperatorValueParser.parse(value)
             @records = OperatorValueParser.add_where(@records, field, operator,
-                                                     value)
+                                                     value, @resource)
           end
         end
       end
