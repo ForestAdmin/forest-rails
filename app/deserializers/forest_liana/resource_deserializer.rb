@@ -4,7 +4,7 @@ module ForestLiana
   class ResourceDeserializer
 
     def initialize(resource, params)
-      @params = params
+      @params = params.permit! if params.respond_to?(:permit!)
       @resource = resource
     end
 
@@ -15,7 +15,6 @@ module ForestLiana
       extract_carrierwave
       extract_acts_as_taggable
 
-      @attributes.permit! if @attributes.respond_to?(:permit!)
       @attributes
     end
 
