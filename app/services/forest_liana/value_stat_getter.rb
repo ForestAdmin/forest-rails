@@ -9,15 +9,35 @@ module ForestLiana
 
     def perform
       return if @params[:aggregate].blank?
-      value = @resource
+      valueCurrent = @resource
+      valuePrevious = @resource
 
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])
-        value = OperatorValueParser.add_where(value, filter[:field], operator,
-                                              filter_value, @resource)
+        valueCurrent = OperatorValueParser.add_where(valueCurrent,
+          filter[:field], operator, filter_value, @resource)
       end
 
-      @record = Model::Stat.new(value: count(value))
+      filter_date_interval = false
+      @params[:filters].try(:each) do |filter|
+        operator, filter_value = OperatorValueParser.parse(filter[:value])
+        operator_date_interval_parser = OperatorDateIntervalParser.new(filter_value)
+        if operator_date_interval_parser.is_interval_date_value()
+          field_name = OperatorValueParser.get_field_name(filter[:field], @resource)
+          filter = operator_date_interval_parser
+            .get_interval_date_filter_for_previous_interval()
+          valuePrevious = valuePrevious.where("#{field_name} #{filter}")
+          filter_date_interval = true
+        else
+          valuePrevious = OperatorValueParser.add_where(valuePrevious,
+            filter[:field], operator, filter_value, @resource)
+        end
+      end
+
+      @record = Model::Stat.new(value: {
+        countCurrent: count(valueCurrent),
+        countPrevious: filter_date_interval ? count(valuePrevious) : nil
+      })
     end
 
     private
