@@ -51,7 +51,7 @@ module ForestLiana
     def filter_param
       if @params[:filter]
         @params[:filter].each do |field, values|
-          next if has_many_association?(field)
+          next if association?(field)
           values.split(',').each do |value|
             operator, value = OperatorValueParser.parse(value)
             @records = OperatorValueParser.add_where(@records, field, operator,
@@ -141,12 +141,18 @@ module ForestLiana
 
       operator, value = OperatorValueParser.parse(value)
 
-      where = "#{association.table_name}.#{subfield} #{operator}"
-      where += " '#{value}'" if value
-
       @records = @records
         .joins(field.to_sym)
-        .where(where)
+
+      operator_date_interval_parser = OperatorDateIntervalParser.new(value)
+      if operator_date_interval_parser.is_interval_date_value()
+        filter = operator_date_interval_parser.get_interval_date_filter()
+        @records = @records.where("#{association.table_name}.#{subfield} #{filter}")
+      else
+        where = "#{association.table_name}.#{subfield} #{operator}"
+        where += " '#{value}'" if value
+        @records = @records.where(where)
+      end
     end
 
     def belongs_to_filter

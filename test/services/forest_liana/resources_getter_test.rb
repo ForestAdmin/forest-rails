@@ -141,5 +141,20 @@ module ForestLiana
       assert count = 1
       assert records.first.id == 5
     end
+
+    test 'Filter equal on an updated_at field of an associated collection' do
+      getter = ResourcesGetter.new(Tree, {
+        page: { size: 10, number: 1 },
+        filter: {
+          'owner:updated_at' => 'Sat Jul 02 2016 11:52:00 GMT-0400 (EDT)',
+        }
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 0
+      assert count = 0
+    end
   end
 end
