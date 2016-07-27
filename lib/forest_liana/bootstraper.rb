@@ -36,7 +36,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       # Monkey patch the find_serializer_class_name method to specify the
       # good serializer to use.
       ::JSONAPI::Serializer.class_eval do
-        def self.find_serializer_class_name(obj)
+        def self.find_serializer_class_name(obj, options)
           if obj.respond_to?(:jsonapi_serializer_class_name)
             obj.jsonapi_serializer_class_name.to_s
           else
