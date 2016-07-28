@@ -16,6 +16,7 @@ module ForestLiana
     end
 
     def is_interval_date_value
+      return false if @value.nil?
       return true if PERIODS[@value.to_sym]
 
       match = PERIODS_LAST_X_DAYS.match(@value)
