@@ -5,7 +5,7 @@ PATH
       arel-helpers
       bcrypt
       groupdate
-      jsonapi-serializers
+      jsonapi-serializers (>= 0.14.0)
       jwt
       rack-cors
       rails (>= 3.0)
@@ -63,7 +63,7 @@ GEM
       activesupport (>= 3)
     i18n (0.7.0)
     json (1.8.3)
-    jsonapi-serializers (0.6.3)
+    jsonapi-serializers (0.14.0)
       activesupport
     jwt (1.5.4)
     loofah (2.0.3)
@@ -131,7 +131,7 @@ DEPENDENCIES
   byebug
   forest_liana!
   groupdate
-  jsonapi-serializers (= 0.6.3)
+  jsonapi-serializers (= 0.14.0)
   jwt
   rack-cors
   rake
