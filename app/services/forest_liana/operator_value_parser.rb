@@ -37,6 +37,11 @@ module ForestLiana
         filter = operator_date_interval_parser.get_interval_date_filter()
         query = query.where("#{field_name} #{filter}")
       else
+        # NOTICE: Set the integer value instead of a string if "enum" type
+        if resource.defined_enums.has_key?(field)
+          value = resource.defined_enums[field][value]
+        end
+
         where = "#{field_name} #{operator}"
         where += " '#{value}'" if value
         query = query.where(where)

@@ -23,10 +23,14 @@ module ForestLiana
           if column.name == 'id'
             conditions << "#{@resource.table_name}.id =
               #{@params[:search].to_i}"
+          elsif @resource.defined_enums.has_key?(column.name) &&
+            !@resource.defined_enums[column.name][@params[:search].downcase].nil?
+            conditions << "\"#{@resource.table_name}\".\"#{column.name}\" =
+              #{@resource.defined_enums[column.name][@params[:search].downcase]}"
           elsif !column.array && (column.type == :string ||
                                   column.type == :text)
-            conditions <<
-              "\"#{@resource.table_name}\".\"#{column.name}\" ILIKE '%#{@params[:search].downcase}%'"
+            conditions << "\"#{@resource.table_name}\".\"#{column.name}\" ILIKE
+              '%#{@params[:search].downcase}%'"
           end
         end
 

@@ -160,7 +160,8 @@ module ForestLiana
     end
 
     def get_schema_for_column(column)
-      { field: column.name, type: get_type_for(column) }
+      schema = { field: column.name, type: get_type_for(column) }
+      add_enum_values_if_is_enum(schema, column)
     end
 
     def get_schema_for_association(association)
@@ -173,6 +174,8 @@ module ForestLiana
     end
 
     def get_type_for(column)
+      return 'Enum' if @model.defined_enums.has_key?(column.name)
+
       case column.type
       when :integer
         'Number'
@@ -191,6 +194,17 @@ module ForestLiana
       when :boolean
         'Boolean'
       end
+    end
+
+    def add_enum_values_if_is_enum(column_schema, column)
+      if column_schema[:type] == 'Enum'
+        column_schema[:enums] = []
+        @model.defined_enums[column.name].each do |name, value|
+          column_schema[:enums] << name
+        end
+      end
+
+      column_schema
     end
 
     def get_ref_for(association)
