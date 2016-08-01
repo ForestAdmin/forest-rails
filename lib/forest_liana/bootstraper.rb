@@ -50,7 +50,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       SchemaUtils.tables_names.map do |table_name|
         model = SchemaUtils.find_model_from_table_name(table_name)
         if model.try(:table_exists?)
-          ForestLiana.apimap << SchemaAdapter.new(model).perform
+          SchemaAdapter.new(model).perform
         end
       end
 
