@@ -19,7 +19,7 @@ module ForestLiana::Collection
     end
 
     def field(name, opts, &block)
-      model.fields << opts.merge({ field: name })
+      model.fields << opts.merge({ field: name, is_searchable: false })
       ForestLiana::UserSpace.const_get(serializer_name).class_eval do
         attribute(name, &block)
       end
