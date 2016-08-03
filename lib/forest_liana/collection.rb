@@ -2,12 +2,13 @@ module ForestLiana::Collection
   extend ActiveSupport::Concern
 
   module ClassMethods
+    attr_accessor :active_record_class
     attr_accessor :collection_name
     attr_accessor :is_read_only
     attr_accessor :is_searchable
 
-    def collection(name, opts = {})
-      self.collection_name = name.to_s
+    def collection(collection_name, opts = {})
+      self.collection_name = collection_name.to_s
       self.is_read_only = opts[:read_only] || false
       self.is_searchable = opts[:is_searchable] || true
     end
@@ -17,8 +18,11 @@ module ForestLiana::Collection
       model.actions << ForestLiana::Model::Action.new(opts)
     end
 
-    def field(name, opts)
+    def field(name, opts, &block)
       model.fields << opts.merge({ field: name })
+      ForestLiana::UserSpace.const_get(serializer_name).class_eval do
+        attribute(name, &block)
+      end
     end
 
     private
@@ -40,6 +44,20 @@ module ForestLiana::Collection
       end
 
       collection
+    end
+
+    def active_record_class
+      ForestLiana::SchemaUtils.find_model_from_table_name(self.collection_name)
+    end
+
+    def serializer_name
+      class_name = active_record_class.table_name.classify
+      module_name = class_name.deconstantize
+
+      name = module_name if module_name
+      name += class_name.demodulize
+
+      "ForestLiana::UserSpace::#{name}Serializer"
     end
   end
 end

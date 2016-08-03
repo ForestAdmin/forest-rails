@@ -20,6 +20,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
       if ForestLiana.secret_key
         create_apimap
+        require_lib_forest_liana
         send_apimap
       end
     end
@@ -56,6 +57,13 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
       setup_stripe_integration if stripe_integration?
       setup_intercom_integration if intercom_integration?
+    end
+
+    def require_lib_forest_liana
+      path = Rails.root.join('lib', 'forest_liana', '**', '*.rb')
+      Dir.glob(File.expand_path(path, __FILE__)).each do |file|
+        require file
+      end
     end
 
     def send_apimap
