@@ -25,6 +25,18 @@ module ForestLiana::Collection
       end
     end
 
+    def has_many(name, opts, &block)
+      model.fields << opts.merge({
+        field: name,
+        is_searchable: false,
+        type: ['String']
+      })
+
+      ForestLiana::UserSpace.const_get(serializer_name).class_eval do
+        has_many(name, name: name)
+      end
+    end
+
     private
 
     def model
@@ -52,6 +64,17 @@ module ForestLiana::Collection
 
     def serializer_name
       class_name = active_record_class.table_name.classify
+      module_name = class_name.deconstantize
+
+      name = module_name if module_name
+      name += class_name.demodulize
+
+      "ForestLiana::UserSpace::#{name}Serializer"
+    end
+
+    def serializer_name_for_reference(reference)
+      association = opts[:reference].split('.').first
+      class_name = association.classify
       module_name = class_name.deconstantize
 
       name = module_name if module_name

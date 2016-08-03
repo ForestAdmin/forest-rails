@@ -73,6 +73,13 @@ module ForestLiana
         def relationship_related_link(attribute_name)
           ret = {}
 
+          # Has many smart field
+          current = self.has_many_relationships[attribute_name]
+          if current.try(:[], :options).try(:[], :name) == attribute_name
+            ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+            return ret
+          end
+
           if intercom_integration?
             case attribute_name
             when :intercom_conversations
