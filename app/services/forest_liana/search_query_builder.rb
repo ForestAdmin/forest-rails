@@ -29,8 +29,9 @@ module ForestLiana
               #{@resource.defined_enums[column.name][@params[:search].downcase]}"
           elsif !column.array && (column.type == :string ||
                                   column.type == :text)
-            conditions << "\"#{@resource.table_name}\".\"#{column.name}\" ILIKE
-              '%#{@params[:search].downcase}%'"
+            conditions <<
+              "LOWER(\"#{@resource.table_name}\".\"#{column.name}\") LIKE " +
+              "'%#{@params[:search].downcase}%'"
           end
         end
 
@@ -39,7 +40,7 @@ module ForestLiana
           resource.klass.columns.each do |column|
             if !column.array && (column.type == :string || column.type == :text)
               conditions <<
-                "\"#{resource.table_name}\".\"#{column.name}\" ILIKE " +
+                "LOWER(\"#{resource.table_name}\".\"#{column.name}\") LIKE " +
                 "'%#{@params[:search].downcase}%'"
             end
           end
