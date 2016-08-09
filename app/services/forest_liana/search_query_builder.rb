@@ -44,7 +44,7 @@ module ForestLiana
                 "'%#{@params[:search].downcase}%'"
             end
           end
-          @resource = @resource.joins(association.to_sym)
+          @resource = @resource.eager_load(association.to_sym)
         end
 
         @records = @resource.where(conditions.join(' OR '))
