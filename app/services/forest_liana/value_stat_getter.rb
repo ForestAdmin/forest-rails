@@ -45,7 +45,7 @@ module ForestLiana
     def count(value)
       uniq = @params[:aggregate].downcase == 'count'
 
-      if Rails::VERSION::MAJOR == 4
+      if Rails::VERSION::MAJOR >= 4
         value = value.uniq if uniq
         value.send(@params[:aggregate].downcase, aggregate_field)
       else
