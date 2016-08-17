@@ -29,7 +29,7 @@ module ForestLiana
       return nil unless is_interval_date_value()
 
       match = PERIODS_LAST_X_DAYS.match(@value)
-      return ">= #{Integer(match[1]).day.ago}" if match && match[1]
+      return ">= '#{Integer(match[1]).day.ago}'" if match && match[1]
 
       duration = PERIODS[@value.to_sym][:duration]
       period = PERIODS[@value.to_sym][:period]
