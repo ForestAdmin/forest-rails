@@ -29,9 +29,6 @@ module ForestLiana
       getter = ResourceCreator.new(@resource, params)
       getter.perform
 
-      ActivityLogger.new.perform(current_user, 'created', params[:collection],
-                                getter.record.id)
-
       render serializer: nil,
         json: serialize_model(getter.record, include: includes)
     end
@@ -40,17 +37,13 @@ module ForestLiana
       getter = ResourceUpdater.new(@resource, params)
       getter.perform
 
-      ActivityLogger.new.perform(current_user, 'updated', params[:collection],
-                                getter.record.id)
-
       render serializer: nil,
         json: serialize_model(getter.record, include: includes)
     end
 
     def destroy
       @resource.destroy_all(id: params[:id])
-      ActivityLogger.new.perform(current_user, 'deleted', params[:collection],
-                                params[:id])
+
       render nothing: true, status: 204
     end
 
