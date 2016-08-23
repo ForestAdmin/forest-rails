@@ -24,6 +24,11 @@ module ForestLiana
 
     private
 
+    def association_table_name
+      @resource.reflect_on_association(@params[:association_name])
+        .try(:table_name)
+    end
+
     def offset
       return 0 unless pagination?
 
@@ -56,7 +61,7 @@ module ForestLiana
         field.slice!(0) if order == :desc
 
         @records = @records
-          .order("#{@params[:association_name]}.#{field} #{order.upcase}")
+          .order("#{association_table_name}.#{field} #{order.upcase}")
       else
         @records
       end
