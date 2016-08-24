@@ -14,7 +14,7 @@ module ForestLiana
         operator = '<'
         value.slice!(0)
       elsif value.include?('*')
-        operator = 'ILIKE'
+        operator = 'LIKE'
         value.gsub!('*', '%')
       elsif value === '$present'
         operator = 'IS NOT NULL'
