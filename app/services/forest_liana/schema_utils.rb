@@ -14,7 +14,17 @@ module ForestLiana
     end
 
     def self.find_model_from_table_name(table_name)
-      ActiveRecord::Base.subclasses.find {|s| s.table_name == table_name}
+      model = nil
+
+      ActiveRecord::Base.subclasses.each do |subclass|
+        if subclass.abstract_class?
+          model = self.find_model_from_abstract_class(subclass, table_name)
+        elsif subclass.table_name == table_name
+          model = subclass
+        end
+      end
+
+      model
     end
 
     def self.tables_names
@@ -27,6 +37,15 @@ module ForestLiana
       association.options[:polymorphic]
     end
 
+    def self.find_model_from_abstract_class(abstract_class, table_name)
+      abstract_class.subclasses.find do |subclass|
+        if subclass.abstract_class?
+          return self.find_model_from_table_name(subclass, table_name)
+        else
+          subclass.table_name == table_name
+        end
+      end
+    end
   end
 end
 
