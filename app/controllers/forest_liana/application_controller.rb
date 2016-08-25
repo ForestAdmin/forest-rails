@@ -6,7 +6,7 @@ module ForestLiana
     wrap_parameters format: [:json] if respond_to?(:wrap_parameters)
 
 
-    def current_user
+    def forest_user
       @jwt_decoded_token
     end
 
