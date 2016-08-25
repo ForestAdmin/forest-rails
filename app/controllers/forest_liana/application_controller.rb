@@ -3,6 +3,8 @@ require 'jwt'
 module ForestLiana
   class ApplicationController < ActionController::Base
     before_filter :authenticate_user_from_jwt
+    wrap_parameters format: [:json] if respond_to?(:wrap_parameters)
+
 
     def current_user
       @jwt_decoded_token
