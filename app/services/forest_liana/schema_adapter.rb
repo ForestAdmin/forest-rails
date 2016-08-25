@@ -191,6 +191,8 @@ module ForestLiana
         'String'
       when :text
         'String'
+      when :citext
+        'String'
       when :boolean
         'Boolean'
       end
