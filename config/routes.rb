@@ -3,10 +3,10 @@ ForestLiana::Engine.routes.draw do
   post 'sessions' => 'sessions#create'
 
   # Stripe Integration
-  get 'stripe_payments' => 'stripe#payments'
+  get '(:collection)_stripe_payments' => 'stripe#payments'
   get ':collection/:id/stripe_payments' => 'stripe#payments'
   post 'stripe_payments/refunds' => 'stripe#refund'
-  get 'stripe_invoices' => 'stripe#invoices'
+  get '(:collection)_stripe_invoices' => 'stripe#invoices'
   get ':collection/:id/stripe_invoices' => 'stripe#invoices'
   get ':collection/:id/stripe_cards' => 'stripe#cards'
 

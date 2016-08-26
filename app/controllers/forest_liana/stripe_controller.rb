@@ -8,6 +8,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
+        context: { type: get_serializer_type('stripe_payments') },
         count: getter.count,
         include: ['customer']
       })
@@ -31,6 +32,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
+        context: { type: get_serializer_type('stripe_cards') },
         count: getter.count,
         include: ['customer']
       })
@@ -43,9 +45,14 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
+        context: { type: get_serializer_type('stripe_invoices') },
         count: getter.count,
         include: ['customer']
       })
+    end
+
+    def get_serializer_type(suffix)
+      "#{params[:collection].singularize}_#{suffix}"
     end
   end
 end

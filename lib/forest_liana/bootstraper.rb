@@ -3,12 +3,28 @@ module ForestLiana
 
     def initialize(app)
       @app = app
+
+      @integration_stripe_valid = false
+      @integration_intercom_valid = false
+
       @logger = Logger.new(STDOUT)
 
+      @@logger_colors = {
+        DEBUG: 34,
+        WARN: 33,
+        ERROR: 31,
+        INFO: 37
+      }
+
+      @logger.formatter = proc do |severity, datetime, progname, message|
+        displayed_message = "[#{datetime.to_s(:db)}] Forest 🌳🌳🌳  #{message}\n"
+        "\e[#{@@logger_colors[severity.to_sym]}m#{displayed_message}\033[0m"
+      end
+
       if ForestLiana.jwt_signing_key
-         warn "DEPRECATION WARNING: the use of ForestLiana.jwt_signing_key \
-(config/initializers/forest_liana.rb) is deprecated. Use \
-ForestLiana.secret_key and ForestLiana.auth_key instead. \
+         @logger.warn "DEPRECATION WARNING: the use of \
+ForestLiana.jwt_signing_key (config/initializers/forest_liana.rb) is \
+deprecated. Use ForestLiana.secret_key and ForestLiana.auth_key instead. \
 More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         ForestLiana.secret_key = ForestLiana.jwt_signing_key
         ForestLiana.auth_key = ForestLiana.jwt_signing_key
@@ -16,6 +32,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def perform
+      check_integrations_setup
       create_serializers
 
       if ForestLiana.secret_key
@@ -26,6 +43,10 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     private
+
+    def cast_to_array value
+      value.is_a?(String) ? [value] : value
+    end
 
     def create_serializers
       SchemaUtils.tables_names.map do |table_name|
@@ -47,6 +68,28 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       end
     end
 
+    def check_integrations_setup
+     if stripe_integration?
+        if stripe_integration_valid? || stripe_integration_deprecated?
+          ForestLiana.integrations[:stripe][:mapping] =
+            cast_to_array(ForestLiana.integrations[:stripe][:mapping])
+          @integration_stripe_valid = true
+        else
+          @logger.error 'Cannot setup properly your Stripe integration.'
+        end
+      end
+
+      if intercom_integration?
+        if intercom_integration_valid? || intercom_integration_deprecated?
+          ForestLiana.integrations[:intercom][:mapping] =
+            cast_to_array(ForestLiana.integrations[:intercom][:mapping])
+          @integration_intercom_valid = true
+        else
+          @logger.error 'Cannot setup properly your Intercom integration.'
+        end
+      end
+    end
+
     def create_apimap
       SchemaUtils.tables_names.map do |table_name|
         model = SchemaUtils.find_model_from_table_name(table_name)
@@ -55,8 +98,17 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         end
       end
 
-      setup_stripe_integration if stripe_integration?
-      setup_intercom_integration if intercom_integration?
+      if @integration_stripe_valid
+        ForestLiana.integrations[:stripe][:mapping].each do |collection|
+          setup_stripe_integration collection
+        end
+      end
+
+      if @integration_intercom_valid
+        ForestLiana.integrations[:intercom][:mapping].each do |collection_name|
+          setup_intercom_integration collection_name
+        end
+      end
     end
 
     def require_lib_forest_liana
@@ -84,15 +136,15 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         response = client.request(request)
 
         if response.is_a?(Net::HTTPNotFound)
-          @logger.warn "Forest cannot find your project secret key. " \
+          @logger.warn "Cannot find your project secret key. " \
             "Please, run `rails g forest_liana:install`."
         end
       end
     end
 
-    def setup_intercom_integration
+    def setup_intercom_integration collection_name
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: 'intercom_conversations',
+        name: "#{collection_name.downcase}_intercom_conversations",
         only_for_relationships: true,
         is_virtual: true,
         fields: [
@@ -105,7 +157,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: 'intercom_attributes',
+        name: "#{collection_name.downcase}_intercom_attributes",
         only_for_relationships: true,
         is_virtual: true,
         fields: [
@@ -134,13 +186,34 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     def intercom_integration?
       ForestLiana.integrations
         .try(:[], :intercom)
-        .try(:[], :user_collection)
         .present?
     end
 
-    def setup_stripe_integration
+    def intercom_integration_valid?
+      integration = ForestLiana.integrations.try(:[], :intercom)
+      integration.present? && integration.has_key?(:api_key) &&
+        integration.has_key?(:app_id) && integration.has_key?(:mapping)
+    end
+
+    def intercom_integration_deprecated?
+      integration = ForestLiana.integrations.try(:[], :intercom)
+
+      is_deprecated = integration.present? && integration.has_key?(:api_key) &&
+        integration.has_key?(:app_id) && integration.has_key?(:user_collection)
+
+      if is_deprecated
+        @logger.warn "Intercom integration attribute \"user_collection\" is " \
+          "now deprecated, please use \"mapping\" attribute."
+      end
+
+      is_deprecated
+    end
+
+    def setup_stripe_integration collection_name_and_field
+      collection_name = collection_name_and_field.split('.')[0].downcase
+
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: 'stripe_payments',
+        name: "#{collection_name}_stripe_payments",
         is_virtual: true,
         is_read_only: true,
         fields: [
@@ -167,7 +240,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: 'stripe_invoices',
+        name: "#{collection_name}_stripe_invoices",
         is_virtual: true,
         is_read_only: true,
         fields: [
@@ -196,7 +269,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: 'stripe_cards',
+        name: "#{collection_name}_stripe_cards",
         is_virtual: true,
         is_read_only: true,
         only_for_relationships: true,
@@ -229,8 +302,27 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     def stripe_integration?
       ForestLiana.integrations
         .try(:[], :stripe)
-        .try(:[], :api_key)
         .present?
+    end
+
+    def stripe_integration_valid?
+      integration = ForestLiana.integrations.try(:[], :stripe)
+      integration.present? && integration.has_key?(:api_key) &&
+        integration.has_key?(:mapping)
+    end
+
+    def stripe_integration_deprecated?
+      integration = ForestLiana.integrations.try(:[], :stripe)
+      is_deprecated = integration.present? && integration.has_key?(:api_key) &&
+        integration.has_key?(:user_collection) &&
+        integration.has_key?(:user_field)
+
+      if is_deprecated
+        @logger.warn "Stripe integration attributes \"user_collection\" and " \
+          "\"user_field\" are now deprecated, please use \"mapping\" attribute."
+      end
+
+      is_deprecated
     end
 
     def forest_url

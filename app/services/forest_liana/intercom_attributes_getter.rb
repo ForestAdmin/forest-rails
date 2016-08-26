@@ -14,9 +14,8 @@ module ForestLiana
     end
 
     def perform
-      resource = user_collection.find(@params[:id])
-
       begin
+        resource = collection.find(@params[:id])
         user = @intercom.users.find(email: resource.email)
 
         user.segments = user.segments.map do |segment|
@@ -30,15 +29,8 @@ module ForestLiana
 
     private
 
-    def user_collection
-      ForestLiana.integrations
-        .try(:[], :intercom)
-        .try(:[], :user_collection)
-        .try(:constantize)
-    end
-
-    def user_collection?
-      user_collection.present?
+    def collection
+      @params[:collection].singularize.capitalize.constantize
     end
   end
 end

@@ -56,11 +56,11 @@ module ForestLiana
 
       # Intercom
       if ForestLiana.integrations.try(:[], :intercom)
-        .try(:[], :user_collection) == @model.name
+        .try(:[], :mapping).try(:include?, @model.name)
         collection.fields << {
           field: :intercom_conversations,
           type: ['String'],
-          reference: 'intercom_conversations.id',
+          reference: "#{@model.name.downcase}_intercom_conversations.id",
           column: nil,
           is_searchable: false,
           integration: 'intercom'
@@ -69,7 +69,7 @@ module ForestLiana
         @collection.fields << {
           field: :intercom_attributes,
           type: 'String',
-          reference: 'intercom_attributes.id',
+          reference: "#{@model.name.downcase}_intercom_attributes.id",
           column: nil,
           is_searchable: false,
           integration: 'intercom'
@@ -77,34 +77,41 @@ module ForestLiana
       end
 
       # Stripe
-      if ForestLiana.integrations.try(:[], :stripe)
-        .try(:[], :user_collection) == @model.name
-        collection.fields << {
-          field: :stripe_payments,
-          type: ['String'],
-          reference: 'stripe_payments.id',
-          column: nil,
-          is_searchable: false,
-          integration: 'stripe'
-        }
+      stripe_mapping = ForestLiana.integrations.try(:[], :stripe)
+                                               .try(:[], :mapping)
 
-        collection.fields << {
-          field: :stripe_invoices,
-          type: ['String'],
-          reference: 'stripe_invoices.id',
-          column: nil,
-          is_searchable: false,
-          integration: 'stripe'
-        }
+      if stripe_mapping
+        if stripe_mapping
+            .select { |mapping| mapping.split('.')[0] == @model.name }
+            .size > 0
 
-        collection.fields << {
-          field: :stripe_cards,
-          type: ['String'],
-          reference: 'stripe_cards.id',
-          column: nil,
-          is_searchable: false,
-          integration: 'stripe'
-        }
+          collection.fields << {
+            field: :stripe_payments,
+            type: ['String'],
+            reference: "#{@model.name.downcase}_stripe_payments.id",
+            column: nil,
+            is_searchable: false,
+            integration: 'stripe'
+          }
+
+          collection.fields << {
+            field: :stripe_invoices,
+            type: ['String'],
+            reference: "#{@model.name.downcase}_stripe_invoices.id",
+            column: nil,
+            is_searchable: false,
+            integration: 'stripe'
+          }
+
+          collection.fields << {
+            field: :stripe_cards,
+            type: ['String'],
+            reference: "#{@model.name.downcase}_stripe_cards.id",
+            column: nil,
+            is_searchable: false,
+            integration: 'stripe'
+          }
+        end
       end
 
       # Paperclip url attribute

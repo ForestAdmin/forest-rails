@@ -25,7 +25,7 @@ module ForestLiana
     end
 
     def type
-      'stripe_invoices'
+      @options[:context][:type] || 'stripe_invoices'
     end
 
     def format_name(attribute_name)

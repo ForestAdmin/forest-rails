@@ -24,7 +24,7 @@ module ForestLiana
     end
 
     def type
-      'intercom-conversations'
+      @options[:context][:type] || 'intercom-conversations'
     end
 
     def format_name(attribute_name)

@@ -118,15 +118,25 @@ module ForestLiana
         private
 
         def intercom_integration?
-          object.class.name == ForestLiana.integrations
+          ForestLiana.integrations
             .try(:[], :intercom)
-            .try(:[], :user_collection)
+            .try(:[], :mapping)
+            .try(:include?, object.class.name)
         end
 
         def stripe_integration?
-          object.class.name == ForestLiana.integrations
+          mapping = ForestLiana.integrations
             .try(:[], :stripe)
-            .try(:[], :user_collection)
+            .try(:[], :mapping)
+
+          if mapping
+            collection_names = mapping.map do |collection_name_and_field|
+              collection_name_and_field.split('.')[0]
+            end
+            collection_names.include?(object.class.name)
+          else
+            false
+          end
         end
       }
 
@@ -169,15 +179,13 @@ module ForestLiana
       end
 
       # Intercom
-      if active_record_class.name == ForestLiana.integrations
-        .try(:[], :intercom).try(:[], :user_collection)
+      if has_intercom_integration?(active_record_class.name)
         serializer.send(:has_many, :intercom_conversations) { }
         serializer.send(:has_many, :intercom_attributes) { }
       end
 
       # Stripe
-      if active_record_class.name == ForestLiana.integrations
-        .try(:[], :stripe).try(:[], :user_collection)
+      if has_stripe_integration?(active_record_class.name)
         serializer.send(:has_many, :stripe_payments) { }
         serializer.send(:has_many, :stripe_invoices) { }
         serializer.send(:has_many, :stripe_cards) { }
@@ -193,6 +201,28 @@ module ForestLiana
 
     def key(active_record_class)
       active_record_class.to_s.tableize.to_sym
+    end
+
+    def has_intercom_integration?(collection_name)
+      ForestLiana.integrations
+        .try(:[], :intercom)
+        .try(:[], :mapping)
+        .try(:include?, collection_name)
+    end
+
+    def has_stripe_integration?(collection_name)
+      mapping = ForestLiana.integrations
+        .try(:[], :stripe)
+        .try(:[], :mapping)
+
+      if mapping
+        collection_names = mapping.map do |collection_name_and_field|
+          collection_name_and_field.split('.')[0]
+        end
+        collection_names.include?(collection_name)
+      else
+        false
+      end
     end
 
     def serializer_association(association)

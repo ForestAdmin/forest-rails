@@ -14,9 +14,9 @@ module ForestLiana
     def perform
       query = { limit: limit, offset: offset }
 
-      if @params[:id] && user_collection && user_field
-        resource = user_collection.find(@params[:id])
-        query[:customer] = resource[user_field]
+      if @params[:id] && collection && field
+        resource = collection.find(@params[:id])
+        query[:customer] = resource[field]
       end
 
       query['include[]'] = 'total_count'
@@ -35,9 +35,9 @@ module ForestLiana
         d.amount_due /= 100.00
 
         query = {}
-        query[user_field] = d.customer
-        if user_collection
-          d.customer = user_collection.find_by(query)
+        query[field] = d.customer
+        if collection
+          d.customer = collection.find_by(query)
         else
           d.customer = nil
         end
@@ -76,17 +76,14 @@ module ForestLiana
       @params[:page] && @params[:page][:number]
     end
 
-    def user_collection
-      ForestLiana.integrations
-        .try(:[], :stripe)
-        .try(:[], :user_collection)
-        .try(:constantize)
+    def collection
+      @params[:collection].singularize.capitalize.constantize
     end
 
-    def user_field
-      ForestLiana.integrations
-        .try(:[], :stripe)
-        .try(:[], :user_field)
+    def field
+      ForestLiana.integrations[:stripe][:mapping].select { |value|
+        value.split('.')[0] == @params[:collection].singularize.capitalize
+      }.first.split('.')[1]
     end
   end
 end

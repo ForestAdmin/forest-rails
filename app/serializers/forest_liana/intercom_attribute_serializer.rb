@@ -63,7 +63,7 @@ module ForestLiana
     end
 
     def type
-      'intercom-attributes'
+      @options[:context][:type] || 'intercom-attributes'
     end
 
     def format_name(attribute_name)

@@ -5,6 +5,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
+        context: { type: get_serializer_type('intercom_conversations') },
         count: getter.count
       })
     end
@@ -13,7 +14,13 @@ module ForestLiana
       getter = IntercomAttributesGetter.new(params)
       getter.perform
 
-      render json: serialize_model(getter.records), serializer: nil
+      render serializer: nil, json: serialize_model(getter.records, {
+        context: { type: get_serializer_type('intercom_attributes') }
+      })
+    end
+
+    def get_serializer_type(suffix)
+      "#{params[:collection].singularize}_#{suffix}"
     end
   end
 end

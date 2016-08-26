@@ -24,7 +24,7 @@ module ForestLiana
     end
 
     def type
-      'stripe_cards'
+      @options[:context][:type] || 'stripe_cards'
     end
 
     def format_name(attribute_name)

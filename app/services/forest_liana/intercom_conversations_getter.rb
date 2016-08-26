@@ -27,7 +27,7 @@ module ForestLiana
 
     def perform
       begin
-        resource = user_collection.find(@params[:id])
+        resource = collection.find(@params[:id])
         @records = @intercom.conversations.find_all(
           email: resource.email,
           type: 'user',
@@ -40,15 +40,8 @@ module ForestLiana
 
     private
 
-    def user_collection
-      ForestLiana.integrations
-        .try(:[], :intercom)
-        .try(:[], :user_collection)
-        .try(:constantize)
-    end
-
-    def user_collection?
-      user_collection.present?
+    def collection
+      @params[:collection].singularize.capitalize.constantize
     end
 
     def link(conversation)
