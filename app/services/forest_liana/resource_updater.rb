@@ -9,7 +9,13 @@ module ForestLiana
 
     def perform
       @record = @resource.find(@params[:id])
-      @record.update_attributes!(resource_params)
+
+      if has_strong_parameter
+        @record.update_attributes!(resource_params)
+      else
+        @record.update_attributes!(resource_params, without_protection: true)
+      end
+
       set_has_many_relationships
     end
 
@@ -36,6 +42,10 @@ module ForestLiana
           end
         end
       end
+    end
+
+    def has_strong_parameter
+      @resource.instance_method(:update_attributes!).arity == 1
     end
   end
 end
