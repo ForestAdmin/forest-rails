@@ -12,7 +12,11 @@ module ForestLiana
     end
 
     def perform
-      query = { limit: limit, offset: offset }
+      query = {
+        limit: limit,
+        starting_after: starting_after,
+        ending_before: ending_before
+      }
 
       if @params[:id] && collection && field
         resource = collection.find(@params[:id])
@@ -49,14 +53,15 @@ module ForestLiana
       Stripe::Charge.all(params)
     end
 
-    def offset
-      return 0 unless pagination?
+    def starting_after
+      if pagination? && @params[:starting_after]
+        @params[:starting_after]
+      end
+    end
 
-      number = @params[:page][:number]
-      if number && number.to_i > 0
-        (number.to_i - 1) * limit
-      else
-        0
+    def ending_before
+      if pagination? && @params[:ending_before]
+        @params[:ending_before]
       end
     end
 
@@ -71,7 +76,7 @@ module ForestLiana
     end
 
     def pagination?
-      @params[:page] && @params[:page][:number]
+      @params[:page]
     end
 
     def collection
@@ -80,7 +85,7 @@ module ForestLiana
 
     def field
       ForestLiana.integrations[:stripe][:mapping].select { |value|
-        value.split('.')[0] == @params[:collection].singularize.capitalize
+        value.split('.')[0] == @params[:collection].capitalize
       }.first.split('.')[1]
     end
   end

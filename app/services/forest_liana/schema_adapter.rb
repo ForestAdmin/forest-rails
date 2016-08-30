@@ -56,11 +56,14 @@ module ForestLiana
 
       # Intercom
       if ForestLiana.integrations.try(:[], :intercom)
-        .try(:[], :mapping).try(:include?, @model.name)
+        .try(:[], :mapping).try(:include?, @model.name.pluralize)
+
+        model_name = @model.name.pluralize.downcase
+
         collection.fields << {
           field: :intercom_conversations,
           type: ['String'],
-          reference: "#{@model.name.downcase}_intercom_conversations.id",
+          reference: "#{model_name}_intercom_conversations.id",
           column: nil,
           is_searchable: false,
           integration: 'intercom'
@@ -69,7 +72,7 @@ module ForestLiana
         @collection.fields << {
           field: :intercom_attributes,
           type: 'String',
-          reference: "#{@model.name.downcase}_intercom_attributes.id",
+          reference: "#{model_name}_intercom_attributes.id",
           column: nil,
           is_searchable: false,
           integration: 'intercom'
@@ -82,13 +85,15 @@ module ForestLiana
 
       if stripe_mapping
         if stripe_mapping
-            .select { |mapping| mapping.split('.')[0] == @model.name }
+            .select { |mapping| mapping.split('.')[0] == @model.name.pluralize }
             .size > 0
+
+          model_name = @model.name.pluralize.downcase
 
           collection.fields << {
             field: :stripe_payments,
             type: ['String'],
-            reference: "#{@model.name.downcase}_stripe_payments.id",
+            reference: "#{model_name}_stripe_payments.id",
             column: nil,
             is_searchable: false,
             integration: 'stripe'
@@ -97,7 +102,7 @@ module ForestLiana
           collection.fields << {
             field: :stripe_invoices,
             type: ['String'],
-            reference: "#{@model.name.downcase}_stripe_invoices.id",
+            reference: "#{model_name}_stripe_invoices.id",
             column: nil,
             is_searchable: false,
             integration: 'stripe'
@@ -106,7 +111,25 @@ module ForestLiana
           collection.fields << {
             field: :stripe_cards,
             type: ['String'],
-            reference: "#{@model.name.downcase}_stripe_cards.id",
+            reference: "#{model_name}_stripe_cards.id",
+            column: nil,
+            is_searchable: false,
+            integration: 'stripe'
+          }
+
+          collection.fields << {
+            field: :stripe_subscriptions,
+            type: ['String'],
+            reference: "#{model_name}_stripe_subscriptions.id",
+            column: nil,
+            is_searchable: false,
+            integration: 'stripe'
+          }
+
+          collection.fields << {
+            field: :stripe_bank_accounts,
+            type: ['String'],
+            reference: "#{model_name}_stripe_bank_accounts.id",
             column: nil,
             is_searchable: false,
             integration: 'stripe'

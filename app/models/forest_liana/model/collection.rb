@@ -5,7 +5,7 @@ class ForestLiana::Model::Collection
   extend ActiveModel::Naming
 
   attr_accessor :name, :fields, :actions, :only_for_relationships, :is_virtual,
-    :is_read_only, :is_searchable
+    :is_read_only, :is_searchable, :display_name, :icon, :pagination_type
 
   def initialize(attributes = {})
     @actions = []

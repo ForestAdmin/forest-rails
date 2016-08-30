@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripeCardsGetter
+  class StripeBankAccountsGetter
     attr_accessor :records
 
     def initialize(params, secret_key, reference)
@@ -16,7 +16,7 @@ module ForestLiana
         limit: limit,
         starting_after: starting_after,
         ending_before: ending_before,
-        object: 'card'
+        object: 'bank_account'
       }
       params['include[]'] = 'total_count'
 
@@ -26,11 +26,11 @@ module ForestLiana
       if customer.blank?
         @records = []
       else
-        fetch_cards(customer, params)
+        fetch_bank_accounts(customer, params)
       end
     end
 
-    def fetch_cards(customer, params)
+    def fetch_bank_accounts(customer, params)
       @cards = Stripe::Customer.retrieve(customer).sources.all(params)
       if @cards.blank?
         @records = []

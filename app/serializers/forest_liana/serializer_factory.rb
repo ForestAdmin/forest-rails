@@ -29,6 +29,12 @@ module ForestLiana
       elsif defined?(::Stripe::Invoice) &&
         active_record_class == ::Stripe::Invoice
         "ForestLiana::StripeInvoiceSerializer"
+      elsif defined?(::Stripe::Subscription) &&
+        active_record_class == ::Stripe::Subscription
+        "ForestLiana::StripeSubscriptionSerializer"
+      elsif defined?(::Stripe::BankAccount) &&
+        active_record_class == ::Stripe::BankAccount
+        "ForestLiana::StripeBankAccountSerializer"
       elsif active_record_class == ForestLiana::Model::Stat
         "ForestLiana::StatSerializer"
       elsif active_record_class == ForestLiana::Model::Collection

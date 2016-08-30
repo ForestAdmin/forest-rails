@@ -143,8 +143,13 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def setup_intercom_integration collection_name
+      model_name = collection_name.downcase
+      collection_display_name = collection_name.capitalize
+
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name.downcase}_intercom_conversations",
+        name: "#{model_name}_intercom_conversations",
+        display_name: collection_display_name + ' Conversations',
+        icon: 'intercom',
         only_for_relationships: true,
         is_virtual: true,
         fields: [
@@ -157,7 +162,9 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name.downcase}_intercom_attributes",
+        name: "#{model_name}_intercom_attributes",
+        display_name: collection_display_name + ' Attributes',
+        icon: 'intercom',
         only_for_relationships: true,
         is_virtual: true,
         fields: [
@@ -211,11 +218,15 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
     def setup_stripe_integration collection_name_and_field
       collection_name = collection_name_and_field.split('.')[0].downcase
+      collection_display_name = collection_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{collection_name}_stripe_payments",
+        display_name: collection_display_name + ' Payments',
+        icon: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        pagination_type: 'cursor',
         fields: [
           { field: :id, type: 'String', is_searchable: false },
           { field: :created, type: 'Date', is_searchable: false },
@@ -227,7 +238,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: 'customers.id',
+            reference: "#{collection_name}.id",
             is_searchable: false
           }
         ],
@@ -241,8 +252,11 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{collection_name}_stripe_invoices",
+        display_name: collection_display_name + ' Invoices',
+        icon: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        pagination_type: 'cursor',
         fields: [
           { field: :id, type: 'String', is_searchable: false },
           { field: :amount_due, type: 'Number', is_searchable: false },
@@ -262,7 +276,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: 'customers.id',
+            reference: "#{collection_name}.id",
             is_searchable: false
           }
         ]
@@ -270,9 +284,12 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{collection_name}_stripe_cards",
+        display_name: collection_display_name + ' Cards',
+        icon: 'stripe',
         is_virtual: true,
         is_read_only: true,
         only_for_relationships: true,
+        pagination_type: 'cursor',
         fields: [
           { field: :id, type: 'String', is_searchable: false },
           { field: :last4, type: 'String', is_searchable: false },
@@ -292,7 +309,68 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: 'customers.id',
+            reference: "#{collection_name}.id",
+            is_searchable: false
+          }
+        ]
+      })
+
+      ForestLiana.apimap << ForestLiana::Model::Collection.new({
+        name: "#{collection_name}_stripe_subscriptions",
+        display_name: collection_display_name + ' Subscriptions',
+        icon: 'stripe',
+        is_virtual: true,
+        is_read_only: true,
+        pagination_type: 'cursor',
+        fields: [
+          { field: :id, type: 'String', is_searchable: false },
+          { field: :cancel_at_period_end, type: 'Boolean', is_searchable: false },
+          { field: :canceled_at, type: 'Date', is_searchable: false },
+          { field: :created, type: 'Date', is_searchable: false },
+          { field: :current_period_end, type: 'Date', is_searchable: false },
+          { field: :current_period_start, type: 'Date', is_searchable: false },
+          { field: :ended_at, type: 'Date', is_searchable: false },
+          { field: :livemode, type: 'Boolean', is_searchable: false },
+          { field: :quantity, type: 'Number', is_searchable: false },
+          { field: :start, type: 'Date', is_searchable: false },
+          { field: :status, type: 'String', is_searchable: false },
+          { field: :tax_percent, type: 'Number', is_searchable: false },
+          { field: :trial_end, type: 'Date', is_searchable: false },
+          { field: :trial_start, type: 'Date', is_searchable: false },
+          {
+            field: :customer,
+            type: 'String',
+            reference: "#{collection_name}.id",
+            is_searchable: false
+          }
+        ]
+      })
+
+      ForestLiana.apimap << ForestLiana::Model::Collection.new({
+        name: "#{collection_name}_stripe_bank_accounts",
+        display_name: collection_display_name + ' Bank Accounts',
+        icon: 'stripe',
+        is_virtual: true,
+        is_read_only: true,
+        only_for_relationships: true,
+        pagination_type: 'cursor',
+        fields: [
+          { field: :id, type: 'String', is_searchable: false },
+          { field: :account, type: 'String', is_searchable: false },
+          { field: :account_holder_name, type: 'String', is_searchable: false },
+          { field: :account_holder_type, type: 'String', is_searchable: false },
+          { field: :bank_name, type: 'String', is_searchable: false },
+          { field: :country, type: 'String', is_searchable: false },
+          { field: :currency, type: 'String', is_searchable: false },
+          { field: :default_for_currency, type: 'Boolean', is_searchable: false },
+          { field: :fingerprint, type: 'String', is_searchable: false },
+          { field: :last4, type: 'String', is_searchable: false },
+          { field: :rooting_number, type: 'String', is_searchable: false },
+          { field: :status, type: 'String', is_searchable: false },
+          {
+            field: :customer,
+            type: 'String',
+            reference: "#{collection_name}.id",
             is_searchable: false
           }
         ]

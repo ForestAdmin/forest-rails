@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripeCardsGetter
+  class StripeSubscriptionsGetter
     attr_accessor :records
 
     def initialize(params, secret_key, reference)
@@ -8,42 +8,53 @@ module ForestLiana
     end
 
     def count
-      @cards.try(:total_count) || 0
+      @subscriptions.try(:total_count) || 0
     end
 
     def perform
-      params = {
+      query = {
         limit: limit,
         starting_after: starting_after,
-        ending_before: ending_before,
-        object: 'card'
+        ending_before: ending_before
       }
-      params['include[]'] = 'total_count'
 
-      resource = collection.find(@params[:id])
-      customer = resource[field]
-
-      if customer.blank?
-        @records = []
-      else
-        fetch_cards(customer, params)
+      if @params[:id] && collection && field
+        resource = collection.find(@params[:id])
+        query[:customer] = resource[field]
       end
-    end
 
-    def fetch_cards(customer, params)
-      @cards = Stripe::Customer.retrieve(customer).sources.all(params)
-      if @cards.blank?
+      query['include[]'] = 'total_count'
+      @subscriptions = fetch_subscriptions(query)
+      if @subscriptions.blank?
         @records = []
         return
       end
 
-      @records = @cards.data.map do |d|
+      @records = @subscriptions.data.map do |d|
+        d.date = Time.at(d.date).to_datetime
+        d.period_start = Time.at(d.period_start).to_datetime
+        d.period_end = Time.at(d.period_end).to_datetime
+        d.amount_due /= 100.00
+        d.subtotal /= 100.00
+        d.total /= 100.00
+        d.application_fee /= 100.00
+        d.tax /= 100.00
+
         query = {}
         query[field] = d.customer
-        d.customer = collection.find_by(query)
+        if collection
+          d.customer = collection.find_by(query)
+        else
+          d.customer = nil
+        end
 
         d
       end
+    end
+
+    def fetch_subscriptions(params)
+      return if @params[:id] && params[:customer].blank?
+      Stripe::Subscription.all(params)
     end
 
     def starting_after

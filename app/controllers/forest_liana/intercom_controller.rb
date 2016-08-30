@@ -20,7 +20,7 @@ module ForestLiana
     end
 
     def get_serializer_type(suffix)
-      "#{params[:collection].singularize}_#{suffix}"
+      "#{params[:collection]}_#{suffix}"
     end
   end
 end
