@@ -125,20 +125,24 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         meta: { liana: 'forest-rails', liana_version: liana_version }
       })
 
-      uri = URI.parse("#{forest_url}/forest/apimaps")
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true if forest_url.start_with?('https')
-      http.start do |client|
-        request = Net::HTTP::Post.new(uri.path)
-        request.body = json.to_json
-        request['Content-Type'] = 'application/json'
-        request['forest-secret-key'] = ForestLiana.secret_key
-        response = client.request(request)
+      begin
+        uri = URI.parse("#{forest_url}/forest/apimaps")
+        http = Net::HTTP.new(uri.host, uri.port)
+        http.use_ssl = true if forest_url.start_with?('https')
+        http.start do |client|
+          request = Net::HTTP::Post.new(uri.path)
+          request.body = json.to_json
+          request['Content-Type'] = 'application/json'
+          request['forest-secret-key'] = ForestLiana.secret_key
+          response = client.request(request)
 
-        if response.is_a?(Net::HTTPNotFound)
-          @logger.warn "Cannot find your project secret key. " \
-            "Please, run `rails g forest_liana:install`."
+          if response.is_a?(Net::HTTPNotFound)
+            @logger.warn "Cannot find your project secret key. " \
+              "Please, run `rails g forest_liana:install`."
+          end
         end
+      rescue Errno::ECONNREFUSED
+        @logger.warn "Cannot send the apimap to Forest. Are you online?"
       end
     end
 
