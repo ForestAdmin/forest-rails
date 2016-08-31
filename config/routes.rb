@@ -9,6 +9,9 @@ ForestLiana::Engine.routes.draw do
   get '(:collection)_stripe_invoices' => 'stripe#invoices'
   get ':collection/:id/stripe_invoices' => 'stripe#invoices'
   get ':collection/:id/stripe_cards' => 'stripe#cards'
+  get '(:collection)_stripe_subscriptions' => 'stripe#subscriptions'
+  get ':collection/:id/stripe_subscriptions' => 'stripe#subscriptions'
+  get ':collection/:id/stripe_bank_accounts' => 'stripe#bank_accounts'
 
   # Intercom Integration
   get ':collection/:id/intercom_conversations' => 'intercom#user_conversations'
