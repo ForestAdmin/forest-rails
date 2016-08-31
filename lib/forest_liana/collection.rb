@@ -20,8 +20,11 @@ module ForestLiana::Collection
 
     def field(name, opts, &block)
       model.fields << opts.merge({ field: name, is_searchable: false })
-      ForestLiana::UserSpace.const_get(serializer_name).class_eval do
-        attribute(name, &block)
+
+      if serializer_name
+        ForestLiana::UserSpace.const_get(serializer_name).class_eval do
+          attribute(name, &block)
+        end
       end
     end
 
@@ -32,8 +35,10 @@ module ForestLiana::Collection
         type: ['String']
       })
 
-      ForestLiana::UserSpace.const_get(serializer_name).class_eval do
-        has_many(name, name: name)
+      if serializer_name
+        ForestLiana::UserSpace.const_get(serializer_name).class_eval do
+          has_many(name, name: name)
+        end
       end
     end
 
@@ -63,6 +68,7 @@ module ForestLiana::Collection
     end
 
     def serializer_name
+      return if active_record_class.blank?
       class_name = active_record_class.table_name.classify
       module_name = class_name.deconstantize
 
