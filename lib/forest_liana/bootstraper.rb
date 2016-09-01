@@ -142,8 +142,8 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       end
     end
 
-    def setup_intercom_integration collection_name
-      model_name = collection_name.downcase
+    def setup_intercom_integration(collection_name)
+      model_name = collection_name.constantize.try(:table_name)
       collection_display_name = collection_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
@@ -216,12 +216,13 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       is_deprecated
     end
 
-    def setup_stripe_integration collection_name_and_field
-      collection_name = collection_name_and_field.split('.')[0].downcase
-      collection_display_name = collection_name.capitalize
+    def setup_stripe_integration(collection_name_and_field)
+      collection_name = collection_name_and_field.split('.')[0]
+      model_name = collection_name.constantize.try(:table_name)
+      collection_display_name = model_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name}_stripe_payments",
+        name: "#{model_name}_stripe_payments",
         display_name: collection_display_name + ' Payments',
         icon: 'stripe',
         is_virtual: true,
@@ -238,7 +239,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: "#{collection_name}.id",
+            reference: "#{model_name}.id",
             is_searchable: false
           }
         ],
@@ -251,7 +252,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name}_stripe_invoices",
+        name: "#{model_name}_stripe_invoices",
         display_name: collection_display_name + ' Invoices',
         icon: 'stripe',
         is_virtual: true,
@@ -276,14 +277,14 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: "#{collection_name}.id",
+            reference: "#{model_name}.id",
             is_searchable: false
           }
         ]
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name}_stripe_cards",
+        name: "#{model_name}_stripe_cards",
         display_name: collection_display_name + ' Cards',
         icon: 'stripe',
         is_virtual: true,
@@ -309,14 +310,14 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: "#{collection_name}.id",
+            reference: "#{model_name}.id",
             is_searchable: false
           }
         ]
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name}_stripe_subscriptions",
+        name: "#{model_name}_stripe_subscriptions",
         display_name: collection_display_name + ' Subscriptions',
         icon: 'stripe',
         is_virtual: true,
@@ -340,14 +341,14 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: "#{collection_name}.id",
+            reference: "#{model_name}.id",
             is_searchable: false
           }
         ]
       })
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
-        name: "#{collection_name}_stripe_bank_accounts",
+        name: "#{model_name}_stripe_bank_accounts",
         display_name: collection_display_name + ' Bank Accounts',
         icon: 'stripe',
         is_virtual: true,
@@ -370,7 +371,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           {
             field: :customer,
             type: 'String',
-            reference: "#{collection_name}.id",
+            reference: "#{model_name}.id",
             is_searchable: false
           }
         ]

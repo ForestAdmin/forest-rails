@@ -56,9 +56,9 @@ module ForestLiana
 
       # Intercom
       if ForestLiana.integrations.try(:[], :intercom)
-        .try(:[], :mapping).try(:include?, @model.name.pluralize)
+        .try(:[], :mapping).try(:include?, @model.name)
 
-        model_name = @model.name.pluralize.downcase
+        model_name = @model.table_name
 
         collection.fields << {
           field: :intercom_conversations,
@@ -85,10 +85,10 @@ module ForestLiana
 
       if stripe_mapping
         if stripe_mapping
-            .select { |mapping| mapping.split('.')[0] == @model.name.pluralize }
+            .select { |mapping| mapping.split('.')[0] == @model.name }
             .size > 0
 
-          model_name = @model.name.pluralize.downcase
+          model_name = @model.table_name
 
           collection.fields << {
             field: :stripe_payments,
