@@ -213,6 +213,8 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         integration.has_key?(:app_id) && integration.has_key?(:user_collection)
 
       if is_deprecated
+        integration[:mapping] = integration[:user_collection]
+
         @logger.warn "Intercom integration attribute \"user_collection\" is " \
           "now deprecated, please use \"mapping\" attribute."
       end
@@ -401,6 +403,9 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         integration.has_key?(:user_field)
 
       if is_deprecated
+        integration[:mapping] =
+          "#{integration[:user_collection]}.#{integration[:user_field]}"
+
         @logger.warn "Stripe integration attributes \"user_collection\" and " \
           "\"user_field\" are now deprecated, please use \"mapping\" attribute."
       end
