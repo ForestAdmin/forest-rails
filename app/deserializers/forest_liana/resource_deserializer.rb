@@ -35,7 +35,16 @@ module ForestLiana
           association = @resource.reflect_on_association(name.try(:to_sym))
 
           if [:has_one, :belongs_to].include?(association.try(:macro))
-            if data.is_a?(Hash) && data[:id]
+            # TODO: refactor like this?
+            #if data.blank?
+              #@attributes[name] = nil
+            #else
+              #@attributes[name] = association.klass.find(data[:id])
+            #end
+
+            # ActionController::Parameters do not inherit from Hash anymore
+            # since Rails 5.
+            if (data.is_a?(Hash) || data.is_a?(ActionController::Parameters)) && data[:id]
               @attributes[name] = association.klass.find(data[:id])
             elsif data.blank?
               @attributes[name] = nil
