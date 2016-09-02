@@ -50,10 +50,12 @@ module ForestLiana
 
     def self.get_field_name(field, resource)
       if field.split(':').size < 2
-        "\"#{resource.table_name}\".\"#{field}\""
+        "#{resource.quoted_table_name}." +
+        "#{ActiveRecord::Base.connection.quote_column_name(field)}"
       else
         association = field.split(':')[0].pluralize
-        "\"#{association}\".\"#{field.split(':')[1]}\""
+        "#{ActiveRecord::Base.connection.quote_column_name(association)}." +
+        "#{ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])}"
       end
     end
 
