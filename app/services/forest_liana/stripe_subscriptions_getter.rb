@@ -31,14 +31,14 @@ module ForestLiana
       end
 
       @records = @subscriptions.data.map do |d|
-        d.date = Time.at(d.date).to_datetime
-        d.period_start = Time.at(d.period_start).to_datetime
-        d.period_end = Time.at(d.period_end).to_datetime
-        d.amount_due /= 100.00
-        d.subtotal /= 100.00
-        d.total /= 100.00
-        d.application_fee /= 100.00
-        d.tax /= 100.00
+        d.canceled_at = Time.at(d.canceled_at).to_datetime
+        d.created = Time.at(d.created).to_datetime
+        d.current_period_end = Time.at(d.current_period_end).to_datetime
+        d.current_period_start = Time.at(d.current_period_start).to_datetime
+        d.ended_at = Time.at(d.ended_at).to_datetime
+        d.start = Time.at(d.start).to_datetime
+        d.trial_end = Time.at(d.trial_end).to_datetime
+        d.trial_start = Time.at(d.trial_start).to_datetime
 
         query = {}
         query[field] = d.customer

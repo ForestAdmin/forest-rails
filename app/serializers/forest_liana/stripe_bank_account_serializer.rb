@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripeCardSerializer
+  class StripeBankAccountSerializer
     include JSONAPI::Serializer
 
     attribute :account
