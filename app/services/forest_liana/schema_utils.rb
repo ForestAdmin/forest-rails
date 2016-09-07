@@ -22,6 +22,8 @@ module ForestLiana
         elsif subclass.table_name == table_name
           model = subclass
         end
+
+        break if model
       end
 
       model
