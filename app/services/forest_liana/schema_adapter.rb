@@ -204,7 +204,11 @@ module ForestLiana
     end
 
     def get_type_for(column)
-      return 'Enum' if @model.defined_enums.has_key?(column.name)
+      # NOTICE: Rails 3 do not have a defined_enums method
+      if @model.respond_to?(:defined_enums) &&
+          @model.defined_enums.has_key?(column.name)
+        return 'Enum'
+      end
 
       case column.type
       when :integer

@@ -23,7 +23,9 @@ module ForestLiana
           if column.name == 'id'
             conditions << "#{@resource.table_name}.id =
               #{@params[:search].to_i}"
-          elsif @resource.defined_enums.has_key?(column.name) &&
+          # NOTICE: Rails 3 do not have a defined_enums method
+          elsif @resource.respond_to?(:defined_enums) &&
+            @resource.defined_enums.has_key?(column.name) &&
             !@resource.defined_enums[column.name][@params[:search].downcase].nil?
             conditions << "\"#{@resource.table_name}\".\"#{column.name}\" =
               #{@resource.defined_enums[column.name][@params[:search].downcase]}"

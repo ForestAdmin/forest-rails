@@ -38,7 +38,9 @@ module ForestLiana
         query = query.where("#{field_name} #{filter}")
       else
         # NOTICE: Set the integer value instead of a string if "enum" type
-        if resource.defined_enums.has_key?(field)
+        # NOTICE: Rails 3 do not have a defined_enums method
+        if resource.respond_to?(:defined_enums) &&
+          resource.defined_enums.has_key?(field)
           value = resource.defined_enums[field][value]
         end
 
