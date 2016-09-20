@@ -9,7 +9,7 @@ module ForestLiana
     end
 
     def perform
-      value = @resource
+      value = @resource.unscoped
 
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])

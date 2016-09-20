@@ -25,6 +25,7 @@ module ForestLiana
         end
 
         value = value
+          .unscoped
           .group(@params[:group_by_field])
           .order("#{@params[:aggregate].downcase}_#{field} DESC")
           .send(@params[:aggregate].downcase, @params[:aggregate_field])

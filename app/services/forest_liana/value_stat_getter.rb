@@ -9,8 +9,8 @@ module ForestLiana
 
     def perform
       return if @params[:aggregate].blank?
-      valueCurrent = @resource
-      valuePrevious = @resource
+      valueCurrent = @resource.unscoped
+      valuePrevious = @resource.unscoped
 
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])
