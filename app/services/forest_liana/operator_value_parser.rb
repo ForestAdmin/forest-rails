@@ -3,30 +3,32 @@ module ForestLiana
 
     def self.parse(value)
       operator = nil
+      value_comparison = nil
 
       if value.first == '!'
         operator = '!='
-        value.slice!(0)
+        value_comparison = value[1..-1]
       elsif value.first == '>'
         operator = '>'
-        value.slice!(0)
+        value_comparison = value[1..-1]
       elsif value.first == '<'
         operator = '<'
-        value.slice!(0)
+        value_comparison = value[1..-1]
       elsif value.include?('*')
         operator = 'LIKE'
-        value.gsub!('*', '%')
+        value_comparison = value.gsub('*', '%')
       elsif value === '$present'
         operator = 'IS NOT NULL'
-        value = nil
+        value_comparison = nil
       elsif value === '$blank'
         operator = 'IS NULL'
-        value = nil
+        value_comparison = nil
       else
         operator = '='
+        value_comparison = value
       end
 
-      [operator, value]
+      [operator, value_comparison]
     end
 
     def self.add_where(query, field, operator, value, resource)
