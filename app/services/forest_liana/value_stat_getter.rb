@@ -22,7 +22,7 @@ module ForestLiana
       @params[:filters].try(:each) do |filter|
         operator, filter_value = OperatorValueParser.parse(filter[:value])
         operator_date_interval_parser = OperatorDateIntervalParser.new(filter_value)
-        if operator_date_interval_parser.is_interval_date_value()
+        if operator_date_interval_parser.has_previous_interval()
           field_name = OperatorValueParser.get_field_name(filter[:field], @resource)
           filter = operator_date_interval_parser
             .get_interval_date_filter_for_previous_interval()
