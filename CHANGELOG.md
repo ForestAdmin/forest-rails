@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [1.3.40] - 2016-09-26
 ### Added
 - Filters - Users want to have "From now" and "Today" operators.
 
