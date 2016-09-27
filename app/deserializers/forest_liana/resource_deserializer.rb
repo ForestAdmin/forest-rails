@@ -111,7 +111,7 @@ module ForestLiana
 
     def has_acts_as_taggable?
       @resource.respond_to?(:acts_as_taggable) &&
-        @resource.acts_as_taggable.try(:to_a)
+        @resource.acts_as_taggable.respond_to?(:to_a)
     end
   end
 end
