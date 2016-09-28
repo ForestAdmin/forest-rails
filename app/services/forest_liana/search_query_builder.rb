@@ -57,14 +57,18 @@ module ForestLiana
 
     def filter_param
       if @params[:filter]
+        conditions = []
         @params[:filter].each do |field, values|
           next if association?(field)
           values.split(',').each do |value|
             operator, value = OperatorValueParser.parse(value)
-            @records = OperatorValueParser.add_where(@records, field, operator,
-                                                     value, @resource)
+            conditions << OperatorValueParser.get_condition(field, operator,
+              value, @resource)
           end
         end
+
+        operator = " #{@params[:filterType]} ".upcase
+        @records = @records.where(conditions.join(operator))
       end
 
       @records

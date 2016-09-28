@@ -11,10 +11,17 @@ module ForestLiana
     def perform
       value = @resource.unscoped
 
-      @params[:filters].try(:each) do |filter|
-        operator, filter_value = OperatorValueParser.parse(filter[:value])
-        value = OperatorValueParser.add_where(value, filter[:field], operator,
-                                              filter_value, @resource)
+      if @params[:filters]
+        conditions = []
+        filter_operator = " #{@params[:filterType]} ".upcase
+
+        @params[:filters].try(:each) do |filter|
+          operator, filter_value = OperatorValueParser.parse(filter[:value])
+          conditions <<  OperatorValueParser.get_condition(filter[:field],
+            operator, filter_value, @resource)
+        end
+
+        value = value.where(conditions.join(filter_operator))
       end
 
       value = value.send(time_range, @params[:group_by_date_field])

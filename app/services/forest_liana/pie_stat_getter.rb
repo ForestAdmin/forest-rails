@@ -10,11 +10,17 @@ module ForestLiana
     def perform
       if @params[:group_by_field]
         value = @resource
+        conditions = []
+        filter_operator = ''
 
-        @params[:filters].try(:each) do |filter|
-          operator, filter_value = OperatorValueParser.parse(filter[:value])
-          value = OperatorValueParser.add_where(value, filter[:field], operator,
-                                                filter_value, @resource)
+        if @params[:filters]
+          filter_operator = " #{@params[:filterType]} ".upcase
+
+          @params[:filters].try(:each) do |filter|
+            operator, filter_value = OperatorValueParser.parse(filter[:value])
+            conditions <<  OperatorValueParser.get_condition(filter[:field],
+              operator, filter_value, @resource)
+          end
         end
 
         # NOTICE: The generated alias for a count is "count_all", for a sum the
@@ -26,6 +32,7 @@ module ForestLiana
 
         value = value
           .unscoped
+          .where(conditions.join(filter_operator))
           .group(@params[:group_by_field])
           .order("#{@params[:aggregate].downcase}_#{field} DESC")
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
