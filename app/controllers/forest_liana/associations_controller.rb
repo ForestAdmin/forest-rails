@@ -14,6 +14,27 @@ module ForestLiana
                                                      params: params)
     end
 
+    def update
+      updater = BelongsToUpdater.new(@resource, @association, params)
+      updater.perform
+
+      render nothing: true, status: 204
+    end
+
+    def associate
+      associator = HasManyAssociator.new(@resource, @association, params)
+      associator.perform
+
+      render nothing: true, status: 204
+    end
+
+    def dissociate
+      dissociator = HasManyDissociator.new(@resource, @association, params)
+      dissociator.perform
+
+      render nothing: true, status: 204
+    end
+
     private
 
     def find_resource
@@ -31,7 +52,7 @@ module ForestLiana
 
       # Only accept "many" associations
       if @association.nil? ||
-        [:belongs_to, :has_one].include?(@association.macro)
+        ([:belongs_to, :has_one].include?(@association.macro) && params[:action] == 'index')
         render serializer: nil, json: {status: 404}, status: :not_found
       end
     end

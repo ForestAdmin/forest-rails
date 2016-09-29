@@ -111,7 +111,7 @@ module ForestLiana
               relationship_records = object.send(attribute_name)
 
               if relationship_records.respond_to?(:each)
-                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/relationships/#{attribute_name}"
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError
               puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
