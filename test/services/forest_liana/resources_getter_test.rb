@@ -3,7 +3,8 @@ module ForestLiana
 
     test 'StringField page 1 size 15' do
       getter = ResourcesGetter.new(StringField, {
-        page: { size: 15, number: 1 }
+        page: { size: 15, number: 1 },
+        sort: '-id'
       })
       getter.perform
       records = getter.records
@@ -17,7 +18,8 @@ module ForestLiana
 
     test 'StringField page 2 size 10' do
       getter = ResourcesGetter.new(StringField, {
-        page: { size: 10, number: 2 }
+        page: { size: 10, number: 2 },
+        sort: '-id'
       })
       getter.perform
       records = getter.records
@@ -81,7 +83,8 @@ module ForestLiana
         filter: {
           'created_at' => '>2015-06-18 08:00:00',
           'owner:name' => 'Arnaud Besnier'
-        }
+        },
+        filterType: 'and'
       })
       getter.perform
       records = getter.records
@@ -113,9 +116,8 @@ module ForestLiana
     test 'Filter on an updated_at field of the main collection' do
       getter = ResourcesGetter.new(Owner, {
         page: { size: 10, number: 1 },
-        filter: {
-          'updated_at' => '<lastYear',
-        }
+        filter: { 'updated_at' => '<lastYear' },
+        filterType: 'and'
       })
       getter.perform
       records = getter.records
@@ -129,9 +131,8 @@ module ForestLiana
     test 'Filter on an updated_at field of an associated collection' do
       getter = ResourcesGetter.new(Tree, {
         page: { size: 10, number: 1 },
-        filter: {
-          'owner:updated_at' => '<lastYear',
-        }
+        filter: { 'owner:updated_at' => '<lastYear' },
+        filterType: 'and'
       })
       getter.perform
       records = getter.records
