@@ -29,5 +29,8 @@ ForestLiana::Engine.routes.draw do
   delete ':collection/:id' => 'resources#destroy'
 
   # Associations
-  get ':collection/:id/:association_name' => 'associations#index'
+  get ':collection/:id/relationships/:association_name' => 'associations#index'
+  put ':collection/:id/relationships/:association_name' => 'associations#update'
+  post ':collection/:id/relationships/:association_name' => 'associations#associate'
+  delete ':collection/:id/relationships/:association_name' => 'associations#dissociate'
 end
