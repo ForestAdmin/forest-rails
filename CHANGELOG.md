@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.3.41 - 2016-09-26
 ### Added
 - Filters - Users want the OR filter operator with their conditions (restricted to simple conditions).
 - Schema - Support UUID field type.
