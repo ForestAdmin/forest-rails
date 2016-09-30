@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Filters - Users want the OR filter operator with their conditions (restricted to simple conditions).
+- Schema - Support UUID field type.
 
 ### Fixed
 - Record Update - Fix the potential dissociations on record update.

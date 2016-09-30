@@ -227,6 +227,8 @@ module ForestLiana
         'String'
       when :citext
         'String'
+      when :uuid
+        'String'
       when :boolean
         'Boolean'
       end
