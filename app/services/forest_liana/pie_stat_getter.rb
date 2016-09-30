@@ -13,7 +13,7 @@ module ForestLiana
         conditions = []
         filter_operator = ''
 
-        if @params[:filters]
+        if @params[:filterType] && @params[:filters]
           filter_operator = " #{@params[:filterType]} ".upcase
 
           @params[:filters].try(:each) do |filter|

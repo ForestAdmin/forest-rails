@@ -56,7 +56,7 @@ module ForestLiana
     end
 
     def filter_param
-      if @params[:filter]
+      if @params[:filterType] && @params[:filters]
         conditions = []
         @params[:filter].each do |field, values|
           next if association?(field)

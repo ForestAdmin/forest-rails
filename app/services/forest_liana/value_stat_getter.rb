@@ -13,7 +13,7 @@ module ForestLiana
       valuePrevious = @resource.unscoped
       filter_date_interval = false
 
-      if @params[:filters]
+      if @params[:filterType] && @params[:filters]
         conditions = []
         filter_operator = " #{@params[:filterType]} ".upcase
 

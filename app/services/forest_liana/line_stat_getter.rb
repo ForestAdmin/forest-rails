@@ -11,7 +11,7 @@ module ForestLiana
     def perform
       value = @resource.unscoped
 
-      if @params[:filters]
+      if @params[:filterType] && @params[:filters]
         conditions = []
         filter_operator = " #{@params[:filterType]} ".upcase
 
