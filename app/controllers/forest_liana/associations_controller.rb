@@ -52,7 +52,8 @@ module ForestLiana
 
       # Only accept "many" associations
       if @association.nil? ||
-        ([:belongs_to, :has_one].include?(@association.macro) && params[:action] == 'index')
+        ([:belongs_to, :has_one].include?(@association.macro) &&
+         params[:action] == 'index')
         render serializer: nil, json: {status: 404}, status: :not_found
       end
     end
