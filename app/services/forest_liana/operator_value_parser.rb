@@ -31,13 +31,13 @@ module ForestLiana
       [operator, value_comparison]
     end
 
-    def self.add_where(query, field, operator, value, resource)
+    def self.get_condition(field, operator, value, resource)
       field_name = self.get_field_name(field, resource)
 
       operator_date_interval_parser = OperatorDateIntervalParser.new(value)
       if operator_date_interval_parser.is_interval_date_value()
         filter = operator_date_interval_parser.get_interval_date_filter()
-        query = query.where("#{field_name} #{filter}")
+        "#{field_name} #{filter}"
       else
         # NOTICE: Set the integer value instead of a string if "enum" type
         # NOTICE: Rails 3 do not have a defined_enums method
@@ -48,7 +48,7 @@ module ForestLiana
 
         where = "#{field_name} #{operator}"
         where += " '#{value}'" if value
-        query = query.where(where)
+        where
       end
     end
 

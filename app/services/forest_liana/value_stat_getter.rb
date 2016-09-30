@@ -11,27 +11,36 @@ module ForestLiana
       return if @params[:aggregate].blank?
       valueCurrent = @resource.unscoped
       valuePrevious = @resource.unscoped
-
-      @params[:filters].try(:each) do |filter|
-        operator, filter_value = OperatorValueParser.parse(filter[:value])
-        valueCurrent = OperatorValueParser.add_where(valueCurrent,
-          filter[:field], operator, filter_value, @resource)
-      end
-
       filter_date_interval = false
-      @params[:filters].try(:each) do |filter|
-        operator, filter_value = OperatorValueParser.parse(filter[:value])
-        operator_date_interval_parser = OperatorDateIntervalParser.new(filter_value)
-        if operator_date_interval_parser.has_previous_interval()
-          field_name = OperatorValueParser.get_field_name(filter[:field], @resource)
-          filter = operator_date_interval_parser
-            .get_interval_date_filter_for_previous_interval()
-          valuePrevious = valuePrevious.where("#{field_name} #{filter}")
-          filter_date_interval = true
-        else
-          valuePrevious = OperatorValueParser.add_where(valuePrevious,
-            filter[:field], operator, filter_value, @resource)
+
+      if @params[:filters]
+        conditions = []
+        filter_operator = " #{@params[:filterType]} ".upcase
+
+        @params[:filters].try(:each) do |filter|
+          operator, filter_value = OperatorValueParser.parse(filter[:value])
+          conditions <<  OperatorValueParser.get_condition(filter[:field],
+            operator, filter_value, @resource)
         end
+
+        valueCurrent = valueCurrent.where(conditions.join(filter_operator))
+
+        @params[:filters].try(:each) do |filter|
+          operator, filter_value = OperatorValueParser.parse(filter[:value])
+          operator_date_interval_parser = OperatorDateIntervalParser.new(filter_value)
+          if operator_date_interval_parser.has_previous_interval()
+            field_name = OperatorValueParser.get_field_name(filter[:field], @resource)
+            filter = operator_date_interval_parser
+              .get_interval_date_filter_for_previous_interval()
+            conditions << "#{field_name} #{filter}"
+            filter_date_interval = true
+          else
+            conditions << OperatorValueParser.get_condition(filter[:field],
+              operator, filter_value, @resource)
+          end
+        end
+
+        valuePrevious = valuePrevious.where(conditions.join(filter_operator))
       end
 
       @record = Model::Stat.new(value: {
