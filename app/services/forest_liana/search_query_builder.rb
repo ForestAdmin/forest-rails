@@ -21,8 +21,13 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           if column.name == 'id'
-            conditions << "#{@resource.table_name}.id =
-              #{@params[:search].to_i}"
+            if column.type == :integer
+              conditions << "#{@resource.table_name}.id =
+                #{@params[:search].to_i}"
+            else
+              conditions << "#{@resource.table_name}.id =
+                '#{@params[:search]}'"
+            end
           # NOTICE: Rails 3 do not have a defined_enums method
           elsif @resource.respond_to?(:defined_enums) &&
             @resource.defined_enums.has_key?(column.name) &&

@@ -7,6 +7,7 @@
 
 ### Fixed
 - Record Update - Fix the potential dissociations on record update.
+- Search - Support search on ID of type 'String'.
 
 ## RELEASE 1.3.40 - 2016-09-26
 ### Added
