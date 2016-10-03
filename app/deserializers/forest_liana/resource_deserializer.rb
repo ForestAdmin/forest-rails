@@ -3,13 +3,15 @@ require_relative '../../../lib/forest_liana/base64_string_io'
 module ForestLiana
   class ResourceDeserializer
 
-    def initialize(resource, params)
+    def initialize(resource, params, with_relationships)
       @params = params.permit! if params.respond_to?(:permit!)
       @resource = resource
+      @with_relationships = with_relationships
     end
 
     def perform
       @attributes = extract_attributes
+      extract_relationships if @with_relationships
       extract_paperclip
       extract_carrierwave
       extract_acts_as_taggable
@@ -22,6 +24,37 @@ module ForestLiana
         @params['data']['attributes'].select {|attr| column?(attr)}
       else
         ActionController::Parameters.new()
+      end
+    end
+
+    def extract_relationships
+      if @params['data']['relationships']
+        @params['data']['relationships'].each do |name, relationship|
+          data = relationship['data']
+          # Rails 3 requires a :sym argument for the reflect_on_association
+          # call.
+          association = @resource.reflect_on_association(name.try(:to_sym))
+
+          if [:has_one, :belongs_to].include?(association.try(:macro))
+            # TODO: refactor like this?
+            #if data.blank?
+              #@attributes[name] = nil
+            #else
+              #@attributes[name] = association.klass.find(data[:id])
+            #end
+
+            # ActionController::Parameters do not inherit from Hash anymore
+            # since Rails 5.
+            if (data.is_a?(Hash) || data.is_a?(ActionController::Parameters)) && data[:id]
+              @attributes[name] = association.klass.find(data[:id])
+            elsif data.blank?
+              @attributes[name] = nil
+            end
+          end
+        end
+
+        # Strong parameter permit all new relationships attributes.
+        @attributes = @attributes.permit! if @attributes.respond_to?(:permit!)
       end
     end
 
