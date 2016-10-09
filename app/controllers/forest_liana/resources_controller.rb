@@ -26,19 +26,19 @@ module ForestLiana
     end
 
     def create
-      getter = ResourceCreator.new(@resource, params)
-      getter.perform
+      creator = ResourceCreator.new(@resource, params)
+      creator.perform
 
       render serializer: nil,
-        json: serialize_model(getter.record, include: includes)
+        json: serialize_model(creator.record, include: includes)
     end
 
     def update
-      getter = ResourceUpdater.new(@resource, params)
-      getter.perform
+      updater = ResourceUpdater.new(@resource, params)
+      updater.perform
 
       render serializer: nil,
-        json: serialize_model(getter.record, include: includes)
+        json: serialize_model(updater.record, include: includes)
     end
 
     def destroy
