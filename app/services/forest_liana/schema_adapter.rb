@@ -212,26 +212,29 @@ module ForestLiana
 
       case column.type
       when :integer
-        'Number'
+        type = 'Number'
       when :float
-        'Number'
+        type = 'Number'
       when :decimal
-        'Number'
+        type = 'Number'
       when :datetime
-        'Date'
+        type = 'Date'
       when :date
-        'Date'
+        type = 'Date'
       when :string
-        'String'
+        type = 'String'
       when :text
-        'String'
+        type = 'String'
       when :citext
-        'String'
+        type = 'String'
       when :uuid
-        'String'
+        type = 'String'
       when :boolean
-        'Boolean'
+        type = 'Boolean'
       end
+
+      is_array = (column.respond_to?(:array) && column.array == true)
+      is_array ? [type] : type
     end
 
     def add_enum_values_if_is_enum(column_schema, column)

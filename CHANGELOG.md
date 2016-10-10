@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Fields - Users want to view/edit their array of integers.
 
 ## RELEASE 1.3.42 - 2016-10-03
 ### Fixed

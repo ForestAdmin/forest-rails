@@ -12,6 +12,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(version: 20160628173505) do
+
   create_table "belongs_to_class_name_fields", force: :cascade do |t|
     t.integer "foo_id"
   end
