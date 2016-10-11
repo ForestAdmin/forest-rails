@@ -59,6 +59,7 @@ module ForestLiana
     end
 
     def extract_paperclip
+      return if @params['data']['attributes'].blank?
       return unless @resource.respond_to?(:attachment_definitions)
 
       paperclip_attr = @params['data']['attributes']
@@ -71,6 +72,7 @@ module ForestLiana
     end
 
     def extract_carrierwave
+      return if @params['data']['attributes'].blank?
       return unless @resource.respond_to?(:uploaders)
 
       @params['data']['attributes'].each do |key, value|
@@ -81,6 +83,7 @@ module ForestLiana
     end
 
     def extract_acts_as_taggable
+      return if @params['data']['attributes'].blank?
       return unless has_acts_as_taggable?
 
       @params['data']['attributes'].each do |key, value|
