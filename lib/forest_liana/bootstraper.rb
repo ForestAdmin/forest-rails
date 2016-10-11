@@ -32,6 +32,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def perform
+      fetch_models
       check_integrations_setup
       create_serializers
 
@@ -43,6 +44,12 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     private
+
+    def fetch_models
+      ActiveRecord::Base.subclasses.each do |subclass|
+        ForestLiana.models << subclass
+      end
+    end
 
     def cast_to_array value
       value.is_a?(String) ? [value] : value

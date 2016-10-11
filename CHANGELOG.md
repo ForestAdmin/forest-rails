@@ -7,6 +7,7 @@
 ### Fixed
 - Polymorphism - Fix the nullification of a polymorphic has_one association.
 - Serializer - Set the relationship to nil if the record is not found instead of crashing.
+- Models - Fix the way we discovered the active record models.
 
 ## RELEASE 1.3.42 - 2016-10-03
 ### Fixed
