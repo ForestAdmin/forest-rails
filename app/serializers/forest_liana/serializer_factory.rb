@@ -177,7 +177,11 @@ module ForestLiana
       SchemaUtils.associations(active_record_class).each do |a|
         serializer.send(serializer_association(a), a.name) {
           if [:has_one, :belongs_to].include?(a.macro)
-            object.send(a.name).try(:reload)
+            begin
+              object.send(a.name).try(:reload)
+            rescue ActiveRecord::RecordNotFound
+              nil
+            end
           else
             []
           end
