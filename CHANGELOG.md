@@ -4,6 +4,9 @@
 ### Added
 - Fields - Users want to view/edit their array of integers.
 
+### Fixed
+- Polymorphism - Fix the nullification of a polymorphic has_one association.
+
 ## RELEASE 1.3.42 - 2016-10-03
 ### Fixed
 - Smart field - Ensure the serializer exists before creating the smart field.
