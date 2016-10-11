@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## RELEASE 1.3.44 - 2016-10-11
+### Fixed
+- Deserialization - Ensure data->attributes is present before deserializing
+
 ## RELEASE 1.3.43 - 2016-10-11
 ### Added
 - Fields - Users want to view/edit their array of integers.
