@@ -19,7 +19,10 @@ module ForestLiana::Collection
     end
 
     def field(name, opts, &block)
-      model.fields << opts.merge({ field: name, :'is-searchable' => false })
+      model.fields << opts.merge({
+        field: name,
+        :'is-searchable' => false
+      })
 
       if serializer_name && ForestLiana::UserSpace.const_defined?(
           serializer_name)
