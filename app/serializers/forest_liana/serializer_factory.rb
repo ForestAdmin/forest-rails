@@ -174,6 +174,13 @@ module ForestLiana
         end
       end
 
+      # Devise attributes
+      if active_record_class.respond_to?(:devise_modules?)
+        serializer.attribute('password') do |x|
+          '**********'
+        end
+      end
+
       SchemaUtils.associations(active_record_class).each do |a|
         serializer.send(serializer_association(a), a.name) {
           if [:has_one, :belongs_to].include?(a.macro)

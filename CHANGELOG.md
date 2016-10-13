@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Devise - Support password management with Devise Authenticable.
+
 ### Fixed
 - Value Chart - Fix previous period count regression due to filterType introduction.
 
