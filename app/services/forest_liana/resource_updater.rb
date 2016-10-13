@@ -11,9 +11,9 @@ module ForestLiana
       @record = @resource.find(@params[:id])
 
       if has_strong_parameter
-        @record.update_attributes!(resource_params)
+        @record.update_attributes(resource_params)
       else
-        @record.update_attributes!(resource_params, without_protection: true)
+        @record.update_attributes(resource_params, without_protection: true)
       end
     end
 
