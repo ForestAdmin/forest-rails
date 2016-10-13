@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Value Chart - Fix previous period count regression due to filterType introduction.
 
 ## RELEASE 1.3.44 - 2016-10-11
 ### Fixed
