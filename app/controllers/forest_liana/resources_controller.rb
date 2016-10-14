@@ -29,16 +29,26 @@ module ForestLiana
       creator = ResourceCreator.new(@resource, params)
       creator.perform
 
-      render serializer: nil,
-        json: serialize_model(creator.record, include: includes)
+      if creator.record.valid?
+        render serializer: nil,
+          json: serialize_model(creator.record, include: includes)
+      else
+        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          creator.record.errors), status: 400
+      end
     end
 
     def update
       updater = ResourceUpdater.new(@resource, params)
       updater.perform
 
-      render serializer: nil,
-        json: serialize_model(updater.record, include: includes)
+      if updater.record.valid?
+        render serializer: nil,
+          json: serialize_model(updater.record, include: includes)
+      else
+        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          updater.record.errors), status: 400
+      end
     end
 
     def destroy

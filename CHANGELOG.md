@@ -5,6 +5,7 @@
 - Devise - Support password management with Devise Authenticable.
 
 ### Fixed
+- Error handling - Display the right errors on create/update.
 - Value Chart - Fix previous period count regression due to filterType introduction.
 
 ## RELEASE 1.3.44 - 2016-10-11
