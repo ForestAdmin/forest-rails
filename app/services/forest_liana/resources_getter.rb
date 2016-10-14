@@ -8,15 +8,15 @@ module ForestLiana
     def perform
       @records = @resource.unscoped.eager_load(includes)
       @records = search_query
-      @records = sort_query
+      @sorted_records = sort_query
     end
 
     def records
-      @records.offset(offset).limit(limit).to_a
+      @sorted_records.offset(offset).limit(limit).to_a
     end
 
     def count
-      search_query.count
+      @records.count
     end
 
     private

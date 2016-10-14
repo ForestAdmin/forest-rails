@@ -12,6 +12,14 @@ module ForestLiana
       @records = has_many_filter
       @records = belongs_to_filter
 
+      if @params[:search]
+        schema.fields.each do |field|
+          if field.try(:[], :search)
+            @records = field[:search].call(@records, @params[:search])
+          end
+        end
+      end
+
       @records
     end
 
@@ -65,6 +73,7 @@ module ForestLiana
         conditions = []
         @params[:filter].each do |field, values|
           next if association?(field)
+
           values.split(',').each do |value|
             operator, value = OperatorValueParser.parse(value)
             conditions << OperatorValueParser.get_condition(field, operator,
@@ -185,5 +194,8 @@ module ForestLiana
       @records
     end
 
+    def schema
+      ForestLiana.apimap.find {|x| x.name == @resource.table_name}
+    end
   end
 end
