@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.3.45 - 2016-10-14
 ### Added
 - Devise - Support password management with Devise Authenticable.
 
