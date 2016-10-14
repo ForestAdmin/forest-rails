@@ -6,8 +6,9 @@
 
 ### Fixed
 - Error handling - Display the right errors on create/update.
-- Value Chart - Fix previous period count regression due to filterType introduction.
-- Smart field - Enable search on smart fields.
+- Value Charts - Fix previous period count regression due to filterType introduction.
+- Smart fields - Enable search on smart fields.
+- Fields - Serialize the "isVirtual" property in the apimap.
 
 ## RELEASE 1.3.44 - 2016-10-11
 ### Fixed
