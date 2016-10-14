@@ -25,6 +25,18 @@ module ForestLiana
         end
       end
 
+      # Devise attributes
+      if @model.respond_to?(:devise_modules?)
+        collection.fields << {
+          field: 'password',
+          type: 'String'
+        }
+
+        collection.fields.delete_if do |f|
+          ['encrypted_password'].include?(f[:field])
+        end
+      end
+
       collection
     end
 

@@ -15,6 +15,7 @@ module ForestLiana
       extract_paperclip
       extract_carrierwave
       extract_acts_as_taggable
+      extract_devise
 
       @attributes
     end
@@ -92,7 +93,13 @@ module ForestLiana
           @attributes.delete(key)
         end
       end
+    end
 
+    def extract_devise
+      return if @params['data']['attributes'].blank?
+      return unless has_devise?
+
+      @attributes['password'] = @params['data']['attributes']['password']
     end
 
     def paperclip_handler?(attr)
@@ -119,6 +126,10 @@ module ForestLiana
     def has_acts_as_taggable?
       @resource.respond_to?(:acts_as_taggable) &&
         @resource.acts_as_taggable.respond_to?(:to_a)
+    end
+
+    def has_devise?
+      @resource.respond_to?(:devise_modules?)
     end
   end
 end
