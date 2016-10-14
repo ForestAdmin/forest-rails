@@ -21,7 +21,9 @@ module ForestLiana::Collection
     def field(name, opts, &block)
       model.fields << opts.merge({
         field: name,
-        :'is-searchable' => false
+        :'is-read-only' => true,
+        :'is-searchable' => false,
+        :'is-virtual' => true
       })
 
       if serializer_name && ForestLiana::UserSpace.const_defined?(
@@ -95,4 +97,3 @@ module ForestLiana::Collection
     end
   end
 end
-
