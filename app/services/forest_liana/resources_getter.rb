@@ -77,7 +77,9 @@ module ForestLiana
     end
 
     def includes
-      SchemaUtils.one_associations(@resource).map(&:name)
+      SchemaUtils.one_associations(@resource)
+        .select { |a| SchemaUtils.model_included?(a.klass) }
+        .map(&:name)
     end
 
     def offset
