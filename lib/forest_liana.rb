@@ -13,6 +13,7 @@ module ForestLiana
   mattr_accessor :apimap
   mattr_accessor :allowed_users
   mattr_accessor :models
+  mattr_accessor :excluded_models
 
   # Legacy.
   mattr_accessor :jwt_signing_key
@@ -20,4 +21,5 @@ module ForestLiana
   self.apimap = []
   self.allowed_users = []
   self.models = []
+  self.excluded_models = []
 end

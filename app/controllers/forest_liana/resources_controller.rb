@@ -62,7 +62,8 @@ module ForestLiana
     def find_resource
       @resource = SchemaUtils.find_model_from_table_name(params[:collection])
 
-      if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
+      if @resource.nil? || !SchemaUtils.model_included?(@resource) ||
+          !@resource.ancestors.include?(ActiveRecord::Base)
         render serializer: nil, json: {status: 404}, status: :not_found
       end
     end
@@ -72,8 +73,9 @@ module ForestLiana
     end
 
     def includes
-      SchemaUtils.one_associations(@resource).map {|a| a.name.to_s}
+      SchemaUtils.one_associations(@resource)
+        .select { |a| SchemaUtils.model_included?(a.klass) }
+        .map { |a| a.name.to_s }
     end
-
   end
 end

@@ -45,9 +45,16 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
     private
 
+    def analyze_model?(model)
+      return model && model.table_exists? && !SchemaUtils.habtm?(model) &&
+        SchemaUtils.model_included?(model)
+    end
+
     def fetch_models
-      ActiveRecord::Base.subclasses.each do |subclass|
-        ForestLiana.models << subclass
+      ActiveRecord::Base.subclasses.each do |model|
+        if analyze_model?(model)
+          ForestLiana.models << model
+        end
       end
     end
 
@@ -58,8 +65,9 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     def create_serializers
       SchemaUtils.tables_names.map do |table_name|
         model = SchemaUtils.find_model_from_table_name(table_name)
-        ForestLiana::SerializerFactory.new.serializer_for(model) if \
-          model.try(:table_exists?)
+        if analyze_model?(model)
+          ForestLiana::SerializerFactory.new.serializer_for(model)
+        end
       end
 
       # Monkey patch the find_serializer_class_name method to specify the
@@ -76,7 +84,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def check_integrations_setup
-     if stripe_integration?
+      if stripe_integration?
         if stripe_integration_valid? || stripe_integration_deprecated?
           ForestLiana.integrations[:stripe][:mapping] =
             cast_to_array(ForestLiana.integrations[:stripe][:mapping])
@@ -100,7 +108,8 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     def create_apimap
       SchemaUtils.tables_names.map do |table_name|
         model = SchemaUtils.find_model_from_table_name(table_name)
-        if model.try(:table_exists?)
+
+        if analyze_model?(model)
           SchemaAdapter.new(model).perform
         end
       end
