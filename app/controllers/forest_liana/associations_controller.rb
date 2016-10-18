@@ -66,7 +66,8 @@ module ForestLiana
       @association.klass
         .reflect_on_all_associations
         .select do |a|
-          [:belongs_to, :has_and_belongs_to_many].include?(a.macro) &&
+          SchemaUtils.model_included?(a.klass) &&
+            [:belongs_to, :has_and_belongs_to_many].include?(a.macro) &&
             !a.options[:polymorphic]
         end
         .map {|a| a.name.to_s }

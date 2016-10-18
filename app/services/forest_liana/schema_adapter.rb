@@ -173,10 +173,19 @@ module ForestLiana
     def add_associations
       SchemaUtils.associations(@model).each do |association|
         begin
-          if schema = column_association(collection, association)
-            schema[:reference] = get_ref_for(association)
-            schema[:field] = deforeign_key(schema[:field])
-            schema[:inverseOf] = inverse_of(association)
+          # NOTICE: delete the association if the targeted model is excluded.
+          if !SchemaUtils.model_included?(association.klass)
+            field = collection.fields.find do |x|
+              x[:field] == association.foreign_key
+            end
+
+            collection.fields.delete(field) if field
+          # NOTICE: The foreign key exists, so it's a belongsTo relationship.
+          elsif field = column_association(collection, association)
+            field[:reference] = get_ref_for(association)
+            field[:field] = deforeign_key(field[:field])
+            field[:inverseOf] = inverse_of(association)
+          # NOTICE: Create the fields of hasOne, HasMany, … relationships.
           else
             collection.fields << get_schema_for_association(association)
           end

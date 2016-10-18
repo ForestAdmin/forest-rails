@@ -48,6 +48,14 @@ module ForestLiana
         end
       end
     end
+
+    def self.model_included?(model)
+      ForestLiana.excluded_models.exclude?(model)
+    end
+
+    def self.habtm?(model)
+      model.name.starts_with?('HABTM')
+    end
   end
 end
 
