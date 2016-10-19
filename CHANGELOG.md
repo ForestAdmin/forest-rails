@@ -1,6 +1,16 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.3.47 - 2016-10-19
+### Added
+- Analyzer - Add the included_models options.
+
+## RELEASE 1.3.46 - 2016-10-18
+### Added
+- Analyzer - Add the excluded_models options.
+
+## RELEASE 1.3.45 - 2016-10-14
 ### Added
 - Analyzer - Add the included_models options.
 - Analyzer - Add the excluded_models options.
