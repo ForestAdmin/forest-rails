@@ -50,7 +50,15 @@ module ForestLiana
     end
 
     def self.model_included?(model)
-      ForestLiana.excluded_models.exclude?(model)
+      # NOTICE: all models are included by default.
+      return true if ForestLiana.included_models.empty? &&
+        ForestLiana.excluded_models.empty?
+
+      if ForestLiana.included_models.any?
+        ForestLiana.included_models.include?(model)
+      else
+        ForestLiana.excluded_models.exclude?(model)
+      end
     end
 
     def self.habtm?(model)
