@@ -14,6 +14,7 @@ module ForestLiana::Collection
     end
 
     def action(name, opts = {})
+      opts[:id] = "#{self.collection_name.to_s}.#{name}" 
       opts[:name] = name
       model.actions << ForestLiana::Model::Action.new(opts)
     end
