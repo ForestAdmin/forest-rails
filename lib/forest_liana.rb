@@ -14,6 +14,7 @@ module ForestLiana
   mattr_accessor :allowed_users
   mattr_accessor :models
   mattr_accessor :excluded_models
+  mattr_accessor :included_models
 
   # Legacy.
   mattr_accessor :jwt_signing_key
@@ -22,4 +23,5 @@ module ForestLiana
   self.allowed_users = []
   self.models = []
   self.excluded_models = []
+  self.included_models = []
 end
