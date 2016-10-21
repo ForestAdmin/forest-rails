@@ -45,6 +45,17 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
     private
 
+    def analyze_sti_models(model)
+      type_field = model.columns.find {|c| c.name == 'type' }
+      if type_field
+        model.descendants.each do |sti_model|
+          if analyze_model?(sti_model)
+            ForestLiana.models << sti_model
+          end
+        end
+      end
+    end
+
     def analyze_model?(model)
       return model && model.table_exists? && !SchemaUtils.habtm?(model) &&
         SchemaUtils.model_included?(model)
@@ -52,6 +63,8 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
     def fetch_models
       ActiveRecord::Base.subclasses.each do |model|
+        analyze_sti_models(model) if model.try(:table_exists?)
+
         if analyze_model?(model)
           ForestLiana.models << model
         end

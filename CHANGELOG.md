@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Analyzer - Support STI models.
 
 ## RELEASE 1.3.47 - 2016-10-19
 ### Added
