@@ -27,6 +27,8 @@ You will then follow a 4-step process (also available in this 1 min [video](http
 3. Get your app running, provide your application URL and check if you have successfully installed Forest Liana on your app.  
 4. Choose your credentials, log into https://app.forestadmin.com and start customizing your admin interface! 🎉
 
+**NOTE: If you’re stuck, can’t get something working or need some help, feel free to contact the Forest team at support@forestadmin.com**
+
 ## How it works
 
 Installing forest-rails into your app will automatically generate an admin REST API for your app.  
