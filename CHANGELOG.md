@@ -4,6 +4,10 @@
 ### Added
 - Analyzer - Support STI models.
 
+### Fixed
+- Custom Action - Fix the bad endpoints if some actions have the same name.
+>>>>>>> Custom Action - Fix the bad endpoints if some actions have the same name
+
 ## RELEASE 1.3.47 - 2016-10-19
 ### Added
 - Analyzer - Add the included_models options.

@@ -4,7 +4,7 @@ class ForestLiana::Model::Action
   include ActiveModel::Serialization
   extend ActiveModel::Naming
 
-  attr_accessor :name, :endpoint, :http_method, :fields, :redirect
+  attr_accessor :id, :name, :endpoint, :http_method, :fields, :redirect
 
   def initialize(attributes = {})
     attributes.each do |name, value|
@@ -14,9 +14,5 @@ class ForestLiana::Model::Action
 
   def persisted?
     false
-  end
-
-  def id
-    name
   end
 end

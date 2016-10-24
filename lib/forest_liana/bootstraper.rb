@@ -280,6 +280,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         ],
         actions: [
           ForestLiana::Model::Action.new({
+            id: 'stripe.Refund',
             name: 'Refund',
             endpoint: '/forest/stripe_payments/refunds'
           })
