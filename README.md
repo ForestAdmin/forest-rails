@@ -1,13 +1,13 @@
 # Forest Rails Liana [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
 
 The official Rails liana for Forest.  
-Forest is a modern admin interface (see the [live demo](https://app.forestadmin.com/login?livedemo)) built for projects of all major web frameworks.  
-forest-rails gem is the liana (=connector) that makes Forest admin work on any rails app.
+Forest is a modern admin interface (see the [live demo](https://app.forestadmin.com/login?livedemo)) that works on all major web frameworks.
+forest_liana is the gem that makes Forest admin work on any Rails application.
 
 ## Installation
 
 Visit [Forest's website](http://www.forestadmin.com), enter your email and click "Get started".  
-You will then follow a 4-step process (also available in this 1 min [video](https://www.youtube.com/watch?v=CaGBAV1T944)):
+You will then follow a 4-step process (also available in this 1 min [video](https://www.youtube.com/watch?v=ZTrMnidWLoM)):
 
 1. Choose your stack (Rails)
 2. Install Forest Liana
@@ -31,20 +31,16 @@ You will then follow a 4-step process (also available in this 1 min [video](http
 
 ## How it works
 
-Installing forest-rails into your app will automatically generate an admin REST API for your app.  
+Installing forest_liana into your app will automatically generate an admin REST API for your app.  
 This API allows the Forest admin UI to communicate with your app and operate on your data.  
-Note that data from your app will never reach Forest's servers. Only your UI configuration is saved on Forest's server.  
+Note that data from your app will never reach Forest's servers. Only your UI configuration is saved.  
 As this gem is open-source, you're free to extend the admin REST API for any operation specific to your app.  
 
 ## Integrations
 
 One core concept of Forest is to bring all your data back into one single admin interface. Forest integrates with the 3rd party services / SaaS you already use and allow you to manage all your operations from one place.
 
-Here are the integrations currently supported:
-* Stripe
-* Intercom
-
-*Note: More integrations will be developed based on users' requirements.*
+Check out our documentation about integrations: http://doc.forestadmin.com/developers-guide/#integrations
 
 ## Documentation
 
