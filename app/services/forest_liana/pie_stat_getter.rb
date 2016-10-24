@@ -37,6 +37,12 @@ module ForestLiana
           .order("#{@params[:aggregate].downcase}_#{field} DESC")
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
           .map do |k, v|
+            # NOTICE: Display the enum name instead of a integer if "enum" type
+            if @resource.respond_to?(:defined_enums) &&
+               @resource.defined_enums.has_key?(@params[:group_by_field])
+              k = @resource.defined_enums[@params[:group_by_field]].invert[k]
+            end
+
             { key: k, value: v }
           end
 

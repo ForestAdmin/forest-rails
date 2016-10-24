@@ -6,7 +6,9 @@
 
 ### Fixed
 - Custom Action - Fix the bad endpoints if some actions have the same name.
->>>>>>> Custom Action - Fix the bad endpoints if some actions have the same name
+
+### Changed
+- Pie Charts - Display enum labels instead of integers for a "group by" on enum field.
 
 ## RELEASE 1.3.47 - 2016-10-19
 ### Added
