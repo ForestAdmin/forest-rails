@@ -45,7 +45,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
 
     private
 
-    def analyze_sti_models(model)
+    def fetch_sti_models(model)
       type_field = model.columns.find {|c| c.name == 'type' }
       if type_field
         model.descendants.each do |sti_model|
@@ -62,12 +62,19 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def fetch_models
-      ActiveRecord::Base.subclasses.each do |model|
-        analyze_sti_models(model) if model.try(:table_exists?)
+      ActiveRecord::Base.subclasses.each {|model| fetch_model(model)}
+    end
+
+    def fetch_model(model)
+      if model.abstract_class?
+        model.descendants.each {|submodel| fetch_model(submodel)}
+      else
+        fetch_sti_models(model) if model.try(:table_exists?)
 
         if analyze_model?(model)
           ForestLiana.models << model
         end
+
       end
     end
 
