@@ -1,6 +1,6 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
-    before_filter :find_resource
+    before_action :find_resource
 
     def show
       case params[:type].try(:downcase)

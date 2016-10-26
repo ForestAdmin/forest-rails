@@ -1,8 +1,8 @@
 module ForestLiana
   class AssociationsController < ForestLiana::ApplicationController
 
-    before_filter :find_resource
-    before_filter :find_association
+    before_action :find_resource
+    before_action :find_association
 
     def index
       getter = HasManyGetter.new(@resource, @association, params)

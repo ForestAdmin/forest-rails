@@ -5,7 +5,7 @@ module ForestLiana
     rescue NameError
     end
 
-    before_filter :find_resource
+    before_action :find_resource
 
     def index
       getter = ResourcesGetter.new(@resource, params)
