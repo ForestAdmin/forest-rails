@@ -13,7 +13,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records,
-                                                     include: includes,
+                                                     include: getter.includes,
                                                      count: getter.count,
                                                      params: params)
     end
@@ -65,17 +65,5 @@ module ForestLiana
     def resource_params
       ResourceDeserializer.new(@resource, params[:resource], true).perform
     end
-
-    def includes
-      @association.klass
-        .reflect_on_all_associations
-        .select do |a|
-          SchemaUtils.model_included?(a.klass) &&
-            [:belongs_to, :has_and_belongs_to_many].include?(a.macro) &&
-            !a.options[:polymorphic]
-        end
-        .map {|a| a.name.to_s }
-    end
-
   end
 end

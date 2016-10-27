@@ -8,7 +8,13 @@ module ForestLiana
     end
 
     def perform
-      @record = @resource.find(@params[:id])
+      @record = @resource.eager_load(includes).find(@params[:id])
+    end
+
+    def includes
+      SchemaUtils.one_associations(@resource)
+        .select { |association| SchemaUtils.model_included?(association.klass) }
+        .map(&:name)
     end
 
   end
