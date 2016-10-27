@@ -5,7 +5,11 @@ module ForestLiana
     rescue NameError
     end
 
-    before_action :find_resource
+    if Rails::VERSION::MAJOR < 4
+      before_filter :find_resource
+    else
+      before_action :find_resource
+    end
 
     def index
       getter = ResourcesGetter.new(@resource, params)

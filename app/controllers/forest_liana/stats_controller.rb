@@ -1,6 +1,10 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
-    before_action :find_resource
+    if Rails::VERSION::MAJOR < 4
+      before_action :find_resource
+    else
+      before_action :find_resource
+    end
 
     def show
       case params[:type].try(:downcase)

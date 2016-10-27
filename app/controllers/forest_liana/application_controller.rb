@@ -2,7 +2,12 @@ require 'jwt'
 
 module ForestLiana
   class ApplicationController < ActionController::Base
-    before_action :authenticate_user_from_jwt
+    if Rails::VERSION::MAJOR < 4
+      before_filter :authenticate_user_from_jwt
+    else
+      before_action :authenticate_user_from_jwt
+    end
+
     wrap_parameters format: [:json] if respond_to?(:wrap_parameters)
 
 
