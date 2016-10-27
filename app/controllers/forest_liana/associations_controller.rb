@@ -1,8 +1,12 @@
 module ForestLiana
   class AssociationsController < ForestLiana::ApplicationController
-
-    before_action :find_resource
-    before_action :find_association
+    if Rails::VERSION::MAJOR < 4
+      before_filter :find_resource
+      before_filter :find_association
+    else
+      before_action :find_resource
+      before_action :find_association
+    end
 
     def index
       getter = HasManyGetter.new(@resource, @association, params)

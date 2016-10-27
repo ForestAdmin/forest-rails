@@ -12,7 +12,10 @@ module ForestLiana
   class Engine < ::Rails::Engine
     isolate_namespace ForestLiana
 
-    config.middleware.insert_before 0, Rack::Cors do
+    rack_cors_class = Rack::Cors
+    rack_cors_class = 'Rack::Cors' if Rails::VERSION::MAJOR < 5
+
+    config.middleware.insert_before 0, rack_cors_class do
       allow do
         hostnames = ['localhost:4200', 'app.forestadmin.com',
                      'www.forestadmin.com']

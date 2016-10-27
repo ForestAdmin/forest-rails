@@ -6,6 +6,7 @@
 
 ### Fixed
 - Rails 5 - Fix the way to discover models in Rails 5 - abstract class.
+- Rails 5 - Fix deprecation warnings.
 
 ### Changed
 - Filters - Add the new date filters protocol.
