@@ -4,6 +4,9 @@
 ### Added
 - Analyzer - Support STI models.
 
+### Fixed
+- Rails 5 - Fix the way to discover models in Rails 5 - abstract class.
+
 ### Changed
 - Filters - Add the new date filters protocol.
 - Pie Charts - Display enum labels instead of integers for a "group by" on enum field.
