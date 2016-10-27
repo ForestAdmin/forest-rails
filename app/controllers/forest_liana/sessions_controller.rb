@@ -20,9 +20,20 @@ module ForestLiana
     end
 
     def check_user
-      ForestLiana.allowed_users.find do |allowed_user|
-        allowed_user['email'] == params['email'] &&
-          BCrypt::Password.new(allowed_user['password']) == params['password']
+      # NOTICE: Use the ForestUser table for authentication.
+      if defined? ForestUser
+        user = ForestUser.find_by(email: params['email'])
+        return nil if user.blank?
+
+        if BCrypt::Password.new(user['password_hash']) == params['password']
+          user
+        end
+      # NOTICE: Query Forest server for authentication.
+      else
+        ForestLiana.allowed_users.find do |allowed_user|
+          allowed_user['email'] == params['email'] &&
+            BCrypt::Password.new(allowed_user['password']) == params['password']
+        end
       end
     end
 
