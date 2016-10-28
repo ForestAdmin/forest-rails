@@ -4,15 +4,13 @@
 ### Added
 - Analyzer - Support STI models.
 
-### Fixed
-- Rails 5 - Fix the way to discover models in Rails 5 - abstract class.
-- Rails 5 - Fix deprecation warnings.
-
 ### Changed
 - Filters - Add the new date filters protocol.
 - Pie Charts - Display enum labels instead of integers for a "group by" on enum field.
 
 ### Fixed
+- Rails 5 - Fix the way to discover models in Rails 5 - abstract class.
+- Rails 5 - Fix deprecation warnings.
 - Custom Action - Fix the bad endpoints if some actions have the same name.
 
 ## RELEASE 1.3.47 - 2016-10-19
