@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- CORS - Users can deactivate Forest CORS hearders.
 
 ## RELEASE 1.3.48 - 2016-10-28
 ### Added
