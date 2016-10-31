@@ -6,6 +6,9 @@
 ### Added
 - Analyzer - Support STI models.
 
+### Fixed
+- Ruby 1.9 - Allow utf-8 characters in the source code.
+
 ### Changed
 - Filters - Add the new date filters protocol.
 - Pie Charts - Display enum labels instead of integers for a "group by" on enum field.
