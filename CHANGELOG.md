@@ -1,15 +1,18 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.3.50 - 2016-10-31
 ### Added
 - CORS - Users can deactivate Forest CORS hearders.
+
+## RELEASE 1.3.49 - 2016-10-31
+### Fixed
+- Ruby 1.9 - Allow utf-8 characters in the source code.
 
 ## RELEASE 1.3.48 - 2016-10-28
 ### Added
 - Analyzer - Support STI models.
-
-### Fixed
-- Ruby 1.9 - Allow utf-8 characters in the source code.
 
 ### Changed
 - Filters - Add the new date filters protocol.
