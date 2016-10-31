@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- CORS - Users can set the INJECT_FOREST_CORS option to ignore CORS headers.
 
 ## RELEASE 1.3.48 - 2016-10-28
 ### Added
