@@ -4,7 +4,7 @@
 
 ## RELEASE 1.3.51 - 2016-11-01
 ### Fixed
-- Rails 5 - Fix the before_action before Rails 5 when computing charts.
+- Rails 4 - Fix the before_action before Rails 4 when computing charts.
 
 ## RELEASE 1.3.50 - 2016-10-31
 ### Added
