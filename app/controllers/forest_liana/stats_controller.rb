@@ -1,7 +1,7 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
-      before_action :find_resource
+      before_filter :find_resource
     else
       before_action :find_resource
     end
