@@ -33,7 +33,10 @@ module ForestLiana
       creator = ResourceCreator.new(@resource, params)
       creator.perform
 
-      if creator.record.valid?
+      if creator.errors
+        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          creator.errors), status: 400
+      elsif creator.record.valid?
         render serializer: nil,
           json: serialize_model(creator.record, include: includes)
       else
@@ -46,7 +49,10 @@ module ForestLiana
       updater = ResourceUpdater.new(@resource, params)
       updater.perform
 
-      if updater.record.valid?
+      if updater.errors
+        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          updater.errors), status: 400
+      elsif updater.record.valid?
         render serializer: nil,
           json: serialize_model(updater.record, include: includes)
       else

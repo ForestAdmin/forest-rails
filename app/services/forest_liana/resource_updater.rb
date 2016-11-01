@@ -1,19 +1,26 @@
 module ForestLiana
   class ResourceUpdater
     attr_accessor :record
+    attr_accessor :errors
 
     def initialize(resource, params)
       @resource = resource
       @params = params
+      @errors = nil
     end
 
     def perform
-      @record = @resource.find(@params[:id])
+      begin
+        @record = @resource.find(@params[:id])
 
-      if has_strong_parameter
-        @record.update_attributes(resource_params)
-      else
-        @record.update_attributes(resource_params, without_protection: true)
+        if has_strong_parameter
+          @record.update_attributes(resource_params)
+        else
+          @record.update_attributes(resource_params, without_protection: true)
+        end
+      rescue ActiveRecord::StatementInvalid => exception
+        # NOTICE: SQL request cannot be executed properly
+        @errors = [{ detail: exception.cause.error }]
       end
     end
 

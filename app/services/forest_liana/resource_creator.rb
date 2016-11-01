@@ -1,19 +1,26 @@
 module ForestLiana
   class ResourceCreator
     attr_accessor :record
+    attr_accessor :errors
 
     def initialize(resource, params)
       @resource = resource
       @params = params
+      @errors = nil
     end
 
     def perform
-      if has_strong_parameter
-        @record = @resource.create(resource_params)
-      else
-        @record = @resource.create(resource_params, without_protection: true)
+      begin
+        if has_strong_parameter
+          @record = @resource.create(resource_params)
+        else
+          @record = @resource.create(resource_params, without_protection: true)
+        end
+        set_has_many_relationships
+      rescue ActiveRecord::StatementInvalid => exception
+        # NOTICE: SQL request cannot be executed properly
+        @errors = [{ detail: exception.cause.error }]
       end
-      set_has_many_relationships
     end
 
     def resource_params
