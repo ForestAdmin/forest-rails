@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.3.52 - 2016-11-04
 ### Changed
 - SQL Errors - SQL errors are now send in the response after a record creation or update.
 
