@@ -19,6 +19,7 @@
 ## RELEASE 1.3.48 - 2016-10-28
 ### Added
 - Analyzer - Support STI models.
+- Performance - Request only displayed fields in the records list.
 
 ### Changed
 - Filters - Add the new date filters protocol.

@@ -16,7 +16,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records,
-                                                     include: includes,
+                                                     include: includes(getter),
                                                      count: getter.count,
                                                      params: params)
     end
@@ -26,7 +26,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json:
-        serialize_model(getter.record, include: includes)
+        serialize_model(getter.record, include: includes(getter))
     end
 
     def create
@@ -82,10 +82,8 @@ module ForestLiana
       ResourceDeserializer.new(@resource, params[:resource], true).perform
     end
 
-    def includes
-      SchemaUtils.one_associations(@resource)
-        .select { |a| SchemaUtils.model_included?(a.klass) }
-        .map { |a| a.name.to_s }
+    def includes(getter)
+      getter.includes.map(&:to_s)
     end
   end
 end

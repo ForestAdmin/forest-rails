@@ -3,6 +3,30 @@ module ForestLiana
     def initialize(resource, params)
       @resource = resource
       @params = params
+      @field_names_requested = field_names_requested
+    end
+
+    def field_names_requested
+      return nil unless @params[:fields] && @params[:fields][@resource.table_name]
+
+      associations_for_query = []
+
+      # NOTICE: Populate the necessary associations for filters
+      if @params[:filter]
+        @params[:filter].each do |field, values|
+          if field.include? ':'
+            associations_for_query << field.split(':').first.to_sym
+          end
+        end
+      end
+
+      if @params[:sort] && @params[:sort].include?('.')
+        associations_for_query << @params[:sort].split('.').first.to_sym
+      end
+
+      field_names = @params[:fields][@resource.table_name].split(',')
+                                              .map { |name| name.to_sym }
+      field_names | associations_for_query
     end
 
     def perform
@@ -12,17 +36,29 @@ module ForestLiana
     end
 
     def records
-      @sorted_records.offset(offset).limit(limit).to_a
+      @sorted_records.select(select).offset(offset).limit(limit).to_a
     end
 
     def count
       @records.count
     end
 
+    def includes
+      includes = SchemaUtils.one_associations(@resource)
+        .select { |association| SchemaUtils.model_included?(association.klass) }
+        .map(&:name)
+
+      if @field_names_requested
+        includes & @field_names_requested
+      else
+        includes
+      end
+    end
+
     private
 
     def search_query
-      SearchQueryBuilder.new(@records, @params).perform
+      SearchQueryBuilder.new(@records, @params, includes).perform
     end
 
     def sort_query
@@ -30,9 +66,6 @@ module ForestLiana
         @params[:sort].split(',').each do |field|
           order = detect_sort_order(@params[:sort])
           field.slice!(0) if order == :desc
-
-          ref = field.split('.')[0]
-          @records = @records.includes(ref) if association?(ref)
 
           field = detect_reference(field)
           if field.index('.').nil?
@@ -63,7 +96,7 @@ module ForestLiana
           .find {|a| a.name == ref.to_sym }
 
         if association
-          "#{association.table_name}.#{field}"
+          "\"#{association.table_name}\".\"#{field}\""
         else
           param
         end
@@ -76,10 +109,13 @@ module ForestLiana
       @resource.reflect_on_association(field.to_sym).present?
     end
 
-    def includes
-      SchemaUtils.one_associations(@resource)
-        .select { |a| SchemaUtils.model_included?(a.klass) }
-        .map(&:name)
+    def select
+      column_names = @resource.column_names.map { |name| name.to_sym }
+      if @field_names_requested
+        column_names & @field_names_requested
+      else
+        column_names
+      end
     end
 
     def offset

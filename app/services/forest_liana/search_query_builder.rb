@@ -1,9 +1,10 @@
 module ForestLiana
   class SearchQueryBuilder
 
-    def initialize(resource, params)
+    def initialize(resource, params, includes)
       @resource = @records = resource
       @params = params
+      @includes = includes
     end
 
     def perform
@@ -51,15 +52,16 @@ module ForestLiana
         end
 
         SchemaUtils.one_associations(@resource).map(&:name).each do |association|
-          resource = @resource.reflect_on_association(association.to_sym)
-          resource.klass.columns.each do |column|
-            if !column.array && (column.type == :string || column.type == :text)
-              conditions <<
-                "LOWER(\"#{resource.table_name}\".\"#{column.name}\") LIKE " +
-                "'%#{@params[:search].downcase}%'"
+          if @includes.include? association.to_sym
+            resource = @resource.reflect_on_association(association.to_sym)
+            resource.klass.columns.each do |column|
+              if !column.array && (column.type == :string || column.type == :text)
+                conditions <<
+                  "LOWER(\"#{resource.table_name}\".\"#{column.name}\") LIKE " +
+                  "'%#{@params[:search].downcase}%'"
+              end
             end
           end
-          @resource = @resource.eager_load(association.to_sym)
         end
 
         @records = @resource.where(conditions.join(' OR '))

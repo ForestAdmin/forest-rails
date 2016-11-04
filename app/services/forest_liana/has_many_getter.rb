@@ -4,6 +4,13 @@ module ForestLiana
       @resource = resource
       @association = association
       @params = params
+      @field_names_requested = field_names_requested
+    end
+
+    def field_names_requested
+      return nil unless @params[:fields] && @params[:fields][@association.table_name]
+      @params[:fields][@association.table_name].split(',')
+                                            .map { |name| name.to_sym }
     end
 
     def perform
@@ -11,6 +18,8 @@ module ForestLiana
         .unscoped
         .find(@params[:id])
         .send(@params[:association_name])
+        .select(select)
+        .eager_load(includes)
       @records = sort_query
     end
 
@@ -18,11 +27,37 @@ module ForestLiana
       @records.limit(limit).offset(offset)
     end
 
+    def includes
+      @association.klass
+        .reflect_on_all_associations
+        .select do |association|
+          inclusion = SchemaUtils.model_included?(association.klass) &&
+            [:belongs_to, :has_and_belongs_to_many].include?(association.macro) &&
+            !association.options[:polymorphic]
+
+          if @field_names_requested
+            inclusion && @field_names_requested.include?(association.name)
+          else
+            inclusion
+          end
+        end
+        .map { |association| association.name.to_s }
+    end
+
     def count
       @records.to_a.length
     end
 
     private
+
+    def select
+      column_names = @association.klass.column_names.map { |name| name.to_sym }
+      if @field_names_requested
+        column_names & @field_names_requested
+      else
+        column_names
+      end
+    end
 
     def association_table_name
       @resource.reflect_on_association(@params[:association_name])

@@ -108,10 +108,14 @@ module ForestLiana
 
           if ret[:href].blank?
             begin
-              relationship_records = object.send(attribute_name)
+              if @options[:include].try(:include?, attribute_name.to_s)
+                object.send(attribute_name)
+              end
 
-              if relationship_records.respond_to?(:each)
-                ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/relationships/#{attribute_name}"
+              SchemaUtils.many_associations(object.class).each do |a|
+                if a.name == attribute_name
+                  ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/relationships/#{attribute_name}"
+                end
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError
               puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
@@ -186,7 +190,7 @@ module ForestLiana
           serializer.send(serializer_association(a), a.name) {
             if [:has_one, :belongs_to].include?(a.macro)
               begin
-                object.send(a.name).try(:reload)
+                object.send(a.name)
               rescue ActiveRecord::RecordNotFound
                 nil
               end
