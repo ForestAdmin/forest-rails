@@ -4,6 +4,7 @@
 
 ## RELEASE 1.3.52 - 2016-11-04
 ### Changed
+- Performance - Request only displayed fields in the records list.
 - SQL Errors - SQL errors are now send in the response after a record creation or update.
 
 ## RELEASE 1.3.51 - 2016-11-01
@@ -21,7 +22,6 @@
 ## RELEASE 1.3.48 - 2016-10-28
 ### Added
 - Analyzer - Support STI models.
-- Performance - Request only displayed fields in the records list.
 
 ### Changed
 - Filters - Add the new date filters protocol.
