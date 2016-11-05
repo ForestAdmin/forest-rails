@@ -38,7 +38,7 @@ module ForestLiana
           creator.errors), status: 400
       elsif creator.record.valid?
         render serializer: nil,
-          json: serialize_model(creator.record, include: includes)
+          json: serialize_model(creator.record, include: record_includes)
       else
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           creator.record.errors), status: 400
@@ -54,7 +54,7 @@ module ForestLiana
           updater.errors), status: 400
       elsif updater.record.valid?
         render serializer: nil,
-          json: serialize_model(updater.record, include: includes)
+          json: serialize_model(updater.record, include: record_includes)
       else
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           updater.record.errors), status: 400
@@ -84,6 +84,12 @@ module ForestLiana
 
     def includes(getter)
       getter.includes.map(&:to_s)
+    end
+
+    def record_includes
+      SchemaUtils.one_associations(@resource)
+        .select { |a| SchemaUtils.model_included?(a.klass) }
+        .map { |a| a.name.to_s }
     end
   end
 end
