@@ -31,9 +31,9 @@ module ForestLiana
       @association.klass
         .reflect_on_all_associations
         .select do |association|
-          inclusion = SchemaUtils.model_included?(association.klass) &&
-            [:belongs_to, :has_and_belongs_to_many].include?(association.macro) &&
-            !association.options[:polymorphic]
+          inclusion = !association.options[:polymorphic] &&
+            SchemaUtils.model_included?(association.klass) &&
+            [:belongs_to, :has_and_belongs_to_many].include?(association.macro)
 
           if @field_names_requested
             inclusion && @field_names_requested.include?(association.name)
