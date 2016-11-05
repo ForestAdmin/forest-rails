@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records Edition - Fix a regression when serializing the Create/Update response.
 
 ## RELEASE 1.3.52 - 2016-11-04
 ### Changed
