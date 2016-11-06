@@ -232,26 +232,16 @@ module ForestLiana
       end
 
       case column.type
-      when :integer
-        type = 'Number'
-      when :float
-        type = 'Number'
-      when :decimal
-        type = 'Number'
-      when :datetime
-        type = 'Date'
-      when :date
-        type = 'Date'
-      when :string
-        type = 'String'
-      when :text
-        type = 'String'
-      when :citext
-        type = 'String'
-      when :uuid
-        type = 'String'
       when :boolean
         type = 'Boolean'
+      when :datetime, :date
+        type = 'Date'
+      when :integer, :float, :decimal
+        type = 'Number'
+      when :string, :text, :citext, :uuid
+        type = 'String'
+      when :time
+        type = 'Time'
       end
 
       is_array = (column.respond_to?(:array) && column.array == true)

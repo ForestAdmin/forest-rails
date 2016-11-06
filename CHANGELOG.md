@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Field Type - Support Time field type.
+
 ### Fixed
 - Polymorphism - Fix polymorphic "hasMany" on record hasMany association retrieval.
 - Collections Customization - Fix the smart collections/fields/actions use if the lib/forest_liana directory is eager loaded by the app.
@@ -20,11 +23,11 @@
 
 ## RELEASE 1.3.50 - 2016-10-31
 ### Added
-- CORS - Users can deactivate Forest CORS hearders.
+- CORS - Users can deactivate Forest CORS headers.
 
 ## RELEASE 1.3.49 - 2016-10-31
 ### Fixed
-- Ruby 1.9 - Allow utf-8 characters in the source code.
+- Ruby 1.9 - Allow UTF-8 characters in the source code.
 
 ## RELEASE 1.3.48 - 2016-10-28
 ### Added
