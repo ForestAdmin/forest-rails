@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Polymorphism - Fix polymorphic "hasMany" on record hasMany association retrieval.
+- Collections Customization - Fix the smart collections/fields/actions use if the lib/forest_liana directory is eager loaded by the app.
 
 ## RELEASE 1.3.53 - 2016-11-04
 ### Fixed
