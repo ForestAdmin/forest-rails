@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Polymorphism - Fix polymorphic "hasMany" on record hasMany association retrieval.
 
 ## RELEASE 1.3.53 - 2016-11-04
 ### Fixed
