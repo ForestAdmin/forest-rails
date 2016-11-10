@@ -154,6 +154,19 @@ module ForestLiana
         serializer.attribute(attr)
       end
 
+      # NOTICE: Format properly the time type fields during the serialization.
+      attributes_time(active_record_class).each do |attr|
+        serializer.attribute(attr) do |x|
+          value = object.send(attr)
+          if value
+            match = /(\d{2}:\d{2}:\d{2})/.match(value.to_s)
+            (match && match[1]) ? match[1] : nil
+          else
+            nil
+          end
+        end
+      end
+
       # CarrierWave url attribute
       if active_record_class.respond_to?(:mount_uploader)
         active_record_class.uploaders.each do |key, value|
@@ -260,6 +273,12 @@ module ForestLiana
     def attributes(active_record_class)
       active_record_class.column_names.select do |column_name|
         !association?(active_record_class, column_name)
+      end
+    end
+
+    def attributes_time(active_record_class)
+      active_record_class.column_names.select do |column_name|
+        active_record_class.column_types[column_name].type == :time
       end
     end
 
