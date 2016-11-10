@@ -151,7 +151,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     def require_lib_forest_liana
       path = Rails.root.join('lib', 'forest_liana', '**', '*.rb')
       Dir.glob(File.expand_path(path, __FILE__)).each do |file|
-        require file
+        load file
       end
     end
 
