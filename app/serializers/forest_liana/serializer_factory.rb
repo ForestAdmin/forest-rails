@@ -278,7 +278,11 @@ module ForestLiana
 
     def attributes_time(active_record_class)
       active_record_class.column_names.select do |column_name|
-        active_record_class.column_types[column_name].type == :time
+        if Rails::VERSION::MAJOR > 4
+          active_record_class.column_for_attribute(column_name).type == :time
+        else
+          active_record_class.column_types[column_name].type == :time
+        end
       end
     end
 
