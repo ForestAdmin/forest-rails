@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.4.1 - 2016-11-11
 ### Fixed
 - Rails 5 - Fix application start using Rails liana 1.4.0.
 
