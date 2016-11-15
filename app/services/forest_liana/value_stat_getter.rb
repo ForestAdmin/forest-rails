@@ -1,16 +1,11 @@
 module ForestLiana
-  class ValueStatGetter
+  class ValueStatGetter < StatGetter
     attr_accessor :record
-
-    def initialize(resource, params)
-      @resource = resource
-      @params = params
-    end
 
     def perform
       return if @params[:aggregate].blank?
-      valueCurrent = @resource.unscoped
-      valuePrevious = @resource.unscoped
+      valueCurrent = @resource.unscoped.eager_load(includes)
+      valuePrevious = @resource.unscoped.eager_load(includes)
       filter_date_interval = false
 
       if @params[:filterType] && @params[:filters]

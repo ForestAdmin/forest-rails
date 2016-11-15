@@ -1,11 +1,6 @@
 module ForestLiana
-  class PieStatGetter
+  class PieStatGetter < StatGetter
     attr_accessor :record
-
-    def initialize(resource, params)
-      @resource = resource
-      @params = params
-    end
 
     def perform
       if @params[:group_by_field]
@@ -23,18 +18,12 @@ module ForestLiana
           end
         end
 
-        # NOTICE: The generated alias for a count is "count_all", for a sum the
-        #         alias looks like "sum_#{aggregate_field}"
-        field = 'all'
-        if @params[:aggregate].downcase == 'sum'
-          field = @params[:aggregate_field].downcase
-        end
-
         value = value
           .unscoped
+          .eager_load(includes)
           .where(conditions.join(filter_operator))
-          .group(@params[:group_by_field])
-          .order("#{@params[:aggregate].downcase}_#{field} DESC")
+          .group("#{@resource.table_name}.#{@params[:group_by_field]}")
+          .order(order)
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
           .map do |k, v|
             # NOTICE: Display the enum name instead of a integer if "enum" type
@@ -47,6 +36,21 @@ module ForestLiana
           end
 
         @record = Model::Stat.new(value: value)
+      end
+    end
+
+    def order
+      # NOTICE: The generated alias for a count is "count_all", for a sum the
+      #         alias looks like "sum_#{aggregate_field}"
+      field = 'all'
+      if @params[:aggregate].downcase == 'sum'
+        field = @params[:aggregate_field].downcase
+      end
+
+      if includes.size == 0
+        "#{@params[:aggregate].downcase}_#{field} DESC"
+      else
+        "#{@params[:aggregate].downcase}_id DESC"
       end
     end
 
