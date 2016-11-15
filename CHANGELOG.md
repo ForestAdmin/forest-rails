@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Rails 5 - Remove deprecation warnings with empty responses.
 
 ## RELEASE 1.4.2 - 2016-11-15
 ### Fixed

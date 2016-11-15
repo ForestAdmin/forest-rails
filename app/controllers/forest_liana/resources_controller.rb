@@ -64,7 +64,7 @@ module ForestLiana
     def destroy
       @resource.destroy_all(id: params[:id])
 
-      render nothing: true, status: 204
+      head :no_content
     end
 
     private

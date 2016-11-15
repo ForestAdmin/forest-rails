@@ -9,7 +9,7 @@ module ForestLiana
       if token
         render json: { token: token }, serializer: nil
       else
-        render nothing: true, status: 401
+        head :unauthorized
       end
     end
 
