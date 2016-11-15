@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Date Filters - Fix the date operators broken in release 1.4.2.
 
 ## RELEASE 1.4.2 - 2016-11-15
 ### Fixed
