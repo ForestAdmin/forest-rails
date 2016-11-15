@@ -7,17 +7,17 @@ module ForestLiana
       lastMonth: { duration: 1, period: 'month' }, # TODO: Remove once new filter protocol is live
       last3Months: { duration: 3, period: 'month' }, # TODO: Remove once new filter protocol is live
       lastYear: { duration: 1, period: 'year' }, # TODO: Remove once new filter protocol is live
-      '$yesterday': { duration: 1, period: 'day' },
-      '$previousWeek': { duration: 1, period: 'week' },
-      '$previousMonth': { duration: 1, period: 'month' },
-      '$previousQuarter': { duration: 3, period: 'month',
-        period_of_time: 'quarter' },
-      '$previousYear': { duration: 1, period: 'year' },
-      '$weekToDate': { duration: 1, period: 'week', to_date: true },
-      '$monthToDate': { duration: 1, period: 'month', to_date: true },
-      '$quarterToDate': { duration: 3, period: 'month',
-        period_of_time: 'quarter', to_date: true },
-      '$yearToDate': { duration: 1, period: 'year', to_date: true }
+      $yesterday => { duration: 1, period: 'day' },
+      $previousWeek => { duration: 1, period: 'week' },
+      $previousMonth => { duration: 1, period: 'month' },
+      $previousQuarter => { duration: 3, period: 'month',
+                            period_of_time: 'quarter' },
+      $previousYear => { duration: 1, period: 'year' },
+      $weekToDate => { duration: 1, period: 'week', to_date: true },
+      $monthToDate => { duration: 1, period: 'month', to_date: true },
+      $quarterToDate => { duration: 3, period: 'month',
+                          period_of_time: 'quarter', to_date: true },
+      $yearToDate => { duration: 1, period: 'year', to_date: true }
     }
 
     PERIODS_FROM_NOW = 'fromNow' # TODO: Remove once new filter protocol is live

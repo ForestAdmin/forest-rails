@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## RELEASE 1.4.2 - 2016-11-15
+### Fixed
+- Ruby 2.0 - Fix the chart creation when a date operator is present.
+
 ## RELEASE 1.4.1 - 2016-11-11
 ### Fixed
 - Rails 5 - Fix application start using Rails liana 1.4.0.
