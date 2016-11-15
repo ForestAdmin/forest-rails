@@ -116,7 +116,7 @@ module ForestLiana
     test 'Filter on an updated_at field of the main collection' do
       getter = ResourcesGetter.new(Owner, {
         page: { size: 10, number: 1 },
-        filter: { 'updated_at' => '<lastYear' },
+        filter: { 'updated_at' => '$previousYear' },
         filterType: 'and'
       })
       getter.perform
@@ -131,7 +131,7 @@ module ForestLiana
     test 'Filter on an updated_at field of an associated collection' do
       getter = ResourcesGetter.new(Tree, {
         page: { size: 10, number: 1 },
-        filter: { 'owner:updated_at' => '<lastYear' },
+        filter: { 'owner:updated_at' => '$previousYear' },
         filterType: 'and'
       })
       getter.perform
