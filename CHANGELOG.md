@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.4.3 - 2016-11-15
 ### Added
 - Chart Filters - Support chart filters on belongsTo associations.
 
