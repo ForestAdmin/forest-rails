@@ -1,15 +1,14 @@
 module ForestLiana
-  class LineStatGetter
+  class LineStatGetter < StatGetter
     attr_accessor :record
 
     def initialize(resource, params)
-      @resource = resource
-      @params = params
+      super(resource, params)
       @populates = {}
     end
 
     def perform
-      value = @resource.unscoped
+      value = @resource.unscoped.eager_load(includes)
 
       if @params[:filterType] && @params[:filters]
         conditions = []
@@ -24,7 +23,7 @@ module ForestLiana
         value = value.where(conditions.join(filter_operator))
       end
 
-      value = value.send(time_range, @params[:group_by_date_field])
+      value = value.send(time_range, group_by_date_field)
       value = value.group(group_by_field || :id) if group_by_field
 
       value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
@@ -51,6 +50,10 @@ module ForestLiana
     end
 
     private
+
+    def group_by_date_field
+      "#{@resource.table_name}.#{@params[:group_by_date_field]}"
+    end
 
     def group_by_field
       field_name = @params[:group_by_field]

@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Chart Filters - Support chart filters on belongsTo associations.
+
 ### Fixed
 - Date Filters - Fix the date operators broken in release 1.4.2.
 
