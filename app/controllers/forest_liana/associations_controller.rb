@@ -22,21 +22,21 @@ module ForestLiana
       updater = BelongsToUpdater.new(@resource, @association, params)
       updater.perform
 
-      render nothing: true, status: 204
+      head :no_content
     end
 
     def associate
       associator = HasManyAssociator.new(@resource, @association, params)
       associator.perform
 
-      render nothing: true, status: 204
+      head :no_content
     end
 
     def dissociate
       dissociator = HasManyDissociator.new(@resource, @association, params)
       dissociator.perform
 
-      render nothing: true, status: 204
+      head :no_content
     end
 
     private

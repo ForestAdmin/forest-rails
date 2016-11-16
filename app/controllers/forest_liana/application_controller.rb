@@ -49,7 +49,7 @@ module ForestLiana
           render json: { error: 'expired_token' }, status: 401, serializer: nil
         end
       else
-        render nothing: true, status: 401
+        head :unauthorized
       end
     end
 
