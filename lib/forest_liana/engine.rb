@@ -13,8 +13,6 @@ module ForestLiana
     isolate_namespace ForestLiana
 
     def configure_forest_cors
-      return unless ForestLiana.inject_forest_cors
-
       rack_cors_class = Rack::Cors
       rack_cors_class = 'Rack::Cors' if Rails::VERSION::MAJOR < 5
 
@@ -30,9 +28,10 @@ module ForestLiana
       end
     end
 
+    configure_forest_cors unless ENV['FOREST_CORS_DEACTIVATED']
+
     config.after_initialize do |app|
       unless Rails.env.test?
-        configure_forest_cors
         app.eager_load!
         Bootstraper.new(app).perform
       end
