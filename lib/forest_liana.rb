@@ -15,6 +15,7 @@ module ForestLiana
   mattr_accessor :models
   mattr_accessor :excluded_models
   mattr_accessor :included_models
+  mattr_accessor :user_class_name
 
   # Legacy.
   mattr_accessor :jwt_signing_key
@@ -24,4 +25,5 @@ module ForestLiana
   self.models = []
   self.excluded_models = []
   self.included_models = []
+  self.user_class_name = 'ForestUser'
 end
