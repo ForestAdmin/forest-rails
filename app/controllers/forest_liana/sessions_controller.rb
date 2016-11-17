@@ -21,11 +21,11 @@ module ForestLiana
 
     def check_user
       # NOTICE: Use the ForestUser table for authentication.
-      if defined? ForestUser
-        user = ForestUser.find_by(email: params['email'])
+      user_class = ForestLiana.user_class_name.constantize
+      if defined? user_class
+        user = user_class.find_by(email: params['email'])
         return nil if user.blank?
-
-        if BCrypt::Password.new(user['password_hash']) == params['password']
+        if BCrypt::Password.new(user['password_digest']).is_password?(params['password'])
           user
         end
       # NOTICE: Query Forest server for authentication.
