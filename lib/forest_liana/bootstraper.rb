@@ -1,4 +1,3 @@
-# encoding: UTF-8
 module ForestLiana
   class Bootstraper
 
@@ -8,22 +7,8 @@ module ForestLiana
       @integration_stripe_valid = false
       @integration_intercom_valid = false
 
-      @logger = Logger.new(STDOUT)
-
-      @@logger_colors = {
-        DEBUG: 34,
-        WARN: 33,
-        ERROR: 31,
-        INFO: 37
-      }
-
-      @logger.formatter = proc do |severity, datetime, progname, message|
-        displayed_message = "[#{datetime.to_s(:db)}] Forest 🌳🌳🌳  #{message}\n"
-        "\e[#{@@logger_colors[severity.to_sym]}m#{displayed_message}\033[0m"
-      end
-
       if ForestLiana.jwt_signing_key
-         @logger.warn "DEPRECATION WARNING: the use of \
+         FOREST_LOGGER.warn "DEPRECATION WARNING: the use of \
 ForestLiana.jwt_signing_key (config/initializers/forest_liana.rb) is \
 deprecated. Use ForestLiana.secret_key and ForestLiana.auth_key instead. \
 More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
@@ -111,7 +96,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
             cast_to_array(ForestLiana.integrations[:stripe][:mapping])
           @integration_stripe_valid = true
         else
-          @logger.error 'Cannot setup properly your Stripe integration.'
+          FOREST_LOGGER.error 'Cannot setup properly your Stripe integration.'
         end
       end
 
@@ -121,7 +106,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
             cast_to_array(ForestLiana.integrations[:intercom][:mapping])
           @integration_intercom_valid = true
         else
-          @logger.error 'Cannot setup properly your Intercom integration.'
+          FOREST_LOGGER.error 'Cannot setup properly your Intercom integration.'
         end
       end
     end
@@ -174,12 +159,12 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
           response = client.request(request)
 
           if response.is_a?(Net::HTTPNotFound)
-            @logger.warn "Cannot find your project secret key. " \
+            FOREST_LOGGER.warn "Cannot find your project secret key. " \
               "Please, run `rails g forest_liana:install`."
           end
         end
       rescue Errno::ECONNREFUSED
-        @logger.warn "Cannot send the apimap to Forest. Are you online?"
+        FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
       end
     end
 
@@ -252,8 +237,8 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
       if is_deprecated
         integration[:mapping] = integration[:user_collection]
 
-        @logger.warn "Intercom integration attribute \"user_collection\" is " \
-          "now deprecated, please use \"mapping\" attribute."
+        FOREST_LOGGER.warn "Intercom integration attribute \"user_collection\"" \
+          "is now deprecated, please use \"mapping\" attribute."
       end
 
       is_deprecated
@@ -444,7 +429,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
         integration[:mapping] =
           "#{integration[:user_collection]}.#{integration[:user_field]}"
 
-        @logger.warn "Stripe integration attributes \"user_collection\" and " \
+        FOREST_LOGGER.warn "Stripe integration attributes \"user_collection\" and " \
           "\"user_field\" are now deprecated, please use \"mapping\" attribute."
       end
 
