@@ -4,6 +4,9 @@
 ### Changed
 - Rails 5 - Remove deprecation warnings with empty responses.
 
+### Fixed
+- App Start - Fix some applications starts crash due to CORS injection on frozen middleware.
+
 ## RELEASE 1.4.3 - 2016-11-15
 ### Added
 - Chart Filters - Support chart filters on belongsTo associations.
