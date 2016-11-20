@@ -25,5 +25,5 @@ module ForestLiana
   self.models = []
   self.excluded_models = []
   self.included_models = []
-  self.user_class_name = 'ForestUser'
+  self.user_class_name = nil
 end
