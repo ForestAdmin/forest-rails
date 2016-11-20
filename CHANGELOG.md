@@ -4,6 +4,9 @@
 ### Fixed
 - App Start - Prevent crash and display a warning for each associations badly declared in the models.
 
+### Changed
+- Authentication - Add an option to set the model name for internal forest user authentication option.
+
 ## RELEASE 1.4.4 - 2016-11-18
 ### Changed
 - Rails 5 - Remove deprecation warnings with empty responses.
