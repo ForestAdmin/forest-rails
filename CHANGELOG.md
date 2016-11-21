@@ -1,11 +1,14 @@
 # Change Log
 
 ## [Unreleased]
-### Fixed
-- App Start - Prevent crash and display a warning for each associations badly declared in the models.
+### Added
+- Model Fields - Support "serialize" option for String type fields.
 
 ### Changed
 - Authentication - Add an option to set the model name for internal forest user authentication option.
+
+### Fixed
+- App Start - Prevent crash and display a warning for each associations badly declared in the models.
 
 ## RELEASE 1.4.4 - 2016-11-18
 ### Changed
