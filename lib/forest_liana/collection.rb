@@ -14,16 +14,19 @@ module ForestLiana::Collection
     end
 
     def action(name, opts = {})
-      opts[:id] = "#{self.collection_name.to_s}.#{name}" 
+      opts[:id] = "#{self.collection_name.to_s}.#{name}"
       opts[:name] = name
       model.actions << ForestLiana::Model::Action.new(opts)
     end
 
     def field(name, opts, &block)
+      opts[:read_only] = true unless opts.has_key?(:read_only)
+      opts[:is_searchable] = false unless opts.has_key?(:is_searchable)
+
       model.fields << opts.merge({
         field: name,
-        :'is-read-only' => true,
-        :'is-searchable' => false,
+        :'is-read-only' => opts[:read_only],
+        :'is-searchable' => opts['is_searchable'],
         :'is-virtual' => true
       })
 
