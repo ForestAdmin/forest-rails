@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- App Start - Prevent crash and display a warning for each associations badly declared in the models.
 
 ## RELEASE 1.4.4 - 2016-11-18
 ### Changed

@@ -189,6 +189,9 @@ module ForestLiana
           else
             collection.fields << get_schema_for_association(association)
           end
+        rescue NameError
+          FOREST_LOGGER.warn "The association \"#{association.name.to_s}\" " \
+            "does not seem to exist for model \"#{@model.name}\"."
         rescue => error
           puts error.inspect
         end

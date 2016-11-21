@@ -199,18 +199,23 @@ module ForestLiana
       end
 
       SchemaUtils.associations(active_record_class).each do |a|
-        if SchemaUtils.model_included?(a.klass)
-          serializer.send(serializer_association(a), a.name) {
-            if [:has_one, :belongs_to].include?(a.macro)
-              begin
-                object.send(a.name)
-              rescue ActiveRecord::RecordNotFound
-                nil
+        begin
+          if SchemaUtils.model_included?(a.klass)
+            serializer.send(serializer_association(a), a.name) {
+              if [:has_one, :belongs_to].include?(a.macro)
+                begin
+                  object.send(a.name)
+                rescue ActiveRecord::RecordNotFound
+                  nil
+                end
+              else
+                []
               end
-            else
-              []
-            end
-          }
+            }
+          end
+        rescue NameError
+          # NOTICE: Let this error silent, a bad association warning will be
+          #         displayed in the schema adapter.
         end
       end
 
