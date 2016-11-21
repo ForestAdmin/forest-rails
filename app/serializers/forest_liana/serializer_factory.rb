@@ -150,14 +150,14 @@ module ForestLiana
         end
       }
 
-      attributes(active_record_class).each do |attr|
-        serializer.attribute(attr)
+      attributes(active_record_class).each do |attribute|
+        serializer.attribute(attribute)
       end
 
-      # NOTICE: Format properly the time type fields during the serialization.
-      attributes_time(active_record_class).each do |attr|
-        serializer.attribute(attr) do |x|
-          value = object.send(attr)
+      # NOTICE: Format time type fields during the serialization.
+      attributes_time(active_record_class).each do |attribute|
+        serializer.attribute(attribute) do |x|
+          value = object.send(attribute)
           if value
             match = /(\d{2}:\d{2}:\d{2})/.match(value.to_s)
             (match && match[1]) ? match[1] : nil
@@ -167,21 +167,29 @@ module ForestLiana
         end
       end
 
-      # CarrierWave url attribute
+      # NOTICE: Format serialized fields.
+      active_record_class.serialized_attributes.each do |attribute, serialization|
+        serializer.attribute(attribute) do |x|
+          value = object.send(attribute)
+          value ? value.to_json : nil
+        end
+      end
+
+      # NOTICE: Format CarrierWave url attribute
       if active_record_class.respond_to?(:mount_uploader)
         active_record_class.uploaders.each do |key, value|
           serializer.attribute(key) { |x| object.send(key).try(:url) }
         end
       end
 
-      # Paperclip url attribute
+      # NOTICE: Format Paperclip url attribute
       if active_record_class.respond_to?(:attachment_definitions)
         active_record_class.attachment_definitions.each do |key, value|
           serializer.attribute(key) { |x| object.send(key) }
         end
       end
 
-      # ActsAsTaggable attribute
+      # NOTICE: Format ActsAsTaggable attribute
       if active_record_class.respond_to?(:acts_as_taggable) &&
         active_record_class.acts_as_taggable.respond_to?(:to_a)
         active_record_class.acts_as_taggable.to_a.each do |key, value|
@@ -191,7 +199,7 @@ module ForestLiana
         end
       end
 
-      # Devise attributes
+      # NOTICE: Format Devise attributes
       if active_record_class.respond_to?(:devise_modules?)
         serializer.attribute('password') do |x|
           '**********'

@@ -11,6 +11,7 @@ module ForestLiana
 
     def perform
       @attributes = extract_attributes
+      extract_attributes_serialize
       extract_relationships if @with_relationships
       extract_paperclip
       extract_carrierwave
@@ -22,9 +23,16 @@ module ForestLiana
 
     def extract_attributes
       if @params[:data][:attributes]
-        @params['data']['attributes'].select {|attr| column?(attr)}
+        @params['data']['attributes'].select { |attribute| column?(attribute) }
       else
         ActionController::Parameters.new()
+      end
+    end
+
+    def extract_attributes_serialize
+      @resource.serialized_attributes.each do |attribute, serializer|
+        value = @params[:data][:attributes][attribute]
+        @attributes[attribute] = JSON::parse(value)
       end
     end
 
@@ -112,7 +120,7 @@ module ForestLiana
     end
 
     def column?(attribute)
-      @resource.columns.find {|x| x.name == attribute}.present?
+      @resource.columns.find { |column| column.name == attribute }.present?
     end
 
     def carrierwave_attribute?(attr)
