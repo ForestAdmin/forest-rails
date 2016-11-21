@@ -22,20 +22,30 @@ module ForestLiana
           .unscoped
           .eager_load(includes)
           .where(conditions.join(filter_operator))
-          .group("#{@resource.table_name}.#{@params[:group_by_field]}")
+          .group(group_by_field)
           .order(order)
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
-          .map do |k, v|
+          .map do |key, value|
             # NOTICE: Display the enum name instead of a integer if "enum" type
             if @resource.respond_to?(:defined_enums) &&
                @resource.defined_enums.has_key?(@params[:group_by_field])
-              k = @resource.defined_enums[@params[:group_by_field]].invert[k]
+              key = @resource.defined_enums[@params[:group_by_field]].invert[key]
             end
 
-            { key: k, value: v }
+            { key: key, value: value }
           end
 
         @record = Model::Stat.new(value: value)
+      end
+    end
+
+    def group_by_field
+      if @params[:group_by_field].include? ':'
+        association, field = @params[:group_by_field].split ':'
+        resource = @resource.reflect_on_association(association.to_sym)
+        "#{resource.table_name}.#{field}"
+      else
+        "#{@resource.table_name}.#{@params[:group_by_field]}"
       end
     end
 
