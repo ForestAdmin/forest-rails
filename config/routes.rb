@@ -1,6 +1,25 @@
 ForestLiana::Engine.routes.draw do
-  # Login
+  # Onboarding
+  get '/' => 'apimaps#index'
+
+  # Session
   post 'sessions' => 'sessions#create'
+
+  # CRUD
+  get ':collection' => 'resources#index'
+  get ':collection/:id' => 'resources#show'
+  post ':collection' => 'resources#create'
+  put ':collection/:id' => 'resources#update'
+  delete ':collection/:id' => 'resources#destroy'
+
+  # Associations
+  get ':collection/:id/relationships/:association_name' => 'associations#index'
+  put ':collection/:id/relationships/:association_name' => 'associations#update'
+  post ':collection/:id/relationships/:association_name' => 'associations#associate'
+  delete ':collection/:id/relationships/:association_name' => 'associations#dissociate'
+
+  # Stats
+  post '/stats/:collection' => 'stats#show'
 
   # Stripe Integration
   get '(:collection)_stripe_payments' => 'stripe#payments'
@@ -16,21 +35,4 @@ ForestLiana::Engine.routes.draw do
   # Intercom Integration
   get ':collection/:id/intercom_conversations' => 'intercom#user_conversations'
   get ':collection/:id/intercom_attributes' => 'intercom#attributes'
-
-  # Stats
-  post '/stats/:collection' => 'stats#show'
-
-  # CRUD
-  get '/' => 'apimaps#index'
-  get ':collection' => 'resources#index'
-  get ':collection/:id' => 'resources#show'
-  post ':collection' => 'resources#create'
-  put ':collection/:id' => 'resources#update'
-  delete ':collection/:id' => 'resources#destroy'
-
-  # Associations
-  get ':collection/:id/relationships/:association_name' => 'associations#index'
-  put ':collection/:id/relationships/:association_name' => 'associations#update'
-  post ':collection/:id/relationships/:association_name' => 'associations#associate'
-  delete ':collection/:id/relationships/:association_name' => 'associations#dissociate'
 end
