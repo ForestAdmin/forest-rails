@@ -10,6 +10,7 @@
 
 ### Fixed
 - App Start - Prevent crash and display a warning for each associations badly declared in the models.
+- Resources Getter - Fix possible ambiguous id attribute in the query select.
 
 ## RELEASE 1.4.4 - 2016-11-18
 ### Changed
