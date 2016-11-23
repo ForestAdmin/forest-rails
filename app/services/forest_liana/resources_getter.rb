@@ -110,7 +110,9 @@ module ForestLiana
     end
 
     def select
-      column_names = @resource.column_names.map { |name| name.to_sym }
+      column_names = @resource.column_names.map do |name|
+        "#{@resource.table_name}.#{name}".to_sym
+      end
       if @field_names_requested
         column_names & @field_names_requested
       else
