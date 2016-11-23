@@ -18,7 +18,6 @@ module ForestLiana
         .unscoped
         .find(@params[:id])
         .send(@params[:association_name])
-        .select(select)
         .eager_load(includes)
       @records = sort_query
     end
@@ -49,15 +48,6 @@ module ForestLiana
     end
 
     private
-
-    def select
-      column_names = @association.klass.column_names.map { |name| name.to_sym }
-      if @field_names_requested
-        column_names & @field_names_requested
-      else
-        column_names
-      end
-    end
 
     def association_table_name
       @resource.reflect_on_association(@params[:association_name])
