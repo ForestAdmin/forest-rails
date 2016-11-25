@@ -6,15 +6,6 @@ module ForestLiana
 
       @integration_stripe_valid = false
       @integration_intercom_valid = false
-
-      if ForestLiana.jwt_signing_key
-         FOREST_LOGGER.warn "DEPRECATION WARNING: the use of \
-ForestLiana.jwt_signing_key (config/initializers/forest_liana.rb) is \
-deprecated. Use ForestLiana.secret_key and ForestLiana.auth_key instead. \
-More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
-        ForestLiana.secret_key = ForestLiana.jwt_signing_key
-        ForestLiana.auth_key = ForestLiana.jwt_signing_key
-      end
     end
 
     def perform
@@ -32,7 +23,7 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     private
 
     def fetch_sti_models(model)
-      type_field = model.columns.find {|c| c.name == 'type' }
+      type_field = model.columns.find { |c| c.name == 'type' }
       if type_field
         model.descendants.each do |sti_model|
           if analyze_model?(sti_model)
@@ -48,19 +39,23 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def fetch_models
-      ActiveRecord::Base.subclasses.each {|model| fetch_model(model)}
+      ActiveRecord::Base.subclasses.each { |model| fetch_model(model) }
     end
 
     def fetch_model(model)
-      if model.abstract_class?
-        model.descendants.each {|submodel| fetch_model(submodel)}
-      else
-        fetch_sti_models(model) if model.try(:table_exists?)
+      begin
+        if model.abstract_class?
+          model.descendants.each { |submodel| fetch_model(submodel) }
+        else
+          fetch_sti_models(model) if model.try(:table_exists?)
 
-        if analyze_model?(model)
-          ForestLiana.models << model
+          if analyze_model?(model)
+            ForestLiana.models << model
+          end
         end
-
+      rescue => exception
+        FOREST_LOGGER.error "Cannot fetch properly model #{model.name}:\n" \
+          "#{exception}"
       end
     end
 
@@ -141,30 +136,43 @@ More info at: https://github.com/ForestAdmin/forest-rails/releases/tag/1.2.0"
     end
 
     def send_apimap
-      json = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
-        is_collection: true,
-        include: ['actions'],
-        meta: { liana: 'forest-rails', liana_version: liana_version }
-      })
+      if ForestLiana.secret_key && ForestLiana.secret_key.length != 64
+        FOREST_LOGGER.error "Your secret key does not seem to be correct. " \
+          "Can you check on Forest that you copied it properly in the " \
+          "forest_liana initializer?"
+      else
+        json = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
+          is_collection: true,
+          include: ['actions'],
+          meta: { liana: 'forest-rails', liana_version: liana_version }
+        })
 
-      begin
-        uri = URI.parse("#{forest_url}/forest/apimaps")
-        http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true if forest_url.start_with?('https')
-        http.start do |client|
-          request = Net::HTTP::Post.new(uri.path)
-          request.body = json.to_json
-          request['Content-Type'] = 'application/json'
-          request['forest-secret-key'] = ForestLiana.secret_key
-          response = client.request(request)
+        begin
+          uri = URI.parse("#{forest_url}/forest/apimaps")
+          http = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl = true if forest_url.start_with?('https')
+          http.start do |client|
+            request = Net::HTTP::Post.new(uri.path)
+            request.body = json.to_json
+            request['Content-Type'] = 'application/json'
+            request['forest-secret-key'] = ForestLiana.secret_key
+            response = client.request(request)
 
-          if response.is_a?(Net::HTTPNotFound)
-            FOREST_LOGGER.warn "Cannot find your project secret key. " \
-              "Please, run `rails g forest_liana:install`."
+            # NOTICE: HTTP 404 Error
+            if response.is_a?(Net::HTTPNotFound)
+              FOREST_LOGGER.error "Cannot find the project related to the " \
+                "secret key you configured. Can you check on Forest that you " \
+                "copied it properly in the forest_liana initializer?"
+            # NOTICE: HTTP 400 Error
+            elsif response.is_a?(Net::HTTPBadRequest)
+              FOREST_LOGGER.error "An error occured with the apimap sent to " \
+                "Forest. Please contact support@forestadmin.com for further " \
+                "investigations."
+            end
           end
+        rescue Errno::ECONNREFUSED
+          FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
         end
-      rescue Errno::ECONNREFUSED
-        FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
       end
     end
 

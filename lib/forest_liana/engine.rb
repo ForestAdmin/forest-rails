@@ -13,27 +13,39 @@ module ForestLiana
     isolate_namespace ForestLiana
 
     def configure_forest_cors
-      rack_cors_class = Rack::Cors
-      rack_cors_class = 'Rack::Cors' if Rails::VERSION::MAJOR < 5
+      begin
+        rack_cors_class = Rack::Cors
+        rack_cors_class = 'Rack::Cors' if Rails::VERSION::MAJOR < 5
 
-      config.middleware.insert_before 0, rack_cors_class do
-        allow do
-          hostnames = ['localhost:4200', 'app.forestadmin.com',
-                       'www.forestadmin.com']
-          hostnames += ENV['CORS_ORIGINS'].split(',') if ENV['CORS_ORIGINS']
+        config.middleware.insert_before 0, rack_cors_class do
+          allow do
+            hostnames = ['localhost:4200', 'app.forestadmin.com',
+                         'www.forestadmin.com']
+            hostnames += ENV['CORS_ORIGINS'].split(',') if ENV['CORS_ORIGINS']
 
-          origins hostnames
-          resource '*', headers: :any, methods: :any
+            origins hostnames
+            resource '*', headers: :any, methods: :any
+          end
         end
+        nil
+      rescue => exception
+        exception
       end
     end
 
-    configure_forest_cors unless ENV['FOREST_CORS_DEACTIVATED']
+    error = configure_forest_cors unless ENV['FOREST_CORS_DEACTIVATED']
 
     config.after_initialize do |app|
       unless Rails.env.test?
+        if error
+          FOREST_LOGGER.error "Impossible to set the whitelisted Forest " \
+            "domains for CORS constraint:\n#{error}"
+        end
+
         app.eager_load!
-        Bootstraper.new(app).perform
+
+        # NOTICE: Do not run the code below on rails g forest_liana:install.
+        Bootstraper.new(app).perform if ForestLiana.secret_key
       end
     end
   end

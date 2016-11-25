@@ -5,6 +5,7 @@
 - Model Fields - Support "serialize" option for String type fields.
 - Pie Charts - Support Pie charts with a group by on an association field.
 - Smart field - Allow to override the read_only option of a Smart Field.
+- Errors Tracking - Catch errors on app launch / apimap generation / liana session creation.
 
 ### Changed
 - Authentication - Add an option to set the model name for internal forest user authentication option.

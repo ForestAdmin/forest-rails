@@ -17,9 +17,6 @@ module ForestLiana
   mattr_accessor :included_models
   mattr_accessor :user_class_name
 
-  # Legacy.
-  mattr_accessor :jwt_signing_key
-
   self.apimap = []
   self.allowed_users = []
   self.models = []

@@ -8,10 +8,11 @@ module ForestLiana
       add_columns
       add_associations
 
-      # ActsAsTaggable attribute
-      if @model.respond_to?(:acts_as_taggable) && @model.acts_as_taggable.respond_to?(:to_a)
+      # NOTICE: Add ActsAsTaggable fields
+      if @model.respond_to?(:acts_as_taggable) &&
+        @model.acts_as_taggable.respond_to?(:to_a) &&
         @model.acts_as_taggable.to_a.each do |key, value|
-          field = collection.fields.find {|x| x[:field] == key.to_s}
+          field = collection.fields.find { |x| x[:field] == key.to_s }
 
           if field
             field[:type] = 'String'
@@ -25,7 +26,7 @@ module ForestLiana
         end
       end
 
-      # Devise attributes
+      # NOTICE: Add Devise fields
       if @model.respond_to?(:devise_modules?)
         collection.fields << {
           field: 'password',
@@ -66,7 +67,7 @@ module ForestLiana
         collection.fields << get_schema_for_column(column)
       end
 
-      # Intercom
+      # NOTICE: Add Intercom fields
       if ForestLiana.integrations.try(:[], :intercom)
         .try(:[], :mapping).try(:include?, @model.name)
 
@@ -91,7 +92,7 @@ module ForestLiana
         }
       end
 
-      # Stripe
+      # NOTICE: Add Stripe fields
       stripe_mapping = ForestLiana.integrations.try(:[], :stripe)
                                                .try(:[], :mapping)
 
@@ -149,7 +150,7 @@ module ForestLiana
         end
       end
 
-      # Paperclip url attribute
+      # NOTICE: Add Paperclip url attributes
       if @model.respond_to?(:attachment_definitions)
         @model.attachment_definitions.each do |key, value|
           collection.fields << { field: key, type: 'File' }
@@ -161,10 +162,10 @@ module ForestLiana
         end
       end
 
-      # CarrierWave attribute
+      # NOTICE: Add CarrierWave attributes
       if @model.respond_to?(:uploaders)
         @model.uploaders.each do |key, value|
-          field = collection.fields.find {|x| x[:field] == key.to_s}
+          field = collection.fields.find { |x| x[:field] == key.to_s }
           field[:type] = 'File' if field
         end
       end
@@ -173,7 +174,7 @@ module ForestLiana
     def add_associations
       SchemaUtils.associations(@model).each do |association|
         begin
-          # NOTICE: delete the association if the targeted model is excluded.
+          # NOTICE: Delete the association if the targeted model is excluded.
           if !SchemaUtils.model_included?(association.klass)
             field = collection.fields.find do |x|
               x[:field] == association.foreign_key
@@ -192,8 +193,9 @@ module ForestLiana
         rescue NameError
           FOREST_LOGGER.warn "The association \"#{association.name.to_s}\" " \
             "does not seem to exist for model \"#{@model.name}\"."
-        rescue => error
-          puts error.inspect
+        rescue => exception
+          FOREST_LOGGER.error "An error occured trying to add " \
+            "\"#{association.name.to_s}\" association:\n#{exception}"
         end
       end
     end
