@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## RELEASE 1.4.5 - 2016-11-25
 ### Added
 - Model Fields - Support "serialize" option for String type fields.
 - Pie Charts - Support Pie charts with a group by on an association field.
