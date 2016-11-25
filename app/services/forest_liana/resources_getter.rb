@@ -36,7 +36,7 @@ module ForestLiana
     end
 
     def records
-      @sorted_records.select(select).offset(offset).limit(limit).to_a
+      @sorted_records.offset(offset).limit(limit).to_a
     end
 
     def count
@@ -107,15 +107,6 @@ module ForestLiana
 
     def association?(field)
       @resource.reflect_on_association(field.to_sym).present?
-    end
-
-    def select
-      column_names = @resource.column_names.map { |name| name.to_sym }
-      if @field_names_requested
-        column_names & @field_names_requested
-      else
-        column_names
-      end
     end
 
     def offset
