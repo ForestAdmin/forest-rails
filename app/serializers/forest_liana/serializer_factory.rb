@@ -168,7 +168,7 @@ module ForestLiana
       end
 
       # NOTICE: Format serialized fields.
-      active_record_class.serialized_attributes.each do |attribute, serialization|
+      attributes_serialized(active_record_class).each do |attribute, serialization|
         serializer.attribute(attribute) do |x|
           value = object.send(attribute)
           value ? value.to_json : nil
@@ -296,6 +296,17 @@ module ForestLiana
         else
           active_record_class.column_types[column_name].type == :time
         end
+      end
+    end
+
+    def attributes_serialized(active_record_class)
+      if Rails::VERSION::MAJOR >= 5
+        attributes(active_record_class).select do |attribute|
+          active_record_class.type_for_attribute(attribute).class ==
+            ::ActiveRecord::Type::Serialized
+        end
+      else
+        active_record_class.serialized_attributes
       end
     end
 

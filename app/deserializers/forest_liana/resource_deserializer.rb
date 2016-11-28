@@ -30,7 +30,7 @@ module ForestLiana
     end
 
     def extract_attributes_serialize
-      @resource.serialized_attributes.each do |attribute, serializer|
+      attributes_serialized.each do |attribute, serializer|
         value = @params[:data][:attributes][attribute]
         @attributes[attribute] = JSON::parse(value)
       end
@@ -121,6 +121,17 @@ module ForestLiana
 
     def column?(attribute)
       @resource.columns.find { |column| column.name == attribute }.present?
+    end
+
+    def attributes_serialized
+      if Rails::VERSION::MAJOR >= 5
+        @attributes.select do |attribute|
+          @resource.type_for_attribute(attribute).class ==
+            ::ActiveRecord::Type::Serialized
+        end
+      else
+        @resource.serialized_attributes
+      end
     end
 
     def carrierwave_attribute?(attr)

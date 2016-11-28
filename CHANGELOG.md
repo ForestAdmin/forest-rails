@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+### Fixed
+- Rails 5 - Fix app start crash regression due to "serialize" support.
+
 ## RELEASE 1.4.5 - 2016-11-25
 ### Added
 - Model Fields - Support "serialize" option for String type fields.
