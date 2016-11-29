@@ -4,6 +4,7 @@ module ForestLiana
 
     def perform
       if @params[:group_by_field]
+        timezone_offset = @params[:timezone].to_i
         value = @resource
         conditions = []
         filter_operator = ''
@@ -14,7 +15,7 @@ module ForestLiana
           @params[:filters].try(:each) do |filter|
             operator, filter_value = OperatorValueParser.parse(filter[:value])
             conditions <<  OperatorValueParser.get_condition(filter[:field],
-              operator, filter_value, @resource)
+              operator, filter_value, @resource, @params[:timezone])
           end
         end
 
@@ -30,6 +31,8 @@ module ForestLiana
             if @resource.respond_to?(:defined_enums) &&
                @resource.defined_enums.has_key?(@params[:group_by_field])
               key = @resource.defined_enums[@params[:group_by_field]].invert[key]
+            elsif @resource.columns_hash[@params[:group_by_field]].type == :datetime
+              key = (key + timezone_offset.hours).strftime('%d/%m/%Y %T')
             end
 
             { key: key, value: value }

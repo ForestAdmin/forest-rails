@@ -21,8 +21,9 @@ module ForestLiana
     PERIODS_PREVIOUS_X_DAYS = /^\$previous(\d+)Days$/;
     PERIODS_X_DAYS_TO_DATE = /^\$(\d+)DaysToDate$/;
 
-    def initialize(value)
+    def initialize(value, timezone)
       @value = value
+      @timezone_offset = timezone.to_i
     end
 
     def is_interval_date_value
@@ -55,6 +56,11 @@ module ForestLiana
       false
     end
 
+    def to_client_timezone(date)
+      # NOTICE: By default, Rails store the dates without timestamp in the database.
+      date - @timezone_offset.hours
+    end
+
     def get_interval_date_filter
       return nil unless is_interval_date_value()
 
@@ -62,20 +68,22 @@ module ForestLiana
       return "<= '#{Time.now}'" if @value == PERIODS_PAST
 
       if @value == PERIODS_TODAY
-        return "BETWEEN '#{Time.now.beginning_of_day}' AND " +
-          "'#{Time.now.end_of_day}'"
+        return "BETWEEN '#{to_client_timezone(Time.now.beginning_of_day)}' " +
+          "AND '#{to_client_timezone(Time.now.end_of_day)}'"
       end
 
       match = PERIODS_PREVIOUS_X_DAYS.match(@value)
       if match && match[1]
-        return "BETWEEN '#{Integer(match[1]).day.ago.beginning_of_day}'" +
-          " AND '#{1.day.ago.end_of_day}'"
+        return "BETWEEN '" +
+          "#{to_client_timezone(Integer(match[1]).day.ago.beginning_of_day)}'" +
+          " AND '#{to_client_timezone(1.day.ago.end_of_day)}'"
       end
 
       match = PERIODS_X_DAYS_TO_DATE.match(@value)
       if match && match[1]
-        return "BETWEEN '#{(Integer(match[1]) - 1).day.ago.beginning_of_day}'" +
-          " AND '#{Time.now}'"
+        return "BETWEEN '" +
+          "#{to_client_timezone((Integer(match[1]) - 1).day.ago.beginning_of_day)}'" +
+          " AND '#{to_client_timezone(Time.now)}'"
       end
 
       duration = PERIODS[@value.to_sym][:duration]
@@ -85,11 +93,13 @@ module ForestLiana
       to_date = PERIODS[@value.to_sym][:to_date]
 
       if to_date
-        from = Time.now.send("beginning_of_#{period_of_time}")
-        to = Time.now
+        from = to_client_timezone(Time.now.send("beginning_of_#{period_of_time}"))
+        to = to_client_timezone(Time.now)
       else
-        from = duration.send(period).ago.send("beginning_of_#{period_of_time}")
-        to = 1.send(period).ago.send("end_of_#{period_of_time}")
+        from = to_client_timezone(duration.send(period).ago
+          .send("beginning_of_#{period_of_time}"))
+        to = to_client_timezone(1.send(period).ago
+          .send("end_of_#{period_of_time}"))
       end
       "BETWEEN '#{from}' AND '#{to}'"
     end
@@ -98,20 +108,22 @@ module ForestLiana
       return nil unless has_previous_interval()
 
       if @value == PERIODS_TODAY
-        return "BETWEEN '#{1.day.ago.beginning_of_day}' AND " +
-          "'#{1.day.ago.end_of_day}'"
+        return "BETWEEN '#{to_client_timezone(1.day.ago.beginning_of_day)}' AND " +
+          "'#{to_client_timezone(1.day.ago.end_of_day)}'"
       end
 
       match = PERIODS_PREVIOUS_X_DAYS.match(@value)
       if match && match[1]
-        return "BETWEEN '#{(Integer(match[1]) * 2).day.ago.beginning_of_day}'" +
-          " AND '#{(Integer(match[1]) + 1).day.ago.end_of_day}'"
+        return "BETWEEN '" +
+          "#{to_client_timezone((Integer(match[1]) * 2).day.ago.beginning_of_day)}'" +
+          " AND '#{to_client_timezone((Integer(match[1]) + 1).day.ago.end_of_day)}'"
       end
 
       match = PERIODS_X_DAYS_TO_DATE.match(@value)
       if match && match[1]
-        return "BETWEEN '#{((Integer(match[1]) * 2) - 1).day.ago.beginning_of_day}'" +
-          " AND '#{Integer(match[1]).day.ago}'"
+        return "BETWEEN '" +
+          "#{to_client_timezone(((Integer(match[1]) * 2) - 1).day.ago.beginning_of_day)}'" +
+          " AND '#{to_client_timezone(Integer(match[1]).day.ago)}'"
       end
 
       duration = PERIODS[@value.to_sym][:duration]
@@ -121,13 +133,14 @@ module ForestLiana
       to_date = PERIODS[@value.to_sym][:to_date]
 
       if to_date
-        from = (duration).send(period).ago
-                 .send("beginning_of_#{period_of_time}")
-        to = (duration).send(period).ago
+        from = to_client_timezone((duration).send(period).ago
+                 .send("beginning_of_#{period_of_time}"))
+        to = to_client_timezone((duration).send(period).ago)
       else
-        from = (duration * 2).send(period).ago
-                 .send("beginning_of_#{period_of_time}")
-        to = (1 + duration).send(period).ago.send("end_of_#{period_of_time}")
+        from = to_client_timezone((duration * 2).send(period).ago
+                 .send("beginning_of_#{period_of_time}"))
+        to = to_client_timezone((1 + duration).send(period).ago
+              .send("end_of_#{period_of_time}"))
       end
       "BETWEEN '#{from}' AND '#{to}'"
     end

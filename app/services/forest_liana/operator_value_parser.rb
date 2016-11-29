@@ -31,10 +31,12 @@ module ForestLiana
       [operator, value_comparison]
     end
 
-    def self.get_condition(field, operator, value, resource)
+    def self.get_condition(field, operator, value, resource, timezone)
       field_name = self.get_field_name(field, resource)
 
-      operator_date_interval_parser = OperatorDateIntervalParser.new(value)
+      operator_date_interval_parser = OperatorDateIntervalParser
+        .new(value, timezone)
+
       if operator_date_interval_parser.is_interval_date_value()
         filter = operator_date_interval_parser.get_interval_date_filter()
         "#{field_name} #{filter}"
