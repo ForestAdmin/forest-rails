@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.4.6 - 2016-11-28
 ### Fixed
 - Rails 5 - Fix app start crash regression due to "serialize" support.
 
