@@ -4,7 +4,8 @@ module ForestLiana
     test 'StringField page 1 size 15' do
       getter = ResourcesGetter.new(StringField, {
         page: { size: 15, number: 1 },
-        sort: '-id'
+        sort: '-id',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -19,7 +20,8 @@ module ForestLiana
     test 'StringField page 2 size 10' do
       getter = ResourcesGetter.new(StringField, {
         page: { size: 10, number: 2 },
-        sort: '-id'
+        sort: '-id',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -34,7 +36,8 @@ module ForestLiana
     test 'StringField sort by field' do
       getter = ResourcesGetter.new(StringField, {
         page: { size: 10, number: 1 },
-        sort: '-field'
+        sort: '-field',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -50,7 +53,8 @@ module ForestLiana
     test 'Sort by a belongs_to association' do
       getter = ResourcesGetter.new(BelongsToField, {
         page: { size: 10, number: 1 },
-        sort: 'has_one_field.id'
+        sort: 'has_one_field.id',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -65,7 +69,8 @@ module ForestLiana
     test 'Sort by a has_one association' do
       getter = ResourcesGetter.new(HasOneField, {
         page: { size: 10, number: 1 },
-        sort: '-belongs_to_field.id'
+        sort: '-belongs_to_field.id',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -84,7 +89,8 @@ module ForestLiana
           'created_at' => '>2015-06-18 08:00:00',
           'owner:name' => 'Arnaud Besnier'
         },
-        filterType: 'and'
+        filterType: 'and',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -101,7 +107,8 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         page: { size: 10, number: 1 },
         sort: '-name',
-        filter: { 'owner:name' => 'Arnaud Besnier' }
+        filter: { 'owner:name' => 'Arnaud Besnier' },
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -117,7 +124,8 @@ module ForestLiana
       getter = ResourcesGetter.new(Owner, {
         page: { size: 10, number: 1 },
         filter: { 'updated_at' => '$previousYear' },
-        filterType: 'and'
+        filterType: 'and',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -132,7 +140,8 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         page: { size: 10, number: 1 },
         filter: { 'owner:updated_at' => '$previousYear' },
-        filterType: 'and'
+        filterType: 'and',
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records
@@ -148,7 +157,8 @@ module ForestLiana
         page: { size: 10, number: 1 },
         filter: {
           'owner:updated_at' => 'Sat Jul 02 2016 11:52:00 GMT-0400 (EDT)',
-        }
+        },
+        timezone: '-08:00'
       })
       getter.perform
       records = getter.records

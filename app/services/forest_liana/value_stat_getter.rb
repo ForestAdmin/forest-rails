@@ -15,7 +15,7 @@ module ForestLiana
         @params[:filters].try(:each) do |filter|
           operator, filter_value = OperatorValueParser.parse(filter[:value])
           conditions << OperatorValueParser.get_condition(filter[:field],
-            operator, filter_value, @resource)
+            operator, filter_value, @resource, @params[:timezone])
         end
 
         valueCurrent = valueCurrent.where(conditions.join(filter_operator))
@@ -26,7 +26,8 @@ module ForestLiana
           conditions = []
           @params[:filters].try(:each) do |filter|
             operator, filter_value = OperatorValueParser.parse(filter[:value])
-            operator_date_interval_parser = OperatorDateIntervalParser.new(filter_value)
+            operator_date_interval_parser = OperatorDateIntervalParser
+              .new(filter_value, @params[:timezone])
             if operator_date_interval_parser.has_previous_interval()
               field_name = OperatorValueParser.get_field_name(filter[:field], @resource)
               filter = operator_date_interval_parser
@@ -35,7 +36,7 @@ module ForestLiana
               filter_date_interval = true
             else
               conditions << OperatorValueParser.get_condition(filter[:field],
-                operator, filter_value, @resource)
+                operator, filter_value, @resource, @params[:timezone])
             end
           end
 

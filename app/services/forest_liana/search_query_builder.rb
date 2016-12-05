@@ -79,7 +79,7 @@ module ForestLiana
           values.split(',').each do |value|
             operator, value = OperatorValueParser.parse(value)
             conditions << OperatorValueParser.get_condition(field, operator,
-              value, @resource)
+              value, @resource, @params[:timezone])
           end
         end
 
@@ -171,7 +171,8 @@ module ForestLiana
       @records = @records
         .joins(field.to_sym)
 
-      operator_date_interval_parser = OperatorDateIntervalParser.new(value)
+      operator_date_interval_parser = OperatorDateIntervalParser.new(value,
+        @params[:timezone])
       if operator_date_interval_parser.is_interval_date_value()
         filter = operator_date_interval_parser.get_interval_date_filter()
         @records = @records.where("#{association.table_name}.#{subfield} #{filter}")

@@ -3,8 +3,25 @@ module ForestLiana
     attr_accessor :record
 
     def initialize(resource, params)
+      @timezone_offset = params[:timezone].to_i
       super(resource, params)
-      @populates = {}
+    end
+
+    def client_timezone
+      ActiveSupport::TimeZone[@timezone_offset].name
+    end
+
+    def get_format
+      case @params[:time_range].try(:downcase)
+        when 'day'
+          '%d/%m/%Y'
+        when 'week'
+          'W%W-%Y'
+        when 'month'
+          '%b %Y'
+        when 'year'
+          '%Y'
+      end
     end
 
     def perform
@@ -16,34 +33,17 @@ module ForestLiana
 
         @params[:filters].try(:each) do |filter|
           operator, filter_value = OperatorValueParser.parse(filter[:value])
-          conditions <<  OperatorValueParser.get_condition(filter[:field],
-            operator, filter_value, @resource)
+          conditions << OperatorValueParser.get_condition(filter[:field],
+            operator, filter_value, @resource, @params[:timezone])
         end
 
         value = value.where(conditions.join(filter_operator))
       end
 
-      value = value.send(time_range, group_by_date_field)
-      value = value.group(group_by_field || :id) if group_by_field
-
+      value = value.send(time_range, group_by_date_field, { time_zone: client_timezone })
       value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
         .map do |k, v|
-          if k.kind_of?(Array)
-            {
-              label: k[0],
-              values: {
-                key: populate(k[1]),
-                value: v
-              }
-            }
-          else
-            {
-              label: k,
-              values: {
-                value: v
-              }
-            }
-          end
+          { label: k.strftime(get_format), values: { value: v }}
         end
 
       @record = Model::Stat.new(value: value)
@@ -53,30 +53,6 @@ module ForestLiana
 
     def group_by_date_field
       "#{@resource.table_name}.#{@params[:group_by_date_field]}"
-    end
-
-    def group_by_field
-      field_name = @params[:group_by_field]
-      association = @resource.reflect_on_association(field_name) if field_name
-
-      if association
-        association.foreign_key
-      else
-        field_name
-      end
-    end
-
-    def populate(id)
-      @populates[id] ||= begin
-        field_name = @params[:group_by_field]
-        association = @resource.reflect_on_association(field_name)
-
-        if association
-          association.klass.find(id)
-        else
-          id
-        end
-      end
     end
 
     def time_range

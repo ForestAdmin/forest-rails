@@ -4,6 +4,10 @@
 ### Added
 - Configuration - Catch a missing auth_key in the configuration and send an explicit error message on liana authentication.
 
+### Changed
+- Date Filters - Date filters operators are now based on the client timezone.
+- Pie Charts - Pie charts grouped by dates now display dates in the client timezone (instead of the raw SQL value).
+
 ## RELEASE 1.4.6 - 2016-11-28
 ### Fixed
 - Rails 5 - Fix app start crash regression due to "serialize" support.
