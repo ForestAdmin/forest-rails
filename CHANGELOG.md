@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.4.7 - 2016-12-05
 ### Added
 - Configuration - Catch a missing auth_key in the configuration and send an explicit error message on liana authentication.
 
