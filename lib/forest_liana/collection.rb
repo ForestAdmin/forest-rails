@@ -19,6 +19,12 @@ module ForestLiana::Collection
       model.actions << ForestLiana::Model::Action.new(opts)
     end
 
+    def segment(name, opts = {}, &block)
+      opts[:id] = "#{self.collection_name.to_s}.#{name}"
+      opts[:name] = name
+      model.segments << ForestLiana::Model::Segment.new(opts, &block)
+    end
+
     def field(name, opts, &block)
       opts[:read_only] = true unless opts.has_key?(:read_only)
       opts[:is_searchable] = false unless opts.has_key?(:is_searchable)

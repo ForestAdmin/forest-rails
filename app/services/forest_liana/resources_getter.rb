@@ -4,33 +4,21 @@ module ForestLiana
       @resource = resource
       @params = params
       @field_names_requested = field_names_requested
-    end
 
-    def field_names_requested
-      return nil unless @params[:fields] && @params[:fields][@resource.table_name]
-
-      associations_for_query = []
-
-      # NOTICE: Populate the necessary associations for filters
-      if @params[:filter]
-        @params[:filter].each do |field, values|
-          if field.include? ':'
-            associations_for_query << field.split(':').first.to_sym
-          end
-        end
-      end
-
-      if @params[:sort] && @params[:sort].include?('.')
-        associations_for_query << @params[:sort].split('.').first.to_sym
-      end
-
-      field_names = @params[:fields][@resource.table_name].split(',')
-                                              .map { |name| name.to_sym }
-      field_names | associations_for_query
+      get_segment()
     end
 
     def perform
-      @records = @resource.unscoped.eager_load(includes)
+      @records = @resource.unscoped
+
+      if @segment && @segment.scope
+        @records = @records.send(@segment.scope)
+      elsif @segment && @segment.where
+        @records = @records.where(@segment.where.call())
+      end
+
+      @records = @records.eager_load(includes)
+
       @records = search_query
       @sorted_records = sort_query
     end
@@ -56,6 +44,41 @@ module ForestLiana
     end
 
     private
+
+    def get_segment
+      if @params[:segment]
+        current_collection = ForestLiana.apimap.find do |collection|
+          collection.name.to_s == @resource.table_name
+        end
+
+        @segment = current_collection.segments.find do |segment|
+          segment.name == @params[:segment]
+        end
+      end
+    end
+
+    def field_names_requested
+      return nil unless @params[:fields] && @params[:fields][@resource.table_name]
+
+      associations_for_query = []
+
+      # NOTICE: Populate the necessary associations for filters
+      if @params[:filter]
+        @params[:filter].each do |field, values|
+          if field.include? ':'
+            associations_for_query << field.split(':').first.to_sym
+          end
+        end
+      end
+
+      if @params[:sort] && @params[:sort].include?('.')
+        associations_for_query << @params[:sort].split('.').first.to_sym
+      end
+
+      field_names = @params[:fields][@resource.table_name].split(',')
+                                              .map { |name| name.to_sym }
+      field_names | associations_for_query
+    end
 
     def search_query
       SearchQueryBuilder.new(@records, @params, includes).perform

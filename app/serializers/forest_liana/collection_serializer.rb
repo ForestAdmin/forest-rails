@@ -17,6 +17,10 @@ class ForestLiana::CollectionSerializer
     object.actions
   end
 
+  has_many :segments do
+    object.segments
+  end
+
   def relationship_related_link(attribute_name)
     nil
   end

@@ -7,12 +7,6 @@ module ForestLiana
       @field_names_requested = field_names_requested
     end
 
-    def field_names_requested
-      return nil unless @params[:fields] && @params[:fields][@association.table_name]
-      @params[:fields][@association.table_name].split(',')
-                                            .map { |name| name.to_sym }
-    end
-
     def perform
       @records = @resource
         .unscoped
@@ -48,6 +42,12 @@ module ForestLiana
     end
 
     private
+
+    def field_names_requested
+      return nil unless @params[:fields] && @params[:fields][@association.table_name]
+      @params[:fields][@association.table_name].split(',')
+                                            .map { |name| name.to_sym }
+    end
 
     def association_table_name
       @resource.reflect_on_association(@params[:association_name])
