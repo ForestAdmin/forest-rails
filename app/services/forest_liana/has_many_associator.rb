@@ -12,8 +12,8 @@ module ForestLiana
       associated_records = @resource.find(@params[:id]).send(@association.name)
 
       if @data.is_a?(Array)
-        @data.each do |record_deleted|
-          associated_records << @association.klass.find(record_deleted[:id])
+        @data.each do |record_added|
+          associated_records << @association.klass.find(record_added[:id])
         end
       end
     end
