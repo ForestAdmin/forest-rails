@@ -24,11 +24,16 @@ module ForestLiana
       @records
     end
 
+    def format_column_name(table_name, column_name)
+      ForestLiana::AdapterHelper.format_column_name(table_name, column_name)
+    end
+
     def search_param
       if @params[:search]
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
+          column_name = format_column_name(@resource.table_name, column.name)
           if column.name == 'id'
             if column.type == :integer
               conditions << "#{@resource.table_name}.id =
@@ -41,13 +46,11 @@ module ForestLiana
           elsif @resource.respond_to?(:defined_enums) &&
             @resource.defined_enums.has_key?(column.name) &&
             !@resource.defined_enums[column.name][@params[:search].downcase].nil?
-            conditions << "\"#{@resource.table_name}\".\"#{column.name}\" =
+            conditions << "#{column_name} =
               #{@resource.defined_enums[column.name][@params[:search].downcase]}"
-          elsif !column.array && (column.type == :string ||
-                                  column.type == :text)
-            conditions <<
-              "LOWER(\"#{@resource.table_name}\".\"#{column.name}\") LIKE " +
-              "'%#{@params[:search].downcase}%'"
+          elsif !(column.respond_to?(:array) && column.array) &&
+            (column.type == :string || column.type == :text)
+            conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
           end
         end
 
@@ -55,9 +58,11 @@ module ForestLiana
           if @includes.include? association.to_sym
             resource = @resource.reflect_on_association(association.to_sym)
             resource.klass.columns.each do |column|
-              if !column.array && (column.type == :string || column.type == :text)
-                conditions <<
-                  "LOWER(\"#{resource.table_name}\".\"#{column.name}\") LIKE " +
+              if !(column.respond_to?(:array) && column.array) &&
+                (column.type == :string || column.type == :text)
+                column_name = format_column_name(resource.table_name,
+                  column.name)
+                conditions << "LOWER(#{column_name}) LIKE " +
                   "'%#{@params[:search].downcase}%'"
               end
             end
