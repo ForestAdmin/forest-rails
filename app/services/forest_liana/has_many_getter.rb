@@ -66,12 +66,10 @@ module ForestLiana
     end
 
     def limit
-      return 10 unless pagination?
-
-      if @params[:page][:size]
+      if @params[:page] && @params[:page][:size]
         @params[:page][:size].to_i
       else
-        10
+        5
       end
     end
 
