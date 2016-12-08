@@ -6,6 +6,8 @@
 
 ### Fixed
 - Pagination - Set the default hasMany page size to 5 to be consistent with other lianas.
+- Search - Support the search for MySQL databases.
+- Sorting - Support the sorting on belongsTo columns for MySQL databases.
 
 ## RELEASE 1.4.7 - 2016-12-05
 ### Added

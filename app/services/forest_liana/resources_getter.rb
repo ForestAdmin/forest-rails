@@ -119,7 +119,8 @@ module ForestLiana
           .find {|a| a.name == ref.to_sym }
 
         if association
-          "\"#{association.table_name}\".\"#{field}\""
+          ForestLiana::AdapterHelper
+            .format_column_name(association.table_name, field)
         else
           param
         end
