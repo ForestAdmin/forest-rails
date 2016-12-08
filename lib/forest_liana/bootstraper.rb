@@ -143,7 +143,7 @@ module ForestLiana
       else
         json = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
           is_collection: true,
-          include: ['actions'],
+          include: ['actions', 'segments'],
           meta: { liana: 'forest-rails', liana_version: liana_version }
         })
 

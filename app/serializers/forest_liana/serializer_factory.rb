@@ -41,6 +41,8 @@ module ForestLiana
         "ForestLiana::CollectionSerializer"
       elsif active_record_class == ForestLiana::Model::Action
         "ForestLiana::ActionSerializer"
+      elsif active_record_class == ForestLiana::Model::Segment
+        "ForestLiana::SegmentSerializer"
       else
         class_name = active_record_class.table_name.classify
         module_name = class_name.deconstantize

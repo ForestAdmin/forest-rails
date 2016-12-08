@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Segments - Smart Segments can be created to define specific records subsets.
 
 ## RELEASE 1.4.7 - 2016-12-05
 ### Added
