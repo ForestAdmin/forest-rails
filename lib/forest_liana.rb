@@ -7,8 +7,12 @@ module ForestLiana
   module UserSpace
   end
 
+  # NOTICE: Deprecated secret value names
   mattr_accessor :secret_key
   mattr_accessor :auth_key
+
+  mattr_accessor :env_secret
+  mattr_accessor :auth_secret
   mattr_accessor :integrations
   mattr_accessor :apimap
   mattr_accessor :allowed_users

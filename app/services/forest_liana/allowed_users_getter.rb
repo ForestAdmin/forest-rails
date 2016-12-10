@@ -9,7 +9,7 @@ module ForestLiana
         http.start do |client|
           request = Net::HTTP::Get.new(uri.path)
           request['Content-Type'] = 'application/json'
-          request['forest-secret-key'] = ForestLiana.secret_key
+          request['forest-secret-key'] = ForestLiana.env_secret
           response = client.request(request)
 
           if response.is_a?(Net::HTTPOK)
@@ -23,7 +23,7 @@ module ForestLiana
           elsif response.is_a?(Net::HTTPNotFound)
             FOREST_LOGGER.error "Cannot retrieve the project you\'re trying " \
               "to unlock. Can you check that you properly copied the Forest " \
-              "secret key in the forest_liana initializer?"
+              "env_secret in the forest_liana initializer?"
           else
             FOREST_LOGGER.error "Cannot retrieve any users for the project " \
               "you\'re trying to unlock. An error occured in Forest API."

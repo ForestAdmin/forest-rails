@@ -4,6 +4,12 @@
 ### Added
 - Segments - Smart Segments can be created to define specific records subsets.
 
+### Changed
+- Configuration - Rename secret values to env_secret and auth_secret.
+- Installation - Add the env_secret as an option instead of prompt it.
+- Installation - Store the env_secret and auth_secret in config/secrets.yml.
+- Installation - auth_secret and env_secret are nil by default in all non-development environments and need to be set manually.
+
 ### Fixed
 - Pagination - Set the default hasMany page size to 5 to be consistent with other lianas.
 - Search - Support the search for MySQL databases.

@@ -41,7 +41,7 @@ module ForestLiana
       if request.headers['Authorization']
         begin
           token = request.headers['Authorization'].split.second
-          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_key, true, {
+          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true, {
             algorithm: 'HS256',
             leeway: 30
           }).try(:first)

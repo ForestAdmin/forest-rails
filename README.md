@@ -18,11 +18,8 @@ You will then follow a 4-step process (also available in this 1 min [video](http
   ## Bundle it
   bundle install
 
-  ## Install it
-  rails g forest_liana:install
-
-  ## When prompted, enter the provided secret key
-  YOUR-SUPER-SECRET-SECRET-KEY
+  ## Install it with the provided environment secret
+  rails g forest_liana:install FOREST-ENV-SECRET
   ```
 3. Get your app running, provide your application URL and check if you have successfully installed Forest Liana on your app.  
 4. Choose your credentials, log into https://app.forestadmin.com and start customizing your admin interface! 🎉

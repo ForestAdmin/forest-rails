@@ -6,6 +6,15 @@ module ForestLiana
 
       @integration_stripe_valid = false
       @integration_intercom_valid = false
+
+      if ForestLiana.secret_key && ForestLiana.auth_key
+        FOREST_LOGGER.warn "DEPRECATION WARNING: The use of " \
+          "ForestLiana.secret_key and ForestLiana.auth_key " \
+          "(config/initializers/forest_liana.rb) is deprecated. Please use " \
+          "ForestLiana.env_secret and ForestLiana.auth_secret instead."
+        ForestLiana.env_secret = ForestLiana.secret_key
+        ForestLiana.auth_secret = ForestLiana.auth_key
+      end
     end
 
     def perform
@@ -13,7 +22,7 @@ module ForestLiana
       check_integrations_setup
       create_serializers
 
-      if ForestLiana.secret_key
+      if ForestLiana.env_secret
         create_apimap
         require_lib_forest_liana
         send_apimap
@@ -136,8 +145,8 @@ module ForestLiana
     end
 
     def send_apimap
-      if ForestLiana.secret_key && ForestLiana.secret_key.length != 64
-        FOREST_LOGGER.error "Your secret key does not seem to be correct. " \
+      if ForestLiana.env_secret && ForestLiana.env_secret.length != 64
+        FOREST_LOGGER.error "Your env_secret does not seem to be correct. " \
           "Can you check on Forest that you copied it properly in the " \
           "forest_liana initializer?"
       else
@@ -155,13 +164,13 @@ module ForestLiana
             request = Net::HTTP::Post.new(uri.path)
             request.body = json.to_json
             request['Content-Type'] = 'application/json'
-            request['forest-secret-key'] = ForestLiana.secret_key
+            request['forest-secret-key'] = ForestLiana.env_secret
             response = client.request(request)
 
             # NOTICE: HTTP 404 Error
             if response.is_a?(Net::HTTPNotFound)
               FOREST_LOGGER.error "Cannot find the project related to the " \
-                "secret key you configured. Can you check on Forest that you " \
+                "env_secret you configured. Can you check on Forest that you " \
                 "copied it properly in the forest_liana initializer?"
             # NOTICE: HTTP 400 Error
             elsif response.is_a?(Net::HTTPBadRequest)
