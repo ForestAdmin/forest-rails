@@ -55,7 +55,7 @@ module ForestLiana
     end
 
     def encode_token(user)
-      if ForestLiana.auth_key.nil?
+      if ForestLiana.auth_secret.nil?
         @error_message = "Your Forest auth key seems to be missing. Can " \
           "you check that you properly set a Forest auth key in the " \
           "forest_liana initializer?"
@@ -82,7 +82,7 @@ module ForestLiana
               }
             }
           }
-        }, ForestLiana.auth_key, 'HS256')
+        }, ForestLiana.auth_secret, 'HS256')
       end
     end
   end
