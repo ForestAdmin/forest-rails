@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.1 - 2016-12-23
 ### Fixed
 - Resources Getter - Fix the retrieval of records having attributes with special characters (ex: Â) on MySQL.
 
