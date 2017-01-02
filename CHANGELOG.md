@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Column Types - Support JSON and JSONB column types. 
 
 ## RELEASE 1.5.1 - 2016-12-23
 ### Fixed
