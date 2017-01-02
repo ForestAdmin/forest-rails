@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Tests - Fix test fixtures using dynamic dates.
 
 ## RELEASE 1.5.1 - 2016-12-23
 ### Fixed
