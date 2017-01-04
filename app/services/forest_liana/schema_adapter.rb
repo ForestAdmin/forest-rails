@@ -243,6 +243,8 @@ module ForestLiana
         type = 'Date'
       when :integer, :float, :decimal
         type = 'Number'
+      when :json, :jsonb
+        type = 'Json'
       when :string, :text, :citext, :uuid
         type = 'String'
       when :time
