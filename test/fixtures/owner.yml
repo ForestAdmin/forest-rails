@@ -1,17 +1,17 @@
 owner_1:
   id: 1
   name: Sandro Munda
-  created_at: 2015-05-30 09:00:00
-  updated_at: 2016-06-27 20:00:00
+  created_at: <%= Time.now.year - 1 %>-05-30 09:00:00
+  updated_at: <%= Time.now.year %>-06-27 20:00:00
 
 owner_2:
   id: 2
   name: Arnaud Besnier
-  created_at: 2016-05-02 09:00:00
-  updated_at: 2016-06-28 08:00:00
+  created_at: <%= Time.now.year %>-05-02 09:00:00
+  updated_at: <%= Time.now.year %>-06-28 08:00:00
 
 owner_3:
   id: 3
   name: John Doe
-  created_at: 2014-05-02 09:00:00
-  updated_at: 2015-06-28 08:00:00
+  created_at: <%= Time.now.year - 2 %>-05-02 09:00:00
+  updated_at: <%= Time.now.year - 1 %>-06-28 08:00:00

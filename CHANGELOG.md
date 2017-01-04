@@ -4,6 +4,9 @@
 ### Added
 - Column Types - Support JSON and JSONB column types. 
 
+### Fixed
+- Tests - Fix test fixtures using dynamic dates.
+
 ## RELEASE 1.5.1 - 2016-12-23
 ### Fixed
 - Resources Getter - Fix the retrieval of records having attributes with special characters (ex: Â) on MySQL.
