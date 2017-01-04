@@ -1,8 +1,10 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.2 - 2016-01-04
 ### Added
-- Column Types - Support JSON and JSONB column types. 
+- Column Types - Support JSON and JSONB column types.
 
 ### Fixed
 - Tests - Fix test fixtures using dynamic dates.
