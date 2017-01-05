@@ -29,7 +29,7 @@ module ForestLiana
     def check_user
       if has_internal_authentication?
         # NOTICE: Use the ForestUser table for authentication.
-        user = user_class.find_by(email: params['email'])
+        user = @user_class.find_by(email: params['email'])
         user if !user.blank? && authenticate_internal_user(user['password_digest'])
       else
         # NOTICE: Query Forest server for authentication.
