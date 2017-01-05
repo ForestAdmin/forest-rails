@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## RELEASE 1.5.3 - 2016-01-05
+### Fixed
+- Authentication - Fix the authentication when Forest.user_class_name opt is present.
+
 ## RELEASE 1.5.2 - 2016-01-04
 ### Added
 - Column Types - Support JSON and JSONB column types.
