@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.4 - 2016-01-05
 ### Fixed
 - Dashboard - Fix the dashboard display when the chart payloads are "force-utf8-encoded".
 
