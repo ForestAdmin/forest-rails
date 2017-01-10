@@ -33,10 +33,14 @@ module ForestLiana
       end
     end
 
+    def rake?
+      File.basename($0) == 'rake'
+    end
+
     error = configure_forest_cors unless ENV['FOREST_CORS_DEACTIVATED']
 
     config.after_initialize do |app|
-      unless Rails.env.test?
+      if !Rails.env.test? && !rake?
         if error
           FOREST_LOGGER.error "Impossible to set the whitelisted Forest " \
             "domains for CORS constraint:\n#{error}"
