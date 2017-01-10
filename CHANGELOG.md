@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Rake - Avoid to initialize Forest when running a Rake task.
 
 ## RELEASE 1.5.4 - 2016-01-05
 ### Fixed
