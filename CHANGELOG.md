@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Devise - Users can update a record details without resetting the devise password.
 
 ## RELEASE 1.5.5 - 2016-01-10
 ### Fixed

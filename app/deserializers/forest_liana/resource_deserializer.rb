@@ -107,7 +107,11 @@ module ForestLiana
       return if @params['data']['attributes'].blank?
       return unless has_devise?
 
-      @attributes['password'] = @params['data']['attributes']['password']
+      if @params['data']['attributes']['password'] == '**********'
+        @params['data']['attributes'].delete('password')
+      else
+        @attributes['password'] = @params['data']['attributes']['password']
+      end
     end
 
     def paperclip_handler?(attr)
