@@ -21,13 +21,13 @@ gulp.task('build', () => {
   let data = fs.readFileSync('CHANGELOG.md').toString().split('\n');
   let today = moment().format('YYYY-MM-DD');
 
-  data.splice(3, 0, `\n## RELEASE - ${today}`);
+  data.splice(3, 0, `\n## RELEASE ${version} - ${today}`);
   let text = data.join('\n');
 
   fs.writeFileSync('CHANGELOG.md', text);
 
   // COMMIT
-  simpleGit.add('CHANGELOG.md', () => {
+  simpleGit.add('*', () => {
     simpleGit.commit(`Bump ${version}`);
 
     exec('gem build forest_liana.gemspec');
