@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- BelongsTo association - Fix the update of a record when a belongsTo association uses a custom foreign key.
 
 ## RELEASE 1.5.6 - 2016-01-17
 ### Fixed
