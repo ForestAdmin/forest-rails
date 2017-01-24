@@ -184,7 +184,7 @@ module ForestLiana
           # NOTICE: The foreign key exists, so it's a belongsTo relationship.
           elsif field = column_association(collection, association)
             field[:reference] = get_ref_for(association)
-            field[:field] = deforeign_key(field[:field])
+            field[:field] = association.name
             field[:inverseOf] = inverse_of(association)
           # NOTICE: Create the fields of hasOne, HasMany, … relationships.
           else
