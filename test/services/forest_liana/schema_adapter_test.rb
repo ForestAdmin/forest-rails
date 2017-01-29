@@ -38,7 +38,7 @@ module ForestLiana
     test 'belongsTo relationship' do
       schema = SchemaAdapter.new(BelongsToField).perform
       assert schema.fields.include?({
-        field: 'has_one_field',
+        field: :has_one_field,
         type: 'Number',
         reference: 'has_one_fields.id',
         inverseOf: 'belongs_to_field'
@@ -78,7 +78,7 @@ module ForestLiana
     test 'belongsTo relationhip with specified class_name' do
       schema = SchemaAdapter.new(BelongsToClassNameField).perform
       assert schema.fields.include?({
-        field: 'foo',
+        field: :foo,
         type: 'Number',
         reference: 'has_one_fields.id',
         inverseOf: 'belongs_to_class_name_field'
