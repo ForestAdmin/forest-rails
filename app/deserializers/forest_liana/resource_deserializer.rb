@@ -134,7 +134,11 @@ module ForestLiana
             ::ActiveRecord::Type::Serialized
         end
       else
-        @resource.serialized_attributes
+        # NOTICE: Silent deprecation warnings for removed
+        #         "serialized_attributes" in Rails 5
+        ActiveSupport::Deprecation.silence do
+          @resource.serialized_attributes
+        end
       end
     end
 

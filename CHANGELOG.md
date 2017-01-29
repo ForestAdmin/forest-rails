@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Deprecation warnings - Silent deprecation warnings for removed "serialized_attributes" in Rails 5.
+
 ## RELEASE 1.5.7 - 2017-01-24
 ### Fixed
 - BelongsTo association - Fix the update of a record when a belongsTo association uses a custom foreign key.
