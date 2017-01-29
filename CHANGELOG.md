@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+## RELEASE 1.5.8 - 2017-01-29
 ### Fixed
 - Deprecation warnings - Silent deprecation warnings for removed "serialized_attributes" in Rails 5.
 

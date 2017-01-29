@@ -11,7 +11,7 @@ gulp.task('build', () => {
   let versionFile = fs.readFileSync('lib/forest_liana/version.rb').toString().split('\n');
   let version = versionFile[1].match(/\w*VERSION = "(.*)"/)[1];
   version = semver.inc(version, 'patch');
-  versionFile[1] = `  VERSION = '${version}'`;
+  versionFile[1] = `  VERSION = "${version}"`;
   fs.writeFileSync('lib/forest_liana/version.rb', versionFile.join('\n'));
 
   // BUNDLE
