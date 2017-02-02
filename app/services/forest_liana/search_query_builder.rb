@@ -1,5 +1,6 @@
 module ForestLiana
   class SearchQueryBuilder
+    REGEX_UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
     def initialize(resource, params, includes)
       @resource = @records = resource
@@ -38,7 +39,7 @@ module ForestLiana
             if column.type == :integer
               conditions << "#{@resource.table_name}.id =
                 #{@params[:search].to_i}"
-            else
+            elsif REGEX_UUID.match(@params[:search])
               conditions << "#{@resource.table_name}.id =
                 '#{@params[:search]}'"
             end
