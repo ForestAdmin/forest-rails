@@ -28,7 +28,7 @@ gulp.task('build', () => {
 
   // COMMIT
   simpleGit.add('*', () => {
-    simpleGit.commit(`Bump ${version}`);
+    simpleGit.commit(`Release ${version}`);
 
     exec('gem build forest_liana.gemspec');
   });
