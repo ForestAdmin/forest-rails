@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Search - Fix search on collections using UUID as a primary key.
 
 ## RELEASE 1.5.8 - 2017-01-29
 ### Fixed
