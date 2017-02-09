@@ -77,7 +77,18 @@ module ForestLiana
             paperclip_handler?(@params['data']['attributes'][attr])
         end
 
-      @attributes.merge!(paperclip_attr) if paperclip_attr
+      if paperclip_attr
+        # NOTICE: Force to set the file_name attribute to support
+        #         validates_attachment_file_name option
+        array_keys = paperclip_attr.keys
+        array_keys.each do |key|
+          extension = /\Adata:image\/([a-z]+);base64/.match(paperclip_attr[key])
+            .try(:[], 1)
+          paperclip_attr["#{key}_file_name"] = "image.#{extension}"
+        end
+
+        @attributes.merge!(paperclip_attr)
+      end
     end
 
     def extract_carrierwave

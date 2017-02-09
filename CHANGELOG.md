@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Image Upload - Support Paperclip validates_attachment_file_name option.
 
 ## RELEASE 1.5.9 - 2017-02-02
 ### Fixed
