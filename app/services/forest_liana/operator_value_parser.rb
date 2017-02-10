@@ -49,7 +49,7 @@ module ForestLiana
         end
 
         where = "#{field_name} #{operator}"
-        where += " '#{value}'" if value
+        where += " #{self.format_value(resource, field, value)}" if value
         where
       end
     end
@@ -62,6 +62,15 @@ module ForestLiana
         association = field.split(':')[0].pluralize
         "#{ActiveRecord::Base.connection.quote_column_name(association)}." +
         "#{ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])}"
+      end
+    end
+
+    def self.format_value(resource, field, value)
+      column = resource.columns.find { |c| c.name == field }
+      if column.type == :boolean
+        ForestLiana::AdapterHelper.cast_boolean(value)
+      else
+        "'#{value}'"
       end
     end
 
