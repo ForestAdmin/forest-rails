@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Filters - Fix filters on boolean fields using MySQL databases.
+- Stripe - Fix Stripe invoices/cards/... display for "complex" model names.
 
 ## RELEASE 1.5.10 - 2017-02-09
 ### Fixed
