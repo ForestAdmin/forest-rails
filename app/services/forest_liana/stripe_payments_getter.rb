@@ -80,7 +80,7 @@ module ForestLiana
     end
 
     def collection
-      @params[:collection].singularize.capitalize.constantize
+      @params[:collection].singularize.camelize.constantize
     end
 
     def field

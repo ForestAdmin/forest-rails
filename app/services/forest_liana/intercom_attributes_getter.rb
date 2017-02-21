@@ -30,7 +30,7 @@ module ForestLiana
     private
 
     def collection
-      @params[:collection].singularize.capitalize.constantize
+      @params[:collection].singularize.camelize.constantize
     end
   end
 end
