@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.11 - 2017-02-21
 ### Fixed
 - Filters - Fix filters on boolean fields using MySQL databases.
 - Stripe - Fix Stripe invoices/cards/... display for "complex" model names.
