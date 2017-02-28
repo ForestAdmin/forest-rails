@@ -24,7 +24,7 @@ module ForestLiana
     end
 
     def resource_params
-      ResourceDeserializer.new(@resource, @params[:resource], true).perform
+      ResourceDeserializer.new(@resource, @params, true).perform
     end
 
     def set_has_many_relationships

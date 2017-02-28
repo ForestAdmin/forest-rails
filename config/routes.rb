@@ -1,4 +1,6 @@
 ForestLiana::Engine.routes.draw do
+  router = ForestLiana::Router.new
+
   # Onboarding
   get '/' => 'apimaps#index'
 
@@ -6,11 +8,11 @@ ForestLiana::Engine.routes.draw do
   post 'sessions' => 'sessions#create'
 
   # CRUD
-  get ':collection' => 'resources#index'
-  get ':collection/:id' => 'resources#show'
-  post ':collection' => 'resources#create'
-  put ':collection/:id' => 'resources#update'
-  delete ':collection/:id' => 'resources#destroy'
+  get ':collection', to: router
+  get ':collection/:id', to: router
+  post ':collection', to: router
+  put ':collection/:id', to: router
+  delete ':collection/:id', to: router
 
   # Associations
   get ':collection/:id/relationships/:association_name' => 'associations#index'
