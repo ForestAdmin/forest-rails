@@ -26,7 +26,7 @@ module ForestLiana
         if subclass.abstract_class?
           model = self.find_model_from_abstract_class(subclass, table_name)
         elsif subclass.table_name == table_name
-          model = subclass
+          model = subclass.base_class
         end
 
         break if model
