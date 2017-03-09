@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.12 - 2017-03-09
 ### Changed
 - Analyzer - Always retrieve the parent STI class instead of a random children.
 
