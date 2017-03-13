@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.13 - 2017-03-13
 ### Changed
 - Smart business logic - Users can override the admin API per resource.
 
