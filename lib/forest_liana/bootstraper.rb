@@ -20,7 +20,7 @@ module ForestLiana
     def perform
       fetch_models
       check_integrations_setup
-      create_serializers
+      create_factories
 
       if ForestLiana.env_secret
         create_apimap
@@ -72,11 +72,12 @@ module ForestLiana
       value.is_a?(String) ? [value] : value
     end
 
-    def create_serializers
+    def create_factories
       SchemaUtils.tables_names.map do |table_name|
         model = SchemaUtils.find_model_from_table_name(table_name)
         if analyze_model?(model)
           ForestLiana::SerializerFactory.new.serializer_for(model)
+          ForestLiana::ControllerFactory.new.controller_for(model)
         end
       end
 

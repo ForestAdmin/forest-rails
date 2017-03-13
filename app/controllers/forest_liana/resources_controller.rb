@@ -78,10 +78,6 @@ module ForestLiana
       end
     end
 
-    def resource_params
-      ResourceDeserializer.new(@resource, params[:resource], true).perform
-    end
-
     def includes(getter)
       getter.includes.map(&:to_s)
     end
