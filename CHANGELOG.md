@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Record Getter - Prevent an unexpected error if the record does not exist.
 
 ## RELEASE 1.5.13 - 2017-03-13
 ### Changed
