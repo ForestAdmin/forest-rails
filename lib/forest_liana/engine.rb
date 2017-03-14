@@ -19,8 +19,7 @@ module ForestLiana
 
         config.middleware.insert_before 0, rack_cors_class do
           allow do
-            hostnames = ['localhost:4200', 'app.forestadmin.com',
-                         'www.forestadmin.com']
+            hostnames = ['localhost:4200', /\A.*\.forestadmin\.com\z/]
             hostnames += ENV['CORS_ORIGINS'].split(',') if ENV['CORS_ORIGINS']
 
             origins hostnames
