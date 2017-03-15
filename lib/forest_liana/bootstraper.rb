@@ -73,12 +73,9 @@ module ForestLiana
     end
 
     def create_factories
-      SchemaUtils.tables_names.map do |table_name|
-        model = SchemaUtils.find_model_from_table_name(table_name)
-        if analyze_model?(model)
-          ForestLiana::SerializerFactory.new.serializer_for(model)
-          ForestLiana::ControllerFactory.new.controller_for(model)
-        end
+      ForestLiana.models.map do |model|
+        ForestLiana::SerializerFactory.new.serializer_for(model)
+        ForestLiana::ControllerFactory.new.controller_for(model)
       end
 
       # Monkey patch the find_serializer_class_name method to specify the
@@ -117,9 +114,7 @@ module ForestLiana
     end
 
     def create_apimap
-      SchemaUtils.tables_names.map do |table_name|
-        model = SchemaUtils.find_model_from_table_name(table_name)
-
+      ForestLiana.models.map do |model|
         if analyze_model?(model)
           SchemaAdapter.new(model).perform
         end
