@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - CORS - Enable all forestadmin.com subdomains to requests the liana.
+- Analyzer - Avoid to analyze the tables without an ActiveRecord models.
 
 ### Fixed
 - Record Getter - Prevent an unexpected error if the record does not exist.
