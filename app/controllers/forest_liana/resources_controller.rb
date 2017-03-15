@@ -5,6 +5,8 @@ module ForestLiana
     rescue NameError
     end
 
+    rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
+
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource
     else
@@ -86,6 +88,10 @@ module ForestLiana
       SchemaUtils.one_associations(@resource)
         .select { |a| SchemaUtils.model_included?(a.klass) }
         .map { |a| a.name.to_s }
+    end
+
+    def record_not_found
+      head :not_found
     end
   end
 end
