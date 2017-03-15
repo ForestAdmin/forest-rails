@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- CORS - Enable all forestadmin.com subdomains to requests the liana.
+
 ### Fixed
 - Record Getter - Prevent an unexpected error if the record does not exist.
 
