@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.14 - 2017-03-16
 ### Changed
 - CORS - Enable all forestadmin.com subdomains to requests the liana.
 - Analyzer - Avoid to analyze the tables without an ActiveRecord models.
