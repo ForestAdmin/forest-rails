@@ -37,4 +37,7 @@ ForestLiana::Engine.routes.draw do
   # Intercom Integration
   get ':collection/:id/intercom_conversations' => 'intercom#user_conversations'
   get ':collection/:id/intercom_attributes' => 'intercom#attributes'
+
+  # Devise support
+  post '/actions/change-password' => 'devise#change_password'
 end

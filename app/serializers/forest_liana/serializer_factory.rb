@@ -203,13 +203,6 @@ module ForestLiana
         end
       end
 
-      # NOTICE: Format Devise attributes
-      if active_record_class.respond_to?(:devise_modules?)
-        serializer.attribute('password') do |x|
-          '**********'
-        end
-      end
-
       SchemaUtils.associations(active_record_class).each do |a|
         begin
           if SchemaUtils.model_included?(a.klass)
