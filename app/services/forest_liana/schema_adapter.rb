@@ -28,10 +28,14 @@ module ForestLiana
 
       # NOTICE: Add Devise fields
       if @model.respond_to?(:devise_modules?)
-        collection.fields << {
-          field: 'password',
-          type: 'String'
-        }
+        collection.actions << ForestLiana::Model::Action.new({
+          id: "#{collection.name}.Change password",
+          name: "Change password",
+          fields: [{
+            field: 'New password',
+            type: 'String'
+          }]
+        })
 
         collection.fields.delete_if do |f|
           ['encrypted_password'].include?(f[:field])

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Devise - Create a smart action automatically to change a devise password.
 
 ## RELEASE 1.5.14 - 2017-03-16
 ### Changed
