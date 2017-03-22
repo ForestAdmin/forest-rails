@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Performance - Do not eager load the associations for the resources count if there is no search or filters on associations.
+
 ### Changed
 - Analyzer - Force to unuse namespace for ActionController.
 
