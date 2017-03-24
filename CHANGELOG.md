@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.16 - 2017-03-24
 ## RELEASE 1.5.15 - 2017-03-21
 ### Fixed
 - Delete record - Fix the delete of a record.
