@@ -24,7 +24,7 @@ class ForestLiana::Router
     when 'POST'
       action = 'create'
     when 'DELETE'
-      action = 'delete'
+      action = 'destroy'
     end
 
     ctrl_class.action(action.to_sym).call(env)
