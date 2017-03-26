@@ -31,7 +31,8 @@ module ForestLiana
             if @resource.respond_to?(:defined_enums) &&
                @resource.defined_enums.has_key?(@params[:group_by_field])
               key = @resource.defined_enums[@params[:group_by_field]].invert[key]
-            elsif @resource.columns_hash[@params[:group_by_field]].type == :datetime
+            elsif @resource.columns_hash[@params[:group_by_field]] &&
+              @resource.columns_hash[@params[:group_by_field]].type == :datetime
               key = (key + timezone_offset.hours).strftime('%d/%m/%Y %T')
             end
 
