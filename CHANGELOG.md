@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Pie Charts - Fix the computation of Pie Charts having a groupBy on a belongsTo relationship. 
 
 ## RELEASE 1.5.16 - 2017-03-24
 ### Fixed
