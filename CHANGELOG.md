@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.18 - 2017-03-29
 ### Added
 - Smart Actions - Users don't have to select records to use a smart action through the global option.
 
