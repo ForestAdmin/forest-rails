@@ -4,8 +4,13 @@ ForestLiana::Engine.routes.draw do
   # Onboarding
   get '/' => 'apimaps#index'
 
-  # Session
+  # Sessions
   post 'sessions' => 'sessions#create'
+
+  # Alerts Check
+  namespace :alerts do
+    get '/check/:collection' => 'checks#show'
+  end
 
   # CRUD
   get ':collection', to: router
