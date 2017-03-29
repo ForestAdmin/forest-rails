@@ -8,7 +8,7 @@ module ForestLiana
       name = module_name if module_name
       name += class_name.demodulize
 
-      ForestLiana.const_set("#{name}Controller", service)
+      ForestLiana::UserSpace.const_set("#{name}Controller", service)
     end
 
     def self.get_controller_name(active_record_class)
@@ -18,7 +18,7 @@ module ForestLiana
       name = module_name if module_name
       name += class_name.demodulize
 
-      "ForestLiana::#{name}Controller"
+      "ForestLiana::UserSpace::#{name}Controller"
     end
 
     def controller_for(active_record_class)

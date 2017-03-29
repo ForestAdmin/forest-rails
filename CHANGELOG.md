@@ -4,9 +4,12 @@
 ### Added
 - Smart Actions - Users don't have to select records to use a smart action through the global option.
 
+### Fixed
+- Analyzer - Avoid class name conflict with the "Application" model name.
+
 ## RELEASE 1.5.17 - 2017-03-26
 ### Fixed
-- Pie Charts - Fix the computation of Pie Charts having a groupBy on a belongsTo relationship. 
+- Pie Charts - Fix the computation of Pie Charts having a groupBy on a belongsTo relationship.
 
 ## RELEASE 1.5.16 - 2017-03-24
 ### Fixed
