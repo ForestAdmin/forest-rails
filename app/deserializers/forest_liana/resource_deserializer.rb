@@ -96,7 +96,11 @@ module ForestLiana
 
       @params['data']['attributes'].each do |key, value|
         if value && carrierwave_attribute?(key)
-          @attributes[key] = ForestLiana::Base64StringIO.new(value)
+          if value.match(/\Adata:\w+\/.+;base64,.+/)
+            @attributes[key] = ForestLiana::Base64StringIO.new(value)
+          else
+            @attributes.delete(key)
+          end
         end
       end
     end
