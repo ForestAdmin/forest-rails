@@ -9,7 +9,7 @@ class ForestLiana::Router
     name = module_name if module_name
     name += class_name.demodulize
 
-    ctrl_class = "ForestLiana::#{name}Controller".constantize
+    ctrl_class = "ForestLiana::UserSpace::#{name}Controller".constantize
     action = nil
 
     case env['REQUEST_METHOD']
