@@ -10,10 +10,11 @@ module ForestLiana
       data = ActiveSupport::JSON.decode(request.body.read())
       interval_start = data['intervalStart']
       interval_end = data['intervalEnd']
+      field = data['fieldName']
 
       count = @resource
-        .where('created_at >= ?', Time.at(interval_start).to_datetime)
-        .where('created_at < ?', Time.at(interval_end).to_datetime)
+        .where("#{field} >= ?", Time.at(interval_start).to_datetime)
+        .where("#{field} < ?", Time.at(interval_end).to_datetime)
         .count
 
       render json: { alert: count > 0 }
