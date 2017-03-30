@@ -7,11 +7,6 @@ ForestLiana::Engine.routes.draw do
   # Sessions
   post 'sessions' => 'sessions#create'
 
-  # Alerts Check
-  namespace :alerts do
-    get '/check/:collection' => 'checks#show'
-  end
-
   # CRUD
   get ':collection', to: router
   get ':collection/:id', to: router
@@ -27,6 +22,9 @@ ForestLiana::Engine.routes.draw do
 
   # Stats
   post '/stats/:collection' => 'stats#show'
+
+  # Alerts Check
+  post ':collection/check' => 'checks#show'
 
   # Stripe Integration
   get '(:collection)_stripe_payments' => 'stripe#payments'
