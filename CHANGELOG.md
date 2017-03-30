@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## RELEASE 1.5.19 - 2017-03-30
+### Fixed
+- Analyzer - Fix the router controller name.
+
 ## RELEASE 1.5.18 - 2017-03-29
 ### Added
 - Smart Actions - Users don't have to select records to use a smart action through the global option.
