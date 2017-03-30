@@ -1,7 +1,7 @@
 require 'jwt'
 
 module ForestLiana
-  class ApplicationController < ActionController::Base
+  class ApplicationController < ::ActionController::Base
     if Rails::VERSION::MAJOR < 4
       before_filter :authenticate_user_from_jwt
     else

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Analyzer - Force to unuse namespace for ActionController.
 
 ## RELEASE 1.5.19 - 2017-03-30
 ### Fixed

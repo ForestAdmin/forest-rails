@@ -1,5 +1,5 @@
 module ForestLiana
-  class SessionsController < ActionController::Base
+  class SessionsController < ::ActionController::Base
 
     def create
       @error_message = nil
