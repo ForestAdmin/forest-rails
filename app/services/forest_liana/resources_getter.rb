@@ -3,7 +3,6 @@ module ForestLiana
     def initialize(resource, params)
       @resource = resource
       @params = params
-      @count_needs_includes = false
       @field_names_requested = field_names_requested
 
       get_segment()
@@ -23,7 +22,7 @@ module ForestLiana
 
       # NOTICE: For performance reasons, do not eager load the data if there is
       #         no search or filters on associations.
-      if @count_needs_includes
+      if @params[:filter].present? || @params[:search].present?
         @records_to_count = @records_to_count.eager_load(includes)
       end
 
@@ -75,12 +74,9 @@ module ForestLiana
         @params[:filter].each do |field, values|
           if field.include? ':'
             associations_for_query << field.split(':').first.to_sym
-            @count_needs_includes = true
           end
         end
       end
-
-      @count_needs_includes = true if @params[:search]
 
       if @params[:sort] && @params[:sort].include?('.')
         associations_for_query << @params[:sort].split('.').first.to_sym
