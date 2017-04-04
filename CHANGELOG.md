@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Performance - Eager load the associations when searching on a belongsTo field.
+
 ## RELEASE 1.5.20 - 2017-03-30
 ### Added
 - Performance - Do not eager load the associations for the resources count if there is no search or filters on associations.
