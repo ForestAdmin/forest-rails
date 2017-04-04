@@ -31,7 +31,7 @@ module ForestLiana
       if @params['data']['relationships']
         @params['data']['relationships'].each do |name, relationship|
           data = relationship['data']
-          association = @resource.reflect_on_association(name)
+          association = @resource.reflect_on_association(name.to_sym)
           if [:has_many, :has_and_belongs_to_many].include?(
             association.try(:macro))
             if data.is_a?(Array)

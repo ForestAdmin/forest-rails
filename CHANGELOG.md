@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- HasMany - Fix the hasMany SQL request on some Rails versions.
 
 ## RELEASE 1.5.20 - 2017-03-30
 ### Added

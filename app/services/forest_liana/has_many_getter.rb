@@ -50,7 +50,7 @@ module ForestLiana
     end
 
     def association_table_name
-      @resource.reflect_on_association(@params[:association_name])
+      @resource.reflect_on_association(@params[:association_name].to_sym)
         .try(:table_name)
     end
 
