@@ -4,6 +4,10 @@
 ### Added
 - Version Warning - Display a warning message if the liana version used is too old.
 
+### Fixed
+- Value Charts - Fix Value Charts computing on collections having a foreign keys that is not named "id".
+- Records Deletion - Fix records deletion on collections having a foreign keys that is not named "id".
+
 ## RELEASE 1.5.23 - 2017-04-05
 ### Fixed
 - STI Models - Add a dropdown with predefined existing STI type values in create/update forms.
