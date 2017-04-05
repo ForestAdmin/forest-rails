@@ -31,20 +31,9 @@ module ForestLiana
 
     private
 
-    def fetch_sti_models(model)
-      type_field = model.columns.find { |c| c.name == 'type' }
-      if type_field
-        model.descendants.each do |sti_model|
-          if analyze_model?(sti_model)
-            ForestLiana.models << sti_model
-          end
-        end
-      end
-    end
-
     def analyze_model?(model)
       return model && model.table_exists? && !SchemaUtils.habtm?(model) &&
-        SchemaUtils.model_included?(model)
+        SchemaUtils.model_included?(model) && !SchemaUtils.sti?(model)
     end
 
     def fetch_models
@@ -56,8 +45,6 @@ module ForestLiana
         if model.abstract_class?
           model.descendants.each { |submodel| fetch_model(submodel) }
         else
-          fetch_sti_models(model) if model.try(:table_exists?)
-
           if analyze_model?(model)
             ForestLiana.models << model
           end

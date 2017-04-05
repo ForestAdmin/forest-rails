@@ -1,10 +1,13 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- STI Models - Add a dropdown with predefined existing STI type values in create/update forms.
+- STI Models - Children models do not generate a specific collection anymore (only parent model).
 
 ## RELEASE 1.5.22 - 2017-04-05
 ### Fixed
-Self-referenced models - Users can update their records if the model has both a belongsTo and a hasMany self-reference associations.
+- Self-referenced models - Users can update their records if the model has both a belongsTo and a hasMany self-reference associations.
 
 ## RELEASE 1.5.21 - 2017-04-04
 ### Fixed
