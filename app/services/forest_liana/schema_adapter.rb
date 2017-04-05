@@ -186,10 +186,11 @@ module ForestLiana
 
             collection.fields.delete(field) if field
           # NOTICE: The foreign key exists, so it's a belongsTo relationship.
-          elsif field = column_association(collection, association)
-            field[:reference] = get_ref_for(association)
-            field[:field] = association.name
-            field[:inverseOf] = inverse_of(association)
+          elsif (field = column_association(collection, association)) &&
+            [:has_one, :belongs_to].include?(association.macro)
+              field[:reference] = get_ref_for(association)
+              field[:field] = association.name
+              field[:inverseOf] = inverse_of(association)
           # NOTICE: Create the fields of hasOne, HasMany, … relationships.
           else
             collection.fields << get_schema_for_association(association)
