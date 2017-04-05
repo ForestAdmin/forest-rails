@@ -70,5 +70,14 @@ module ForestLiana
     def self.habtm?(model)
       model.name.starts_with?('HABTM')
     end
+
+    def self.sti?(model)
+       inheritance_column = model.columns.find do |c|
+         (model.inheritance_column && c.name == model.inheritance_column) ||
+           c.name == 'type'
+       end
+
+       return inheritance_column.present?
+    end
   end
 end

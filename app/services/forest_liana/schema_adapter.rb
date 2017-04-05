@@ -223,6 +223,7 @@ module ForestLiana
     def get_schema_for_column(column)
       schema = { field: column.name, type: get_type_for(column) }
       add_enum_values_if_is_enum(schema, column)
+      add_enum_values_if_is_sti_model(schema, column)
     end
 
     def get_schema_for_association(association)
@@ -269,6 +270,23 @@ module ForestLiana
       end
 
       column_schema
+    end
+
+    def add_enum_values_if_is_sti_model(column_schema, column)
+      if sti_column?(column)
+        column_schema[:enums] = []
+        column_schema[:type] = 'Enum'
+        @model.descendants.each do |sti_model|
+          column_schema[:enums] << sti_model.name
+        end
+      end
+
+      column_schema
+    end
+
+    def sti_column?(column)
+      (@model.inheritance_column &&
+       column.name == @model.inheritance_column) || column.name == 'type'
     end
 
     def get_ref_for(association)
