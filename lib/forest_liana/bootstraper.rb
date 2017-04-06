@@ -33,7 +33,7 @@ module ForestLiana
 
     def analyze_model?(model)
       return model && model.table_exists? && !SchemaUtils.habtm?(model) &&
-        SchemaUtils.model_included?(model) && !SchemaUtils.sti?(model)
+        SchemaUtils.model_included?(model) && !SchemaUtils.sti_child?(model)
     end
 
     def fetch_models
