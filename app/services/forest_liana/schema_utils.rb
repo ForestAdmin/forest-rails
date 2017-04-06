@@ -71,13 +71,26 @@ module ForestLiana
       model.name.starts_with?('HABTM')
     end
 
-    def self.sti?(model)
-       inheritance_column = model.columns.find do |c|
-         (model.inheritance_column && c.name == model.inheritance_column) ||
-           c.name == 'type'
-       end
+    def self.sti_child?(model)
+      begin
+        parent = model.try(:superclass)
 
-       return inheritance_column.present?
+        if parent.try(:table_name)
+          inheritance_column = parent.columns.find do |c|
+            (parent.inheritance_column && c.name == parent.inheritance_column)\
+              || c.name == 'type'
+          end
+
+          return inheritance_column.present?
+        end
+      rescue NoMethodError
+        # NOTICE: ActiveRecord::Base throw the exception "undefined method
+        # `abstract_class?' for Object:Class" when calling the existing method
+        # "table_name".
+        return false
+      end
+
+      return false
     end
   end
 end

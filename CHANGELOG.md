@@ -7,6 +7,7 @@
 ### Fixed
 - Value Charts - Fix Value Charts computing on collections having a foreign keys that is not named "id".
 - Records Deletion - Fix records deletion on collections having a foreign keys that is not named "id".
+- STI Models - Fix the display of the parent STI model.
 
 ## RELEASE 1.5.23 - 2017-04-05
 ### Fixed
