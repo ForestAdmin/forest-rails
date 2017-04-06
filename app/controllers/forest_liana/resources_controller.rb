@@ -64,7 +64,9 @@ module ForestLiana
     end
 
     def destroy
-      @resource.destroy_all(id: params[:id])
+      selector = {}
+      selector[@resource.primary_key] = params[:id]
+      @resource.destroy_all(selector)
 
       head :no_content
     end

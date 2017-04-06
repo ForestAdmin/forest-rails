@@ -65,7 +65,7 @@ module ForestLiana
     end
 
     def aggregate_field
-      @params[:aggregate_field] || :id
+      @params[:aggregate_field] || @resource.primary_key
     end
 
   end
