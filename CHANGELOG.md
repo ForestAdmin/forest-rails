@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.24 - 2017-04-06
 ### Added
 - Version Warning - Display a warning message if the liana version used is too old.
 
