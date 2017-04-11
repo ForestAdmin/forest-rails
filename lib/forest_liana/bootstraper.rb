@@ -166,7 +166,7 @@ module ForestLiana
               FOREST_LOGGER.warn warning
             end
           end
-        rescue Errno::ECONNREFUSED
+        rescue Errno::ECONNREFUSED, SocketError
           FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
         end
       end
