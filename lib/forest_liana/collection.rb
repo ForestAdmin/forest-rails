@@ -71,6 +71,7 @@ module ForestLiana::Collection
           name: self.collection_name.to_s,
           is_read_only: self.is_read_only,
           is_searchable: self.is_searchable,
+          is_virtual: true,
           fields: []
         })
 
