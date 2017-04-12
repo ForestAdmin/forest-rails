@@ -6,6 +6,7 @@
 
 ### Fixed
 - Server Start - Fix the server crash on start while offline.
+- Server Start - Fix the server crash on start while Forest is down (Heroku error page case).
 
 ## RELEASE 1.5.24 - 2017-04-06
 ### Added
