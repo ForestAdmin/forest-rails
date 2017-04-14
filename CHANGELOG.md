@@ -4,6 +4,10 @@
 ### Added
 - Setup Guide - Add integration field to the collections to distinguish Smart Collections and Collections from integrations.
 
+### Fixed
+- Server Start - Fix the server crash on start while offline.
+- Server Start - Fix the server crash on start while Forest is down (Heroku error page case).
+
 ## RELEASE 1.5.24 - 2017-04-06
 ### Added
 - Version Warning - Display a warning message if the liana version used is too old.

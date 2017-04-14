@@ -150,23 +150,28 @@ module ForestLiana
             request['forest-secret-key'] = ForestLiana.env_secret
             response = client.request(request)
 
-            unless response.body.blank?
-              warning = JSON.parse(response.body)['warning']
-            end
+            if ['200', '202', '204', '400', '404'].include? response.code
+              unless response.body.blank?
+                warning = JSON.parse(response.body)['warning']
+              end
 
-            if response.is_a?(Net::HTTPNotFound) # NOTICE: HTTP 404 Error
-              FOREST_LOGGER.error "Cannot find the project related to the " \
-                "env_secret you configured. Can you check on Forest that you " \
-                "copied it properly in the forest_liana initializer?"
-            elsif response.is_a?(Net::HTTPBadRequest) # NOTICE: HTTP 400 Error
-              FOREST_LOGGER.error "An error occured with the apimap sent to " \
-                "Forest. Please contact support@forestadmin.com for further " \
-                "investigations."
-            elsif warning
-              FOREST_LOGGER.warn warning
+              if response.is_a?(Net::HTTPNotFound) # NOTICE: HTTP 404 Error
+                FOREST_LOGGER.error "Cannot find the project related to the " \
+                  "env_secret you configured. Can you check on Forest that " \
+                  "you copied it properly in the forest_liana initializer?"
+              elsif response.is_a?(Net::HTTPBadRequest) # NOTICE: HTTP 400 Error
+                FOREST_LOGGER.error "An error occured with the apimap sent " \
+                  "to Forest. Please contact support@forestadmin.com for " \
+                  "further investigations."
+              elsif warning
+                FOREST_LOGGER.warn warning
+              end
+            else
+              FOREST_LOGGER.error "Forest seems to be down right now. Please " \
+                "contact support@forestadmin.com for further investigations."
             end
           end
-        rescue Errno::ECONNREFUSED
+        rescue Errno::ECONNREFUSED, SocketError
           FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
         end
       end
