@@ -6,6 +6,7 @@ class ForestLiana::CollectionSerializer
   attribute :name
   attribute :display_name
   attribute :icon
+  attribute :integration
   attribute :fields
   attribute :only_for_relationships
   attribute :is_virtual

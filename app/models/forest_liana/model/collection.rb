@@ -6,7 +6,7 @@ class ForestLiana::Model::Collection
 
   attr_accessor :name, :fields, :actions, :segments, :only_for_relationships,
     :is_virtual, :is_read_only, :is_searchable, :display_name, :icon,
-    :pagination_type
+    :integration, :pagination_type
 
   def initialize(attributes = {})
     @actions = []
