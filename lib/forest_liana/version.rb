@@ -1,3 +1,3 @@
 module ForestLiana
-  VERSION = "1.5.24"
+  VERSION = "1.5.25"
 end
