@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Filters ToDate - Fix the end of period filtering for "toDate" date operator types.
 
 ## RELEASE 1.5.25 - 2017-04-14
 ### Added
