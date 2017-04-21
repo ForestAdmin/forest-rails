@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.5.26 - 2017-04-21
 ### Fixed
 - Record Deletion - Fix the records deletion on Rails 5.1.
 - Filters ToDate - Fix the end of period filtering for "toDate" date operator types.
