@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Record Deletion - Fix the records deletion on Rails 5.1.
 
 ## RELEASE 1.5.25 - 2017-04-14
 ### Added
