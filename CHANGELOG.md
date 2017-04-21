@@ -1,7 +1,7 @@
 # Change Log
 
 ## [Unreleased]
-### Fixed
+### Fixed
 - Record Deletion - Fix the records deletion on Rails 5.1.
 - Filters ToDate - Fix the end of period filtering for "toDate" date operator types.
 
@@ -9,15 +9,15 @@
 ### Added
 - Setup Guide - Add integration field to the collections to distinguish Smart Collections and Collections from integrations.
 
-### Fixed
+### Fixed
 - Server Start - Fix the server crash on start while offline.
 - Server Start - Fix the server crash on start while Forest is down (Heroku error page case).
 
 ## RELEASE 1.5.24 - 2017-04-06
-### Added
+### Added
 - Version Warning - Display a warning message if the liana version used is too old.
 
-### Fixed
+### Fixed
 - Value Charts - Fix Value Charts computing on collections having a foreign keys that is not named "id".
 - Records Deletion - Fix records deletion on collections having a foreign keys that is not named "id".
 - STI Models - Fix the display of the parent STI model.
