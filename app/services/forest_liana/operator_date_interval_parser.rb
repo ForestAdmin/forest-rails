@@ -83,7 +83,7 @@ module ForestLiana
       if match && match[1]
         return "BETWEEN '" +
           "#{to_client_timezone((Integer(match[1]) - 1).day.ago.beginning_of_day)}'" +
-          " AND '#{to_client_timezone(Time.now)}'"
+          " AND '#{Time.now}'"
       end
 
       duration = PERIODS[@value.to_sym][:duration]
@@ -94,7 +94,7 @@ module ForestLiana
 
       if to_date
         from = to_client_timezone(Time.now.send("beginning_of_#{period_of_time}"))
-        to = to_client_timezone(Time.now)
+        to = Time.now
       else
         from = to_client_timezone(duration.send(period).ago
           .send("beginning_of_#{period_of_time}"))
