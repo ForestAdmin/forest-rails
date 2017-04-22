@@ -27,4 +27,8 @@ module ForestLiana
   self.excluded_models = []
   self.included_models = []
   self.user_class_name = nil
+
+  def self.schema_for_resource resource
+    self.apimap.find {|collection| collection.name == resource.table_name}
+  end
 end
