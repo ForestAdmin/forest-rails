@@ -7,10 +7,18 @@ let semver = require('semver');
 let exec = require('child_process').execSync;
 
 gulp.task('build', () => {
+  let numberToIncrement = 'patch';
+  if (process.argv && process.argv[3]) {
+    const option = process.argv[3].replace('--', '');
+    if (['major', 'minor', 'patch'].indexOf(option) !== -1) {
+      numberToIncrement = option;
+    }
+  }
+
   // VERSION
   let versionFile = fs.readFileSync('lib/forest_liana/version.rb').toString().split('\n');
   let version = versionFile[1].match(/\w*VERSION = "(.*)"/)[1];
-  version = semver.inc(version, 'patch');
+  version = semver.inc(version, numberToIncrement);
   versionFile[1] = `  VERSION = "${version}"`;
   fs.writeFileSync('lib/forest_liana/version.rb', versionFile.join('\n'));
 
