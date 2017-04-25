@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.0 - 2017-04-25
 ### Added
 - Smart Fields - Developers can now define Smart Fields setters.
 
