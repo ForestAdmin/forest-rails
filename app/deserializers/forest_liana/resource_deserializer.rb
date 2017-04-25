@@ -16,6 +16,7 @@ module ForestLiana
       extract_paperclip
       extract_carrierwave
       extract_acts_as_taggable
+      extract_smart_fields_values
 
       @attributes
     end
@@ -113,6 +114,17 @@ module ForestLiana
         if acts_as_taggable_attribute?(key)
           @attributes["#{key.singularize}_list"] = value
           @attributes.delete(key)
+        end
+      end
+    end
+
+    def extract_smart_fields_values
+      # NOTICE: Look for some Smart Field setters and apply them if any.
+      ForestLiana.schema_for_resource(@resource).fields.each do |field|
+        if field.try(:[], :set)
+          # WARNING: The Smart Fields setters may override other changes.
+          @attributes = field[:set].call(@attributes,
+            @params['data']['attributes'][field[:field]])
         end
       end
     end

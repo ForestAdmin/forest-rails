@@ -15,7 +15,7 @@ module ForestLiana
       @records = belongs_to_filter
 
       if @params[:search]
-        schema.fields.each do |field|
+        ForestLiana.schema_for_resource(@resource).fields.each do |field|
           if field.try(:[], :search)
             @records = field[:search].call(@records, @params[:search])
           end
@@ -201,10 +201,6 @@ module ForestLiana
       end
 
       @records
-    end
-
-    def schema
-      ForestLiana.apimap.find {|x| x.name == @resource.table_name}
     end
   end
 end
