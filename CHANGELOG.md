@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Smart Fields - Smart Fields having a setter are not read-only by default anymore.
 
 ## RELEASE 1.6.0 - 2017-04-25
 ### Added
