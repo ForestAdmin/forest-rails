@@ -29,6 +29,9 @@ module ForestLiana::Collection
       opts[:read_only] = true unless opts.has_key?(:read_only)
       opts[:is_searchable] = false unless opts.has_key?(:is_searchable)
 
+      opts[:read_only] = false if opts.has_key?(:set)
+      opts[:is_searchable] = true if opts.has_key?(:search)
+
       model.fields << opts.merge({
         field: name,
         :'is-read-only' => opts[:read_only],
