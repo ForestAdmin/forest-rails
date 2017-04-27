@@ -84,13 +84,29 @@ module ForestLiana
     def filter_param
       if @params[:filterType] && @params[:filter]
         conditions = []
-        @params[:filter].each do |field, values|
-          next if association?(field)
 
-          values.split(',').each do |value|
-            operator, value = OperatorValueParser.parse(value)
-            conditions << OperatorValueParser.get_condition(field, operator,
-              value, @resource, @params[:timezone])
+        @params[:filter].each do |field, values|
+          # ActsAsTaggable
+          if acts_as_taggable?(field)
+            tagged_records = @records.tagged_with(values.tr('*', ''))
+
+            if @params[:filterType] == 'and'
+              @records = tagged_records
+            elsif @params[:filterType] == 'or'
+              ids = tagged_records
+                .map {|t| t[@resource.primary_key]}
+                .join(',')
+
+              conditions << "#{@resource.primary_key} IN (#{ids})"
+            end
+          else
+            next if association?(field)
+
+            values.split(',').each do |value|
+              operator, value = OperatorValueParser.parse(value)
+              conditions << OperatorValueParser.get_condition(field, operator,
+                value, @resource, @params[:timezone])
+            end
           end
         end
 
@@ -113,10 +129,15 @@ module ForestLiana
       [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
     end
 
+    def acts_as_taggable?(field)
+      @resource.respond_to?(:acts_as_taggable) &&
+        @resource.acts_as_taggable.include?(field)
+    end
+
     def has_many_filter
       if @params[:filter]
         @params[:filter].each do |field, values|
-          next unless has_many_association?(field)
+          next if !has_many_association?(field) || acts_as_taggable?(field)
 
           values.split(',').each do |value|
             if field.include?(':')
