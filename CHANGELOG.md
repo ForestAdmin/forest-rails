@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Smart Fields - Support belongs_to smart fields.
 
 ## RELEASE 1.6.1 - 2017-04-26
 ### Fixed

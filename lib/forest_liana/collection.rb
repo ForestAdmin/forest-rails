@@ -62,6 +62,21 @@ module ForestLiana::Collection
       end
     end
 
+    def belongs_to(name, opts, &block)
+      model.fields << opts.merge({
+        field: name,
+        :'is-searchable' => false,
+        type: 'String'
+      })
+
+      if serializer_name && ForestLiana::UserSpace.const_defined?(
+          serializer_name)
+        ForestLiana::UserSpace.const_get(serializer_name).class_eval do
+          has_one(name, name: name, include_data: true, &block)
+        end
+      end
+    end
+
     private
 
     def model
