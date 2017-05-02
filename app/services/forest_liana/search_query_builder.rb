@@ -17,7 +17,12 @@ module ForestLiana
       if @params[:search]
         ForestLiana.schema_for_resource(@resource).fields.each do |field|
           if field.try(:[], :search)
-            @records = field[:search].call(@records, @params[:search])
+            begin
+              @records = field[:search].call(@records, @params[:search])
+            rescue => exception
+              FOREST_LOGGER.error "Cannot search properly on Smart Field :\n" \
+                "#{exception}"
+            end
           end
         end
       end
