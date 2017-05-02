@@ -27,7 +27,8 @@ module ForestLiana
     private
 
     def find_resource
-      @resource = SchemaUtils.find_model_from_table_name(params[:collection])
+      @resource = SchemaUtils.find_model_from_collection_name(
+        params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
         render json: {status: 404}, status: :not_found, serializer: nil

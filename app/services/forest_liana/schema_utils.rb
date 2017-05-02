@@ -19,13 +19,13 @@ module ForestLiana
       end
     end
 
-    def self.find_model_from_table_name(table_name)
+    def self.find_model_from_collection_name(collection_name)
       model = nil
 
       ForestLiana.models.each do |subclass|
         if subclass.abstract_class?
-          model = self.find_model_from_abstract_class(subclass, table_name)
-        elsif subclass.table_name == table_name
+          model = self.find_model_from_abstract_class(subclass, collection_name)
+        elsif ForestLiana.name_for(subclass) == collection_name
           model = subclass.base_class
         end
 
@@ -45,12 +45,12 @@ module ForestLiana
       association.options[:polymorphic]
     end
 
-    def self.find_model_from_abstract_class(abstract_class, table_name)
+    def self.find_model_from_abstract_class(abstract_class, collection_name)
       abstract_class.subclasses.find do |subclass|
         if subclass.abstract_class?
-          return self.find_model_from_table_name(subclass, table_name)
+          return self.find_model_from_collection_name(subclass, collection_name)
         else
-          subclass.table_name == table_name
+          ForestLiana.name_for(subclass) == collection_name
         end
       end
     end
@@ -75,7 +75,7 @@ module ForestLiana
       begin
         parent = model.try(:superclass)
 
-        if parent.try(:table_name)
+        if ForestLiana.name_for(parent)
           inheritance_column = parent.columns.find do |c|
             (parent.inheritance_column && c.name == parent.inheritance_column)\
               || c.name == 'type'

@@ -2,7 +2,7 @@ module ForestLiana
   class ControllerFactory
 
     def self.define_controller(active_record_class, service)
-      class_name = active_record_class.table_name.classify
+      class_name = ForestLiana.name_for(active_record_class).classify
       module_name = class_name.deconstantize
 
       name = module_name if module_name
@@ -12,7 +12,7 @@ module ForestLiana
     end
 
     def self.get_controller_name(active_record_class)
-      class_name = active_record_class.table_name.classify
+      class_name = ForestLiana.name_for(active_record_class).classify
       module_name = class_name.deconstantize
 
       name = module_name if module_name

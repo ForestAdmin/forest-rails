@@ -20,6 +20,7 @@ module ForestLiana
     def perform
       fetch_models
       check_integrations_setup
+      namespace_duplicated_models
       create_factories
 
       if ForestLiana.env_secret
@@ -98,6 +99,19 @@ module ForestLiana
           FOREST_LOGGER.error 'Cannot setup properly your Intercom integration.'
         end
       end
+    end
+
+    def namespace_duplicated_models
+      ForestLiana.models
+        .group_by {|model| model.table_name}
+        .select {|table_name, models| models.length > 1}
+        .try(:each) do |table_name, models|
+          models.each do |model|
+            ForestLiana.names_overriden[model] =
+              "#{model.name.deconstantize.downcase}__#{model.table_name}"
+          end
+        end
+
     end
 
     def create_apimap
