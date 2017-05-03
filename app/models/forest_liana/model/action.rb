@@ -4,7 +4,8 @@ class ForestLiana::Model::Action
   include ActiveModel::Serialization
   extend ActiveModel::Naming
 
-  attr_accessor :id, :name, :endpoint, :http_method, :fields, :redirect, :global
+  attr_accessor :id, :name, :endpoint, :http_method, :fields, :redirect,
+    :global, :download
 
   def initialize(attributes = {})
     attributes.each do |name, value|

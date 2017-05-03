@@ -1,7 +1,8 @@
 # Change Log
 
 ## [Unreleased]
-### Added
+### Added
+- Smart Actions - Support file download.
 - Smart Fields - Support belongs_to smart fields.
 - Smart Fields - Add an explicit error message if the search on a Smart Field generates an error.
 

@@ -9,6 +9,7 @@ class ForestLiana::ActionSerializer
   attribute :fields
   attribute :redirect
   attribute :global
+  attribute :download
 
   def relationship_related_link(attribute_name)
     nil
