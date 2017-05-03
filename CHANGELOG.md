@@ -3,6 +3,11 @@
 ## [Unreleased]
 ### Added
 - Smart Actions - Support file download.
+- Smart Fields - Support belongs_to smart fields.
+- Smart Fields - Add an explicit error message if the search on a Smart Field generates an error.
+
+### Fixed
+- Smart Fields - A search on a collection having Smart Fields with search method implemented will respond properly (bypassing failing Smart Fields search if any).
 
 ## RELEASE 1.6.1 - 2017-04-26
 ### Fixed
