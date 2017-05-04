@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.2 - 2017-05-04
 ### Added
 - Smart Actions - Support file download.
 - Smart Fields - Support belongs_to smart fields.
