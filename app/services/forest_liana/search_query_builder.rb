@@ -34,6 +34,16 @@ module ForestLiana
       ForestLiana::AdapterHelper.format_column_name(table_name, column_name)
     end
 
+    def acts_as_taggable_query(tagged_records)
+      ids = tagged_records
+        .map {|t| t[@resource.primary_key]}
+        .join(',')
+
+      if ids.present?
+        return "#{@resource.primary_key} IN (#{ids})"
+      end
+    end
+
     def search_param
       if @params[:search]
         conditions = []
@@ -64,11 +74,7 @@ module ForestLiana
         if @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@params[:search].downcase)
-            ids = tagged_records
-              .map {|t| t[@resource.primary_key]}
-              .join(',')
-
-            conditions << "#{@resource.primary_key} IN (#{ids})" if ids.present?
+            conditions << acts_as_taggable_query(tagged_records)
           end
         end
 
@@ -105,12 +111,7 @@ module ForestLiana
             if @params[:filterType] == 'and'
               @records = tagged_records
             elsif @params[:filterType] == 'or'
-
-              ids = tagged_records
-                .map {|t| t[@resource.primary_key]}
-                .join(',')
-
-              conditions << "#{@resource.primary_key} IN (#{ids})"
+              conditions << acts_as_taggable_query(tagged_records)
             end
           else
             next if association?(field)
