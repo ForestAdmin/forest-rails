@@ -60,6 +60,18 @@ module ForestLiana
           end
         end
 
+        # ActsAsTaggable
+        if @resource.respond_to?(:acts_as_taggable)
+          @resource.acts_as_taggable.each do |field|
+            tagged_records = @records.tagged_with(@params[:search].downcase)
+            ids = tagged_records
+              .map {|t| t[@resource.primary_key]}
+              .join(',')
+
+            conditions << "#{@resource.primary_key} IN (#{ids})" if ids.present?
+          end
+        end
+
         SchemaUtils.one_associations(@resource).map(&:name).each do |association|
           if @includes.include? association.to_sym
             resource = @resource.reflect_on_association(association.to_sym)
@@ -93,6 +105,7 @@ module ForestLiana
             if @params[:filterType] == 'and'
               @records = tagged_records
             elsif @params[:filterType] == 'or'
+
               ids = tagged_records
                 .map {|t| t[@resource.primary_key]}
                 .join(',')
