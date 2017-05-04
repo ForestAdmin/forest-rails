@@ -2,13 +2,32 @@ require 'jwt'
 
 module ForestLiana
   class ApplicationController < ::ActionController::Base
+
+    def self.papertrail?
+      Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
+    end
+
+    # NOTICE: Calling the method set_paper_trail_whodunnit loads the PaperTrail
+    #         gem and Forest detects the PaperTrail::Version automatically. This
+    #         method is used to set the whodunnit field automatically to track
+    #         changes made using Forest with PaperTrail.
     if Rails::VERSION::MAJOR < 4
       before_filter :authenticate_user_from_jwt
+      before_filter :set_paper_trail_whodunnit if self.papertrail?
     else
       before_action :authenticate_user_from_jwt
+      before_action :set_paper_trail_whodunnit if self.papertrail?
     end
 
     wrap_parameters format: [:json] if respond_to?(:wrap_parameters)
+
+    if self.papertrail?
+      # NOTICE: The Forest user email is returned to track changes made using
+      #         Forest with Papertrail.
+      define_method :user_for_paper_trail do
+        forest_user.dig('data', 'data', 'email')
+      end
+    end
 
     def forest_user
       @jwt_decoded_token
