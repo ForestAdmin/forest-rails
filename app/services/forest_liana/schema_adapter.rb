@@ -60,6 +60,11 @@ module ForestLiana
           })
 
           ForestLiana.apimap << collection
+        else
+          # NOTICE: If the collection has Smart customisation (Fields, Action,
+          #         ...), we force the is_virtual to false to handle the case
+          #         when lib/forest_liana is loaded before the models.
+          collection.is_virtual = false
         end
 
         collection
