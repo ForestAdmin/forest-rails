@@ -14,7 +14,7 @@
 - Smart Fields - A search on a collection having Smart Fields with search method implemented will respond properly (bypassing failing Smart Fields search if any).
 
 ## RELEASE 1.6.1 - 2017-04-26
-### Fixed
+### Fixed
 - Smart Fields - Smart Fields having a setter are not read-only by default anymore.
 
 ## RELEASE 1.6.0 - 2017-04-25
