@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Apimap - Prevent the bad detection of database collections as Smart Collections if lib/forest_liana is loaded before the models. 
 
 ## RELEASE 1.6.2 - 2017-05-04
 ### Added
