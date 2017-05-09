@@ -1,10 +1,12 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Ruby 2.3 - Avoid to use Hash#dig to support version earlier than Ruby 2.3.
 
 ## RELEASE 1.6.3 - 2017-05-05
 ### Fixed
-- Apimap - Prevent the bad detection of database collections as Smart Collections if lib/forest_liana is loaded before the models. 
+- Apimap - Prevent the bad detection of database collections as Smart Collections if lib/forest_liana is loaded before the models.
 
 ## RELEASE 1.6.2 - 2017-05-04
 ### Added
