@@ -25,7 +25,7 @@ module ForestLiana
       # NOTICE: The Forest user email is returned to track changes made using
       #         Forest with Papertrail.
       define_method :user_for_paper_trail do
-        forest_user.dig('data', 'data', 'email')
+        forest_user['data']['data']['email']
       end
     end
 
