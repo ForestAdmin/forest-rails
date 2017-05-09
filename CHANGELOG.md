@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.4 - 2017-05-09
 ### Fixed
 - Ruby 2.3 - Avoid to use Hash#dig to support version earlier than Ruby 2.3.
 
