@@ -74,7 +74,8 @@ module ForestLiana
         if @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@params[:search].downcase)
-            conditions << acts_as_taggable_query(tagged_records)
+            condition = acts_as_taggable_query(tagged_records)
+            conditions << condition if condition
           end
         end
 
