@@ -17,6 +17,7 @@
 - Smart Fields - Add an explicit error message if the search on a Smart Field generates an error.
 - Papertrail - Make Papertrail Versions visible in the records "Related Data".
 - Papertrail - Changes made using Forest are now tracked with Papertrail.
+- Filter - Support AND and OR filters on acts_as_taggable_on attributes
 
 ### Fixed
 - Smart Fields - A search on a collection having Smart Fields with search method implemented will respond properly (bypassing failing Smart Fields search if any).

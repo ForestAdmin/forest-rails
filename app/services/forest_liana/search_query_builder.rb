@@ -34,6 +34,16 @@ module ForestLiana
       ForestLiana::AdapterHelper.format_column_name(table_name, column_name)
     end
 
+    def acts_as_taggable_query(tagged_records)
+      ids = tagged_records
+        .map {|t| t[@resource.primary_key]}
+        .join(',')
+
+      if ids.present?
+        return "#{@resource.primary_key} IN (#{ids})"
+      end
+    end
+
     def search_param
       if @params[:search]
         conditions = []
@@ -57,6 +67,15 @@ module ForestLiana
           elsif !(column.respond_to?(:array) && column.array) &&
             (column.type == :string || column.type == :text)
             conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
+          end
+        end
+
+        # ActsAsTaggable
+        if @resource.respond_to?(:acts_as_taggable)
+          @resource.acts_as_taggable.each do |field|
+            tagged_records = @records.tagged_with(@params[:search].downcase)
+            condition = acts_as_taggable_query(tagged_records)
+            conditions << condition if condition
           end
         end
 
@@ -84,13 +103,25 @@ module ForestLiana
     def filter_param
       if @params[:filterType] && @params[:filter]
         conditions = []
-        @params[:filter].each do |field, values|
-          next if association?(field)
 
-          values.split(',').each do |value|
-            operator, value = OperatorValueParser.parse(value)
-            conditions << OperatorValueParser.get_condition(field, operator,
-              value, @resource, @params[:timezone])
+        @params[:filter].each do |field, values|
+          # ActsAsTaggable
+          if acts_as_taggable?(field)
+            tagged_records = @records.tagged_with(values.tr('*', ''))
+
+            if @params[:filterType] == 'and'
+              @records = tagged_records
+            elsif @params[:filterType] == 'or'
+              conditions << acts_as_taggable_query(tagged_records)
+            end
+          else
+            next if association?(field)
+
+            values.split(',').each do |value|
+              operator, value = OperatorValueParser.parse(value)
+              conditions << OperatorValueParser.get_condition(field, operator,
+                value, @resource, @params[:timezone])
+            end
           end
         end
 
@@ -113,10 +144,15 @@ module ForestLiana
       [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
     end
 
+    def acts_as_taggable?(field)
+      @resource.respond_to?(:acts_as_taggable) &&
+        @resource.acts_as_taggable.include?(field)
+    end
+
     def has_many_filter
       if @params[:filter]
         @params[:filter].each do |field, values|
-          next unless has_many_association?(field)
+          next if !has_many_association?(field) || acts_as_taggable?(field)
 
           values.split(',').each do |value|
             if field.include?(':')
