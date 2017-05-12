@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.5 - 2017-05-12
 ### Added
 - Filter - Support AND and OR filters on acts_as_taggable_on attributes
 
