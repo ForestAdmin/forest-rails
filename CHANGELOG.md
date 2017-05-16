@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.6 - 2017-05-16
 ### Added
 - Multi-Database - Developers can display models having the same table name on different databases.
 
