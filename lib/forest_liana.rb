@@ -20,6 +20,7 @@ module ForestLiana
   mattr_accessor :excluded_models
   mattr_accessor :included_models
   mattr_accessor :user_class_name
+  mattr_accessor :names_overriden
 
   self.apimap = []
   self.allowed_users = []
@@ -27,8 +28,16 @@ module ForestLiana
   self.excluded_models = []
   self.included_models = []
   self.user_class_name = nil
+  self.names_overriden = {}
 
   def self.schema_for_resource resource
-    self.apimap.find {|collection| collection.name == resource.table_name}
+    self.apimap.find do |collection|
+      SchemaUtils.find_model_from_collection_name(collection.name)
+        .try(:table_name) == resource.table_name
+    end
+  end
+
+  def self.name_for(model)
+    self.names_overriden[model] || model.try(:table_name)
   end
 end

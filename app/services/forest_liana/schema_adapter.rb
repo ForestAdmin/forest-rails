@@ -50,12 +50,12 @@ module ForestLiana
     def collection
       @collection ||= begin
         collection = ForestLiana.apimap.find do |x|
-          x.name.to_s == @model.table_name
+          x.name.to_s == ForestLiana.name_for(@model)
         end
 
         if collection.blank?
           collection = ForestLiana::Model::Collection.new({
-            name: @model.table_name,
+            name: ForestLiana.name_for(@model),
             fields: []
           })
 
@@ -80,7 +80,7 @@ module ForestLiana
       if ForestLiana.integrations.try(:[], :intercom)
         .try(:[], :mapping).try(:include?, @model.name)
 
-        model_name = @model.table_name
+        model_name = ForestLiana.name_for(@model)
 
         collection.fields << {
           field: :intercom_conversations,
@@ -110,7 +110,7 @@ module ForestLiana
             .select { |mapping| mapping.split('.')[0] == @model.name }
             .size > 0
 
-          model_name = @model.table_name
+          model_name = ForestLiana.name_for(@model)
 
           collection.fields << {
             field: :stripe_payments,
@@ -235,7 +235,7 @@ module ForestLiana
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        reference: "#{association.klass.table_name}.id",
+        reference: "#{ForestLiana.name_for(association.klass)}.id",
         inverseOf: inverse_of(association)
       }
     end
@@ -298,7 +298,7 @@ module ForestLiana
       if association.options[:polymorphic] == true
         '*.id'
       else
-        "#{association.klass.table_name.underscore}.id"
+        "#{ForestLiana.name_for(association.klass).underscore}.id"
       end
     end
 

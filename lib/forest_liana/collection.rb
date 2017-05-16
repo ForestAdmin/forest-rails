@@ -100,7 +100,8 @@ module ForestLiana::Collection
     end
 
     def active_record_class
-      ForestLiana::SchemaUtils.find_model_from_table_name(self.collection_name)
+      ForestLiana::SchemaUtils.find_model_from_collection_name(
+        self.collection_name)
     end
 
     def serializer_name

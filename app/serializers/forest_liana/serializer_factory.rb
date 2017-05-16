@@ -4,7 +4,7 @@ module ForestLiana
   class SerializerFactory
 
     def self.define_serializer(active_record_class, serializer)
-      class_name = active_record_class.table_name.classify
+      class_name = ForestLiana.name_for(active_record_class).classify
       module_name = class_name.deconstantize
 
       name = module_name if module_name
@@ -46,7 +46,7 @@ module ForestLiana
       elsif active_record_class == ForestLiana::Model::Segment
         "ForestLiana::SegmentSerializer"
       else
-        class_name = active_record_class.table_name.classify
+        class_name = ForestLiana.name_for(active_record_class).classify
         module_name = class_name.deconstantize
 
         name = module_name if module_name
@@ -65,7 +65,7 @@ module ForestLiana
         end
 
         def type
-          object.class.table_name.demodulize
+          ForestLiana.name_for(object.class).demodulize
         end
 
         def format_name(attribute_name)
@@ -86,27 +86,27 @@ module ForestLiana
           # Has many smart field
           current = self.has_many_relationships[attribute_name]
           if current.try(:[], :options).try(:[], :name) == attribute_name
-            ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/#{attribute_name}"
+            ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/#{attribute_name}"
             return ret
           end
 
           if intercom_integration?
             case attribute_name
             when :intercom_conversations
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/intercom_conversations"
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/intercom_conversations"
             when :intercom_attributes
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/intercom_attributes"
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/intercom_attributes"
             end
           end
 
           if stripe_integration?
             case attribute_name
             when :stripe_payments
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/stripe_payments"
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_payments"
             when :stripe_invoices
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/stripe_invoices"
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_invoices"
             when :stripe_cards
-              ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/stripe_cards"
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_cards"
             end
           end
 
@@ -118,7 +118,7 @@ module ForestLiana
 
               SchemaUtils.many_associations(object.class).each do |a|
                 if a.name == attribute_name
-                  ret[:href] = "/forest/#{object.class.table_name}/#{object.id}/relationships/#{attribute_name}"
+                  ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
                 end
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError

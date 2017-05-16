@@ -1,7 +1,7 @@
 module ForestLiana
   class DeviseController < ForestLiana::ApplicationController
     def change_password
-      resource = SchemaUtils.find_model_from_table_name(
+      resource = SchemaUtils.find_model_from_collection_name(
         params['data']['attributes']['collection_name'])
 
       user = resource.find(params['data']['attributes']['ids'].first)

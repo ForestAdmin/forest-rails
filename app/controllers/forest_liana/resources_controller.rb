@@ -72,7 +72,7 @@ module ForestLiana
     private
 
     def find_resource
-      @resource = SchemaUtils.find_model_from_table_name(params[:collection])
+      @resource = SchemaUtils.find_model_from_collection_name(params[:collection])
 
       if @resource.nil? || !SchemaUtils.model_included?(@resource) ||
           !@resource.ancestors.include?(ActiveRecord::Base)

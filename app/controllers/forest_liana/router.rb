@@ -1,9 +1,10 @@
 class ForestLiana::Router
   def call(env)
     params = env['action_dispatch.request.path_parameters']
-    resource = ForestLiana::SchemaUtils.find_model_from_table_name(params[:collection])
+    resource = ForestLiana::SchemaUtils.find_model_from_collection_name(
+      params[:collection])
 
-    class_name = resource.table_name.classify
+    class_name = ForestLiana.name_for(resource).classify
     module_name = class_name.deconstantize
 
     name = module_name if module_name
