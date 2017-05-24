@@ -215,9 +215,6 @@ module ForestLiana
 
       operator, value = OperatorValueParser.parse(value)
 
-      @records = @records
-        .joins(field.to_sym)
-
       operator_date_interval_parser = OperatorDateIntervalParser.new(value,
         @params[:timezone])
       if operator_date_interval_parser.is_interval_date_value()
