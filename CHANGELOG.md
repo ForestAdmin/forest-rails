@@ -7,11 +7,11 @@
 - Multi-Database - Developers can display models having the same table name on different databases.
 
 ## RELEASE 1.6.5 - 2017-05-12
-### Added
+### Added
 - Filter - Support AND and OR filters on acts_as_taggable_on attributes
 
 ## RELEASE 1.6.4 - 2017-05-09
-### Fixed
+### Fixed
 - Ruby 2.3 - Avoid to use Hash#dig to support version earlier than Ruby 2.3.
 
 ## RELEASE 1.6.3 - 2017-05-05
