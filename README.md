@@ -1,8 +1,8 @@
 # Forest Rails Liana [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
 
-The official Rails liana for Forest.  
+The official Rails liana for Forest.
 Forest is a modern admin interface (see the [live demo](https://app.forestadmin.com/login?livedemo)) that works on all major web frameworks.
-forest_liana is the gem that makes Forest admin work on any Rails application.
+forest_liana is the gem that makes Forest admin work on any Rails application (Rails >= 4.0). 
 
 ## Installation
 
