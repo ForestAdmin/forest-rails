@@ -54,18 +54,16 @@ module ForestLiana
     end
 
     def order
+      order = 'DESC'
+
       # NOTICE: The generated alias for a count is "count_all", for a sum the
       #         alias looks like "sum_#{aggregate_field}"
-      field = 'all'
       if @params[:aggregate].downcase == 'sum'
         field = @params[:aggregate_field].downcase
-      end
-
-      if includes.size == 0
-        "#{@params[:aggregate].downcase}_#{field} DESC"
       else
-        "#{@params[:aggregate].downcase}_id DESC"
+        field = includes.size == 0 ? 'all' : 'id'
       end
+      "#{@params[:aggregate].downcase}_#{field} #{order}"
     end
 
   end
