@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.7 - 2017-05-24
 ### Fixed
 - Pie Charts - Fix Sum Pie charts on a non-id column with at least one filter on an association.
 - Filters - Retrieve the right records for filters with conditions on belongsTo foreign key being blank.
