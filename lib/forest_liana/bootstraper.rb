@@ -202,6 +202,7 @@ module ForestLiana
         integration: 'intercom',
         only_for_relationships: true,
         is_virtual: true,
+        is_searchable: false,
         fields: [
           { field: :subject, type: 'String' },
           { field: :body, type: ['String'], widget: 'link' },
@@ -218,6 +219,7 @@ module ForestLiana
         integration: 'intercom',
         only_for_relationships: true,
         is_virtual: true,
+        is_searchable: false,
         fields: [
           { field: :created_at, type: 'Date', is_searchable: false },
           { field: :updated_at, type: 'Date', is_searchable: false  },
@@ -281,6 +283,7 @@ module ForestLiana
         integration: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        is_searchable: false,
         pagination_type: 'cursor',
         fields: [
           { field: :id, type: 'String', is_searchable: false },
@@ -313,6 +316,7 @@ module ForestLiana
         integration: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        is_searchable: false,
         pagination_type: 'cursor',
         fields: [
           { field: :id, type: 'String', is_searchable: false },
@@ -346,6 +350,7 @@ module ForestLiana
         integration: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        is_searchable: false,
         only_for_relationships: true,
         pagination_type: 'cursor',
         fields: [
@@ -380,6 +385,7 @@ module ForestLiana
         integration: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        is_searchable: false,
         pagination_type: 'cursor',
         fields: [
           { field: :id, type: 'String', is_searchable: false },
@@ -412,6 +418,7 @@ module ForestLiana
         integration: 'stripe',
         is_virtual: true,
         is_read_only: true,
+        is_searchable: false,
         only_for_relationships: true,
         pagination_type: 'cursor',
         fields: [

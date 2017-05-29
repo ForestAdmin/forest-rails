@@ -10,7 +10,7 @@ module ForestLiana::Collection
     def collection(collection_name, opts = {})
       self.collection_name = collection_name.to_s
       self.is_read_only = opts[:read_only] || false
-      self.is_searchable = opts[:is_searchable] || true
+      self.is_searchable = opts[:is_searchable] || false
     end
 
     def action(name, opts = {})
