@@ -76,7 +76,7 @@ module ForestLiana
 
       if @resource.nil? || !SchemaUtils.model_included?(@resource) ||
           !@resource.ancestors.include?(ActiveRecord::Base)
-        render serializer: nil, json: {status: 404}, status: :not_found
+        render status: :not_found, json: { status: 404 }, serializer: nil
       end
     end
 

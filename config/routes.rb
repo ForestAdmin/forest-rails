@@ -4,7 +4,7 @@ ForestLiana::Engine.routes.draw do
   # Onboarding
   get '/' => 'apimaps#index'
 
-  # Session
+  # Sessions
   post 'sessions' => 'sessions#create'
 
   # CRUD
@@ -22,6 +22,9 @@ ForestLiana::Engine.routes.draw do
 
   # Stats
   post '/stats/:collection' => 'stats#show'
+
+  # Alerts Check
+  post ':collection/check' => 'checks#show'
 
   # Stripe Integration
   get '(:collection)_stripe_payments' => 'stripe#payments'
