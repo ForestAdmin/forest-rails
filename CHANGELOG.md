@@ -1,8 +1,9 @@
 # Change Log
 
 ## [Unreleased]
-### Added
+### Added
 - Smart Collections - Add a new isSearchable property to display the search bar for Smart Collections.
+- Filters - Add the not contains operator.
 
 ## RELEASE 1.6.7 - 2017-05-24
 ### Fixed
@@ -22,7 +23,7 @@
 - Ruby 2.3 - Avoid to use Hash#dig to support version earlier than Ruby 2.3.
 
 ## RELEASE 1.6.3 - 2017-05-05
-### Fixed
+### Fixed
 - Apimap - Prevent the bad detection of database collections as Smart Collections if lib/forest_liana is loaded before the models.
 
 ## RELEASE 1.6.2 - 2017-05-04
@@ -98,7 +99,7 @@
 - Analyzer - Avoid class name conflict with the "Application" model name.
 
 ## RELEASE 1.5.17 - 2017-03-26
-### Fixed
+### Fixed
 - Pie Charts - Fix the computation of Pie Charts having a groupBy on a belongsTo relationship.
 
 ## RELEASE 1.5.16 - 2017-03-24
@@ -139,7 +140,7 @@
 - Search - Fix search on collections using UUID as a primary key.
 
 ## RELEASE 1.5.8 - 2017-01-29
-### Fixed
+### Fixed
 - Deprecation warnings - Silent deprecation warnings for removed "serialized_attributes" in Rails 5.
 
 ## RELEASE 1.5.7 - 2017-01-24
@@ -177,7 +178,7 @@
 ### Added
 - Segments - Smart Segments can be created to define specific records subsets.
 
-### Changed
+### Changed
 - Configuration - Rename secret values to env_secret and auth_secret.
 - Installation - Add the env_secret as an option instead of prompt it.
 - Installation - Store the env_secret and auth_secret in config/secrets.yml.
