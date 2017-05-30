@@ -5,7 +5,7 @@ module ForestLiana
       operator = nil
       value_comparison = nil
 
-      if value.first == '!'
+      if value.first == '!' && value[1] != '*'
         operator = '!='
         value_comparison = value[1..-1]
       elsif value.first == '>'
@@ -14,7 +14,11 @@ module ForestLiana
       elsif value.first == '<'
         operator = '<'
         value_comparison = value[1..-1]
-      elsif value.include?('*')
+      elsif value[0] == '!' && value[1] == '*' && value[-1] == '*'
+        operator = 'NOT LIKE'
+        value = value.delete('!')
+        value_comparison = value.gsub('*', '%')
+      elsif value[0] == '*' || value[-1] == '*'
         operator = 'LIKE'
         value_comparison = value.gsub('*', '%')
       elsif value === '$present'
