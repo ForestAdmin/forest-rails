@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.10 - 2017-05-30
 ### Added
 - Smart Collections - Add a new isSearchable property to display the search bar for Smart Collections.
 - Filters - Add the not contains operator.
