@@ -164,7 +164,7 @@ module ForestLiana
             request['forest-secret-key'] = ForestLiana.env_secret
             response = client.request(request)
 
-            if ['200', '202', '204', '400', '404'].include? response.code
+            if ['200', '202', '204', '400', '404', '503'].include? response.code
               unless response.body.blank?
                 warning = JSON.parse(response.body)['warning']
               end
@@ -177,6 +177,10 @@ module ForestLiana
                 FOREST_LOGGER.error "An error occured with the apimap sent " \
                   "to Forest. Please contact support@forestadmin.com for " \
                   "further investigations."
+                elsif response.is_a?(Net::HTTPServiceUnavailable) # NOTICE: HTTP 503 Error
+                  FOREST_LOGGER.warn "Forest is in maintenance for a few " \
+                    "minutes. We are upgrading your experience in the " \
+                    "forest. We just need a few more minutes to get it right."
               elsif warning
                 FOREST_LOGGER.warn warning
               end
