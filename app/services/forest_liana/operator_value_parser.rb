@@ -59,18 +59,25 @@ module ForestLiana
     end
 
     def self.get_field_name(field, resource)
-      if field.split(':').size < 2
-        "#{resource.quoted_table_name}." +
-        "#{ActiveRecord::Base.connection.quote_column_name(field)}"
-      else
+      if self.isBelongsTo(field)
         association = field.split(':')[0].pluralize
         "#{ActiveRecord::Base.connection.quote_column_name(association)}." +
         "#{ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])}"
+      else
+        "#{resource.quoted_table_name}." +
+        "#{ActiveRecord::Base.connection.quote_column_name(field)}"
       end
     end
 
     def self.format_value(resource, field, value)
-      column = resource.columns.find { |c| c.name == field }
+      if self.isBelongsTo(field)
+        field = field.split(':')
+        column = resource.reflect_on_association(field[0])
+          .klass.columns.find { |c| c.name == field[1] }
+      else
+        column = resource.columns.find { |c| c.name == field }
+      end
+      # byebug
       if column.type == :boolean
         ForestLiana::AdapterHelper.cast_boolean(value)
       else
@@ -78,5 +85,8 @@ module ForestLiana
       end
     end
 
+    def self.isBelongsTo(field)
+      return field.split(':').size >= 2
+    end
   end
 end
