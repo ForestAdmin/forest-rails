@@ -1,7 +1,5 @@
 module ForestLiana
   class ValueStatGetterTest < ActiveSupport::TestCase
-
-
     test 'Value stat getter' do
       stat = ValueStatGetter.new(BelongsToField, {
         type: "Value",
