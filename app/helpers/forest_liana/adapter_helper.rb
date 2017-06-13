@@ -7,7 +7,7 @@ module ForestLiana
     end
 
     def self.cast_boolean(value)
-      if ActiveRecord::Base.connection.adapter_name == 'MySQL'
+      if ['MySQL', 'SQLite'].include?(ActiveRecord::Base.connection.adapter_name)
         value === 'true' ? 1 : 0;
       else
         value

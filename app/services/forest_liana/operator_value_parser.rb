@@ -71,13 +71,16 @@ module ForestLiana
 
     def self.format_value(resource, field, value)
       if self.isBelongsTo(field)
-        field = field.split(':')
-        column = resource.reflect_on_association(field[0])
-          .klass.columns.find { |c| c.name == field[1] }
+        fields = field.split(':')
+        columns = resource.reflect_on_association(fields[0]).klass.columns
+        field_name = fields[1]
       else
-        column = resource.columns.find { |c| c.name == field }
+        columns = resource.columns
+        field_name = field
       end
-      # byebug
+
+      column = columns.find { |column| column.name == field_name }
+
       if column.type == :boolean
         ForestLiana::AdapterHelper.cast_boolean(value)
       else
@@ -86,7 +89,7 @@ module ForestLiana
     end
 
     def self.isBelongsTo(field)
-      return field.split(':').size >= 2
+      field.split(':').size >= 2
     end
   end
 end
