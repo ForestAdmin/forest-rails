@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Error Messages - Display an explicit warning if Forest servers are in maintenance.
+- Charts - Fix charts having filters on associations fields.
 
 ## RELEASE 1.6.10 - 2017-05-30
 ### Added
