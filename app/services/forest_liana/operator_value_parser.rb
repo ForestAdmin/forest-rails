@@ -59,7 +59,7 @@ module ForestLiana
     end
 
     def self.get_field_name(field, resource)
-      if self.isBelongsTo(field)
+      if self.is_belongs_to(field)
         association = field.split(':')[0].pluralize
         "#{ActiveRecord::Base.connection.quote_column_name(association)}." +
         "#{ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])}"
@@ -70,7 +70,7 @@ module ForestLiana
     end
 
     def self.format_value(resource, field, value)
-      if self.isBelongsTo(field)
+      if self.is_belongs_to(field)
         fields = field.split(':')
         columns = resource.reflect_on_association(fields[0]).klass.columns
         field_name = fields[1]
@@ -88,7 +88,7 @@ module ForestLiana
       end
     end
 
-    def self.isBelongsTo(field)
+    def self.is_belongs_to(field)
       field.split(':').size >= 2
     end
   end
