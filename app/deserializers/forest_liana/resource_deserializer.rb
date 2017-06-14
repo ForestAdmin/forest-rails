@@ -38,7 +38,7 @@ module ForestLiana
           begin
             @attributes[attribute] = JSON::parse(value)
           rescue
-            raise "Bad format for attribute  '#{attribute}'."
+            raise "Bad format for attribute '#{attribute}'."
           end
         end
       end

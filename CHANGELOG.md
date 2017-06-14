@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Model Fields - Fix nil value crash on field with "serialize" option.
 
 ## RELEASE 1.6.11 - 2017-06-13
 ### Fixed
