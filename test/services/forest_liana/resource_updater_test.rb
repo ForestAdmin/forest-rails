@@ -38,9 +38,7 @@ module ForestLiana
         data: {
             id: 1,
             type: "serialize_field",
-            attributes: {
-              field: "[\"test\", \"test\"]"
-            }
+            attributes: { field: "[\"test\", \"test\"]" }
           }
       )
       updater = ResourceUpdater.new(SerializeField, params)
