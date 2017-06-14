@@ -12,21 +12,27 @@ module ForestLiana
     ForestLiana.apimap << collection
     ForestLiana.models << SerializeField
 
-    test 'attribute null' do
+    test 'SerializeField with attribute null' do
       params = ActionController::Parameters.new(
         id: 1,
-        data: {
-          id: 1,
-          type: "serialize_field",
-          attributes: { }
-        }
+        data: { id: 1, type: "serialize_field", attributes: { } }
       )
       updater = ResourceUpdater.new(SerializeField, params)
       updater.perform
       assert updater.record.valid?
     end
 
-    test 'right attribute' do
+    test 'SerializeField with bad format attribute' do
+      params = ActionController::Parameters.new(
+        id: 1,
+        data: { id: 1, type: "serialize_field", attributes: { field: "Lucas" } }
+      )
+      updater = ResourceUpdater.new(SerializeField, params)
+      updater.perform
+      assert updater.record.valid?
+    end
+
+    test 'SerializeField with right attribute' do
       params = ActionController::Parameters.new(
         id: 1,
         data: {

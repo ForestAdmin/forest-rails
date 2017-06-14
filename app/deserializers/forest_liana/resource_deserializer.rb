@@ -32,7 +32,15 @@ module ForestLiana
     def extract_attributes_serialize
       attributes_serialized.each do |attribute, serializer|
         value = @params[:data][:attributes][attribute]
-        @attributes[attribute] = JSON::parse(value)
+        if (!value)
+          @attributes[attribute] = nil
+        else
+          begin
+            @attributes[attribute] = JSON::parse(value)
+          rescue => ex
+            raise 'Bad format'
+          end
+        end
       end
     end
 
