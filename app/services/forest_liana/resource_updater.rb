@@ -21,6 +21,8 @@ module ForestLiana
       rescue ActiveRecord::StatementInvalid => exception
         # NOTICE: SQL request cannot be executed properly
         @errors = [{ detail: exception.cause.error }]
+      rescue => error
+        @errors = [{ detail: error }]
       end
     end
 
