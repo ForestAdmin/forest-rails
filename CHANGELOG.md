@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Fixed
-- Model Fields - Fix nil value crash on field with "serialize" option.
+- Records Updates - Display an error message on record update on "serialize" field having a nil value.
 
 ## RELEASE 1.6.11 - 2017-06-13
 ### Fixed
