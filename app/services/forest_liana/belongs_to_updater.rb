@@ -12,7 +12,12 @@ module ForestLiana
       new_value = @association.klass.find(@data[:id]) if @data && @data[:id]
       @record.send("#{@association.name}=", new_value)
 
-      @record.save()
+      # begin
+        @record.save()
+      # rescue
+      #   message = "Bad format for '#{attribute}' attribute value."
+      #   raise ForestLiana::Errors::SerializeAttributeBadFormat.new(message)
+      # end
     end
   end
 end
