@@ -1,23 +1,27 @@
 module ForestLiana
   class BelongsToUpdater
+    attr_accessor :errors
+
     def initialize(resource, association, params)
       @resource = resource
       @association = association
       @params = params
       @data = params['data']
+      @errors = nil
     end
 
     def perform
-      @record = @resource.find(@params[:id])
-      new_value = @association.klass.find(@data[:id]) if @data && @data[:id]
-      @record.send("#{@association.name}=", new_value)
+      begin
+        @record = @resource.find(@params[:id])
+        new_value = @association.klass.find(@data[:id]) if @data && @data[:id]
+        @record.send("#{@association.name}=", new_value)
 
-      # begin
-        @record.save()
-      # rescue
-      #   message = "Bad format for '#{attribute}' attribute value."
-      #   raise ForestLiana::Errors::SerializeAttributeBadFormat.new(message)
-      # end
+        @record.save
+      rescue ActiveRecord::SerializationTypeMismatch => exception
+        @errors = [{ detail: exception.message }]
+      rescue => exception
+        @errors = [{ detail: exception.message }]
+      end
     end
   end
 end

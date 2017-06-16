@@ -22,7 +22,12 @@ module ForestLiana
       updater = BelongsToUpdater.new(@resource, @association, params)
       updater.perform
 
-      head :no_content
+      if updater.errors
+        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          updater.errors), status: 422
+      else
+        head :no_content
+      end
     end
 
     def associate

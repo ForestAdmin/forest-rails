@@ -82,10 +82,8 @@ ActiveRecord::Schema.define(version: 20170615120421) do
   create_table "serialize_and_belongs_to_fields", force: :cascade do |t|
     t.string  "field"
     t.integer "has_one_field_id"
-    t.integer "has_many_field_id"
   end
 
-  add_index "serialize_and_belongs_to_fields", ["has_many_field_id"], name: "index_serialize_and_belongs_to_fields_on_has_many_field_id"
   add_index "serialize_and_belongs_to_fields", ["has_one_field_id"], name: "index_serialize_and_belongs_to_fields_on_has_one_field_id"
 
   create_table "serialize_fields", force: :cascade do |t|

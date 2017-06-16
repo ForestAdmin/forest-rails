@@ -1,41 +1,34 @@
 serialze_and_belongs_to_field_1:
   id: 1
-  field: hey
+  field: value 1
   has_one_field_id: 1
-  has_many_field_id: 1
 
 serialze_and_belongs_to_field_2:
   id: 2
-  field: hey
+  field: value 2
   has_one_field_id: 2
-  has_many_field_id: 1
 
 serialze_and_belongs_to_field_3:
   id: 3
-  field: hey
+  field: value 3
   has_one_field_id: 3
-  has_many_field_id: 1
 
 serialze_and_belongs_to_field_4:
   id: 4
-  field: hey
+  field: value 4
   has_one_field_id: 4
-  has_many_field_id: 2
 
 serialze_and_belongs_to_field_5:
   id: 5
-  field: hey
+  field: value 5
   has_one_field_id: 5
-  has_many_field_id: 2
 
 serialze_and_belongs_to_field_6:
   id: 6
-  field: hey
+  field: value 6
   has_one_field_id: 6
-  has_many_field_id: 2
 
 serialze_and_belongs_to_field_7:
   id: 7
-  field: hey
+  field: value 6
   has_one_field_id: 7
-  has_many_field_id: 3
