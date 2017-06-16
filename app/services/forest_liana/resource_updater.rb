@@ -21,6 +21,12 @@ module ForestLiana
       rescue ActiveRecord::StatementInvalid => exception
         # NOTICE: SQL request cannot be executed properly
         @errors = [{ detail: exception.cause.error }]
+      rescue ForestLiana::Errors::SerializeAttributeBadFormat => exception
+        @errors = [{ detail: exception.message }]
+      rescue => exception
+        @errors = [{
+            detail: 'Cannot update the record due to an unexpected error.'
+          }]
       end
     end
 

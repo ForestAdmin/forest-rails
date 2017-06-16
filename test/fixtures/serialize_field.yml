@@ -1,0 +1,19 @@
+serialize_field_1:
+  id: 1
+  field: value 1
+
+serialize_field_2:
+  id: 2
+  field: value 2
+
+serialize_field_3:
+  id: 3
+  field: value 3
+
+serialize_field_4:
+  id: 4
+  field: value 4
+
+serialize_field_5:
+  id: 5
+  field: value 5

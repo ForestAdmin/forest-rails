@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records Updates - Display an error message on record update on "serialize" field having a nil value.
 
 ## RELEASE 1.6.11 - 2017-06-13
 ### Fixed
