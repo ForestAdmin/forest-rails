@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records Updates - Fix unexpected "serialize" field update on other record attributes update.
 
 ## RELEASE 1.6.12 - 2017-06-20
 ### Fixed
