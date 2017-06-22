@@ -43,7 +43,6 @@ module ForestLiana
       updater.perform
 
       assert updater.record.valid?
-      byebug
       assert updater.record.field == []
     end
 
