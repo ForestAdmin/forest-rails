@@ -1,5 +1,5 @@
 ForestLiana::Engine.routes.draw do
-  router = ::ForestLiana::Router.new
+  router = ForestLiana::Router.new
 
   # Onboarding
   get '/' => 'apimaps#index'
