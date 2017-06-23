@@ -14,7 +14,7 @@ module ForestLiana
     end
 
     def index
-      getter = ResourcesGetter.new(@resource, params)
+      getter = ForestLiana::ResourcesGetter.new(@resource, params)
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records,
@@ -24,7 +24,7 @@ module ForestLiana
     end
 
     def show
-      getter = ResourceGetter.new(@resource, params)
+      getter = ForestLiana::ResourceGetter.new(@resource, params)
       getter.perform
 
       render serializer: nil, json:
@@ -32,7 +32,7 @@ module ForestLiana
     end
 
     def create
-      creator = ResourceCreator.new(@resource, params)
+      creator = ForestLiana::ResourceCreator.new(@resource, params)
       creator.perform
 
       if creator.errors
@@ -48,7 +48,7 @@ module ForestLiana
     end
 
     def update
-      updater = ResourceUpdater.new(@resource, params)
+      updater = ForestLiana::ResourceUpdater.new(@resource, params)
       updater.perform
 
       if updater.errors
