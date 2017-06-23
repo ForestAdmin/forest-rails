@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.13 - 2017-06-23
 ### Added
 - Apimap - Send database type and orm version in apimap.
 
