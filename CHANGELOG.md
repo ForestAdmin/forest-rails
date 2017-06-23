@@ -6,6 +6,7 @@
 
 ### Fixed
 - Records Updates - Fix unexpected "serialize" field update on other record attributes update.
+- Development Autoreload - Prevent "A copy of ForestLiana::ResourcesController has been removed from the module tree but is still active!" in development mode.
 
 ## RELEASE 1.6.12 - 2017-06-20
 ### Fixed
