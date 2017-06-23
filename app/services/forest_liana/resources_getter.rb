@@ -24,10 +24,12 @@ module ForestLiana
       # NOTICE: For performance reasons, do not eager load the data if there is
       #         no search or filters on associations.
       if @count_needs_includes
-        @records_to_count = @records_to_count.eager_load(includes)
+        @records_to_count = @records_to_count.joins(includes)
+        @records = @records.joins(includes)
+      else
+        @records = @records.includes(includes)
       end
 
-      @records = @records.eager_load(includes)
       @records_sorted = sort_query
     end
 
