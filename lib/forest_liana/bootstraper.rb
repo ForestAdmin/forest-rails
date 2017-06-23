@@ -153,9 +153,10 @@ module ForestLiana
           meta: {
             liana: 'forest-rails',
             liana_version: liana_version,
-            rails_version: Gem.loaded_specs["rails"].version.version,
+            framework_version: Gem.loaded_specs["rails"].version.version,
             orm_version: Gem.loaded_specs["activerecord"].version.version,
-            db_type: ActiveRecord::Base.connection.instance_values["config"][:adapter]
+            database_type: ActiveRecord::Base.connection
+              .instance_values["config"][:adapter]
           }
         })
 
