@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Apimap - Send database type and orm version in apimap.
+
 ### Fixed
 - Records Updates - Fix unexpected "serialize" field update on other record attributes update.
 
