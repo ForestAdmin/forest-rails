@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Router - Catch resources routing errors with a 404 response instead of a crash.
 
 ## RELEASE 1.6.13 - 2017-06-23
 ### Added
