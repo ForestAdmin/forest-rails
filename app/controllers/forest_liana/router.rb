@@ -30,7 +30,7 @@ class ForestLiana::Router
       end
 
       controller.action(action.to_sym).call(env)
-    rescue => exception
+    rescue NoMethodError => exception
       ForestLiana::ApplicationController.action(:route_not_found).call(env)
     end
   end

@@ -24,9 +24,7 @@ module ForestLiana
       rescue ForestLiana::Errors::SerializeAttributeBadFormat => exception
         @errors = [{ detail: exception.message }]
       rescue => exception
-        @errors = [{
-            detail: 'Cannot update the record due to an unexpected error.'
-          }]
+        @errors = [{ detail: exception.message }]
       end
     end
 

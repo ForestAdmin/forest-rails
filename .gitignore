@@ -10,6 +10,7 @@
 /test/dummy/log/
 /test/dummy/db/*.sqlite3
 /tmp/
+.byebug_history
 
 ## Specific to RubyMotion:
 .dat*
