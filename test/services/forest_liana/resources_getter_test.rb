@@ -171,9 +171,9 @@ module ForestLiana
       records = getter.records
       count = getter.count
 
-      assert records.count == 1
-      assert count = 1
-      assert records.first.id == 5
+      assert records.count == 2
+      assert count = 2
+      assert records.first.id == 6
     end
 
     test 'Filter equal on an updated_at field of an associated collection' do
