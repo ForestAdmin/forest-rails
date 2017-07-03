@@ -20,6 +20,7 @@ module ForestLiana
 
     PERIODS_PREVIOUS_X_DAYS = /^\$previous(\d+)Days$/;
     PERIODS_X_DAYS_TO_DATE = /^\$(\d+)DaysToDate$/;
+    PERIODS_X_HOURS_BEFORE = /^\$(\d+)HoursBefore$/;
 
     def initialize(value, timezone)
       @value = value
@@ -36,6 +37,9 @@ module ForestLiana
       return true if match && match[1]
 
       match = PERIODS_X_DAYS_TO_DATE.match(@value)
+      return true if match && match[1]
+
+      match = PERIODS_X_HOURS_BEFORE.match(@value)
       return true if match && match[1]
 
       false
@@ -84,6 +88,11 @@ module ForestLiana
         return "BETWEEN '" +
           "#{to_client_timezone((Integer(match[1]) - 1).day.ago.beginning_of_day)}'" +
           " AND '#{Time.now}'"
+      end
+
+      match = PERIODS_X_HOURS_BEFORE.match(@value)
+      if match && match[1]
+        return "< '#{to_client_timezone((Integer(match[1])).hour.ago)}'"
       end
 
       duration = PERIODS[@value.to_sym][:duration]
