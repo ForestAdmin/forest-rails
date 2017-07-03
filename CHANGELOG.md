@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Filters - Add the before x hours operator.
+
 ### Fixed
 - Router - Catch resources routing errors with a 404 response instead of a crash.
 

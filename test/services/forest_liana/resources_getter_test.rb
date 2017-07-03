@@ -104,6 +104,27 @@ module ForestLiana
       assert records.first.owner.name == 'Arnaud Besnier'
     end
 
+    test 'Filter before x days' do
+      getter = ResourcesGetter.new(Tree, {
+        fields: { 'trees' => 'id' },
+        page: { size: 10, number: 1 },
+        filter: {
+          'created_at' => '$3HoursBefore',
+        },
+        filterType: 'and',
+        timezone: '-08:00'
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 5
+      assert count = 5
+      assert records.first.id == 4
+      assert records.first.name == 'Oak'
+      assert records.first.owner.name == 'Arnaud Besnier'
+    end
+
     test 'Sort on an ambiguous field name with a filter' do
       getter = ResourcesGetter.new(Tree, {
         fields: { 'trees' => 'id' },
@@ -150,9 +171,9 @@ module ForestLiana
       records = getter.records
       count = getter.count
 
-      assert records.count == 1
-      assert count = 1
-      assert records.first.id == 5
+      assert records.count == 2
+      assert count = 2
+      assert records.first.id == 6
     end
 
     test 'Filter equal on an updated_at field of an associated collection' do

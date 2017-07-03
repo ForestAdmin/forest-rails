@@ -32,3 +32,10 @@ tree_5:
   owner_id: 3
   created_at: <%= Time.now.year - 3 %>-06-18 09:00:00
   updated_at: <%= Time.now.year - 3 %>-06-18 09:00:00
+
+tree_6:
+  id: 6
+  name: Oak
+  owner_id: 3
+  created_at: <%= Time.now + 5.hours + 1.minute %>
+  updated_at: <%= Time.now + 5.hours + 1.minute %>
