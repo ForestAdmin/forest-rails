@@ -4,30 +4,34 @@ class ForestLiana::Router
     resource = ForestLiana::SchemaUtils.find_model_from_collection_name(
       params[:collection])
 
-    class_name = ForestLiana.name_for(resource).classify
-    module_name = class_name.deconstantize
+    begin
+      class_name = ForestLiana.name_for(resource).classify
+      module_name = class_name.deconstantize
 
-    name = module_name if module_name
-    name += class_name.demodulize
+      name = module_name if module_name
+      name += class_name.demodulize
 
-    ctrl_class = "ForestLiana::UserSpace::#{name}Controller".constantize
-    action = nil
+      controller = "ForestLiana::UserSpace::#{name}Controller".constantize
+      action = nil
 
-    case env['REQUEST_METHOD']
-    when 'GET'
-      if params[:id]
-        action = 'show'
-      else
-        action = 'index'
+      case env['REQUEST_METHOD']
+      when 'GET'
+        if params[:id]
+          action = 'show'
+        else
+          action = 'index'
+        end
+      when 'PUT'
+        action = 'update'
+      when 'POST'
+        action = 'create'
+      when 'DELETE'
+        action = 'destroy'
       end
-    when 'PUT'
-      action = 'update'
-    when 'POST'
-      action = 'create'
-    when 'DELETE'
-      action = 'destroy'
-    end
 
-    ctrl_class.action(action.to_sym).call(env)
+      controller.action(action.to_sym).call(env)
+    rescue => exception
+      ForestLiana::ApplicationController.action(:route_not_found).call(env)
+    end
   end
 end

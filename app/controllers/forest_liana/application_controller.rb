@@ -73,6 +73,10 @@ module ForestLiana
       end
     end
 
+    def route_not_found
+      head :not_found
+    end
+
     private
 
     def force_utf8_encoding(json)
