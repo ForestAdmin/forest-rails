@@ -13,7 +13,12 @@ module ForestLiana
         .find(@params[:id])
         .send(@params[:association_name])
         .eager_load(includes)
+      @records = search_query
       @records = sort_query
+    end
+
+    def search_query
+      SearchQueryBuilder.new(@records, @params, includes).perform
     end
 
     def records

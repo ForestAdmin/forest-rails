@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- HasMany - Search on has many associations.
+
 ### Fixed
 - Deprecation Warning - Remove a deprecation warning on Chart request due to uniq method.
 
