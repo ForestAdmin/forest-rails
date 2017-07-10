@@ -6,6 +6,7 @@
 
 ### Fixed
 - Deprecation Warning - Remove a deprecation warning on Chart request due to uniq method.
+
 ## RELEASE 1.6.14 - 2017-07-05
 ### Added
 - Filters - Add the before x hours operator.
