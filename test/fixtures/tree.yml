@@ -39,3 +39,17 @@ tree_6:
   owner_id: 3
   created_at: <%= Time.now + 5.hours + 1.minute %>
   updated_at: <%= Time.now + 5.hours + 1.minute %>
+
+tree_7:
+  id: 7
+  name: Sequoia
+  owner_id: 1
+  created_at: <%= Time.now + 5.hours + 1.minute %>
+  updated_at: <%= Time.now + 5.hours + 1.minute %>
+
+tree_8:
+  id: 8
+  name: Fir
+  owner_id: 1
+  created_at: <%= Time.now + 5.hours + 1.minute %>
+  updated_at: <%= Time.now + 5.hours + 1.minute %>
