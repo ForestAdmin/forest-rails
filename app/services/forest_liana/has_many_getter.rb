@@ -13,11 +13,13 @@ module ForestLiana
         .find(@params[:id])
         .send(@params[:association_name])
         .eager_load(includes)
+      @records = search_query
       @records = sort_query
     end
 
-    def records
-      @records.limit(limit).offset(offset)
+    def search_query
+      includesSymbols = includes.map { |association| association.to_sym }
+      SearchQueryBuilder.new(@records, @params, includesSymbols).perform
     end
 
     def includes
@@ -37,6 +39,10 @@ module ForestLiana
         .map { |association| association.name.to_s }
     end
 
+    def records
+      @records.limit(limit).offset(offset)
+    end
+
     def count
       @records.to_a.length
     end
@@ -46,7 +52,7 @@ module ForestLiana
     def field_names_requested
       return nil unless @params[:fields] && @params[:fields][@association.table_name]
       @params[:fields][@association.table_name].split(',')
-                                            .map { |name| name.to_sym }
+        .map { |name| name.to_sym }
     end
 
     def association_table_name

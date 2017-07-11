@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Search - Users can search on the hasMany associated data of a specific record.
+
 ### Fixed
 - Deprecation Warning - Remove a deprecation warning on Chart request due to uniq method.
 

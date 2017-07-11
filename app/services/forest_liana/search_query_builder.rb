@@ -52,8 +52,8 @@ module ForestLiana
           column_name = format_column_name(@resource.table_name, column.name)
           if column.name == 'id'
             if column.type == :integer
-              conditions << "#{@resource.table_name}.id =
-                #{@params[:search].to_i}"
+              value = @params[:search].to_i
+              conditions << "#{@resource.table_name}.id = #{value}" if value > 0
             elsif REGEX_UUID.match(@params[:search])
               conditions << "#{@resource.table_name}.id =
                 '#{@params[:search]}'"
