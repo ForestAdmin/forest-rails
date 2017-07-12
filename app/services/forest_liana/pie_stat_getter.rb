@@ -61,7 +61,7 @@ module ForestLiana
       if @params[:aggregate].downcase == 'sum'
         field = @params[:aggregate_field].downcase
       else
-        field = includes.size == 0 ? 'all' : 'id'
+        field = Rails::VERSION::MAJOR >= 5 || includes.size > 0 ? 'id' : 'all'
       end
       "#{@params[:aggregate].downcase}_#{field} #{order}"
     end
