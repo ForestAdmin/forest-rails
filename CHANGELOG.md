@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.6.16 - 2017-08-03
 ### Fixed
 - Pie Charts - Fix potential pie chart rendering issue using Rails 5. 
 
