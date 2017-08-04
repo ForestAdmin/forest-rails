@@ -229,6 +229,8 @@ module ForestLiana
       schema = { field: column.name, type: get_type_for(column) }
       add_enum_values_if_is_enum(schema, column)
       add_enum_values_if_is_sti_model(schema, column)
+      # add_default_value(schema, column) if Rails::VERSION::MAJOR > 4
+      add_validations(schema, column)
     end
 
     def get_schema_for_association(association)
@@ -292,6 +294,97 @@ module ForestLiana
     def sti_column?(column)
       (@model.inheritance_column &&
        column.name == @model.inheritance_column) || column.name == 'type'
+    end
+
+    def add_default_value(column_schema, column)
+      # TODO: detect/introspect the attribute default value with Rails 5
+      #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
+    end
+
+    def add_validations(column_schema, column)
+      if @model._validators? && @model._validators[column.name.to_sym].size > 0
+        column_schema[:validations] = []
+
+        @model._validators[column.name.to_sym].each do |validator|
+          case validator
+          when ActiveRecord::Validations::PresenceValidator
+            column_schema[:validations] << {
+              type: 'is present',
+              message: validator.options[:message]
+            }
+            column_schema['is-required'] = true
+          when ActiveModel::Validations::NumericalityValidator
+            validator.options.each do |option, value|
+              case option
+              when :greater_than, :greater_than_or_equal_to
+                column_schema[:validations] << {
+                  type: 'is greater than',
+                  value: value,
+                  message: validator.options[:message]
+                }
+              when :less_than, :less_than_or_equal_to
+                column_schema[:validations] << {
+                  type: 'is less than',
+                  value: value,
+                  message: validator.options[:message]
+                }
+              end
+            end
+          when ActiveModel::Validations::LengthValidator
+            validator.options.each do |option, value|
+              case option
+              when :minimum
+                column_schema[:validations] << {
+                  type: 'is longer than',
+                  value: value,
+                  message: validator.options[:message]
+                }
+              when :maximum
+                column_schema[:validations] << {
+                  type: 'is shorter than',
+                  value: value,
+                  message: validator.options[:message]
+                }
+              when :is
+                column_schema[:validations] << {
+                  type: 'is longer than',
+                  value: value,
+                  message: validator.options[:message]
+                }
+                column_schema[:validations] << {
+                  type: 'is shorter than',
+                  value: value,
+                  message: validator.options[:message]
+                }
+              end
+            end
+          when ActiveModel::Validations::FormatValidator
+            validator.options.each do |option, value|
+              case option
+              when :with
+                options = /\?([imx]){0,3}/.match(validator.options[:with].to_s)
+                options = options && options[1] ? options[1] : ''
+                regex = value.source
+
+                # NOTICE: Transform a Ruby regex into a JS one
+                regex = regex.sub('\\A' , '^').sub('\\Z' , '$').sub('\\z' , '$')
+
+                column_schema[:validations] << {
+                  type: 'is like',
+                  value: "/#{regex}/#{options}",
+                  message: validator.options[:message]
+                }
+              end
+            end
+          end
+        end
+
+        if column_schema[:validations].size == 0
+          column_schema.delete(:validations)
+        end
+      end
+
+      column_schema
     end
 
     def get_ref_for(association)
