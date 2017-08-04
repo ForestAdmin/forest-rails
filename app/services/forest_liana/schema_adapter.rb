@@ -229,6 +229,7 @@ module ForestLiana
       schema = { field: column.name, type: get_type_for(column) }
       add_enum_values_if_is_enum(schema, column)
       add_enum_values_if_is_sti_model(schema, column)
+      # add_default_value(schema, column) if Rails::VERSION::MAJOR > 4
       add_validations(schema, column)
     end
 
@@ -295,6 +296,11 @@ module ForestLiana
        column.name == @model.inheritance_column) || column.name == 'type'
     end
 
+    def add_default_value(column_schema, column)
+      # TODO: detect/introspect the attribute default value with Rails 5
+      #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
+    end
+
     def add_validations(column_schema, column)
       if @model._validators? && @model._validators[column.name.to_sym].size > 0
         column_schema[:validations] = []
@@ -306,6 +312,7 @@ module ForestLiana
               type: 'is present',
               message: validator.options[:message]
             }
+            column_schema['is-required'] = true
           when ActiveModel::Validations::NumericalityValidator
             validator.options.each do |option, value|
               case option
