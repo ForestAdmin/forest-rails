@@ -278,11 +278,6 @@ module ForestLiana
       column_schema
     end
 
-    def sti_column?(column)
-      (@model.inheritance_column &&
-       column.name == @model.inheritance_column) || column.name == 'type'
-    end
-
     def add_enum_values_if_is_sti_model(column_schema, column)
       if sti_column?(column)
         column_schema[:enums] = []
@@ -293,6 +288,11 @@ module ForestLiana
       end
 
       column_schema
+    end
+
+    def sti_column?(column)
+      (@model.inheritance_column &&
+       column.name == @model.inheritance_column) || column.name == 'type'
     end
 
     def add_validations(column_schema, column)
@@ -379,6 +379,7 @@ module ForestLiana
 
       column_schema
     end
+
     def get_ref_for(association)
       if association.options[:polymorphic] == true
         '*.id'
