@@ -129,7 +129,7 @@ module ForestLiana
       # NOTICE: Look for some Smart Field setters and apply them if any.
       ForestLiana.schema_for_resource(@resource).fields.each do |field|
         if field.try(:[], :set) &&
-          !@params['data']['attributes'][field[:field]].nil?
+          @params['data']['attributes'].has_key?(field[:field])
           # WARNING: The Smart Fields setters may override other changes.
           @attributes = field[:set].call(@attributes,
             @params['data']['attributes'][field[:field]])
