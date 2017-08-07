@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Validations - Start the support of forms validations (with 6 first validations).
+- Fields - Send the defaultValue for creation forms.
 
 ### Changed
 - Technical - Update .gemspec file to specify that Rails 3 is not maintained anymore.
