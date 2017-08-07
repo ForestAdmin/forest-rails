@@ -10,14 +10,14 @@ Gem::Specification.new do |s|
   s.authors     = ["Sandro Munda"]
   s.email       = ["sandro@munda.me"]
   s.homepage    = nil
-  s.summary     = "Instant and Customizable Admin Interface."
-  s.description = "Instant and Customizable Admin Interface. This Gem is the official Forest admin Liana for Rails."
+  s.summary     = "Official Rails Liana for Forest"
+  s.description = "Forest is a modern admin interface that works on all major web frameworks. forest_liana is the gem that makes Forest admin work on any Rails application (Rails >= 4.0)."
   s.license     = "GPL v3"
 
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_runtime_dependency "rails", ">= 3.0"
+  s.add_runtime_dependency "rails", ">= 4.0"
   s.add_runtime_dependency "jsonapi-serializers", ">= 0.14.0"
   s.add_runtime_dependency "jwt"
   s.add_runtime_dependency "rack-cors"
