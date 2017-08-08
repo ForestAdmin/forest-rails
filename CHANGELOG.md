@@ -4,9 +4,12 @@
 ### Added
 - Validations - Start the support of forms validations (with 6 first validations).
 
+### Fixed
+- Record Updates - Do not try to update the Smart Fields if no new value is send in the update request. 
+
 ## RELEASE 1.6.16 - 2017-08-03
-### Fixed
-- Pie Charts - Fix potential pie chart rendering issue using Rails 5. 
+### Fixed
+- Pie Charts - Fix potential pie chart rendering issue using Rails 5.
 
 ## RELEASE 1.6.15 - 2017-07-11
 ### Added
