@@ -20,26 +20,6 @@ module ForestLiana
       end
     end
 
-
-
-    # def csv_export
-    #   # set_file_headers
-    #   # set_streaming_headers
-    #   #
-    #   #
-    #
-    #   # getter = ForestLiana::ResourcesGetter.new(@resource, params)
-    #   # getter.perform
-    #
-    #
-    #   render_csv
-    #
-    #   # render serializer: nil, json: serialize_models(getter.records,
-    #   #                                                include: includes(getter),
-    #   #                                                count: getter.count,
-    #   #                                                params: params)
-    # end
-
     def show
       getter = ForestLiana::ResourceGetter.new(@resource, params)
       getter.perform
@@ -127,16 +107,13 @@ module ForestLiana
       # response.status = 200
 
       csv_lines
-      #setting the body to an enumerator, rails will iterate this enumerator
     end
 
     def set_file_headers
-      csv_filename = "test.csv"
-      # headers["Content-Type"] = "application/octet-stream"
+      csv_filename = "#{@resource.name}.csv"
       headers["Content-Type"] = "text/csv; charset=utf-8"
       headers["Content-disposition"] = %{attachment; filename="#{csv_filename}"}
       headers['Last-Modified'] = Time.now.ctime.to_s
-
       # headers["Content-Length"] = "10000000"
     end
 
@@ -150,13 +127,9 @@ module ForestLiana
     def csv_lines
       set_streaming_headers
       self.response_body = Enumerator.new do |y|
-        #byebug
         # y << CSV::Row.new([:id], ['ID'], true).to_s
         # y << Transaction.csv_header.to_s
-
-        #ideally you'd validate the params, skipping here for brevity
         @resource.find_in_batches() do |records|
-          #byebug
           records.each do |record|
             y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
           end
