@@ -23,6 +23,16 @@ module ForestLiana
                                                      params: params)
     end
 
+    def csv_export
+      getter = ForestLiana::ResourcesGetter.new(@resource, params)
+      getter.perform
+
+      render serializer: nil, json: serialize_models(getter.records,
+                                                     include: includes(getter),
+                                                     count: getter.count,
+                                                     params: params)
+    end
+
     def show
       getter = ForestLiana::ResourceGetter.new(@resource, params)
       getter.perform
@@ -92,6 +102,21 @@ module ForestLiana
 
     def record_not_found
       head :not_found
+    end
+
+    def set_file_headers
+      file_name = "transactions.csv"
+      headers["Content-Type"] = "text/csv"
+      headers["Content-disposition"] = "attachment; filename=\"#{file_name}\""
+    end
+
+
+    def set_streaming_headers
+      #nginx doc: Setting this to "no" will allow unbuffered responses suitable for Comet and HTTP streaming applications
+      headers['X-Accel-Buffering'] = 'no'
+
+      headers["Cache-Control"] ||= "no-cache"
+      headers.delete("Content-Length")
     end
   end
 end
