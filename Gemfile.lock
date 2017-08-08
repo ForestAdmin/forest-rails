@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.6.16)
+    forest_liana (1.6.17)
       arel-helpers
       bcrypt
       groupdate
       jsonapi-serializers (>= 0.14.0)
       jwt
       rack-cors
-      rails (>= 3.0)
+      rails (>= 4.0)
       useragent
 
 GEM
