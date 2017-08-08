@@ -14,24 +14,31 @@ module ForestLiana
     end
 
     def index
-      getter = ForestLiana::ResourcesGetter.new(@resource, params)
-      getter.perform
-
-      render serializer: nil, json: serialize_models(getter.records,
-                                                     include: includes(getter),
-                                                     count: getter.count,
-                                                     params: params)
+      respond_to do |format|
+        format.json { render_jsonapi }
+        format.csv { render_csv }
+      end
     end
 
-    def csv_export
-      getter = ForestLiana::ResourcesGetter.new(@resource, params)
-      getter.perform
 
-      render serializer: nil, json: serialize_models(getter.records,
-                                                     include: includes(getter),
-                                                     count: getter.count,
-                                                     params: params)
-    end
+
+    # def csv_export
+    #   # set_file_headers
+    #   # set_streaming_headers
+    #   #
+    #   #
+    #
+    #   # getter = ForestLiana::ResourcesGetter.new(@resource, params)
+    #   # getter.perform
+    #
+    #
+    #   render_csv
+    #
+    #   # render serializer: nil, json: serialize_models(getter.records,
+    #   #                                                include: includes(getter),
+    #   #                                                count: getter.count,
+    #   #                                                params: params)
+    # end
 
     def show
       getter = ForestLiana::ResourceGetter.new(@resource, params)
@@ -104,19 +111,58 @@ module ForestLiana
       head :not_found
     end
 
-    def set_file_headers
-      file_name = "transactions.csv"
-      headers["Content-Type"] = "text/csv"
-      headers["Content-disposition"] = "attachment; filename=\"#{file_name}\""
+    def render_jsonapi
+      getter = ForestLiana::ResourcesGetter.new(@resource, params)
+      getter.perform
+
+      render serializer: nil, json: serialize_models(getter.records,
+                                                     include: includes(getter),
+                                                     count: getter.count,
+                                                     params: params)
     end
 
+    def render_csv
+      set_file_headers
+
+      # response.status = 200
+
+      csv_lines
+      #setting the body to an enumerator, rails will iterate this enumerator
+    end
+
+    def set_file_headers
+      csv_filename = "test.csv"
+      # headers["Content-Type"] = "application/octet-stream"
+      headers["Content-Type"] = "text/csv; charset=utf-8"
+      headers["Content-disposition"] = %{attachment; filename="#{csv_filename}"}
+      headers['Last-Modified'] = Time.now.ctime.to_s
+
+      # headers["Content-Length"] = "10000000"
+    end
 
     def set_streaming_headers
       #nginx doc: Setting this to "no" will allow unbuffered responses suitable for Comet and HTTP streaming applications
       headers['X-Accel-Buffering'] = 'no'
+      headers["Cache-Control"] = "no-cache"
+      # headers.delete("Content-Length")
+    end
 
-      headers["Cache-Control"] ||= "no-cache"
-      headers.delete("Content-Length")
+    def csv_lines
+      set_streaming_headers
+      self.response_body = Enumerator.new do |y|
+        #byebug
+        # y << CSV::Row.new([:id], ['ID'], true).to_s
+        # y << Transaction.csv_header.to_s
+
+        #ideally you'd validate the params, skipping here for brevity
+        @resource.find_in_batches() do |records|
+          #byebug
+          records.each do |record|
+            y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
+          end
+        end
+      end
+
     end
   end
 end

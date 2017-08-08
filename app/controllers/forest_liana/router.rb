@@ -19,11 +19,7 @@ class ForestLiana::Router
         if params[:id]
           action = 'show'
         else
-          if params[:format] == 'csv'
-            action = 'csv_export'
-          else
-            action = 'index'
-          end
+          action = 'index'
         end
       when 'PUT'
         action = 'update'

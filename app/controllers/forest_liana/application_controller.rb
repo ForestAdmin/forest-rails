@@ -15,7 +15,7 @@ module ForestLiana
       before_filter :authenticate_user_from_jwt
       before_filter :set_paper_trail_whodunnit if self.papertrail?
     else
-      before_action :authenticate_user_from_jwt
+      # before_action :authenticate_user_from_jwt
       before_action :set_paper_trail_whodunnit if self.papertrail?
     end
 
