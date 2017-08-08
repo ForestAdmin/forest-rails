@@ -229,7 +229,7 @@ module ForestLiana
       schema = { field: column.name, type: get_type_for(column) }
       add_enum_values_if_is_enum(schema, column)
       add_enum_values_if_is_sti_model(schema, column)
-      # add_default_value(schema, column) if Rails::VERSION::MAJOR > 4
+      add_default_value(schema, column)
       add_validations(schema, column)
     end
 
@@ -299,6 +299,7 @@ module ForestLiana
     def add_default_value(column_schema, column)
       # TODO: detect/introspect the attribute default value with Rails 5
       #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
+      column_schema['default-value'] = column.default if column.default
     end
 
     def add_validations(column_schema, column)
