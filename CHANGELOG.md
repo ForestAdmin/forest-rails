@@ -4,8 +4,11 @@
 ### Added
 - Validations - Start the support of forms validations (with 6 first validations).
 
+### Changed
+- Technical - Update .gemspec file to specify that Rails 3 is not maintained anymore.
+
 ### Fixed
-- Record Updates - Do not try to update the Smart Fields if no new value is send in the update request. 
+- Record Updates - Do not try to update the Smart Fields if no new value is send in the update request.
 
 ## RELEASE 1.6.16 - 2017-08-03
 ### Fixed
