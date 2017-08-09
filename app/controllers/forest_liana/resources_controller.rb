@@ -104,12 +104,13 @@ module ForestLiana
       set_headers_streaming
 
       # response.status = 200
+      csv_header = params[:header].split(',')
       params[:fields][@resource.table_name]
       field_names_requested = params[:fields][@resource.table_name].split(',')
                                               .map { |name| name.to_s }
 
       self.response_body = Enumerator.new do |content|
-        content << CSV::Row.new(field_names_requested, field_names_requested, true).to_s
+        content << CSV::Row.new(field_names_requested, csv_header, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
           records.each do |record|
             json = serialize_model(record)
