@@ -100,52 +100,44 @@ module ForestLiana
     end
 
     def render_csv getter
-      set_file_headers
+      set_headers_file
+      set_headers_streaming
 
       # response.status = 200
+      params[:fields][@resource.table_name]
+      field_names_requested = params[:fields][@resource.table_name].split(',')
+                                              .map { |name| name.to_s }
 
-      #csv_lines
-      set_streaming_headers
-      self.response_body = Enumerator.new do |y|
-        # y << CSV::Row.new([:id], ['ID'], true).to_s
-        # y << Transaction.csv_header.to_s
-        byebug
-        # getter.query_for_batch.ibatches do |records|
+      self.response_body = Enumerator.new do |content|
+        content << CSV::Row.new(field_names_requested, field_names_requested, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
           records.each do |record|
-            y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
+            json = serialize_model(record)
+            attributes = json['data']['attributes']
+
+            values = field_names_requested.map do |field_name|
+              attributes[field_name]
+            end
+            content << CSV::Row.new(field_names_requested, values).to_s
           end
         end
       end
     end
 
-    def set_file_headers
+    def set_headers_file
       csv_filename = "#{@resource.name}.csv"
       headers["Content-Type"] = "text/csv; charset=utf-8"
       headers["Content-disposition"] = %{attachment; filename="#{csv_filename}"}
       headers['Last-Modified'] = Time.now.ctime.to_s
+      # TODO: Approximate the content length to have the download progress.
       # headers["Content-Length"] = "10000000"
     end
 
-    def set_streaming_headers
-      #nginx doc: Setting this to "no" will allow unbuffered responses suitable for Comet and HTTP streaming applications
+    def set_headers_streaming
+      # NOTICE: From nginx doc: Setting this to "no" will allow unbuffered
+      #         responses suitable for Comet and HTTP streaming applications
       headers['X-Accel-Buffering'] = 'no'
       headers["Cache-Control"] = "no-cache"
-      # headers.delete("Content-Length")
     end
-
-    # def csv_lines
-    #   set_streaming_headers
-    #   self.response_body = Enumerator.new do |y|
-    #     # y << CSV::Row.new([:id], ['ID'], true).to_s
-    #     # y << Transaction.csv_header.to_s
-    #     @resource.find_in_batches() do |records|
-    #       records.each do |record|
-    #         y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
-    #       end
-    #     end
-    #   end
-    #
-    # end
   end
 end

@@ -40,9 +40,9 @@ module ForestLiana
       force_utf8_encoding(json)
     end
 
-    def serialize_models(models, options = {})
+    def serialize_models(records, options = {})
       options[:is_collection] = true
-      json = JSONAPI::Serializer.serialize(models, options)
+      json = JSONAPI::Serializer.serialize(records, options)
 
       if options[:count]
         json[:meta] = {} unless json[:meta]
