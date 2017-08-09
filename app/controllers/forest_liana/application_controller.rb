@@ -15,7 +15,7 @@ module ForestLiana
       before_filter :authenticate_user_from_jwt
       before_filter :set_paper_trail_whodunnit if self.papertrail?
     else
-      # before_action :authenticate_user_from_jwt
+      before_action :authenticate_user_from_jwt
       before_action :set_paper_trail_whodunnit if self.papertrail?
     end
 
@@ -58,17 +58,23 @@ module ForestLiana
     end
 
     def authenticate_user_from_jwt
-      if request.headers['Authorization']
-        begin
-          token = request.headers['Authorization'].split.second
-          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true, {
-            algorithm: 'HS256',
-            leeway: 30
-          }).try(:first)
-        rescue JWT::ExpiredSignature, JWT::VerificationError
-          render json: { error: 'expired_token' }, status: 401, serializer: nil
+      begin
+        if request.headers['Authorization'] || cookies['liana_auth:session']
+          if request.headers['Authorization']
+            token = request.headers['Authorization'].split.second
+          else
+            token = eval(cookies["liana_auth:session"])[:token]
+          end
+
+          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
+            { algorithm: 'HS256', leeway: 30 }).try(:first)
+        else
+          head :unauthorized
         end
-      else
+      rescue JWT::ExpiredSignature, JWT::VerificationError
+        render json: { error: 'expired_token' }, status: :unauthorized,
+          serializer: nil
+      rescue
         head :unauthorized
       end
     end
