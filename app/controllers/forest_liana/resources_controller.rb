@@ -14,9 +14,12 @@ module ForestLiana
     end
 
     def index
+      getter = ForestLiana::ResourcesGetter.new(@resource, params)
+      getter.perform
+
       respond_to do |format|
-        format.json { render_jsonapi }
-        format.csv { render_csv }
+        format.json { render_jsonapi(getter) }
+        format.csv { render_csv(getter) }
       end
     end
 
@@ -91,22 +94,29 @@ module ForestLiana
       head :not_found
     end
 
-    def render_jsonapi
-      getter = ForestLiana::ResourcesGetter.new(@resource, params)
-      getter.perform
-
+    def render_jsonapi getter
       render serializer: nil, json: serialize_models(getter.records,
-                                                     include: includes(getter),
-                                                     count: getter.count,
-                                                     params: params)
+        include: includes(getter), count: getter.count, params: params)
     end
 
-    def render_csv
+    def render_csv getter
       set_file_headers
 
       # response.status = 200
 
-      csv_lines
+      #csv_lines
+      set_streaming_headers
+      self.response_body = Enumerator.new do |y|
+        # y << CSV::Row.new([:id], ['ID'], true).to_s
+        # y << Transaction.csv_header.to_s
+        byebug
+        # getter.query_for_batch.ibatches do |records|
+        getter.query_for_batch.find_in_batches() do |records|
+          records.each do |record|
+            y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
+          end
+        end
+      end
     end
 
     def set_file_headers
@@ -124,18 +134,18 @@ module ForestLiana
       # headers.delete("Content-Length")
     end
 
-    def csv_lines
-      set_streaming_headers
-      self.response_body = Enumerator.new do |y|
-        # y << CSV::Row.new([:id], ['ID'], true).to_s
-        # y << Transaction.csv_header.to_s
-        @resource.find_in_batches() do |records|
-          records.each do |record|
-            y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
-          end
-        end
-      end
-
-    end
+    # def csv_lines
+    #   set_streaming_headers
+    #   self.response_body = Enumerator.new do |y|
+    #     # y << CSV::Row.new([:id], ['ID'], true).to_s
+    #     # y << Transaction.csv_header.to_s
+    #     @resource.find_in_batches() do |records|
+    #       records.each do |record|
+    #         y << CSV::Row.new([:id, :firstname, :lastname], [record.id, record.firstname, record.lastname]).to_s
+    #       end
+    #     end
+    #   end
+    #
+    # end
   end
 end

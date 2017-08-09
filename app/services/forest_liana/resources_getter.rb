@@ -31,6 +31,10 @@ module ForestLiana
       @records_sorted = sort_query
     end
 
+    def query_for_batch
+      @records
+    end
+
     def records
       @records_sorted.offset(offset).limit(limit).to_a
     end
