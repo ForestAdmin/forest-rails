@@ -39,8 +39,8 @@ module ForestLiana::Collection
         :'is-virtual' => true
       })
 
-      if serializer_name && ForestLiana::UserSpace.const_defined?(
-          serializer_name)
+      if serializer_name &&
+        ForestLiana::UserSpace.const_defined?(serializer_name)
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
           attribute(name, &block)
         end
@@ -54,8 +54,8 @@ module ForestLiana::Collection
         type: ['String']
       })
 
-      if serializer_name && ForestLiana::UserSpace.const_defined?(
-          serializer_name)
+      if serializer_name &&
+        ForestLiana::UserSpace.const_defined?(serializer_name)
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
           has_many(name, name: name)
         end

@@ -39,6 +39,10 @@ module ForestLiana
         .map { |association| association.name.to_s }
     end
 
+    def query_for_batch
+      @records
+    end
+
     def records
       @records.limit(limit).offset(offset)
     end

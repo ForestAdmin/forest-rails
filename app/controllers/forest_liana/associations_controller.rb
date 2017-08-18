@@ -12,10 +12,10 @@ module ForestLiana
       getter = HasManyGetter.new(@resource, @association, params)
       getter.perform
 
-      render serializer: nil, json: serialize_models(getter.records,
-                                                     include: getter.includes,
-                                                     count: getter.count,
-                                                     params: params)
+      respond_to do |format|
+        format.json { render_jsonapi(getter) }
+        format.csv { render_csv(getter, @association.table_name) }
+      end
     end
 
     def update
@@ -69,6 +69,11 @@ module ForestLiana
 
     def resource_params
       ResourceDeserializer.new(@resource, params[:resource], true).perform
+    end
+
+    def render_jsonapi getter
+      render serializer: nil, json: serialize_models(getter.records,
+        include: getter.includes, count: getter.count, params: params)
     end
   end
 end

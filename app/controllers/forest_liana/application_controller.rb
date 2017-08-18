@@ -33,16 +33,16 @@ module ForestLiana
       @jwt_decoded_token
     end
 
-    def serialize_model(model, options = {})
+    def serialize_model(record, options = {})
       options[:is_collection] = false
-      json = JSONAPI::Serializer.serialize(model, options)
+      json = JSONAPI::Serializer.serialize(record, options)
 
       force_utf8_encoding(json)
     end
 
-    def serialize_models(models, options = {})
+    def serialize_models(records, options = {})
       options[:is_collection] = true
-      json = JSONAPI::Serializer.serialize(models, options)
+      json = JSONAPI::Serializer.serialize(records, options)
 
       if options[:count]
         json[:meta] = {} unless json[:meta]
@@ -58,17 +58,23 @@ module ForestLiana
     end
 
     def authenticate_user_from_jwt
-      if request.headers['Authorization']
-        begin
-          token = request.headers['Authorization'].split.second
-          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true, {
-            algorithm: 'HS256',
-            leeway: 30
-          }).try(:first)
-        rescue JWT::ExpiredSignature, JWT::VerificationError
-          render json: { error: 'expired_token' }, status: 401, serializer: nil
+      begin
+        if request.headers['Authorization'] || cookies['liana_auth:session']
+          if request.headers['Authorization']
+            token = request.headers['Authorization'].split.second
+          else
+            token = eval(cookies["liana_auth:session"])[:token]
+          end
+
+          @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
+            { algorithm: 'HS256', leeway: 30 }).try(:first)
+        else
+          head :unauthorized
         end
-      else
+      rescue JWT::ExpiredSignature, JWT::VerificationError
+        render json: { error: 'expired_token' }, status: :unauthorized,
+          serializer: nil
+      rescue
         head :unauthorized
       end
     end
@@ -108,5 +114,56 @@ module ForestLiana
       end
     end
 
+    def render_csv getter, table_name
+      set_headers_file
+      set_headers_streaming
+
+      response.status = 200
+      csv_header = params[:header].split(',')
+      field_names_requested = params[:fields][table_name]
+        .split(',').map { |name| name.to_s }
+
+      self.response_body = Enumerator.new do |content|
+        content << CSV::Row.new(field_names_requested, csv_header, true).to_s
+        getter.query_for_batch.find_in_batches() do |records|
+          records.each do |record|
+            json = serialize_model(record, {
+              include: getter.includes.map(&:to_s)
+            })
+            record_attributes = json['data']['attributes']
+            record_relationships = json['data']['relationships']
+            included = json['included']
+
+            values = field_names_requested.map do |field_name|
+              if record_attributes[field_name]
+                record_attributes[field_name]
+              elsif record_relationships[field_name]
+                relationship_id = record_relationships[field_name]['data']['id']
+                relationship_type = record_relationships[field_name]['data']['type']
+                relationship_object = included.select do |record|
+                  record['id'] == relationship_id && record['type'] == relationship_type
+                end
+                relationship_object.first['attributes'][params[:fields][field_name]]
+              end
+            end
+            content << CSV::Row.new(field_names_requested, values).to_s
+          end
+        end
+      end
+    end
+
+    def set_headers_file
+      csv_filename = "#{params[:filename]}.csv"
+      headers["Content-Type"] = "text/csv; charset=utf-8"
+      headers["Content-disposition"] = %{attachment; filename="#{csv_filename}"}
+      headers['Last-Modified'] = Time.now.ctime.to_s
+    end
+
+    def set_headers_streaming
+      # NOTICE: From nginx doc: Setting this to "no" will allow unbuffered
+      #         responses suitable for Comet and HTTP streaming applications
+      headers['X-Accel-Buffering'] = 'no'
+      headers["Cache-Control"] = "no-cache"
+    end
   end
 end

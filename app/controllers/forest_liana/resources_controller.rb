@@ -17,10 +17,10 @@ module ForestLiana
       getter = ForestLiana::ResourcesGetter.new(@resource, params)
       getter.perform
 
-      render serializer: nil, json: serialize_models(getter.records,
-                                                     include: includes(getter),
-                                                     count: getter.count,
-                                                     params: params)
+      respond_to do |format|
+        format.json { render_jsonapi(getter) }
+        format.csv { render_csv(getter, @resource.table_name) }
+      end
     end
 
     def show
@@ -92,6 +92,11 @@ module ForestLiana
 
     def record_not_found
       head :not_found
+    end
+
+    def render_jsonapi getter
+      render serializer: nil, json: serialize_models(getter.records,
+        include: includes(getter), count: getter.count, params: params)
     end
   end
 end
