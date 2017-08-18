@@ -105,7 +105,6 @@ module ForestLiana
 
       response.status = 200
       csv_header = params[:header].split(',')
-      params[:fields][@resource.table_name]
       field_names_requested = params[:fields][@resource.table_name]
         .split(',').map { |name| name.to_s }
 
