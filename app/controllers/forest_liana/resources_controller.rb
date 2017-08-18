@@ -19,7 +19,7 @@ module ForestLiana
 
       respond_to do |format|
         format.json { render_jsonapi(getter) }
-        format.csv { render_csv(getter) }
+        format.csv { render_csv(getter, @resource.table_name) }
       end
     end
 
@@ -97,45 +97,6 @@ module ForestLiana
     def render_jsonapi getter
       render serializer: nil, json: serialize_models(getter.records,
         include: includes(getter), count: getter.count, params: params)
-    end
-
-    def render_csv getter
-      set_headers_file
-      set_headers_streaming
-
-      response.status = 200
-      csv_header = params[:header].split(',')
-      field_names_requested = params[:fields][@resource.table_name]
-        .split(',').map { |name| name.to_s }
-
-      self.response_body = Enumerator.new do |content|
-        content << CSV::Row.new(field_names_requested, csv_header, true).to_s
-        getter.query_for_batch.find_in_batches() do |records|
-          records.each do |record|
-            json = serialize_model(record)
-            attributes = json['data']['attributes']
-
-            values = field_names_requested.map do |field_name|
-              attributes[field_name]
-            end
-            content << CSV::Row.new(field_names_requested, values).to_s
-          end
-        end
-      end
-    end
-
-    def set_headers_file
-      csv_filename = "#{params[:filename]}.csv"
-      headers["Content-Type"] = "text/csv; charset=utf-8"
-      headers["Content-disposition"] = %{attachment; filename="#{csv_filename}"}
-      headers['Last-Modified'] = Time.now.ctime.to_s
-    end
-
-    def set_headers_streaming
-      # NOTICE: From nginx doc: Setting this to "no" will allow unbuffered
-      #         responses suitable for Comet and HTTP streaming applications
-      headers['X-Accel-Buffering'] = 'no'
-      headers["Cache-Control"] = "no-cache"
     end
   end
 end
