@@ -33,9 +33,9 @@ module ForestLiana
       @jwt_decoded_token
     end
 
-    def serialize_model(model, options = {})
+    def serialize_model(record, options = {})
       options[:is_collection] = false
-      json = JSONAPI::Serializer.serialize(model, options)
+      json = JSONAPI::Serializer.serialize(record, options)
 
       force_utf8_encoding(json)
     end
@@ -127,11 +127,24 @@ module ForestLiana
         content << CSV::Row.new(field_names_requested, csv_header, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
           records.each do |record|
-            json = serialize_model(record)
-            attributes = json['data']['attributes']
+            json = serialize_model(record, {
+              include: getter.includes.map(&:to_s)
+            })
+            record_attributes = json['data']['attributes']
+            record_relationships = json['data']['relationships']
+            included = json['included']
 
             values = field_names_requested.map do |field_name|
-              attributes[field_name]
+              if record_attributes[field_name]
+                record_attributes[field_name]
+              elsif record_relationships[field_name]
+                relationship_id = record_relationships[field_name]['data']['id']
+                relationship_type = record_relationships[field_name]['data']['type']
+                relationship_object = included.select do |record|
+                  record['id'] == relationship_id && record['type'] == relationship_type
+                end
+                relationship_object.first['attributes'][params[:fields][field_name]]
+              end
             end
             content << CSV::Row.new(field_names_requested, values).to_s
           end
