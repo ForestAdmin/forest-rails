@@ -79,16 +79,18 @@ module ForestLiana
           end
         end
 
-        SchemaUtils.one_associations(@resource).map(&:name).each do |association|
-          if @includes.include? association.to_sym
-            resource = @resource.reflect_on_association(association.to_sym)
-            resource.klass.columns.each do |column|
-              if !(column.respond_to?(:array) && column.array) &&
-                (column.type == :string || column.type == :text)
-                column_name = format_column_name(resource.table_name,
-                  column.name)
-                conditions << "LOWER(#{column_name}) LIKE " +
-                  "'%#{@params[:search].downcase}%'"
+        if (@params['searchExtended'].to_i == 1)
+          SchemaUtils.one_associations(@resource).map(&:name).each do |association|
+            if @includes.include? association.to_sym
+              resource = @resource.reflect_on_association(association.to_sym)
+              resource.klass.columns.each do |column|
+                if !(column.respond_to?(:array) && column.array) &&
+                  (column.type == :string || column.type == :text)
+                  column_name = format_column_name(resource.table_name,
+                    column.name)
+                  conditions << "LOWER(#{column_name}) LIKE " +
+                    "'%#{@params[:search].downcase}%'"
+                end
               end
             end
           end

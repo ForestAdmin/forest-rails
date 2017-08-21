@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Exports - Forest can now handle large data exports.
+- Search - Split "simple" and "deep" search features with a new param.
 
 ## RELEASE 1.6.17 - 2017-08-08
 ### Added
