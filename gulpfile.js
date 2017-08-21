@@ -1,10 +1,13 @@
 'use strict';
-let gulp = require('gulp');
-let moment = require('moment');
-let fs = require('fs');
-let simpleGit = require('simple-git')();
-let semver = require('semver');
-let exec = require('child_process').execSync;
+const gulp = require('gulp');
+const moment = require('moment');
+const fs = require('fs');
+const simpleGit = require('simple-git')();
+const semver = require('semver');
+const exec = require('child_process').execSync;
+
+let BRANCH_MASTER = 'master';
+let BRANCH_DEVEL = 'devel';
 
 gulp.task('build', () => {
   let numberToIncrement = 'patch';
@@ -32,12 +35,20 @@ gulp.task('build', () => {
   data.splice(3, 0, `\n## RELEASE ${version} - ${today}`);
   let text = data.join('\n');
 
-  fs.writeFileSync('CHANGELOG.md', text);
-
-  // COMMIT
-  simpleGit.add('*', () => {
-    simpleGit.commit(`Release ${version}`);
-
-    exec('gem build forest_liana.gemspec');
-  });
+  simpleGit
+    .checkout(BRANCH_DEVEL)
+    .then(function() { console.log('Starting pull on ' + BRANCH_DEVEL + '...'); })
+    .pull(function(error) { if (error) { console.log(error); } })
+    .then(function() { console.log(BRANCH_DEVEL + ' pull done.'); })
+    .then(function() { fs.writeFileSync('CHANGELOG.md', text); })
+    .add('*')
+    .commit(`Release ${version}`)
+    .push()
+    .checkout(BRANCH_MASTER)
+    .then(function() { console.log('Starting pull on ' + BRANCH_MASTER + '...'); })
+    .pull(function(error) { if (error) { console.log(error); } })
+    .then(function() { console.log(BRANCH_MASTER + ' pull done.'); })
+    .mergeFromTo(BRANCH_DEVEL, BRANCH_MASTER)
+    .push();
+    .then(function() { exec('gem build forest_liana.gemspec'); });
 });
