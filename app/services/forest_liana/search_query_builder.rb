@@ -79,7 +79,7 @@ module ForestLiana
           end
         end
 
-        if (@params['deep'].to_i == 1)
+        if (@params['searchExtended'].to_i == 1)
           SchemaUtils.one_associations(@resource).map(&:name).each do |association|
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)
