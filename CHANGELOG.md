@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.0 - 2017-08-21
 ### Added
 - Exports - Forest can now handle large data exports.
 - Search - Split "simple" and "deep" search features with a new param.
