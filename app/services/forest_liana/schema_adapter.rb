@@ -307,6 +307,9 @@ module ForestLiana
         column_schema[:validations] = []
 
         @model._validators[column.name.to_sym].each do |validator|
+          # NOTICE: Do not consider conditional validations
+          next if validator.options[:if] || validator.options[:unless]
+
           case validator
           when ActiveRecord::Validations::PresenceValidator
             column_schema[:validations] << {
