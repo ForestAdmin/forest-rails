@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.2 - 2017-08-22
 ### Fixed
 - Validations - Do not consider validations if an Active Record before_validation Callback is defined in the model.
 
