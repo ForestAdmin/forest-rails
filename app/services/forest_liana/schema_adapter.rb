@@ -303,6 +303,12 @@ module ForestLiana
     end
 
     def add_validations(column_schema, column)
+      # NOTICE: Do not consider validations if a before_validation Active Records
+      #         Callback is detected.
+      if @model._validation_callbacks.map(&:kind).include? :before
+        return column_schema
+      end
+
       if @model._validators? && @model._validators[column.name.to_sym].size > 0
         column_schema[:validations] = []
 
