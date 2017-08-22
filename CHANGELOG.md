@@ -1,7 +1,7 @@
 # Change Log
 
 ## [Unreleased]
-### Fixed
+### Fixed
 - Validations - Do not consider conditional validations for Forest forms validation.
 
 ## RELEASE 1.7.0 - 2017-08-21
@@ -14,7 +14,7 @@
 - Validations - Start the support of forms validations (with 6 first validations).
 - Fields - Send the defaultValue for creation forms.
 
-### Changed
+### Changed
 - Technical - Update .gemspec file to specify that Rails 3 is not maintained anymore.
 
 ### Fixed
@@ -35,10 +35,10 @@
 ### Added
 - Filters - Add the before x hours operator.
 
-### Changed
+### Changed
 - Errors - Improve error handling on Record creation and update.
 
-### Fixed
+### Fixed
 - Router - Catch resources routing errors with a 404 response instead of a crash.
 
 ## RELEASE 1.6.13 - 2017-06-23
