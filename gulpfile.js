@@ -49,6 +49,6 @@ gulp.task('build', () => {
     .pull(function(error) { if (error) { console.log(error); } })
     .then(function() { console.log(BRANCH_MASTER + ' pull done.'); })
     .mergeFromTo(BRANCH_DEVEL, BRANCH_MASTER)
-    .push();
+    .push()
     .then(function() { exec('gem build forest_liana.gemspec'); });
 });
