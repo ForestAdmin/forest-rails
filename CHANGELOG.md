@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.1 - 2017-08-22
 ### Fixed
 - Validations - Do not consider conditional validations for Forest forms validation.
 
