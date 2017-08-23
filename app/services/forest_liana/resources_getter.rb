@@ -10,7 +10,14 @@ module ForestLiana
     end
 
     def perform
-      @records = @resource.unscoped
+      use_act_as_paranoid = @resource.instance_methods
+        .include? :really_destroyed?
+
+      if use_act_as_paranoid
+        @records = @resource
+      else
+        @records = @resource.unscoped
+      end
 
       if @segment && @segment.scope
         @records = @records.send(@segment.scope)
