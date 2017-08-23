@@ -1,5 +1,5 @@
 module ForestLiana
-  class ResourceGetter
+  class ResourceGetter < BaseGetter
     attr_accessor :record
 
     def initialize(resource, params)
@@ -8,7 +8,7 @@ module ForestLiana
     end
 
     def perform
-      @record = @resource.eager_load(includes).find(@params[:id])
+      @record = get_resource().eager_load(includes).find(@params[:id])
     end
 
     def includes

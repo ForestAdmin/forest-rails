@@ -1,5 +1,5 @@
 module ForestLiana
-  class ResourcesGetter
+  class ResourcesGetter < BaseGetter
     def initialize(resource, params)
       @resource = resource
       @params = params
@@ -10,16 +10,7 @@ module ForestLiana
     end
 
     def perform
-      use_act_as_paranoid = @resource.instance_methods
-        .include? :really_destroyed?
-
-      if use_act_as_paranoid
-        # NOTICE: Do not unscope with the paranoia gem to prevent the retrieval
-        #         of deleted records.
-        @records = @resource
-      else
-        @records = @resource.unscoped
-      end
+      @records = get_resource
 
       if @segment && @segment.scope
         @records = @records.send(@segment.scope)

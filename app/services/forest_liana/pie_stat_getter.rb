@@ -5,7 +5,6 @@ module ForestLiana
     def perform
       if @params[:group_by_field]
         timezone_offset = @params[:timezone].to_i
-        value = @resource
         conditions = []
         filter_operator = ''
 
@@ -19,8 +18,7 @@ module ForestLiana
           end
         end
 
-        value = value
-          .unscoped
+        value = get_resource()
           .eager_load(includes)
           .where(conditions.join(filter_operator))
           .group(group_by_field)

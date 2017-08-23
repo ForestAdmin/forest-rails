@@ -25,7 +25,7 @@ module ForestLiana
     end
 
     def perform
-      value = @resource.unscoped.eager_load(includes)
+      value = get_resource().eager_load(includes)
 
       if @params[:filterType] && @params[:filters]
         conditions = []

@@ -1,5 +1,5 @@
 module ForestLiana
-  class HasManyGetter
+  class HasManyGetter < BaseGetter
     def initialize(resource, association, params)
       @resource = resource
       @association = association
@@ -8,8 +8,7 @@ module ForestLiana
     end
 
     def perform
-      @records = @resource
-        .unscoped
+      @records = get_resource()
         .find(@params[:id])
         .send(@params[:association_name])
         .eager_load(includes)
