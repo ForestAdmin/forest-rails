@@ -59,11 +59,11 @@ module ForestLiana
 
     def authenticate_user_from_jwt
       begin
-        if request.headers['Authorization'] || cookies['liana_auth:session']
+        if request.headers['Authorization'] || params['sessionToken']
           if request.headers['Authorization']
             token = request.headers['Authorization'].split.second
           else
-            token = eval(cookies["liana_auth:session"])[:token]
+            token = params['sessionToken']
           end
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
