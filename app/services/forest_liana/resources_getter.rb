@@ -14,6 +14,8 @@ module ForestLiana
         .include? :really_destroyed?
 
       if use_act_as_paranoid
+        # NOTICE: Do not unscope with the paranoia gem to prevent the retrieval
+        #         of deleted records.
         @records = @resource
       else
         @records = @resource.unscoped
