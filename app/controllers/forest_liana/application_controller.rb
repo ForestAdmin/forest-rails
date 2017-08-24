@@ -145,7 +145,13 @@ module ForestLiana
                 relationship_object = included.select do |record|
                   record['id'] == relationship_id && record['type'] == relationship_type
                 end
-                relationship_object.first['attributes'][params[:fields][field_name]]
+
+                relationship_object = relationship_object.first
+                if relationship_object && relationship_object['attributes']
+                  relationship_object['attributes'][params[:fields][field_name]]
+                else
+                  nil
+                end
               end
             end
             content << ::CSV::Row.new(field_names_requested, values).to_s

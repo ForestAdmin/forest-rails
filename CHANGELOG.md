@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Exports - Add a new protection while formatting the data, if an associated record is not found.
+
 ## RELEASE 1.7.5 - 2017-08-24
 ### Fixed
 - Exports - Require missing lib for CSV formatting.
