@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.5 - 2017-08-24
 ## RELEASE 1.7.5 - 2017-08-24
 ### Fixed
 - Exports - Require missing lib for CSV formatting.
