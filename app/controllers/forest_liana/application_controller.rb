@@ -124,7 +124,7 @@ module ForestLiana
         .split(',').map { |name| name.to_s }
 
       self.response_body = Enumerator.new do |content|
-        content << CSV::Row.new(field_names_requested, csv_header, true).to_s
+        content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
           records.each do |record|
             json = serialize_model(record, {
@@ -137,7 +137,8 @@ module ForestLiana
             values = field_names_requested.map do |field_name|
               if record_attributes[field_name]
                 record_attributes[field_name]
-              elsif record_relationships[field_name]
+              elsif record_relationships[field_name] &&
+                record_relationships[field_name]['data']
                 relationship_id = record_relationships[field_name]['data']['id']
                 relationship_type = record_relationships[field_name]['data']['type']
                 relationship_object = included.select do |record|
@@ -146,7 +147,7 @@ module ForestLiana
                 relationship_object.first['attributes'][params[:fields][field_name]]
               end
             end
-            content << CSV::Row.new(field_names_requested, values).to_s
+            content << ::CSV::Row.new(field_names_requested, values).to_s
           end
         end
       end
