@@ -3,7 +3,6 @@
 ## [Unreleased]
 
 ## RELEASE 1.7.6 - 2017-08-24
-
 ### Fixed
 - Exports - Add a new protection while formatting the data, if an associated record is not found.
 
