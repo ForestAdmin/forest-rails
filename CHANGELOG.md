@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.4 - 2017-08-24
 ### Fixed
 - Exports - Fix some issues with the new export feature.
 

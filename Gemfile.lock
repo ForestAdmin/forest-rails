@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.7.3)
+    forest_liana (1.7.4)
       arel-helpers
       bcrypt
       groupdate
