@@ -1,4 +1,5 @@
 require 'jwt'
+require 'csv'
 
 module ForestLiana
   class ApplicationController < ::ActionController::Base
