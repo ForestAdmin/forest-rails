@@ -1,5 +1,5 @@
 module ForestLiana
-  class ResourcesGetter
+  class ResourcesGetter < BaseGetter
     def initialize(resource, params)
       @resource = resource
       @params = params
@@ -10,7 +10,7 @@ module ForestLiana
     end
 
     def perform
-      @records = @resource.unscoped
+      @records = get_resource
 
       if @segment && @segment.scope
         @records = @records.send(@segment.scope)

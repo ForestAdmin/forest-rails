@@ -1,5 +1,5 @@
 module ForestLiana
-  class StatGetter
+  class StatGetter < BaseGetter
     attr_accessor :record
 
     def initialize(resource, params)
