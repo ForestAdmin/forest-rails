@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.7 - 2017-08-29
 ### Added
 - Paranoid Mode - Support Paranoia gem and hide all "deleted" data in Forest.
 
