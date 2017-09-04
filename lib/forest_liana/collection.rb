@@ -25,6 +25,10 @@ module ForestLiana::Collection
       model.segments << ForestLiana::Model::Segment.new(opts, &block)
     end
 
+    def search_fields(fields)
+      model.search_fields = fields
+    end
+
     def field(name, opts, &block)
       opts[:read_only] = true unless opts.has_key?(:read_only)
       opts[:is_searchable] = false unless opts.has_key?(:is_searchable)

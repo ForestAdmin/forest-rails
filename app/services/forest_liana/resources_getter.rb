@@ -5,7 +5,9 @@ module ForestLiana
       @params = params
       @count_needs_includes = false
       @field_names_requested = field_names_requested
-
+      @current_collection = ForestLiana.apimap.find do |collection|
+        collection.name.to_s == @resource.table_name
+      end
       get_segment()
     end
 
@@ -96,7 +98,7 @@ module ForestLiana
     end
 
     def search_query
-      SearchQueryBuilder.new(@records, @params, includes).perform
+      SearchQueryBuilder.new(@records, @params, includes, @current_collection).perform
     end
 
     def sort_query
