@@ -51,25 +51,27 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           column_name = format_column_name(@resource.table_name, column.name)
-          if @collection.search_fields && !@collection.search_fields.index(column.name)
-            
-          elsif column.name == 'id'
-            if column.type == :integer
-              value = @params[:search].to_i
-              conditions << "#{@resource.table_name}.id = #{value}" if value > 0
-            elsif REGEX_UUID.match(@params[:search])
-              conditions << "#{@resource.table_name}.id =
-                '#{@params[:search]}'"
+          puts(column_name)
+          byebug
+          if (@collection.search_fields && @collection.search_fields.index(column.name)) || !@collection.search_fields
+            if column.name == 'id'
+              if column.type == :integer
+                value = @params[:search].to_i
+                conditions << "#{@resource.table_name}.id = #{value}" if value > 0
+              elsif REGEX_UUID.match(@params[:search])
+                conditions << "#{@resource.table_name}.id =
+                  '#{@params[:search]}'"
+              end
+            # NOTICE: Rails 3 do not have a defined_enums method
+            elsif @resource.respond_to?(:defined_enums) &&
+              @resource.defined_enums.has_key?(column.name) &&
+              !@resource.defined_enums[column.name][@params[:search].downcase].nil?
+              conditions << "#{column_name} =
+                #{@resource.defined_enums[column.name][@params[:search].downcase]}"
+            elsif !(column.respond_to?(:array) && column.array) &&
+              (column.type == :string || column.type == :text)
+              conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
             end
-          # NOTICE: Rails 3 do not have a defined_enums method
-          elsif @resource.respond_to?(:defined_enums) &&
-            @resource.defined_enums.has_key?(column.name) &&
-            !@resource.defined_enums[column.name][@params[:search].downcase].nil?
-            conditions << "#{column_name} =
-              #{@resource.defined_enums[column.name][@params[:search].downcase]}"
-          elsif !(column.respond_to?(:array) && column.array) &&
-            (column.type == :string || column.type == :text)
-            conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
           end
         end
 
