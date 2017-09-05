@@ -51,8 +51,6 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           column_name = format_column_name(@resource.table_name, column.name)
-          puts(column_name)
-          byebug
           if (@collection.search_fields && @collection.search_fields.index(column.name)) || !@collection.search_fields
             if column.name == 'id'
               if column.type == :integer
@@ -86,6 +84,13 @@ module ForestLiana
 
         if (@params['searchExtended'].to_i == 1)
           SchemaUtils.one_associations(@resource).map(&:name).each do |association|
+            if @collection.search_fields
+              association_search = @collection.search_fields.map do |field|
+                if field.include? association.to_s
+                  field.split('.')[1]
+                end
+              end
+            end
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)
               resource.klass.columns.each do |column|
@@ -93,8 +98,10 @@ module ForestLiana
                   (column.type == :string || column.type == :text)
                   column_name = format_column_name(resource.table_name,
                     column.name)
-                  conditions << "LOWER(#{column_name}) LIKE " +
-                    "'%#{@params[:search].downcase}%'"
+                    if (association_search && association_search.include?(column.name)) || !association_search
+                    conditions << "LOWER(#{column_name}) LIKE " +
+                      "'%#{@params[:search].downcase}%'"
+                  end
                 end
               end
             end
