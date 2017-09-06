@@ -51,25 +51,25 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           column_name = format_column_name(@resource.table_name, column.name)
-          if (@collection.search_fields && @collection.search_fields.index(column.name)) || !@collection.search_fields
-            if column.name == 'id'
-              if column.type == :integer
-                value = @params[:search].to_i
-                conditions << "#{@resource.table_name}.id = #{value}" if value > 0
-              elsif REGEX_UUID.match(@params[:search])
-                conditions << "#{@resource.table_name}.id =
-                  '#{@params[:search]}'"
-              end
-            # NOTICE: Rails 3 do not have a defined_enums method
-            elsif @resource.respond_to?(:defined_enums) &&
-              @resource.defined_enums.has_key?(column.name) &&
-              !@resource.defined_enums[column.name][@params[:search].downcase].nil?
-              conditions << "#{column_name} =
-                #{@resource.defined_enums[column.name][@params[:search].downcase]}"
-            elsif !(column.respond_to?(:array) && column.array) &&
-              (column.type == :string || column.type == :text)
-              conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
+          if (@collection.search_fields && !@collection.search_fields.index(column.name))
+            conditions
+          elsif column.name == 'id'
+            if column.type == :integer
+              value = @params[:search].to_i
+              conditions << "#{@resource.table_name}.id = #{value}" if value > 0
+            elsif REGEX_UUID.match(@params[:search])
+              conditions << "#{@resource.table_name}.id =
+                '#{@params[:search]}'"
             end
+          # NOTICE: Rails 3 do not have a defined_enums method
+          elsif @resource.respond_to?(:defined_enums) &&
+            @resource.defined_enums.has_key?(column.name) &&
+            !@resource.defined_enums[column.name][@params[:search].downcase].nil?
+            conditions << "#{column_name} =
+              #{@resource.defined_enums[column.name][@params[:search].downcase]}"
+          elsif !(column.respond_to?(:array) && column.array) &&
+            (column.type == :string || column.type == :text)
+            conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
           end
         end
 
@@ -86,7 +86,7 @@ module ForestLiana
           SchemaUtils.one_associations(@resource).map(&:name).each do |association|
             if @collection.search_fields
               association_search = @collection.search_fields.map do |field|
-                if field.include? association.to_s
+                if field.include?('.') && field.split('.')[0] == association.to_s
                   field.split('.')[1]
                 end
               end
@@ -98,8 +98,8 @@ module ForestLiana
                   (column.type == :string || column.type == :text)
                   column_name = format_column_name(resource.table_name,
                     column.name)
-                    if (association_search && association_search.include?(column.name)) || !association_search
-                    conditions << "LOWER(#{column_name}) LIKE " +
+                  if @collection.search_fields.nil? || (association_search && association_search.include?(column.name))
+                      conditions << "LOWER(#{column_name}) LIKE " +
                       "'%#{@params[:search].downcase}%'"
                   end
                 end
@@ -192,7 +192,7 @@ module ForestLiana
                 COUNT(#{association.table_name}.id)
                 #{association.table_name}_has_many_count")
         .joins(ArelHelpers.join_association(@resource, association.name,
-                                            Arel::Nodes::OuterJoin))
+          Arel::Nodes::OuterJoin))
         .group("#{@resource.table_name}.id")
         .having("COUNT(#{association.table_name}) #{operator} #{value}")
     end
@@ -210,7 +210,7 @@ module ForestLiana
                 COUNT(#{association.table_name}.id)
                 #{association.table_name}_has_many_count")
         .joins(ArelHelpers.join_association(@resource, association.name,
-                                            Arel::Nodes::OuterJoin))
+          Arel::Nodes::OuterJoin))
         .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
         .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
     end

@@ -5,9 +5,7 @@ module ForestLiana
       @params = params
       @count_needs_includes = false
       @field_names_requested = field_names_requested
-      @current_collection = ForestLiana.apimap.find do |collection|
-        collection.name.to_s == @resource.table_name
-      end
+      @current_collection = get_current_collection(@resource.table_name)
       get_segment()
     end
 

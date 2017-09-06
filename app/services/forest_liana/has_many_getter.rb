@@ -5,9 +5,7 @@ module ForestLiana
       @association = association
       @params = params
       @field_names_requested = field_names_requested
-      @current_collection = ForestLiana.apimap.find do |collection|
-        collection.name.to_s == association_table_name
-      end
+      @current_collection = get_current_collection(association_table_name)
     end
 
     def perform
