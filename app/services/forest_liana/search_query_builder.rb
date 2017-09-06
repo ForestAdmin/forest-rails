@@ -51,7 +51,7 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           column_name = format_column_name(@resource.table_name, column.name)
-          if (@collection.search_fields && !@collection.search_fields.index(column.name))
+          if (@collection.search_fields && !@collection.search_fields.include?(column.name))
             conditions
           elsif column.name == 'id'
             if column.type == :integer
@@ -90,6 +90,7 @@ module ForestLiana
                   field.split('.')[1]
                 end
               end
+              association_search = association_search.compact
             end
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)

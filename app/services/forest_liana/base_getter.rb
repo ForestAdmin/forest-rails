@@ -5,6 +5,7 @@ module ForestLiana
         collection.name.to_s == table_name
       end
     end
+
     def get_resource
       use_act_as_paranoid = @resource.instance_methods
         .include? :really_destroyed?

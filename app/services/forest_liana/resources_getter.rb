@@ -59,11 +59,7 @@ module ForestLiana
 
     def get_segment
       if @params[:segment]
-        current_collection = ForestLiana.apimap.find do |collection|
-          collection.name.to_s == @resource.table_name
-        end
-
-        @segment = current_collection.segments.find do |segment|
+        @segment = @current_collection.segments.find do |segment|
           segment.name == @params[:segment]
         end
       end
