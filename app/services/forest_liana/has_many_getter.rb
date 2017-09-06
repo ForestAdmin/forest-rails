@@ -5,6 +5,7 @@ module ForestLiana
       @association = association
       @params = params
       @field_names_requested = field_names_requested
+      @current_collection = get_current_collection(association_table_name)
     end
 
     def perform
@@ -18,7 +19,8 @@ module ForestLiana
 
     def search_query
       includesSymbols = includes.map { |association| association.to_sym }
-      SearchQueryBuilder.new(@records, @params, includesSymbols).perform
+      SearchQueryBuilder.new(@records, @params,
+        includesSymbols, @current_collection).perform
     end
 
     def includes

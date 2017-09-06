@@ -2,10 +2,11 @@ module ForestLiana
   class SearchQueryBuilder
     REGEX_UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
-    def initialize(resource, params, includes)
+    def initialize(resource, params, includes, collection)
       @resource = @records = resource
       @params = params
       @includes = includes
+      @collection = collection
     end
 
     def perform
@@ -50,7 +51,9 @@ module ForestLiana
 
         @resource.columns.each_with_index do |column, index|
           column_name = format_column_name(@resource.table_name, column.name)
-          if column.name == 'id'
+          if (@collection.search_fields && !@collection.search_fields.include?(column.name))
+            conditions
+          elsif column.name == 'id'
             if column.type == :integer
               value = @params[:search].to_i
               conditions << "#{@resource.table_name}.id = #{value}" if value > 0
@@ -81,6 +84,14 @@ module ForestLiana
 
         if (@params['searchExtended'].to_i == 1)
           SchemaUtils.one_associations(@resource).map(&:name).each do |association|
+            if @collection.search_fields
+              association_search = @collection.search_fields.map do |field|
+                if field.include?('.') && field.split('.')[0] == association.to_s
+                  field.split('.')[1]
+                end
+              end
+              association_search = association_search.compact
+            end
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)
               resource.klass.columns.each do |column|
@@ -88,8 +99,10 @@ module ForestLiana
                   (column.type == :string || column.type == :text)
                   column_name = format_column_name(resource.table_name,
                     column.name)
-                  conditions << "LOWER(#{column_name}) LIKE " +
-                    "'%#{@params[:search].downcase}%'"
+                  if @collection.search_fields.nil? || (association_search && association_search.include?(column.name))
+                      conditions << "LOWER(#{column_name}) LIKE " +
+                      "'%#{@params[:search].downcase}%'"
+                  end
                 end
               end
             end
@@ -180,7 +193,7 @@ module ForestLiana
                 COUNT(#{association.table_name}.id)
                 #{association.table_name}_has_many_count")
         .joins(ArelHelpers.join_association(@resource, association.name,
-                                            Arel::Nodes::OuterJoin))
+          Arel::Nodes::OuterJoin))
         .group("#{@resource.table_name}.id")
         .having("COUNT(#{association.table_name}) #{operator} #{value}")
     end
@@ -198,7 +211,7 @@ module ForestLiana
                 COUNT(#{association.table_name}.id)
                 #{association.table_name}_has_many_count")
         .joins(ArelHelpers.join_association(@resource, association.name,
-                                            Arel::Nodes::OuterJoin))
+          Arel::Nodes::OuterJoin))
         .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
         .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
     end
