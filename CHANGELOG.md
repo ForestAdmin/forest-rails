@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.8 - 2017-09-07
 ### Added
 - Search - Developers can configure in which fields the search will be executed.
 
