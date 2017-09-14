@@ -7,13 +7,6 @@ ForestLiana::Engine.routes.draw do
   # Session
   post 'sessions' => 'sessions#create'
 
-  # CRUD
-  get ':collection', to: router
-  get ':collection/:id', to: router
-  post ':collection', to: router
-  put ':collection/:id', to: router
-  delete ':collection/:id', to: router
-
   # Associations
   get ':collection/:id/relationships/:association_name' => 'associations#index'
   put ':collection/:id/relationships/:association_name' => 'associations#update'
@@ -40,4 +33,11 @@ ForestLiana::Engine.routes.draw do
 
   # Devise support
   post '/actions/change-password' => 'devise#change_password'
+
+  # CRUD
+  get ':collection', to: router
+  get ':collection/:id', to: router
+  post ':collection', to: router
+  put ':collection/:id', to: router
+  delete ':collection/:id', to: router
 end
