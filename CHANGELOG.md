@@ -1,7 +1,7 @@
 # Change Log
 
 ## [Unreleased]
-### Fixed
+### Fixed
 - Stripe - Fix the Stripe Payments access.
 
 ## RELEASE 1.7.8 - 2017-09-07
@@ -9,7 +9,7 @@
 - Search - Developers can configure in which fields the search will be executed.
 
 ## RELEASE 1.7.7 - 2017-08-29
-### Added
+### Added
 - Paranoid Mode - Support Paranoia gem and hide all "deleted" data in Forest.
 
 ## RELEASE 1.7.6 - 2017-08-24
