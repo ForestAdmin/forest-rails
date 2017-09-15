@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.10 - 2017-09-15
 ### Fixed
 - Onboarding - Fix the automatic secrets.yml setup on projects using Rails 5.1+.
 
