@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.7.9 - 2017-09-15
 ### Fixed
 - Stripe - Fix the Stripe Payments access.
 
