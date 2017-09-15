@@ -20,19 +20,19 @@ module ForestLiana
         "data access of your local project.\nYou can change it at any time in " +
         "your config/secrets.yml file.\n\n"
 
-      inject_into_file 'config/secrets.yml', after: "development:" do
-        "\n  forest_env_secret: #{env_secret}" +
-        "\n  forest_auth_secret: #{auth_secret}"
+      inject_into_file 'config/secrets.yml', after: "development:\n" do
+        "  forest_env_secret: #{env_secret}\n" +
+        "  forest_auth_secret: #{auth_secret}\n"
       end
 
-      inject_into_file 'config/secrets.yml', after: "staging:", force: true do
-        "\n  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>" +
-        "\n  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>"
+      inject_into_file 'config/secrets.yml', after: "staging:\n", force: true do
+        "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
+        "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
       end
 
-      inject_into_file 'config/secrets.yml', after: "production:", force: true do
-        "\n  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>" +
-        "\n  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>"
+      inject_into_file 'config/secrets.yml', after: "production:\n", force: true do
+        "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
+        "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
       end
     end
   end
