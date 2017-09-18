@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Smart Fields - Add a parameter to specify if the sorting is allowed on this field.
+
 ### Changed
 - Smart Collections - Facilitate the way to create Smart Collections.
 
