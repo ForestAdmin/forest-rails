@@ -50,6 +50,7 @@ module ForestLiana::Collection
         field: name,
         :'is-read-only' => opts[:read_only],
         :'is-searchable' => opts['is_searchable'],
+        :'is-sortable' => opts[:is_sortable],
         :'is-virtual' => true
       })
 
