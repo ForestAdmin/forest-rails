@@ -82,7 +82,7 @@ module ForestLiana
           end
         end
 
-        # if (@params['searchExtended'].to_i == 1)
+        if (@params['searchExtended'].to_i == 1)
           SchemaUtils.one_associations(@resource).map(&:name).each do
             |association|
             if @collection.search_fields
@@ -138,7 +138,7 @@ module ForestLiana
               # end
             end
           end
-        #end
+        end
 
         @records = @resource.where(conditions.join(' OR '))
       end
