@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Smart Collections - Facilitate the way to create Smart Collections.
 
 ## RELEASE 1.7.10 - 2017-09-15
 ### Fixed

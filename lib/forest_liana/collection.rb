@@ -11,6 +11,16 @@ module ForestLiana::Collection
       self.collection_name = collection_name.to_s
       self.is_read_only = opts[:read_only] || false
       self.is_searchable = opts[:is_searchable] || false
+
+      # NOTICE: Creates dynamically the serializer if it's a Smart Collection.
+      if smart_collection? &&
+          !ForestLiana::UserSpace.const_defined?(serializer_name)
+
+        ForestLiana.names_overriden[self] = self.collection_name.to_s
+
+        ForestLiana::SerializerFactory.new(is_smart_collection: true)
+          .serializer_for(self)
+      end
     end
 
     def action(name, opts = {})
@@ -43,8 +53,10 @@ module ForestLiana::Collection
         :'is-virtual' => true
       })
 
-      if serializer_name &&
-        ForestLiana::UserSpace.const_defined?(serializer_name)
+      define_method(name) { self.data[name] } if smart_collection?
+
+      if serializer_name && ForestLiana::UserSpace.const_defined?(
+          serializer_name)
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
           attribute(name, &block)
         end
@@ -58,8 +70,10 @@ module ForestLiana::Collection
         type: ['String']
       })
 
-      if serializer_name &&
-        ForestLiana::UserSpace.const_defined?(serializer_name)
+      define_method(name) { self.data[name] } if smart_collection?
+
+      if serializer_name && ForestLiana::UserSpace.const_defined?(
+          serializer_name)
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
           has_many(name, name: name)
         end
@@ -72,6 +86,8 @@ module ForestLiana::Collection
         :'is-searchable' => false,
         type: 'String'
       })
+
+      define_method(name) { self.data[name] } if smart_collection?
 
       if serializer_name && ForestLiana::UserSpace.const_defined?(
           serializer_name)
@@ -109,14 +125,17 @@ module ForestLiana::Collection
     end
 
     def serializer_name
-      return if active_record_class.blank?
-      class_name = active_record_class.table_name.classify
-      module_name = class_name.deconstantize
+      if smart_collection?
+        "#{collection_name.to_s.classify}Serializer"
+      else
+        class_name = active_record_class.table_name.classify
+        module_name = class_name.deconstantize
 
-      name = module_name if module_name
-      name += class_name.demodulize
+        name = module_name if module_name
+        name += class_name.demodulize
 
-      "ForestLiana::UserSpace::#{name}Serializer"
+        "ForestLiana::UserSpace::#{name}Serializer"
+      end
     end
 
     def serializer_name_for_reference(reference)
@@ -129,5 +148,15 @@ module ForestLiana::Collection
 
       "ForestLiana::UserSpace::#{name}Serializer"
     end
+
+    def smart_collection?
+      !active_record_class
+    end
+  end
+
+  attr_accessor :data
+
+  def initialize(data)
+    self.data = data
   end
 end

@@ -56,6 +56,10 @@ module ForestLiana
       end
     end
 
+    def initialize(is_smart_collection = false)
+      @is_smart_collection = is_smart_collection
+    end
+
     def serializer_for(active_record_class)
       serializer = Class.new {
         include JSONAPI::Serializer
@@ -154,73 +158,75 @@ module ForestLiana
         end
       }
 
-      attributes(active_record_class).each do |attribute|
-        serializer.attribute(attribute)
-      end
+      unless @is_smart_collection
+        attributes(active_record_class).each do |attribute|
+          serializer.attribute(attribute)
+        end
 
-      # NOTICE: Format time type fields during the serialization.
-      attributes_time(active_record_class).each do |attribute|
-        serializer.attribute(attribute) do |x|
-          value = object.send(attribute)
-          if value
-            match = /(\d{2}:\d{2}:\d{2})/.match(value.to_s)
-            (match && match[1]) ? match[1] : nil
-          else
-            nil
+        # NOTICE: Format time type fields during the serialization.
+        attributes_time(active_record_class).each do |attribute|
+          serializer.attribute(attribute) do |x|
+            value = object.send(attribute)
+            if value
+              match = /(\d{2}:\d{2}:\d{2})/.match(value.to_s)
+              (match && match[1]) ? match[1] : nil
+            else
+              nil
+            end
           end
         end
-      end
 
-      # NOTICE: Format serialized fields.
-      attributes_serialized(active_record_class).each do |attribute, serialization|
-        serializer.attribute(attribute) do |x|
-          value = object.send(attribute)
-          value ? value.to_json : nil
-        end
-      end
-
-      # NOTICE: Format CarrierWave url attribute
-      if active_record_class.respond_to?(:mount_uploader)
-        active_record_class.uploaders.each do |key, value|
-          serializer.attribute(key) { |x| object.send(key).try(:url) }
-        end
-      end
-
-      # NOTICE: Format Paperclip url attribute
-      if active_record_class.respond_to?(:attachment_definitions)
-        active_record_class.attachment_definitions.each do |key, value|
-          serializer.attribute(key) { |x| object.send(key) }
-        end
-      end
-
-      # NOTICE: Format ActsAsTaggable attribute
-      if active_record_class.respond_to?(:acts_as_taggable) &&
-        active_record_class.acts_as_taggable.respond_to?(:to_a)
-        active_record_class.acts_as_taggable.to_a.each do |key, value|
-          serializer.attribute(key) do |x|
-            object.send(key).map(&:name)
+        # NOTICE: Format serialized fields.
+        attributes_serialized(active_record_class).each do |attr, serialization|
+          serializer.attribute(attr) do |x|
+            value = object.send(attr)
+            value ? value.to_json : nil
           end
         end
-      end
 
-      SchemaUtils.associations(active_record_class).each do |a|
-        begin
-          if SchemaUtils.model_included?(a.klass)
-            serializer.send(serializer_association(a), a.name) {
-              if [:has_one, :belongs_to].include?(a.macro)
-                begin
-                  object.send(a.name)
-                rescue ActiveRecord::RecordNotFound
-                  nil
+        # NOTICE: Format CarrierWave url attribute
+        if active_record_class.respond_to?(:mount_uploader)
+          active_record_class.uploaders.each do |key, value|
+            serializer.attribute(key) { |x| object.send(key).try(:url) }
+          end
+        end
+
+        # NOTICE: Format Paperclip url attribute
+        if active_record_class.respond_to?(:attachment_definitions)
+          active_record_class.attachment_definitions.each do |key, value|
+            serializer.attribute(key) { |x| object.send(key) }
+          end
+        end
+
+        # NOTICE: Format ActsAsTaggable attribute
+        if active_record_class.respond_to?(:acts_as_taggable) &&
+          active_record_class.acts_as_taggable.respond_to?(:to_a)
+          active_record_class.acts_as_taggable.to_a.each do |key, value|
+            serializer.attribute(key) do |x|
+              object.send(key).map(&:name)
+            end
+          end
+        end
+
+        SchemaUtils.associations(active_record_class).each do |a|
+          begin
+            if SchemaUtils.model_included?(a.klass)
+              serializer.send(serializer_association(a), a.name) {
+                if [:has_one, :belongs_to].include?(a.macro)
+                  begin
+                    object.send(a.name)
+                  rescue ActiveRecord::RecordNotFound
+                    nil
+                  end
+                else
+                  []
                 end
-              else
-                []
-              end
-            }
+              }
+            end
+          rescue NameError
+            # NOTICE: Let this error silent, a bad association warning will be
+            # displayed in the schema adapter.
           end
-        rescue NameError
-          # NOTICE: Let this error silent, a bad association warning will be
-          #         displayed in the schema adapter.
         end
       end
 
@@ -281,12 +287,16 @@ module ForestLiana
     end
 
     def attributes(active_record_class)
+      return [] if @is_smart_collection
+
       active_record_class.column_names.select do |column_name|
         !association?(active_record_class, column_name)
       end
     end
 
     def attributes_time(active_record_class)
+      return [] if @is_smart_collection
+
       active_record_class.column_names.select do |column_name|
         if Rails::VERSION::MAJOR > 4
           active_record_class.column_for_attribute(column_name).type == :time
@@ -297,6 +307,8 @@ module ForestLiana
     end
 
     def attributes_serialized(active_record_class)
+      return [] if @is_smart_collection
+
       if Rails::VERSION::MAJOR >= 5
         attributes(active_record_class).select do |attribute|
           active_record_class.type_for_attribute(attribute).class ==
