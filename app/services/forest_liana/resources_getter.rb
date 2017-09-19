@@ -44,13 +44,26 @@ module ForestLiana
     end
 
     def includes
-      includes = SchemaUtils.associations(@resource)
+      includes = SchemaUtils.one_associations(@resource)
         .select { |association| SchemaUtils.model_included?(association.klass) }
         .map(&:name)
 
+      if @current_collection.search_fields
+        includes_for_smart_search = @current_collection.search_fields
+          .select { |field| field.include? '.' }
+          .map { |field| field.split('.').first.to_sym }
+
+        includes_has_many = SchemaUtils.many_associations(@resource)
+          .select { |association| SchemaUtils.model_included?(association.klass) }
+          .map(&:name)
+
+        includes_for_smart_search = includes_for_smart_search & includes_has_many
+        p includes_for_smart_search
+        includes.concat(includes_for_smart_search)
+      end
+
       if @field_names_requested
-        [:movie, :customers] & @field_names_requested
-        # includes & @field_names_requested
+        includes & @field_names_requested
       else
         includes
       end
