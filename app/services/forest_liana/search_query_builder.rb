@@ -35,15 +35,15 @@ module ForestLiana
       ForestLiana::AdapterHelper.format_column_name(table_name, column_name)
     end
 
-    def acts_as_taggable_query(tagged_records)
-      ids = tagged_records
-        .map {|t| t[@resource.primary_key]}
-        .join(',')
-
-      if ids.present?
-        return "#{@resource.primary_key} IN (#{ids})"
-      end
-    end
+    # def acts_as_taggable_query(tagged_records)
+    #   ids = tagged_records
+    #     .map {|t| t[@resource.primary_key]}
+    #     .join(',')
+    #
+    #   if ids.present?
+    #     return "#{@resource.primary_key} IN (#{ids})"
+    #   end
+    # end
 
     def search_param
       if @params[:search]
@@ -74,16 +74,17 @@ module ForestLiana
         end
 
         # ActsAsTaggable
-        if @resource.respond_to?(:acts_as_taggable)
-          @resource.acts_as_taggable.each do |field|
-            tagged_records = @records.tagged_with(@params[:search].downcase)
-            condition = acts_as_taggable_query(tagged_records)
-            conditions << condition if condition
-          end
-        end
+        # if @resource.respond_to?(:acts_as_taggable)
+        #   @resource.acts_as_taggable.each do |field|
+        #     tagged_records = @records.tagged_with(@params[:search].downcase)
+        #     condition = acts_as_taggable_query(tagged_records)
+        #     conditions << condition if condition
+        #   end
+        # end
 
-        if (@params['searchExtended'].to_i == 1)
-          SchemaUtils.one_associations(@resource).map(&:name).each do |association|
+        # if (@params['searchExtended'].to_i == 1)
+          SchemaUtils.one_associations(@resource).map(&:name).each do
+            |association|
             if @collection.search_fields
               association_search = @collection.search_fields.map do |field|
                 if field.include?('.') && field.split('.')[0] == association.to_s
@@ -99,15 +100,45 @@ module ForestLiana
                   (column.type == :string || column.type == :text)
                   column_name = format_column_name(resource.table_name,
                     column.name)
-                  if @collection.search_fields.nil? || (association_search && association_search.include?(column.name))
-                      conditions << "LOWER(#{column_name}) LIKE " +
-                      "'%#{@params[:search].downcase}%'"
+                  if @collection.search_fields.nil? || (association_search &&
+                    association_search.include?(column.name))
+                    conditions << "LOWER(#{column_name}) LIKE " +
+                    "'%#{@params[:search].downcase}%'"
                   end
                 end
               end
             end
           end
-        end
+
+          if @collection.search_fields
+            SchemaUtils.many_associations(@resource).map(&:name).each do
+              |association|
+              association_search = @collection.search_fields.map do |field|
+                if field.include?('.') && field.split('.')[0] == association.to_s
+                  field.split('.')[1]
+                end
+              end
+              association_search = association_search.compact
+
+              # if @includes.include? association.to_sym
+              resource = @resource.reflect_on_association(association.to_sym)
+              resource.klass.columns.each do |column|
+                if !(column.respond_to?(:array) && column.array) &&
+                  (column.type == :string || column.type == :text)
+                  column_name = format_column_name(resource.table_name,
+                    column.name)
+                  if association_search &&
+                    association_search.include?(column.name)
+                    puts "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
+                    conditions << "LOWER(#{column_name}) LIKE " +
+                    "'%#{@params[:search].downcase}%'"
+                  end
+                end
+              end
+              # end
+            end
+          end
+        #end
 
         @records = @resource.where(conditions.join(' OR '))
       end

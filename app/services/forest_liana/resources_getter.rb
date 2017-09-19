@@ -4,8 +4,8 @@ module ForestLiana
       @resource = resource
       @params = params
       @count_needs_includes = false
-      @field_names_requested = field_names_requested
       @current_collection = get_current_collection(@resource.table_name)
+      @field_names_requested = field_names_requested
       get_segment()
     end
 
@@ -44,12 +44,13 @@ module ForestLiana
     end
 
     def includes
-      includes = SchemaUtils.one_associations(@resource)
+      includes = SchemaUtils.associations(@resource)
         .select { |association| SchemaUtils.model_included?(association.klass) }
         .map(&:name)
 
       if @field_names_requested
-        includes & @field_names_requested
+        [:movie, :customers] & @field_names_requested
+        # includes & @field_names_requested
       else
         includes
       end
@@ -84,6 +85,14 @@ module ForestLiana
 
       if @params[:sort] && @params[:sort].include?('.')
         associations_for_query << @params[:sort].split('.').first.to_sym
+      end
+
+      if @current_collection && @current_collection.search_fields
+        @current_collection.search_fields.each do |field|
+          if field && field.include?('.')
+            associations_for_query << field.split('.').first.to_sym
+          end
+        end
       end
 
       field_names = @params[:fields][@resource.table_name].split(',')
