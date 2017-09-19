@@ -47,8 +47,9 @@ module ForestLiana
       includes = SchemaUtils.one_associations(@resource)
         .select { |association| SchemaUtils.model_included?(association.klass) }
         .map(&:name)
+      includes_for_smart_search = []
 
-      if @current_collection.search_fields
+      if @current_collection && @current_collection.search_fields
         includes_for_smart_search = @current_collection.search_fields
           .select { |field| field.include? '.' }
           .map { |field| field.split('.').first.to_sym }
@@ -58,12 +59,10 @@ module ForestLiana
           .map(&:name)
 
         includes_for_smart_search = includes_for_smart_search & includes_has_many
-        p includes_for_smart_search
-        includes.concat(includes_for_smart_search)
       end
 
       if @field_names_requested
-        includes & @field_names_requested
+        (includes & @field_names_requested).concat(includes_for_smart_search)
       else
         includes
       end
@@ -98,14 +97,6 @@ module ForestLiana
 
       if @params[:sort] && @params[:sort].include?('.')
         associations_for_query << @params[:sort].split('.').first.to_sym
-      end
-
-      if @current_collection && @current_collection.search_fields
-        @current_collection.search_fields.each do |field|
-          if field && field.include?('.')
-            associations_for_query << field.split('.').first.to_sym
-          end
-        end
       end
 
       field_names = @params[:fields][@resource.table_name].split(',')
