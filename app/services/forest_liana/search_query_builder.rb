@@ -83,7 +83,8 @@ module ForestLiana
         end
 
         if (@params['searchExtended'].to_i == 1)
-          SchemaUtils.one_associations(@resource).map(&:name).each do |association|
+          SchemaUtils.one_associations(@resource).map(&:name).each do
+            |association|
             if @collection.search_fields
               association_search = @collection.search_fields.map do |field|
                 if field.include?('.') && field.split('.')[0] == association.to_s
@@ -97,11 +98,34 @@ module ForestLiana
               resource.klass.columns.each do |column|
                 if !(column.respond_to?(:array) && column.array) &&
                   (column.type == :string || column.type == :text)
-                  column_name = format_column_name(resource.table_name,
-                    column.name)
-                  if @collection.search_fields.nil? || (association_search && association_search.include?(column.name))
-                      conditions << "LOWER(#{column_name}) LIKE " +
-                      "'%#{@params[:search].downcase}%'"
+                  if @collection.search_fields.nil? || (association_search &&
+                    association_search.include?(column.name))
+                    conditions << association_search_condition(resource.table_name,
+                      column.name)
+                  end
+                end
+              end
+            end
+          end
+
+          if @collection.search_fields
+            SchemaUtils.many_associations(@resource).map(&:name).each do
+              |association|
+              association_search = @collection.search_fields.map do |field|
+                if field.include?('.') && field.split('.')[0] == association.to_s
+                  field.split('.')[1]
+                end
+              end
+              association_search = association_search.compact
+              unless association_search.empty?
+                resource = @resource.reflect_on_association(association.to_sym)
+                resource.klass.columns.each do |column|
+                  if !(column.respond_to?(:array) && column.array) &&
+                    (column.type == :string || column.type == :text)
+                    if association_search.include?(column.name)
+                      conditions << association_search_condition(resource.table_name,
+                        column.name)
+                    end
                   end
                 end
               end
@@ -113,6 +137,11 @@ module ForestLiana
       end
 
       @records
+    end
+
+    def association_search_condition table_name, column_name
+      column_name = format_column_name(table_name, column_name)
+      "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
     end
 
     def filter_param

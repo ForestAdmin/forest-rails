@@ -4,8 +4,8 @@ module ForestLiana
       @resource = resource
       @params = params
       @count_needs_includes = false
-      @field_names_requested = field_names_requested
       @current_collection = get_current_collection(@resource.table_name)
+      @field_names_requested = field_names_requested
       get_segment()
     end
 
@@ -47,9 +47,22 @@ module ForestLiana
       includes = SchemaUtils.one_associations(@resource)
         .select { |association| SchemaUtils.model_included?(association.klass) }
         .map(&:name)
+      includes_for_smart_search = []
+
+      if @current_collection && @current_collection.search_fields
+        includes_for_smart_search = @current_collection.search_fields
+          .select { |field| field.include? '.' }
+          .map { |field| field.split('.').first.to_sym }
+
+        includes_has_many = SchemaUtils.many_associations(@resource)
+          .select { |association| SchemaUtils.model_included?(association.klass) }
+          .map(&:name)
+
+        includes_for_smart_search = includes_for_smart_search & includes_has_many
+      end
 
       if @field_names_requested
-        includes & @field_names_requested
+        (includes & @field_names_requested).concat(includes_for_smart_search)
       else
         includes
       end
