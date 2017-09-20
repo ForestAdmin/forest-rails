@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.8.0 - 2017-09-20
 ### Added
 - Smart Fields - Add a parameter to specify if the sorting is allowed on this field.
 - Smart Search - Developers can configure a Smart Search on a hasMany relationship.
