@@ -25,9 +25,12 @@ module ForestLiana
           .order(order)
           .send(@params[:aggregate].downcase, @params[:aggregate_field])
           .map do |key, value|
-            # NOTICE: Display the enum name instead of a integer if "enum" type
+            # NOTICE: Display the enum name instead of an integer if it is an
+            #         "Enum" field type on old Rails version (before Rails
+            #         5.1.3).
             if @resource.respond_to?(:defined_enums) &&
-               @resource.defined_enums.has_key?(@params[:group_by_field])
+              @resource.defined_enums.has_key?(@params[:group_by_field]) &&
+              key.is_a?(Integer)
               key = @resource.defined_enums[@params[:group_by_field]].invert[key]
             elsif @resource.columns_hash[@params[:group_by_field]] &&
               @resource.columns_hash[@params[:group_by_field]].type == :datetime
