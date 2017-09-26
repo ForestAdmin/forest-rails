@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.8.1 - 2017-09-26
 ### Fixed
 - Pie Charts - Fix enum values display on Pie Charts for latest Rails version users.
 
