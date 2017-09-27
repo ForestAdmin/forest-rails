@@ -232,23 +232,23 @@ module ForestLiana
         is_virtual: true,
         is_searchable: false,
         fields: [
-          { field: :created_at, type: 'Date', is_searchable: false },
-          { field: :updated_at, type: 'Date', is_searchable: false  },
-          { field: :session_count, type: 'Number', is_searchable: false  },
-          { field: :last_seen_ip, type: 'String', is_searchable: false  },
-          { field: :signed_up_at, type: 'Date', is_searchable: false  },
-          { field: :country, type: 'String', is_searchable: false  },
-          { field: :city, type: 'String', is_searchable: false  },
-          { field: :browser, type: 'String', is_searchable: false  },
-          { field: :platform, type: 'String', is_searchable: false  },
-          { field: :companies, type: 'String', is_searchable: false  },
-          { field: :segments, type: 'String', is_searchable: false  },
-          { field: :tags, type: 'String', is_searchable: false  },
+          { field: :created_at, type: 'Date', 'is-filterable': false },
+          { field: :updated_at, type: 'Date', 'is-filterable': false },
+          { field: :session_count, type: 'Number', 'is-filterable': false },
+          { field: :last_seen_ip, type: 'String', 'is-filterable': false },
+          { field: :signed_up_at, type: 'Date', 'is-filterable': false },
+          { field: :country, type: 'String', 'is-filterable': false },
+          { field: :city, type: 'String', 'is-filterable': false },
+          { field: :browser, type: 'String', 'is-filterable': false },
+          { field: :platform, type: 'String', 'is-filterable': false },
+          { field: :companies, type: 'String', 'is-filterable': false },
+          { field: :segments, type: 'String', 'is-filterable': false },
+          { field: :tags, type: 'String', 'is-filterable': false },
           {
             field: :geoloc,
             type: 'String',
             widget: 'google map',
-            is_searchable: false
+            'is-filterable': false
           }
         ]
       })
@@ -297,18 +297,18 @@ module ForestLiana
         is_searchable: false,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', is_searchable: false },
-          { field: :created, type: 'Date', is_searchable: false },
-          { field: :amount, type: 'Number', is_searchable: false },
-          { field: :status, type: 'String', is_searchable: false },
-          { field: :currency, type: 'String', is_searchable: false },
-          { field: :refunded, type: 'Boolean', is_searchable: false },
-          { field: :description, type: 'String', is_searchable: false },
+          { field: :id, type: 'String', 'is-filterable': false },
+          { field: :created, type: 'Date', 'is-filterable': false },
+          { field: :amount, type: 'Number', 'is-filterable': false },
+          { field: :status, type: 'String', 'is-filterable': false },
+          { field: :currency, type: 'String', 'is-filterable': false },
+          { field: :refunded, type: 'Boolean', 'is-filterable': false },
+          { field: :description, type: 'String', 'is-filterable': false },
           {
             field: :customer,
             type: 'String',
             reference: "#{model_name}.id",
-            is_searchable: false
+            'is-filterable': false
           }
         ],
         actions: [
@@ -330,26 +330,26 @@ module ForestLiana
         is_searchable: false,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', is_searchable: false },
-          { field: :amount_due, type: 'Number', is_searchable: false },
-          { field: :attempt_count, type: 'Number', is_searchable: false },
-          { field: :attempted, type: 'Boolean', is_searchable: false },
-          { field: :closed, type: 'Boolean', is_searchable: false },
-          { field: :currency, type: 'String', is_searchable: false },
-          { field: :date, type: 'Date', is_searchable: false },
-          { field: :forgiven, type: 'Boolean', is_searchable: false },
-          { field: :period_start, type: 'Date', is_searchable: false },
-          { field: :period_end, type: 'Date', is_searchable: false },
-          { field: :subtotal, type: 'Number', is_searchable: false },
-          { field: :total, type: 'Number', is_searchable: false },
-          { field: :application_fee, type: 'Number', is_searchable: false },
-          { field: :tax, type: 'Number', is_searchable: false },
-          { field: :tax_percent, type: 'Number', is_searchable: false },
+          { field: :id, type: 'String', 'is-filterable': false },
+          { field: :amount_due, type: 'Number', 'is-filterable': false },
+          { field: :attempt_count, type: 'Number', 'is-filterable': false },
+          { field: :attempted, type: 'Boolean', 'is-filterable': false },
+          { field: :closed, type: 'Boolean', 'is-filterable': false },
+          { field: :currency, type: 'String', 'is-filterable': false },
+          { field: :date, type: 'Date', 'is-filterable': false },
+          { field: :forgiven, type: 'Boolean', 'is-filterable': false },
+          { field: :period_start, type: 'Date', 'is-filterable': false },
+          { field: :period_end, type: 'Date', 'is-filterable': false },
+          { field: :subtotal, type: 'Number', 'is-filterable': false },
+          { field: :total, type: 'Number', 'is-filterable': false },
+          { field: :application_fee, type: 'Number', 'is-filterable': false },
+          { field: :tax, type: 'Number', 'is-filterable': false },
+          { field: :tax_percent, type: 'Number', 'is-filterable': false },
           {
             field: :customer,
             type: 'String',
             reference: "#{model_name}.id",
-            is_searchable: false
+            'is-filterable': false
           }
         ]
       })
@@ -365,26 +365,26 @@ module ForestLiana
         only_for_relationships: true,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', is_searchable: false },
-          { field: :last4, type: 'String', is_searchable: false },
-          { field: :brand, type: 'String', is_searchable: false },
-          { field: :funding, type: 'String', is_searchable: false },
-          { field: :exp_month, type: 'Number', is_searchable: false },
-          { field: :exp_year, type: 'Number', is_searchable: false },
-          { field: :country, type: 'String', is_searchable: false },
-          { field: :name, type: 'String', is_searchable: false },
-          { field: :address_line1, type: 'String', is_searchable: false },
-          { field: :address_line2, type: 'String', is_searchable: false },
-          { field: :address_city, type: 'String', is_searchable: false },
-          { field: :address_state, type: 'String', is_searchable: false },
-          { field: :address_zip, type: 'String', is_searchable: false },
-          { field: :address_country, type: 'String', is_searchable: false },
-          { field: :cvc_check, type: 'String', is_searchable: false },
+          { field: :id, type: 'String', 'is-filterable': false },
+          { field: :last4, type: 'String', 'is-filterable': false },
+          { field: :brand, type: 'String', 'is-filterable': false },
+          { field: :funding, type: 'String', 'is-filterable': false },
+          { field: :exp_month, type: 'Number', 'is-filterable': false },
+          { field: :exp_year, type: 'Number', 'is-filterable': false },
+          { field: :country, type: 'String', 'is-filterable': false },
+          { field: :name, type: 'String', 'is-filterable': false },
+          { field: :address_line1, type: 'String', 'is-filterable': false },
+          { field: :address_line2, type: 'String', 'is-filterable': false },
+          { field: :address_city, type: 'String', 'is-filterable': false },
+          { field: :address_state, type: 'String', 'is-filterable': false },
+          { field: :address_zip, type: 'String', 'is-filterable': false },
+          { field: :address_country, type: 'String', 'is-filterable': false },
+          { field: :cvc_check, type: 'String', 'is-filterable': false },
           {
             field: :customer,
             type: 'String',
             reference: "#{model_name}.id",
-            is_searchable: false
+            'is-filterable': false
           }
         ]
       })
@@ -399,25 +399,25 @@ module ForestLiana
         is_searchable: false,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', is_searchable: false },
-          { field: :cancel_at_period_end, type: 'Boolean', is_searchable: false },
-          { field: :canceled_at, type: 'Date', is_searchable: false },
-          { field: :created, type: 'Date', is_searchable: false },
-          { field: :current_period_end, type: 'Date', is_searchable: false },
-          { field: :current_period_start, type: 'Date', is_searchable: false },
-          { field: :ended_at, type: 'Date', is_searchable: false },
-          { field: :livemode, type: 'Boolean', is_searchable: false },
-          { field: :quantity, type: 'Number', is_searchable: false },
-          { field: :start, type: 'Date', is_searchable: false },
-          { field: :status, type: 'String', is_searchable: false },
-          { field: :tax_percent, type: 'Number', is_searchable: false },
-          { field: :trial_end, type: 'Date', is_searchable: false },
-          { field: :trial_start, type: 'Date', is_searchable: false },
+          { field: :id, type: 'String', 'is-filterable': false },
+          { field: :cancel_at_period_end, type: 'Boolean', 'is-filterable': false },
+          { field: :canceled_at, type: 'Date', 'is-filterable': false },
+          { field: :created, type: 'Date', 'is-filterable': false },
+          { field: :current_period_end, type: 'Date', 'is-filterable': false },
+          { field: :current_period_start, type: 'Date', 'is-filterable': false },
+          { field: :ended_at, type: 'Date', 'is-filterable': false },
+          { field: :livemode, type: 'Boolean', 'is-filterable': false },
+          { field: :quantity, type: 'Number', 'is-filterable': false },
+          { field: :start, type: 'Date', 'is-filterable': false },
+          { field: :status, type: 'String', 'is-filterable': false },
+          { field: :tax_percent, type: 'Number', 'is-filterable': false },
+          { field: :trial_end, type: 'Date', 'is-filterable': false },
+          { field: :trial_start, type: 'Date', 'is-filterable': false },
           {
             field: :customer,
             type: 'String',
             reference: "#{model_name}.id",
-            is_searchable: false
+            'is-filterable': false
           }
         ]
       })
@@ -433,23 +433,23 @@ module ForestLiana
         only_for_relationships: true,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', is_searchable: false },
-          { field: :account, type: 'String', is_searchable: false },
-          { field: :account_holder_name, type: 'String', is_searchable: false },
-          { field: :account_holder_type, type: 'String', is_searchable: false },
-          { field: :bank_name, type: 'String', is_searchable: false },
-          { field: :country, type: 'String', is_searchable: false },
-          { field: :currency, type: 'String', is_searchable: false },
-          { field: :default_for_currency, type: 'Boolean', is_searchable: false },
-          { field: :fingerprint, type: 'String', is_searchable: false },
-          { field: :last4, type: 'String', is_searchable: false },
-          { field: :rooting_number, type: 'String', is_searchable: false },
-          { field: :status, type: 'String', is_searchable: false },
+          { field: :id, type: 'String', 'is-filterable': false },
+          { field: :account, type: 'String', 'is-filterable': false },
+          { field: :account_holder_name, type: 'String', 'is-filterable': false },
+          { field: :account_holder_type, type: 'String', 'is-filterable': false },
+          { field: :bank_name, type: 'String', 'is-filterable': false },
+          { field: :country, type: 'String', 'is-filterable': false },
+          { field: :currency, type: 'String', 'is-filterable': false },
+          { field: :default_for_currency, type: 'Boolean', 'is-filterable': false },
+          { field: :fingerprint, type: 'String', 'is-filterable': false },
+          { field: :last4, type: 'String', 'is-filterable': false },
+          { field: :rooting_number, type: 'String', 'is-filterable': false },
+          { field: :status, type: 'String', 'is-filterable': false },
           {
             field: :customer,
             type: 'String',
             reference: "#{model_name}.id",
-            is_searchable: false
+            'is-filterable': false
           }
         ]
       })
