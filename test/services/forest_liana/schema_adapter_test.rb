@@ -51,7 +51,8 @@ module ForestLiana
         field: 'belongs_to_field',
         type: 'Number',
         reference: 'belongs_to_fields.id',
-        inverseOf: 'has_one_field'
+        inverseOf: 'has_one_field',
+        "is-filterable": true
       })
     end
 
@@ -61,7 +62,8 @@ module ForestLiana
         field: 'belongs_to_fields',
         type: ['Number'],
         reference: 'belongs_to_fields.id',
-        inverseOf: 'has_many_field'
+        inverseOf: 'has_many_field',
+        "is-filterable": false
       })
     end
 
@@ -71,7 +73,8 @@ module ForestLiana
         field: 'foo',
         type: ['Number'],
         reference: 'belongs_to_fields.id',
-        inverseOf: 'has_many_class_name_field'
+        inverseOf: 'has_many_class_name_field',
+        "is-filterable": false
       })
     end
 
