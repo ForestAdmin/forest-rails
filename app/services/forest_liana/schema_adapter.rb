@@ -87,7 +87,7 @@ module ForestLiana
           type: ['String'],
           reference: "#{model_name}_intercom_conversations.id",
           column: nil,
-          is_searchable: false,
+          'is-filterable': false,
           integration: 'intercom'
         }
 
@@ -96,7 +96,7 @@ module ForestLiana
           type: 'String',
           reference: "#{model_name}_intercom_attributes.id",
           column: nil,
-          is_searchable: false,
+          'is-filterable': false,
           integration: 'intercom'
         }
       end
@@ -117,7 +117,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_payments.id",
             column: nil,
-            is_searchable: false,
+            'is-filterable': false,
             integration: 'stripe'
           }
 
@@ -126,7 +126,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_invoices.id",
             column: nil,
-            is_searchable: false,
+            'is-filterable': false,
             integration: 'stripe'
           }
 
@@ -135,7 +135,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_cards.id",
             column: nil,
-            is_searchable: false,
+            'is-filterable': false,
             integration: 'stripe'
           }
 
@@ -144,7 +144,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_subscriptions.id",
             column: nil,
-            is_searchable: false,
+            'is-filterable': false,
             integration: 'stripe'
           }
 
@@ -153,7 +153,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_bank_accounts.id",
             column: nil,
-            is_searchable: false,
+            'is-filterable': false,
             integration: 'stripe'
           }
         end
@@ -238,7 +238,8 @@ module ForestLiana
         field: association.name.to_s,
         type: get_type_for_association(association),
         reference: "#{ForestLiana.name_for(association.klass)}.id",
-        inverseOf: inverse_of(association)
+        inverseOf: inverse_of(association),
+        'is-filterable': !is_many_association(association)
       }
     end
 
@@ -409,9 +410,13 @@ module ForestLiana
       collection.fields.find {|x| x[:field] == field.foreign_key }
     end
 
-    def get_type_for_association(association)
-      if association.macro == :has_many ||
+    def is_many_association(association)
+      association.macro == :has_many ||
         association.macro == :has_and_belongs_to_many
+    end
+
+    def get_type_for_association(association)
+      if is_many_association(association)
         ['Number']
       else
         'Number'

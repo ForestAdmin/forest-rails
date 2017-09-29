@@ -41,16 +41,13 @@ module ForestLiana::Collection
 
     def field(name, opts, &block)
       opts[:read_only] = true unless opts.has_key?(:read_only)
-      opts[:is_searchable] = false unless opts.has_key?(:is_searchable)
-
       opts[:read_only] = false if opts.has_key?(:set)
-      opts[:is_searchable] = true if opts.has_key?(:search)
 
       model.fields << opts.merge({
         field: name,
         :'is-read-only' => opts[:read_only],
-        :'is-searchable' => opts['is_searchable'],
-        :'is-sortable' => opts[:is_sortable],
+        :'is-filterable' => !!opts[:is_filterable],
+        :'is-sortable' => !!opts[:is_sortable],
         :'is-virtual' => true
       })
 
