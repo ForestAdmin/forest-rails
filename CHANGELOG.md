@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.9.0 - 2017-10-02
 ### Added
 - Smart Fields - Add a "is_filterable" option to let them appear in the filters selection.
 
