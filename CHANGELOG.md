@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Filters - Fix filters on associations enum fields.
 
 ## RELEASE 1.9.0 - 2017-10-02
 ### Added

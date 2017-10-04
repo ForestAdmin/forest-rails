@@ -258,17 +258,9 @@ module ForestLiana
       return if association.blank?
 
       operator, value = OperatorValueParser.parse(value)
-
-      operator_date_interval_parser = OperatorDateIntervalParser.new(value,
-        @params[:timezone])
-      if operator_date_interval_parser.is_interval_date_value()
-        filter = operator_date_interval_parser.get_interval_date_filter()
-        @records = @records.where("#{association.table_name}.#{subfield} #{filter}")
-      else
-        where = "#{association.table_name}.#{subfield} #{operator}"
-        where += " '#{value}'" if value
-        @records = @records.where(where)
-      end
+      filter = OperatorValueParser
+        .get_condition_end(subfield, operator, value, association.klass, @params[:timezone])
+      @records.where("#{association.table_name}.#{subfield} #{filter}")
     end
 
     def belongs_to_filter

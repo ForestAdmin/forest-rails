@@ -38,12 +38,16 @@ module ForestLiana
     def self.get_condition(field, operator, value, resource, timezone)
       field_name = self.get_field_name(field, resource)
 
+      "#{field_name} #{self.get_condition_end(field, operator, value, resource, timezone)}"
+    end
+
+    def self.get_condition_end(field, operator, value, resource, timezone)
       operator_date_interval_parser = OperatorDateIntervalParser
         .new(value, timezone)
 
       if operator_date_interval_parser.is_interval_date_value()
         filter = operator_date_interval_parser.get_interval_date_filter()
-        "#{field_name} #{filter}"
+        filter
       else
         # NOTICE: Set the integer value instead of a string if "enum" type
         # NOTICE: Rails 3 do not have a defined_enums method
@@ -52,9 +56,11 @@ module ForestLiana
           value = resource.defined_enums[field][value]
         end
 
-        where = "#{field_name} #{operator}"
-        where += " #{self.format_value(resource, field, value)}" if value
-        where
+        if value
+          "#{operator} #{self.format_value(resource, field, value)}"
+        else
+          operator
+        end
       end
     end
 
