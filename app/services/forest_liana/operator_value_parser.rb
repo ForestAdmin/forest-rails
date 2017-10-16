@@ -83,15 +83,8 @@ module ForestLiana
     end
 
     def self.format_value(resource, field, value)
-      if self.is_belongs_to(field)
-        fields = field.split(':')
-        columns = resource.reflect_on_association(fields[0]).klass.columns
-        field_name = fields[1]
-      else
-        columns = resource.columns
-        field_name = field
-      end
-
+      columns = resource.columns
+      field_name = field
       column = columns.find { |column| column.name == field_name }
 
       if column.type == :boolean
