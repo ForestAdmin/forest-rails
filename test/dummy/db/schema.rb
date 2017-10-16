@@ -61,6 +61,8 @@ ActiveRecord::Schema.define(version: 20170614141921) do
   end
 
   create_table "has_one_fields", force: :cascade do |t|
+    t.boolean "checked"
+    t.integer "status",  default: 0
   end
 
   create_table "integer_fields", force: :cascade do |t|

@@ -38,6 +38,13 @@ module ForestLiana
     def self.get_condition(field, operator, value, resource, timezone)
       field_name = self.get_field_name(field, resource)
 
+      if self.is_belongs_to(field)
+        fieldSplit = field.split(':')
+        association = fieldSplit.first.to_sym
+        field = fieldSplit.last
+        resource = resource.reflect_on_association(association).klass
+      end
+
       "#{field_name} #{self.get_condition_end(field, operator, value, resource, timezone)}"
     end
 
@@ -76,15 +83,8 @@ module ForestLiana
     end
 
     def self.format_value(resource, field, value)
-      if self.is_belongs_to(field)
-        fields = field.split(':')
-        columns = resource.reflect_on_association(fields[0]).klass.columns
-        field_name = fields[1]
-      else
-        columns = resource.columns
-        field_name = field
-      end
-
+      columns = resource.columns
+      field_name = field
       column = columns.find { |column| column.name == field_name }
 
       if column.type == :boolean
