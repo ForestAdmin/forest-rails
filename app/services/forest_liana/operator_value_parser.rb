@@ -38,6 +38,13 @@ module ForestLiana
     def self.get_condition(field, operator, value, resource, timezone)
       field_name = self.get_field_name(field, resource)
 
+      if self.is_belongs_to(field)
+        fieldSplit = field.split(':')
+        association = fieldSplit.first.to_sym
+        field = fieldSplit.last
+        resource = resource.reflect_on_association(association).klass
+      end
+
       "#{field_name} #{self.get_condition_end(field, operator, value, resource, timezone)}"
     end
 
