@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (1.9.1)
+    forest_liana (1.9.2)
       arel-helpers
       bcrypt
       groupdate
@@ -139,4 +139,4 @@ DEPENDENCIES
   useragent
 
 BUNDLED WITH
-   1.15.1
+   1.15.4

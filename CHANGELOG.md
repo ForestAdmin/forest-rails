@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.9.2 - 2017-10-16
 ### Fixed
 - Charts - Fix belongsTo filters on enum fields.
 
