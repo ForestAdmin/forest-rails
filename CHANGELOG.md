@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.9.4 - 2017-10-18
 ### Fixed
 - Filters - Fix one-relationships filters on collections based on namespaced models.
 
