@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Export CSV - Enable the CSV export for namespaced models.
 
 ## RELEASE 1.9.2 - 2017-10-16
 ### Fixed

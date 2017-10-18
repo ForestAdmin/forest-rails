@@ -115,13 +115,14 @@ module ForestLiana
       end
     end
 
-    def render_csv getter, table_name
+    def render_csv getter, model
       set_headers_file
       set_headers_streaming
 
       response.status = 200
       csv_header = params[:header].split(',')
-      field_names_requested = params[:fields][table_name]
+      collection_name = ForestLiana.name_for(model)
+      field_names_requested = params[:fields][collection_name]
         .split(',').map { |name| name.to_s }
 
       self.response_body = Enumerator.new do |content|
@@ -132,7 +133,7 @@ module ForestLiana
               include: getter.includes.map(&:to_s)
             })
             record_attributes = json['data']['attributes']
-            record_relationships = json['data']['relationships']
+            record_relationships = json['data']['relationships'] || {}
             included = json['included']
 
             values = field_names_requested.map do |field_name|

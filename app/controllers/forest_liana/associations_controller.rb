@@ -14,7 +14,7 @@ module ForestLiana
 
       respond_to do |format|
         format.json { render_jsonapi(getter) }
-        format.csv { render_csv(getter, @association.table_name) }
+        format.csv { render_csv(getter, @association) }
       end
     end
 
