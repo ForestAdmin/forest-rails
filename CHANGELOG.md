@@ -1,13 +1,15 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Filters - Fix one-relationships filters on collections based on namespaced models.
 
 ## RELEASE 1.9.3 - 2017-10-18
 ### Fixed
 - Export CSV - Enable the CSV export for namespaced models.
 
 ## RELEASE 1.9.2 - 2017-10-16
-### Fixed
+### Fixed
 - Charts - Fix belongsTo filters on enum fields.
 
 ## RELEASE 1.9.1 - 2017-10-04

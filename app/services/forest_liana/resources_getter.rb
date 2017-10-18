@@ -79,7 +79,8 @@ module ForestLiana
     end
 
     def field_names_requested
-      return nil unless @params[:fields] && @params[:fields][@resource.table_name]
+      collection_name = ForestLiana.name_for(@resource)
+      return nil unless @params[:fields] && @params[:fields][collection_name]
 
       associations_for_query = []
 
@@ -99,8 +100,7 @@ module ForestLiana
         associations_for_query << @params[:sort].split('.').first.to_sym
       end
 
-      field_names = @params[:fields][@resource.table_name].split(',')
-                                              .map { |name| name.to_sym }
+      field_names = @params[:fields][collection_name].split(',').map { |name| name.to_sym }
       field_names | associations_for_query
     end
 
