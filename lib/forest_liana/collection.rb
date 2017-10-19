@@ -126,7 +126,7 @@ module ForestLiana::Collection
       if smart_collection?
         "#{collection_name.to_s.classify}Serializer"
       else
-        class_name = active_record_class.table_name.classify
+        class_name = ForestLiana.name_for(active_record_class).classify
         module_name = class_name.deconstantize
 
         name = module_name if module_name

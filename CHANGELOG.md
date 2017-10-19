@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Smart Field - Fix Smart Fields values serialization for namespaced models.
 
 ## RELEASE 1.9.4 - 2017-10-18
 ### Fixed
