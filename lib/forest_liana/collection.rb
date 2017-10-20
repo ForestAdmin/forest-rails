@@ -56,6 +56,7 @@ module ForestLiana::Collection
       if serializer_name && ForestLiana::UserSpace.const_defined?(
           serializer_name)
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
+          # TODO: Overload the block method with a begin rescue.
           attribute(name, &block)
         end
       end
