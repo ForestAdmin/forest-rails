@@ -58,7 +58,7 @@ module ForestLiana::Collection
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
           compute_value = lambda do |object|
             begin
-              yield(object)
+              object.instance_eval(&block)
             rescue => exception
               FOREST_LOGGER.error "Cannot retrieve the " + name.to_s + " value because of an " \
                 "internal error in the getter implementation: " + exception.message
