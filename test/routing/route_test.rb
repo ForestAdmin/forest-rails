@@ -113,7 +113,7 @@ module ForestLiana
       assert_routing({
         method: 'get', path: ':collection/:id/intercom_conversations'
       }, {
-        controller: 'forest_liana/intercom', action: 'user_conversations',
+        controller: 'forest_liana/intercom', action: 'conversations',
         collection: ':collection', id: ':id'
       })
       assert_routing({
