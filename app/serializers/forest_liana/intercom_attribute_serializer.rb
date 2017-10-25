@@ -22,11 +22,11 @@ module ForestLiana
     end
 
     attribute :country do
-      object.location_data.country_name
+      object.location_data.try(:country_name)
     end
 
     attribute :city do
-      object.location_data.city_name
+      object.location_data.try(:city_name)
     end
 
     attribute :user_agent do
@@ -55,7 +55,7 @@ module ForestLiana
     end
 
     attribute :geoloc do
-      [object.location_data.latitude, object.location_data.longitude]
+      [object.location_data.try(:latitude), object.location_data.try(:longitude)]
     end
 
     def self_link

@@ -1,40 +1,22 @@
 module ForestLiana
-  class IntercomConversationsGetter
+  class IntercomConversationGetter
+    attr_accessor :record
+
     def initialize(params)
       @params = params
       @access_token = ForestLiana.integrations[:intercom][:access_token]
       @intercom = ::Intercom::Client.new(token: @access_token)
     end
 
-    def count
-      #return 1
-      @records.count
-    end
-
-    def records
-      @records[pagination].map do |conversation|
-        if conversation.assignee.is_a?(::Intercom::Admin)
-          admins = @intercom.admins.all.detect(id: conversation.assignee.id)
-          conversation.assignee = admins.first
-        end
-        conversation
-      end
-    end
-
     def perform
       begin
-        resource = collection.find(@params[:id])
-        @records = @intercom.conversations.find_all(
-          email: resource.email,
-          type: 'user',
-          display_as: 'plaintext',
-        ).entries
+        @record = @intercom.conversations.find(id: @params[:conversation_id])
       rescue Intercom::ResourceNotFound
-        @records = []
+        @record = nil
       rescue Intercom::UnexpectedError => exception
-        FOREST_LOGGER.error "Cannot retrieve the Intercom conversations: #{exception.message}"
-        @records = []
-#         conv = ::Intercom::Conversation.new({
+        FOREST_LOGGER.error "Cannot retrieve the Intercom conversation: #{exception.message}"
+        @record = nil
+#         @record = ::Intercom::Conversation.new({
 #   "type": "conversation",
 #   "id": "147",
 #   "created_at": 1400850973,
@@ -79,43 +61,7 @@ module ForestLiana
 #   },
 #   "tags": { "type": 'tag.list', "tags": [] }
 # })
-#         @records = [conv]
       end
-    end
-
-    private
-
-    def collection
-      @params[:collection].singularize.camelize.constantize
-    end
-
-    def pagination
-      offset..(offset + limit - 1)
-    end
-
-    def offset
-      return 0 unless pagination?
-
-      number = @params[:page][:number]
-      if number && number.to_i > 0
-        (number.to_i - 1) * limit
-      else
-        0
-      end
-    end
-
-    def limit
-      return 10 unless pagination?
-
-      if @params[:page][:size]
-        @params[:page][:size].to_i
-      else
-        10
-      end
-    end
-
-    def pagination?
-      @params[:page] && @params[:page][:number]
     end
   end
 end

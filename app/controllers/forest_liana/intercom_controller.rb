@@ -1,6 +1,6 @@
 module ForestLiana
   class IntercomController < ForestLiana::ApplicationController
-    def user_conversations
+    def conversations
       getter = IntercomConversationsGetter.new(params)
       getter.perform
 
@@ -10,11 +10,20 @@ module ForestLiana
       })
     end
 
+    def conversation
+      getter = IntercomConversationGetter.new(params)
+      getter.perform
+
+      render serializer: nil, json: serialize_model(getter.record, {
+        context: { type: get_serializer_type('intercom_conversations') }
+      })
+    end
+
     def attributes
       getter = IntercomAttributesGetter.new(params)
       getter.perform
 
-      render serializer: nil, json: serialize_model(getter.records, {
+      render serializer: nil, json: serialize_model(getter.record, {
         context: { type: get_serializer_type('intercom_attributes') }
       })
     end

@@ -12,7 +12,7 @@ module ForestLiana
     end
 
     attribute :body do
-      [object.conversation_message.body, object.link]
+      object.conversation_message.body
     end
 
     attribute :assignee do

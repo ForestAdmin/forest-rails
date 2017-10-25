@@ -86,17 +86,19 @@ module ForestLiana
             cast_to_array(ForestLiana.integrations[:stripe][:mapping])
           @integration_stripe_valid = true
         else
-          FOREST_LOGGER.error 'Cannot setup properly your Stripe integration.'
+          FOREST_LOGGER.error 'Cannot setup properly your Stripe integration.' \
+            'Please go to https://doc.forestadmin.com for more information.'
         end
       end
 
       if intercom_integration?
-        if intercom_integration_valid? || intercom_integration_deprecated?
+        if intercom_integration_valid?
           ForestLiana.integrations[:intercom][:mapping] =
             cast_to_array(ForestLiana.integrations[:intercom][:mapping])
           @integration_intercom_valid = true
         else
-          FOREST_LOGGER.error 'Cannot setup properly your Intercom integration.'
+          FOREST_LOGGER.error 'Cannot setup properly your Intercom integration. ' \
+            'Please go to https://doc.forestadmin.com for more information.'
         end
       end
     end
@@ -203,7 +205,7 @@ module ForestLiana
     end
 
     def setup_intercom_integration(collection_name)
-      model_name = collection_name.constantize.try(:table_name)
+      model_name = ForestLiana.name_for(collection_name.constantize)
       collection_display_name = collection_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
@@ -216,7 +218,7 @@ module ForestLiana
         is_searchable: false,
         fields: [
           { field: :subject, type: 'String' },
-          { field: :body, type: ['String'], widget: 'link' },
+          { field: :body, type: ['String'] },
           { field: :open, type: 'Boolean'},
           { field: :read, type: 'Boolean'},
           { field: :assignee, type: 'String' }
@@ -262,24 +264,7 @@ module ForestLiana
 
     def intercom_integration_valid?
       integration = ForestLiana.integrations.try(:[], :intercom)
-      integration.present? && integration.has_key?(:api_key) &&
-        integration.has_key?(:app_id) && integration.has_key?(:mapping)
-    end
-
-    def intercom_integration_deprecated?
-      integration = ForestLiana.integrations.try(:[], :intercom)
-
-      is_deprecated = integration.present? && integration.has_key?(:api_key) &&
-        integration.has_key?(:app_id) && integration.has_key?(:user_collection)
-
-      if is_deprecated
-        integration[:mapping] = integration[:user_collection]
-
-        FOREST_LOGGER.warn "Intercom integration attribute \"user_collection\"" \
-          "is now deprecated, please use \"mapping\" attribute."
-      end
-
-      is_deprecated
+      integration.present? && integration.has_key?(:access_token) && integration.has_key?(:mapping)
     end
 
     def setup_stripe_integration(collection_name_and_field)

@@ -92,7 +92,7 @@ module ForestLiana
         json['data'].each { |record| force_utf8_attributes_encoding(record) }
       else
         # NOTICE: Single record case
-        force_utf8_attributes_encoding(json['data'])
+        force_utf8_attributes_encoding(json['data']) if json['data']
       end
 
       json['included'].try(:each) do |association|

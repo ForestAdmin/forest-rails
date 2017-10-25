@@ -28,8 +28,9 @@ ForestLiana::Engine.routes.draw do
   get ':collection/:id/stripe_bank_accounts' => 'stripe#bank_accounts'
 
   # Intercom Integration
-  get ':collection/:id/intercom_conversations' => 'intercom#user_conversations'
+  get ':collection/:id/intercom_conversations' => 'intercom#conversations'
   get ':collection/:id/intercom_attributes' => 'intercom#attributes'
+  get '(*collection)_intercom_conversations/:conversation_id' => 'intercom#conversation'
 
   # Devise support
   post '/actions/change-password' => 'devise#change_password'
