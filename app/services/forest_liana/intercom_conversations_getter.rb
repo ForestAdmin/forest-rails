@@ -2,10 +2,8 @@ module ForestLiana
   class IntercomConversationsGetter
     def initialize(params)
       @params = params
-      @app_id = ForestLiana.integrations[:intercom][:app_id]
-      @api_key = ForestLiana.integrations[:intercom][:api_key]
-
-      @intercom = ::Intercom::Client.new(app_id: @app_id, api_key: @api_key)
+      @access_token = ForestLiana.integrations[:intercom][:access_token]
+      @intercom = ::Intercom::Client.new(token: @access_token)
     end
 
     def count
@@ -18,9 +16,6 @@ module ForestLiana
           admins = @intercom.admins.all.detect(id: conversation.assignee.id)
           conversation.assignee = admins.first
         end
-
-        conversation.link = link(conversation)
-
         conversation
       end
     end
@@ -35,6 +30,9 @@ module ForestLiana
         ).entries
       rescue Intercom::ResourceNotFound
         @records = []
+      rescue Intercom::UnexpectedError => exception
+        FOREST_LOGGER.error "Cannot retrieve the Intercom conversations: #{exception.message}"
+        @records = []
       end
     end
 
@@ -42,10 +40,6 @@ module ForestLiana
 
     def collection
       @params[:collection].singularize.camelize.constantize
-    end
-
-    def link(conversation)
-      "#{@intercom.base_url}/a/apps/#{@app_id}/inbox/all/conversations/#{conversation.id}"
     end
 
     def pagination

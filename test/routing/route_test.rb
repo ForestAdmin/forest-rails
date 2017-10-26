@@ -113,7 +113,7 @@ module ForestLiana
       assert_routing({
         method: 'get', path: ':collection/:id/intercom_conversations'
       }, {
-        controller: 'forest_liana/intercom', action: 'user_conversations',
+        controller: 'forest_liana/intercom', action: 'conversations',
         collection: ':collection', id: ':id'
       })
       assert_routing({
@@ -121,6 +121,12 @@ module ForestLiana
       }, {
         controller: 'forest_liana/intercom', action: 'attributes',
         collection: ':collection', id: ':id'
+      })
+      assert_routing({
+        method: 'get', path: '(*collection)_intercom_conversations/:conversation_id'
+      }, {
+        controller: 'forest_liana/intercom', action: 'conversation',
+        collection: '(*collection)', conversation_id: ':conversation_id'
       })
 
       # Devise support

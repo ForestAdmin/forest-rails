@@ -1,16 +1,10 @@
 module ForestLiana
   class IntercomAttributesGetter
-    attr_accessor :records
+    attr_accessor :record
 
     def initialize(params)
       @params = params
-      @intercom = ::Intercom::Client.new(
-        app_id: ForestLiana.integrations[:intercom][:app_id],
-        api_key: ForestLiana.integrations[:intercom][:api_key])
-    end
-
-    def count
-      @records.count
+      @intercom = ::Intercom::Client.new(token: ForestLiana.integrations[:intercom][:access_token])
     end
 
     def perform
@@ -21,9 +15,10 @@ module ForestLiana
         user.segments = user.segments.map do |segment|
           @intercom.segments.find(id: segment.id)
         end
-
-        @records = user
+        @record = user
       rescue Intercom::ResourceNotFound
+      rescue Intercom::UnexpectedError => exception
+        FOREST_LOGGER.error "Cannot retrieve the Intercom attributes: #{exception.message}"
       end
     end
 
