@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.9.6 - 2017-10-26
 ### Changed
 - Smart Fields - Prevent the Smart Fields computation errors to generate a crash and handle it letting the value empty.
 - Intercom Integration - Prefer Intercom access_token configuration to old fashioned app_id/api_key.
