@@ -5,7 +5,7 @@ module ForestLiana
       @association = association
       @params = params
       @field_names_requested = field_names_requested
-      @current_collection = get_current_collection(association_table_name)
+      @current_collection = get_current_collection(ForestLiana.name_for(model_association))
     end
 
     def perform
@@ -61,8 +61,11 @@ module ForestLiana
     end
 
     def association_table_name
-      @resource.reflect_on_association(@params[:association_name].to_sym)
-        .try(:table_name)
+      model_association.try(:table_name)
+    end
+
+    def model_association
+      @resource.reflect_on_association(@params[:association_name].to_sym).klass
     end
 
     def offset

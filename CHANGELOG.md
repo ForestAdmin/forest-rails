@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- HasMany Getter - Fix HasMany associated records retrieval for namespaced models.
 
 ## RELEASE 1.9.6 - 2017-10-26
 ### Changed
