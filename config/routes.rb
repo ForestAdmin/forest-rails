@@ -25,9 +25,12 @@ ForestLiana::Engine.routes.draw do
   get ':collection/:id/stripe_invoices' => 'stripe#invoices'
   get '(*collection)_stripe_invoices/:invoice_id' => 'stripe#invoice'
   get ':collection/:id/stripe_cards' => 'stripe#cards'
+  get '(*collection)_stripe_cards' => 'stripe#card'
   get '(:collection)_stripe_subscriptions' => 'stripe#subscriptions'
   get ':collection/:id/stripe_subscriptions' => 'stripe#subscriptions'
+  get '(*collection)_stripe_subscriptions/:subscription_id' => 'stripe#subscription'
   get ':collection/:id/stripe_bank_accounts' => 'stripe#bank_accounts'
+  get '(*collection)_stripe_bank_accounts' => 'stripe#bank_account'
 
   # Intercom Integration
   get ':collection/:id/intercom_conversations' => 'intercom#conversations'

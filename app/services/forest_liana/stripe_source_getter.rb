@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripeSubscriptionGetter
+  class StripeSourceGetter
     attr_accessor :record
 
     def initialize(params, secret_key, reference)
@@ -8,15 +8,17 @@ module ForestLiana
     end
 
     def perform
-      query = {}
-      @record = Stripe::Subscription.retrieve(@params[:subscription_id])
+      resource = collection.find(@params[:recordId])
+      customer = resource[field]
 
+      @record = Stripe::Customer
+        .retrieve(customer)
+        .sources.retrieve(@params[:objectId])
+
+      query = {}
       query[field] = @record.customer
-      if collection
-        @record.customer = collection.find_by(query)
-      else
-        @record.customer = nil
-      end
+      @record.customer = collection.find_by(query)
+
       @record
     end
 

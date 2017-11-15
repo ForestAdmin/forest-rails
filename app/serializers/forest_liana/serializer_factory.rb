@@ -111,6 +111,10 @@ module ForestLiana
               ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_invoices"
             when :stripe_cards
               ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_cards"
+            when :stripe_subscriptions
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_subscriptions"
+            when :stripe_bank_accounts
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_bank_accounts"
             end
           end
 

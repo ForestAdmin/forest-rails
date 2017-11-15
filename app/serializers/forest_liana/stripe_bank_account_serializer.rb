@@ -2,16 +2,14 @@ module ForestLiana
   class StripeBankAccountSerializer
     include JSONAPI::Serializer
 
-    attribute :account
     attribute :account_holder_name
     attribute :account_holder_type
     attribute :bank_name
     attribute :country
     attribute :currency
-    attribute :default_for_currency
     attribute :fingerprint
     attribute :last4
-    attribute :rooting_number
+    attribute :routing_number
     attribute :status
 
     has_one :customer

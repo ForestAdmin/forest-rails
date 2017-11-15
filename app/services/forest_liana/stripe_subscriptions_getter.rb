@@ -23,7 +23,6 @@ module ForestLiana
         query[:customer] = resource[field]
       end
 
-      byebug
       query['include[]'] = 'total_count'
       @subscriptions = fetch_subscriptions(query)
       if @subscriptions.blank?
@@ -32,15 +31,6 @@ module ForestLiana
       end
 
       @records = @subscriptions.data.map do |d|
-        d.canceled_at = Time.at(d.canceled_at).to_datetime
-        d.created = Time.at(d.created).to_datetime
-        d.current_period_end = Time.at(d.current_period_end).to_datetime
-        d.current_period_start = Time.at(d.current_period_start).to_datetime
-        d.ended_at = Time.at(d.ended_at).to_datetime
-        d.start = Time.at(d.start).to_datetime
-        d.trial_end = Time.at(d.trial_end).to_datetime
-        d.trial_start = Time.at(d.trial_start).to_datetime
-
         query = {}
         query[field] = d.customer
         if collection

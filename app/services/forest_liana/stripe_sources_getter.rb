@@ -1,5 +1,5 @@
 module ForestLiana
-  class StripeBankAccountsGetter
+  class StripeSourcesGetter
     attr_accessor :records
 
     def initialize(params, secret_key, reference)
@@ -16,7 +16,7 @@ module ForestLiana
         limit: limit,
         starting_after: starting_after,
         ending_before: ending_before,
-        object: 'bank_account'
+        object: @params[:object]
       }
       params['include[]'] = 'total_count'
 

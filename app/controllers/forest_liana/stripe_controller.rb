@@ -39,7 +39,8 @@ module ForestLiana
     end
 
     def cards
-      getter = StripeCardsGetter.new(params,
+      params[:object] = 'card'
+      getter = StripeSourcesGetter.new(params,
                                      request.headers['Stripe-Secret-Key'],
                                      request.headers['Stripe-Reference'])
       getter.perform
@@ -47,6 +48,19 @@ module ForestLiana
       render serializer: nil, json: serialize_models(getter.records, {
         context: { type: get_serializer_type('stripe_cards') },
         count: getter.count,
+        include: ['customer']
+      })
+    end
+
+    def card
+      getter = StripeSourceGetter.new(params,
+                                     request.headers['Stripe-Secret-Key'],
+                                     request.headers['Stripe-Reference'])
+      getter.perform
+
+      render serializer: nil, json: serialize_model(getter.record, {
+        context: { type: get_serializer_type('stripe_cards') },
+        skip_collection_check: true,
         include: ['customer']
       })
     end
@@ -83,8 +97,6 @@ module ForestLiana
                                      request.headers['Stripe-Reference'])
       getter.perform
 
-      byebug
-
       render serializer: nil, json: serialize_models(getter.records, {
         context: { type: get_serializer_type('stripe_subscriptions') },
         count: getter.count,
@@ -106,7 +118,8 @@ module ForestLiana
     end
 
     def bank_accounts
-      getter = StripeBankAccountsGetter.new(params,
+      params[:object] = 'bank_account'
+      getter = StripeSourcesGetter.new(params,
                                      request.headers['Stripe-Secret-Key'],
                                      request.headers['Stripe-Reference'])
       getter.perform
@@ -114,6 +127,19 @@ module ForestLiana
       render serializer: nil, json: serialize_models(getter.records, {
         context: { type: get_serializer_type('stripe_bank_accounts') },
         count: getter.count,
+        include: ['customer']
+      })
+    end
+
+    def bank_account
+      getter = StripeSourceGetter.new(params,
+                                            request.headers['Stripe-Secret-Key'],
+                                            request.headers['Stripe-Reference'])
+      getter.perform
+
+      render serializer: nil, json: serialize_model(getter.record, {
+        context: { type: get_serializer_type('stripe_bank_accounts') },
+        skip_collection_check: true,
         include: ['customer']
       })
     end
