@@ -19,9 +19,11 @@ ForestLiana::Engine.routes.draw do
   # Stripe Integration
   get '(:collection)_stripe_payments' => 'stripe#payments'
   get ':collection/:id/stripe_payments' => 'stripe#payments'
+  get '(*collection)_stripe_payments/:payment_id' => 'stripe#payment'
   post 'stripe_payments/refunds' => 'stripe#refund'
   get '(:collection)_stripe_invoices' => 'stripe#invoices'
   get ':collection/:id/stripe_invoices' => 'stripe#invoices'
+  get '(*collection)_stripe_invoices/:invoice_id' => 'stripe#invoice'
   get ':collection/:id/stripe_cards' => 'stripe#cards'
   get '(:collection)_stripe_subscriptions' => 'stripe#subscriptions'
   get ':collection/:id/stripe_subscriptions' => 'stripe#subscriptions'

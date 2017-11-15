@@ -23,6 +23,7 @@ module ForestLiana
         query[:customer] = resource[field]
       end
 
+      byebug
       query['include[]'] = 'total_count'
       @subscriptions = fetch_subscriptions(query)
       if @subscriptions.blank?
