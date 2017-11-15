@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Stripe Integration - Allow users to display the details stripe records.
 
 ## RELEASE 1.9.7 - 2017-10-30
 ### Fixed
