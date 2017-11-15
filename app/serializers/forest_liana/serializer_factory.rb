@@ -241,6 +241,8 @@ module ForestLiana
         serializer.send(:has_many, :stripe_payments) { }
         serializer.send(:has_many, :stripe_invoices) { }
         serializer.send(:has_many, :stripe_cards) { }
+        serializer.send(:has_many, :stripe_subscriptions) { }
+        serializer.send(:has_many, :stripe_bank_accounts) { }
       end
 
       ForestLiana::SerializerFactory.define_serializer(active_record_class,
