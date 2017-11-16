@@ -1,5 +1,5 @@
 module ForestLiana
-  class IntercomConversationGetter
+  class IntercomConversationGetter < IntegrationBaseGetter
     attr_accessor :record
 
     def initialize(params)

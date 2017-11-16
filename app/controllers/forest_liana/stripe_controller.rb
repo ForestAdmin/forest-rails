@@ -2,9 +2,8 @@ module ForestLiana
   class StripeController < ForestLiana::ApplicationController
 
     def payments
-      getter = StripePaymentsGetter.new(params,
-                                        request.headers['Stripe-Secret-Key'],
-                                        request.headers['Stripe-Reference'])
+      getter = StripePaymentsGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
@@ -15,9 +14,8 @@ module ForestLiana
     end
 
     def payment
-      getter = StripePaymentGetter.new(params,
-                                       request.headers['Stripe-Secret-Key'],
-                                       request.headers['Stripe-Reference'])
+      getter = StripePaymentGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_model(getter.record, {
@@ -40,9 +38,8 @@ module ForestLiana
 
     def cards
       params[:object] = 'card'
-      getter = StripeSourcesGetter.new(params,
-                                     request.headers['Stripe-Secret-Key'],
-                                     request.headers['Stripe-Reference'])
+      getter = StripeSourcesGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
@@ -53,9 +50,8 @@ module ForestLiana
     end
 
     def card
-      getter = StripeSourceGetter.new(params,
-                                     request.headers['Stripe-Secret-Key'],
-                                     request.headers['Stripe-Reference'])
+      getter = StripeSourceGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_model(getter.record, {
@@ -66,9 +62,8 @@ module ForestLiana
     end
 
     def invoices
-      getter = StripeInvoicesGetter.new(params,
-                                        request.headers['Stripe-Secret-Key'],
-                                        request.headers['Stripe-Reference'])
+      getter = StripeInvoicesGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
@@ -79,9 +74,8 @@ module ForestLiana
     end
 
     def invoice
-      getter = StripeInvoiceGetter.new(params,
-                                        request.headers['Stripe-Secret-Key'],
-                                        request.headers['Stripe-Reference'])
+      getter = StripeInvoiceGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_model(getter.record, {
@@ -92,9 +86,8 @@ module ForestLiana
     end
 
     def subscriptions
-      getter = StripeSubscriptionsGetter.new(params,
-                                     request.headers['Stripe-Secret-Key'],
-                                     request.headers['Stripe-Reference'])
+      getter = StripeSubscriptionsGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
@@ -105,9 +98,8 @@ module ForestLiana
     end
 
     def subscription
-      getter = StripeSubscriptionGetter.new(params,
-                                            request.headers['Stripe-Secret-Key'],
-                                            request.headers['Stripe-Reference'])
+      getter = StripeSubscriptionGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_model(getter.record, {
@@ -119,9 +111,8 @@ module ForestLiana
 
     def bank_accounts
       params[:object] = 'bank_account'
-      getter = StripeSourcesGetter.new(params,
-                                     request.headers['Stripe-Secret-Key'],
-                                     request.headers['Stripe-Reference'])
+      getter = StripeSourcesGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_models(getter.records, {
@@ -132,9 +123,8 @@ module ForestLiana
     end
 
     def bank_account
-      getter = StripeSourceGetter.new(params,
-                                            request.headers['Stripe-Secret-Key'],
-                                            request.headers['Stripe-Reference'])
+      getter = StripeSourceGetter.new(params, request.headers['Stripe-Secret-Key'],
+        request.headers['Stripe-Reference'])
       getter.perform
 
       render serializer: nil, json: serialize_model(getter.record, {
