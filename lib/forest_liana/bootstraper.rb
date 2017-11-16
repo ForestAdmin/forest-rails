@@ -269,7 +269,7 @@ module ForestLiana
 
     def setup_stripe_integration(collection_name_and_field)
       collection_name = collection_name_and_field.split('.')[0]
-      model_name = collection_name.constantize.try(:table_name)
+      model_name = ForestLiana.name_for(collection_name.constantize)
       collection_display_name = model_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({

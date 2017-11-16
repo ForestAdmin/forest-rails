@@ -1,5 +1,5 @@
 module ForestLiana
-  class IntercomAttributesGetter
+  class IntercomAttributesGetter < IntegrationBaseGetter
     attr_accessor :record
 
     def initialize(params)
@@ -20,12 +20,6 @@ module ForestLiana
       rescue Intercom::UnexpectedError => exception
         FOREST_LOGGER.error "Cannot retrieve the Intercom attributes: #{exception.message}"
       end
-    end
-
-    private
-
-    def collection
-      @params[:collection].singularize.camelize.constantize
     end
   end
 end

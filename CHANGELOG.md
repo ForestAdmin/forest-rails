@@ -1,6 +1,12 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Stripe Integration - Allow users to display Stripe records in the Details view.
+
+### Fixed
+- Stripe Integration - Fix the global integration when mapped on namespaced models.
+- Stripe Integration - Fix the access to customer subscriptions and bank accounts.
 
 ## RELEASE 1.9.7 - 2017-10-30
 ### Fixed

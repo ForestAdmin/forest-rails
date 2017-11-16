@@ -1,5 +1,5 @@
 module ForestLiana
-  class IntercomConversationsGetter
+  class IntercomConversationsGetter < IntegrationBaseGetter
     def initialize(params)
       @params = params
       @access_token = ForestLiana.integrations[:intercom][:access_token]
@@ -38,10 +38,6 @@ module ForestLiana
 
     private
 
-    def collection
-      @params[:collection].singularize.camelize.constantize
-    end
-
     def pagination
       offset..(offset + limit - 1)
     end
@@ -55,20 +51,6 @@ module ForestLiana
       else
         0
       end
-    end
-
-    def limit
-      return 10 unless pagination?
-
-      if @params[:page][:size]
-        @params[:page][:size].to_i
-      else
-        10
-      end
-    end
-
-    def pagination?
-      @params[:page] && @params[:page][:number]
     end
   end
 end

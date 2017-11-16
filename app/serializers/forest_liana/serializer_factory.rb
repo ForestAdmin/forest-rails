@@ -111,6 +111,10 @@ module ForestLiana
               ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_invoices"
             when :stripe_cards
               ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_cards"
+            when :stripe_subscriptions
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_subscriptions"
+            when :stripe_bank_accounts
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/stripe_bank_accounts"
             end
           end
 
@@ -241,6 +245,8 @@ module ForestLiana
         serializer.send(:has_many, :stripe_payments) { }
         serializer.send(:has_many, :stripe_invoices) { }
         serializer.send(:has_many, :stripe_cards) { }
+        serializer.send(:has_many, :stripe_subscriptions) { }
+        serializer.send(:has_many, :stripe_bank_accounts) { }
       end
 
       ForestLiana::SerializerFactory.define_serializer(active_record_class,
