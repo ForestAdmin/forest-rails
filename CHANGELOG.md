@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 ### Added
-- Stripe Integration - Allow users to display the details stripe records.
+- Stripe Integration - Allow users to display Stripe records in the Details view.
+
+### Fixed
+- Stripe Integration - Fix the global integration when mapped on namespaced models.
 
 ## RELEASE 1.9.7 - 2017-10-30
 ### Fixed
