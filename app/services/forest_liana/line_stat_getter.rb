@@ -16,7 +16,7 @@ module ForestLiana
         when 'day'
           '%d/%m/%Y'
         when 'week'
-          'W%W-%Y'
+          'W%V-%Y'
         when 'month'
           '%b %Y'
         when 'year'
@@ -40,7 +40,11 @@ module ForestLiana
         value = value.where(conditions.join(filter_operator))
       end
 
-      value = value.send(time_range, group_by_date_field, { time_zone: client_timezone })
+      value = value.send(time_range, group_by_date_field, {
+        time_zone: client_timezone,
+        week_start: :mon
+      })
+
       value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
         .map do |k, v|
           { label: k.strftime(get_format), values: { value: v }}
