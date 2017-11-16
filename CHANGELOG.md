@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 1.9.8 - 2017-11-16
 ### Added
 - Stripe Integration - Allow users to display Stripe records in the Details view.
 
