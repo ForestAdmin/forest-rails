@@ -7,6 +7,8 @@
 ### Fixed
 - Stripe Integration - Fix the global integration when mapped on namespaced models.
 - Stripe Integration - Fix the access to customer subscriptions and bank accounts.
+- Line Charts - Use ISO 8601 format to display weeks in Line Charts.
+- Line Charts - Force the starting day of the week to Monday for Line Charts per week.
 
 ## RELEASE 1.9.7 - 2017-10-30
 ### Fixed
