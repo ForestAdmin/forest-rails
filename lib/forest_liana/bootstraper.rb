@@ -105,8 +105,8 @@ module ForestLiana
 
     def namespace_duplicated_models
       ForestLiana.models
-        .group_by {|model| model.table_name}
-        .select {|table_name, models| models.length > 1}
+        .group_by { |model| model.table_name }
+        .select { |table_name, models| models.length > 1 }
         .try(:each) do |table_name, models|
           models.each do |model|
             ForestLiana.names_overriden[model] =
@@ -149,7 +149,7 @@ module ForestLiana
           "Can you check on Forest that you copied it properly in the " \
           "forest_liana initializer?"
       else
-        json = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
+        apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
           is_collection: true,
           include: ['actions', 'segments'],
           meta: {
@@ -168,7 +168,7 @@ module ForestLiana
           http.use_ssl = true if forest_url.start_with?('https')
           http.start do |client|
             request = Net::HTTP::Post.new(uri.path)
-            request.body = json.to_json
+            request.body = apimap.to_json
             request['Content-Type'] = 'application/json'
             request['forest-secret-key'] = ForestLiana.env_secret
             response = client.request(request)

@@ -49,8 +49,8 @@ module ForestLiana
 
     def collection
       @collection ||= begin
-        collection = ForestLiana.apimap.find do |x|
-          x.name.to_s == ForestLiana.name_for(@model)
+        collection = ForestLiana.apimap.find do |object|
+          object.name.to_s == ForestLiana.name_for(@model)
         end
 
         if collection.blank?
@@ -193,7 +193,7 @@ module ForestLiana
           # NOTICE: The foreign key exists, so it's a belongsTo relationship.
           elsif (field = column_association(collection, association)) &&
             [:has_one, :belongs_to].include?(association.macro)
-              field[:reference] = get_ref_for(association)
+              field[:reference] = get_reference_for(association)
               field[:field] = association.name
               field[:inverseOf] = inverse_of(association)
           # NOTICE: Create the fields of hasOne, HasMany, … relationships.
@@ -398,7 +398,7 @@ module ForestLiana
       column_schema
     end
 
-    def get_ref_for(association)
+    def get_reference_for(association)
       if association.options[:polymorphic] == true
         '*.id'
       else

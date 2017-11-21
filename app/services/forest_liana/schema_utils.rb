@@ -20,19 +20,19 @@ module ForestLiana
     end
 
     def self.find_model_from_collection_name(collection_name)
-      model = nil
+      model_found = nil
 
-      ForestLiana.models.each do |subclass|
-        if subclass.abstract_class?
-          model = self.find_model_from_abstract_class(subclass, collection_name)
-        elsif ForestLiana.name_for(subclass) == collection_name
-          model = subclass.base_class
+      ForestLiana.models.each do |model|
+        if model.abstract_class?
+          model_found = self.find_model_from_abstract_class(model, collection_name)
+        elsif ForestLiana.name_for(model) == collection_name
+          model_found = model.base_class
         end
 
-        break if model
+        break if model_found
       end
 
-      model
+      model_found
     end
 
     def self.tables_names
