@@ -33,11 +33,11 @@ module ForestLiana
   def self.schema_for_resource resource
     self.apimap.find do |collection|
       SchemaUtils.find_model_from_collection_name(collection.name)
-        .try(:table_name) == resource.table_name
+        .try(:name) == resource.name
     end
   end
 
   def self.name_for(model)
-    self.names_overriden[model] || model.try(:table_name)
+    self.names_overriden[model] || model.try(:name)
   end
 end

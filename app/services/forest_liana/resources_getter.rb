@@ -4,7 +4,7 @@ module ForestLiana
       @resource = resource
       @params = params
       @count_needs_includes = false
-      @collection = get_collection(@resource.table_name)
+      @collection = get_collection(ForestLiana.name_for(@resource))
       @field_names_requested = field_names_requested
       get_segment()
     end

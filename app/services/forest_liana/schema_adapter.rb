@@ -73,7 +73,9 @@ module ForestLiana
 
     def add_columns
       @model.columns.each do |column|
-        collection.fields << get_schema_for_column(column)
+        unless sti_column_of_model_child?(column)
+          collection.fields << get_schema_for_column(column)
+        end
       end
 
       # NOTICE: Add Intercom fields
@@ -297,6 +299,10 @@ module ForestLiana
        column.name == @model.inheritance_column) || column.name == 'type'
     end
 
+    def sti_column_of_model_child?(column)
+      sti_column?(column) && @model.descendants.empty?
+    end
+
     def add_default_value(column_schema, column)
       # TODO: detect/introspect the attribute default value with Rails 5
       #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
@@ -402,7 +408,7 @@ module ForestLiana
       if association.options[:polymorphic] == true
         '*.id'
       else
-        "#{ForestLiana.name_for(association.klass).underscore}.id"
+        "#{ForestLiana.name_for(association.klass)}.id"
       end
     end
 

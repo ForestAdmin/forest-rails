@@ -32,9 +32,16 @@ module ForestLiana
 
     private
 
+    def is_sti_parent_model?(model)
+      return false unless model.try(:table_exists?)
+
+      column_inheritance = model.inheritance_column || model.columns.find { |c| c.name == 'type' }
+      column_inheritance.present?
+    end
+
     def analyze_model?(model)
       model && model.table_exists? && !SchemaUtils.habtm?(model) &&
-        SchemaUtils.model_included?(model) && !SchemaUtils.sti_child?(model)
+        SchemaUtils.model_included?(model)
     end
 
     def fetch_models
@@ -46,6 +53,10 @@ module ForestLiana
         if model.abstract_class?
           model.descendants.each { |submodel| fetch_model(submodel) }
         else
+          if is_sti_parent_model?(model)
+            model.descendants.each { |submodel_sti| fetch_model(submodel_sti) }
+          end
+
           if analyze_model?(model)
             ForestLiana.models << model
           end
@@ -109,11 +120,12 @@ module ForestLiana
         .select { |table_name, models| models.length > 1 }
         .try(:each) do |table_name, models|
           models.each do |model|
-            ForestLiana.names_overriden[model] =
-              "#{model.name.deconstantize.downcase}__#{model.table_name}"
+            unless model.name.deconstantize.blank?
+              ForestLiana.names_overriden[model] =
+                "#{model.name.deconstantize.downcase}__#{model.name}"
+            end
           end
         end
-
     end
 
     def create_apimap
