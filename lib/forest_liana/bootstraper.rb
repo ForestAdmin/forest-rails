@@ -131,7 +131,23 @@ module ForestLiana
     def create_apimap
       ForestLiana.models.map do |model|
         if analyze_model?(model)
-          SchemaAdapter.new(model).perform
+          collection = SchemaAdapter.new(model).perform
+
+          # NOTICE: Define an automatic segment for each STI child model.
+          if is_sti_parent_model?(model)
+            column_type = model.inheritance_column
+            model.descendants.each do |submodel_sti|
+              type = submodel_sti.sti_name
+              name = type.pluralize
+              collection.segments << ForestLiana::Model::Segment.new({
+                id: name,
+                name: name,
+                where: lambda { { column_type => type } }
+              })
+            end
+          end
+
+          collection
         end
       end
 
