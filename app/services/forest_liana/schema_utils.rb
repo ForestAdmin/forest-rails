@@ -78,6 +78,7 @@ module ForestLiana
     def self.sti_child?(model)
       begin
         parent = model.try(:superclass)
+        return false unless parent.try(:table_name)
 
         if ForestLiana.name_for(parent)
           inheritance_column = parent.columns.find do |column|
