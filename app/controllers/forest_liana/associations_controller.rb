@@ -72,7 +72,8 @@ module ForestLiana
     end
 
     def render_jsonapi getter
-      render serializer: nil, json: serialize_models(getter.records,
+      records = getter.records.map { |record| record.becomes(@association.klass) }
+      render serializer: nil, json: serialize_models(records,
         include: getter.includes, count: getter.count, params: params)
     end
   end
