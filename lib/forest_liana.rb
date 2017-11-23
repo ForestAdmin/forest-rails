@@ -21,7 +21,7 @@ module ForestLiana
   mattr_accessor :included_models
   mattr_accessor :user_class_name
   mattr_accessor :names_overriden
-  # TODO: Remove once lianas prior to 2.0.0 are not supported.
+  # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
 
   self.apimap = []
@@ -32,7 +32,7 @@ module ForestLiana
   self.user_class_name = nil
   self.names_overriden = {}
 
-  # TODO: Remove once lianas prior to 2.0.0 are not supported.
+  # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   self.names_old_overriden = {}
 
   def self.schema_for_resource resource
@@ -46,7 +46,7 @@ module ForestLiana
     self.names_overriden[model] || model.try(:name)
   end
 
-  # TODO: Remove once lianas prior to 2.0.0 are not supported.
+  # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   def self.name_old_for(model)
     self.names_old_overriden[model] || model.try(:table_name)
   end

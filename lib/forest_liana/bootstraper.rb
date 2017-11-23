@@ -123,7 +123,7 @@ module ForestLiana
             unless model.name.deconstantize.blank?
               ForestLiana.names_overriden[model] = model.name.gsub('::', '__')
             end
-            # TODO: Remove once lianas prior to 2.0.0 are not supported.
+            # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
             ForestLiana.names_old_overriden[model] =
               "#{model.name.deconstantize.downcase}__#{model.table_name}"
           end
@@ -236,10 +236,13 @@ module ForestLiana
 
     def setup_intercom_integration(collection_name)
       model_name = ForestLiana.name_for(collection_name.constantize)
+      # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
+      model_name_old = ForestLiana.name_old_for(collection_name.constantize)
       collection_display_name = collection_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_intercom_conversations",
+        name_old: "#{model_name_old}_intercom_conversations",
         display_name: collection_display_name + ' Conversations',
         icon: 'intercom',
         integration: 'intercom',
@@ -257,6 +260,7 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_intercom_attributes",
+        name_old: "#{model_name_old}_intercom_attributes",
         display_name: collection_display_name + ' Attributes',
         icon: 'intercom',
         integration: 'intercom',
@@ -300,10 +304,13 @@ module ForestLiana
     def setup_stripe_integration(collection_name_and_field)
       collection_name = collection_name_and_field.split('.')[0]
       model_name = ForestLiana.name_for(collection_name.constantize)
+      # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
+      model_name_old = ForestLiana.name_old_for(collection_name.constantize)
       collection_display_name = model_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_payments",
+        name_old: "#{model_name_old}_stripe_payments",
         display_name: collection_display_name + ' Payments',
         icon: 'stripe',
         integration: 'stripe',
@@ -337,6 +344,7 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_invoices",
+        name_old: "#{model_name_old}_stripe_invoices",
         display_name: collection_display_name + ' Invoices',
         icon: 'stripe',
         integration: 'stripe',
@@ -371,6 +379,7 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_cards",
+        name_old: "#{model_name_old}_stripe_cards",
         display_name: collection_display_name + ' Cards',
         icon: 'stripe',
         integration: 'stripe',
@@ -406,6 +415,7 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_subscriptions",
+        name_old: "#{model_name_old}_stripe_subscriptions",
         display_name: collection_display_name + ' Subscriptions',
         icon: 'stripe',
         integration: 'stripe',
@@ -439,6 +449,7 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_bank_accounts",
+        name_old: "#{model_name_old}_stripe_bank_accounts",
         display_name: collection_display_name + ' Bank Accounts',
         icon: 'stripe',
         integration: 'stripe',

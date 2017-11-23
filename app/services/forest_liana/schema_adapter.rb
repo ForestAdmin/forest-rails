@@ -56,7 +56,7 @@ module ForestLiana
         if collection.blank?
           collection = ForestLiana::Model::Collection.new({
             name: ForestLiana.name_for(@model),
-              # TODO: Remove once lianas prior to 2.0.0 are not supported.
+              # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
             name_old: ForestLiana.name_old_for(@model),
             fields: []
           })
