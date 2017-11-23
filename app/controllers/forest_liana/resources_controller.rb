@@ -27,9 +27,8 @@ module ForestLiana
       getter = ForestLiana::ResourceGetter.new(@resource, params)
       getter.perform
 
-      record = getter.record.becomes(@resource)
       render serializer: nil, json:
-        serialize_model(record, include: includes(getter))
+        serialize_model(get_record(getter.record), include: includes(getter))
     end
 
     def create
@@ -40,9 +39,8 @@ module ForestLiana
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           creator.errors), status: 400
       elsif creator.record.valid?
-        record = creator.record.becomes(@resource)
         render serializer: nil,
-          json: serialize_model(record, include: record_includes)
+          json: serialize_model(get_record(creator.record), include: record_includes)
       else
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           creator.record.errors), status: 400
@@ -57,9 +55,8 @@ module ForestLiana
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           updater.errors), status: 400
       elsif updater.record.valid?
-        record = updater.record.becomes(@resource)
         render serializer: nil,
-          json: serialize_model(record, include: record_includes)
+          json: serialize_model(get_record(updater.record), include: record_includes)
       else
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           updater.record.errors), status: 400
@@ -96,8 +93,17 @@ module ForestLiana
       head :not_found
     end
 
+    def is_sti_model?
+      @is_sti_model ||= (@resource.inheritance_column.present? &&
+        @resource.columns.any? { |column| column.name == @resource.inheritance_column })
+    end
+
+    def get_record record
+      is_sti_model? ? record.becomes(@resource) : record
+    end
+
     def render_jsonapi getter
-      records = getter.records.map { |record| record.becomes(@resource) }
+      records = getter.records.map { |record| get_record(record) }
       render serializer: nil, json: serialize_models(records,
         include: includes(getter), count: getter.count, params: params)
     end

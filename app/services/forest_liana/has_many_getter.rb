@@ -19,8 +19,7 @@ module ForestLiana
 
     def search_query
       includesSymbols = includes.map { |association| association.to_sym }
-      SearchQueryBuilder.new(@records, @params,
-        includesSymbols, @collection).perform
+      SearchQueryBuilder.new(@records, @params, includesSymbols, @collection).perform
     end
 
     def includes
