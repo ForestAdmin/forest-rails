@@ -26,7 +26,11 @@ module ForestLiana
         if model.abstract_class?
           model_found = self.find_model_from_abstract_class(model, collection_name)
         elsif ForestLiana.name_for(model) == collection_name
-          model_found = model.base_class
+          if self.sti_child?(model)
+            model_found = model
+          else
+            model_found = model.base_class
+          end
         end
 
         break if model_found
@@ -74,6 +78,7 @@ module ForestLiana
     def self.sti_child?(model)
       begin
         parent = model.try(:superclass)
+        return false unless parent.try(:table_name)
 
         if ForestLiana.name_for(parent)
           inheritance_column = parent.columns.find do |column|

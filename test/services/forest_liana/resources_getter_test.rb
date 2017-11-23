@@ -84,7 +84,7 @@ module ForestLiana
 
     test 'Filter on ambiguous field' do
       getter = ResourcesGetter.new(Tree, {
-        fields: { 'trees' => 'id' },
+        fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
         filter: {
           'created_at' => '>2015-06-18 08:00:00',
@@ -106,7 +106,7 @@ module ForestLiana
 
     test 'Filter before x days' do
       getter = ResourcesGetter.new(Tree, {
-        fields: { 'trees' => 'id' },
+        fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
         filter: {
           'created_at' => '$3HoursBefore',
@@ -127,7 +127,7 @@ module ForestLiana
 
     test 'Sort on an ambiguous field name with a filter' do
       getter = ResourcesGetter.new(Tree, {
-        fields: { 'trees' => 'id' },
+        fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
         sort: '-name',
         filter: { 'owner:name' => 'Arnaud Besnier' },
@@ -161,7 +161,7 @@ module ForestLiana
 
     test 'Filter on an updated_at field of an associated collection' do
       getter = ResourcesGetter.new(Tree, {
-        fields: { 'trees' => 'id' },
+        fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
         filter: { 'owner:updated_at' => '$previousYear' },
         filterType: 'and',
@@ -178,7 +178,7 @@ module ForestLiana
 
     test 'Filter equal on an updated_at field of an associated collection' do
       getter = ResourcesGetter.new(Tree, {
-        fields: { 'trees' => 'id' },
+        fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
         filter: {
           'owner:updated_at' => 'Sat Jul 02 2016 11:52:00 GMT-0400 (EDT)',

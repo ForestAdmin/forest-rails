@@ -28,7 +28,7 @@ module ForestLiana
       getter.perform
 
       render serializer: nil, json:
-        serialize_model(getter.record, include: includes(getter))
+        serialize_model(get_record(getter.record), include: includes(getter))
     end
 
     def create
@@ -40,7 +40,7 @@ module ForestLiana
           creator.errors), status: 400
       elsif creator.record.valid?
         render serializer: nil,
-          json: serialize_model(creator.record, include: record_includes)
+          json: serialize_model(get_record(creator.record), include: record_includes)
       else
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           creator.record.errors), status: 400
@@ -56,7 +56,7 @@ module ForestLiana
           updater.errors), status: 400
       elsif updater.record.valid?
         render serializer: nil,
-          json: serialize_model(updater.record, include: record_includes)
+          json: serialize_model(get_record(updater.record), include: record_includes)
       else
         render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
           updater.record.errors), status: 400
@@ -93,8 +93,18 @@ module ForestLiana
       head :not_found
     end
 
+    def is_sti_model?
+      @is_sti_model ||= (@resource.inheritance_column.present? &&
+        @resource.columns.any? { |column| column.name == @resource.inheritance_column })
+    end
+
+    def get_record record
+      is_sti_model? ? record.becomes(@resource) : record
+    end
+
     def render_jsonapi getter
-      render serializer: nil, json: serialize_models(getter.records,
+      records = getter.records.map { |record| get_record(record) }
+      render serializer: nil, json: serialize_models(records,
         include: includes(getter), count: getter.count, params: params)
     end
   end

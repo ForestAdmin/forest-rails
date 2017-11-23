@@ -6,7 +6,9 @@ class ForestLiana::Model::Collection
 
   attr_accessor :name, :fields, :actions, :segments, :only_for_relationships,
     :is_virtual, :is_read_only, :is_searchable, :display_name, :icon,
-    :integration, :pagination_type, :search_fields
+    :integration, :pagination_type, :search_fields,
+    # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
+    :name_old
 
   def initialize(attributes = {})
     @actions = []

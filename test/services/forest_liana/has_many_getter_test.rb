@@ -2,12 +2,12 @@ module ForestLiana
   class ResourcesGetterTest < ActiveSupport::TestCase
 
     collectionOwner = ForestLiana::Model::Collection.new({
-      name: 'owners',
+      name: 'Owner',
       fields: []
     })
 
     collectionTree = ForestLiana::Model::Collection.new({
-      name: 'trees',
+      name: 'Tree',
       fields: []
     })
 

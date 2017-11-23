@@ -4,6 +4,7 @@ class ForestLiana::CollectionSerializer
   include JSONAPI::Serializer
 
   attribute :name
+  attribute :name_old # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   attribute :display_name
   attribute :icon
   attribute :integration

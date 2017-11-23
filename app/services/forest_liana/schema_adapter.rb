@@ -42,6 +42,20 @@ module ForestLiana
         end
       end
 
+      # NOTICE: Define an automatic segment for each STI child model.
+      if is_sti_parent?
+        column_type = @model.inheritance_column
+        @model.descendants.each do |submodel_sti|
+          type = submodel_sti.sti_name
+          name = type.pluralize
+          collection.segments << ForestLiana::Model::Segment.new({
+            id: name,
+            name: name,
+            where: lambda { { column_type => type } }
+          })
+        end
+      end
+
       collection
     end
 
@@ -56,6 +70,8 @@ module ForestLiana
         if collection.blank?
           collection = ForestLiana::Model::Collection.new({
             name: ForestLiana.name_for(@model),
+              # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
+            name_old: ForestLiana.name_old_for(@model),
             fields: []
           })
 
@@ -73,7 +89,9 @@ module ForestLiana
 
     def add_columns
       @model.columns.each do |column|
-        collection.fields << get_schema_for_column(column)
+        unless is_sti_column_of_child_model?(column)
+          collection.fields << get_schema_for_column(column)
+        end
       end
 
       # NOTICE: Add Intercom fields
@@ -297,6 +315,17 @@ module ForestLiana
        column.name == @model.inheritance_column) || column.name == 'type'
     end
 
+    def is_sti_parent?
+      return false unless @model.try(:table_exists?)
+
+      @model.inheritance_column &&
+        @model.columns.find { |column| column.name == @model.inheritance_column }
+    end
+
+    def is_sti_column_of_child_model?(column)
+      sti_column?(column) && @model.descendants.empty?
+    end
+
     def add_default_value(column_schema, column)
       # TODO: detect/introspect the attribute default value with Rails 5
       #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
@@ -402,7 +431,7 @@ module ForestLiana
       if association.options[:polymorphic] == true
         '*.id'
       else
-        "#{ForestLiana.name_for(association.klass).underscore}.id"
+        "#{ForestLiana.name_for(association.klass)}.id"
       end
     end
 

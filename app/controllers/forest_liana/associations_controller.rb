@@ -14,7 +14,7 @@ module ForestLiana
 
       respond_to do |format|
         format.json { render_jsonapi(getter) }
-        format.csv { render_csv(getter, @association) }
+        format.csv { render_csv(getter, @association.klass) }
       end
     end
 
@@ -71,8 +71,18 @@ module ForestLiana
       ResourceDeserializer.new(@resource, params[:resource], true).perform
     end
 
+    def is_sti_model?
+      @is_sti_model ||= (@association.klass.inheritance_column.present? &&
+        @association.klass.columns.any? { |column| column.name == @association.klass.inheritance_column })
+    end
+
+    def get_record record
+      is_sti_model? ? record.becomes(@association.klass) : record
+    end
+
     def render_jsonapi getter
-      render serializer: nil, json: serialize_models(getter.records,
+      records = getter.records.map { |record| get_record(record) }
+      render serializer: nil, json: serialize_models(records,
         include: getter.includes, count: getter.count, params: params)
     end
   end
