@@ -2,7 +2,7 @@ module ForestLiana
   class ResourceUpdaterTest < ActiveSupport::TestCase
 
     collection = ForestLiana::Model::Collection.new({
-      name: 'serialize_fields',
+      name: 'SerializeField',
       fields: [{
         type: 'String',
         field: 'field'
@@ -17,7 +17,7 @@ module ForestLiana
         id: 1,
         data: {
           id: 1,
-          type: "serialize_field",
+          type: "SerializeField",
           attributes: {}
         }
       )
@@ -33,7 +33,7 @@ module ForestLiana
         id: 1,
         data: {
           id: 1,
-          type: "serialize_field",
+          type: "SerializeField",
           attributes: {
             field: nil
           }
@@ -51,7 +51,7 @@ module ForestLiana
         id: 1,
         data: {
           id: 1,
-          type: "serialize_field",
+          type: "SerializeField",
           attributes: {
             field: "Lucas"
           }
@@ -70,7 +70,7 @@ module ForestLiana
         id: 1,
         data: {
           id: 1,
-          type: "serialize_field",
+          type: "SerializeField",
           attributes: {
             field: "[\"test\", \"test\"]"
           }
