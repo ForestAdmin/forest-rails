@@ -73,7 +73,7 @@ module ForestLiana
 
     def add_columns
       @model.columns.each do |column|
-        unless sti_column_of_model_child?(column)
+        unless is_sti_column_of_child_model?(column)
           collection.fields << get_schema_for_column(column)
         end
       end
@@ -299,7 +299,7 @@ module ForestLiana
        column.name == @model.inheritance_column) || column.name == 'type'
     end
 
-    def sti_column_of_model_child?(column)
+    def is_sti_column_of_child_model?(column)
       sti_column?(column) && @model.descendants.empty?
     end
 
