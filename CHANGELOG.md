@@ -1,7 +1,7 @@
 # Change Log
 
 ## [Unreleased]
-### Added
+### Added
 - STI Models - Support STI Models with a collection for the parent model and each child model, with automatic segments on the parent collection.
 
 ### Changed
