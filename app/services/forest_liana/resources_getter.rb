@@ -4,7 +4,7 @@ module ForestLiana
       @resource = resource
       @params = params
       @count_needs_includes = false
-      @current_collection = get_current_collection(@resource.table_name)
+      @collection = get_collection(@resource.table_name)
       @field_names_requested = field_names_requested
       get_segment()
     end
@@ -49,8 +49,8 @@ module ForestLiana
         .map(&:name)
       includes_for_smart_search = []
 
-      if @current_collection && @current_collection.search_fields
-        includes_for_smart_search = @current_collection.search_fields
+      if @collection && @collection.search_fields
+        includes_for_smart_search = @collection.search_fields
           .select { |field| field.include? '.' }
           .map { |field| field.split('.').first.to_sym }
 
@@ -72,7 +72,7 @@ module ForestLiana
 
     def get_segment
       if @params[:segment]
-        @segment = @current_collection.segments.find do |segment|
+        @segment = @collection.segments.find do |segment|
           segment.name == @params[:segment]
         end
       end
@@ -105,7 +105,7 @@ module ForestLiana
     end
 
     def search_query
-      SearchQueryBuilder.new(@records, @params, includes, @current_collection).perform
+      SearchQueryBuilder.new(@records, @params, includes, @collection).perform
     end
 
     def sort_query
