@@ -35,8 +35,7 @@ module ForestLiana
     def is_sti_parent_model?(model)
       return false unless model.try(:table_exists?)
 
-      column_inheritance = model.inheritance_column || model.columns.find { |c| c.name == 'type' }
-      column_inheritance.present?
+      model.inheritance_column && model.columns.find { |column| column.name == model.inheritance_column }
     end
 
     def analyze_model?(model)
@@ -133,23 +132,7 @@ module ForestLiana
     def create_apimap
       ForestLiana.models.map do |model|
         if analyze_model?(model)
-          collection = SchemaAdapter.new(model).perform
-
-          # NOTICE: Define an automatic segment for each STI child model.
-          if is_sti_parent_model?(model)
-            column_type = model.inheritance_column
-            model.descendants.each do |submodel_sti|
-              type = submodel_sti.sti_name
-              name = type.pluralize
-              collection.segments << ForestLiana::Model::Segment.new({
-                id: name,
-                name: name,
-                where: lambda { { column_type => type } }
-              })
-            end
-          end
-
-          collection
+          SchemaAdapter.new(model).perform
         end
       end
 

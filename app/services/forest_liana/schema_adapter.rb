@@ -42,6 +42,20 @@ module ForestLiana
         end
       end
 
+      # NOTICE: Define an automatic segment for each STI child model.
+      if is_sti_parent?
+        column_type = @model.inheritance_column
+        @model.descendants.each do |submodel_sti|
+          type = submodel_sti.sti_name
+          name = type.pluralize
+          collection.segments << ForestLiana::Model::Segment.new({
+            id: name,
+            name: name,
+            where: lambda { { column_type => type } }
+          })
+        end
+      end
+
       collection
     end
 
@@ -299,6 +313,13 @@ module ForestLiana
     def sti_column?(column)
       (@model.inheritance_column &&
        column.name == @model.inheritance_column) || column.name == 'type'
+    end
+
+    def is_sti_parent?
+      return false unless @model.try(:table_exists?)
+
+      @model.inheritance_column &&
+        @model.columns.find { |column| column.name == @model.inheritance_column }
     end
 
     def is_sti_column_of_child_model?(column)
