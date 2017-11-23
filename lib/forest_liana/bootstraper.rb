@@ -122,10 +122,10 @@ module ForestLiana
           models.each do |model|
             unless model.name.deconstantize.blank?
               ForestLiana.names_overriden[model] = model.name.gsub('::', '__')
-              # TODO: Remove once lianas prior to 2.0.0 are not supported.
-              ForestLiana.names_old_overriden[model] =
-                "#{model.name.deconstantize.downcase}__#{model.table_name}"
             end
+            # TODO: Remove once lianas prior to 2.0.0 are not supported.
+            ForestLiana.names_old_overriden[model] =
+              "#{model.name.deconstantize.downcase}__#{model.table_name}"
           end
         end
     end
