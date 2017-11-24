@@ -8,7 +8,7 @@ module ForestLiana::Collection
     attr_accessor :is_searchable
 
     def collection(collection_name, opts = {})
-      self.collection_name = collection_name.to_s
+      self.collection_name = find_name(collection_name).to_s
       self.is_read_only = opts[:read_only] || false
       self.is_searchable = opts[:is_searchable] || false
 
@@ -107,9 +107,33 @@ module ForestLiana::Collection
 
     private
 
+    def find_name(collection_name)
+      # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
+      model = ForestLiana.models.find { |collection| collection.try(:table_name) == collection_name.to_s }
+      if model
+        collection_name_new = ForestLiana.name_for(model);
+        FOREST_LOGGER.warn "DEPRECATION WARNING: Collection names are now based on the models " \
+          "names. Please rename the collection '#{collection_name.to_s}' of your Forest " \
+          "customisation in '#{collection_name_new}'."
+        return collection_name_new
+      end
+
+      # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
+      model = ForestLiana.names_old_overriden.invert[collection_name.to_s]
+      if model
+        collection_name_new = ForestLiana.name_for(model);
+        FOREST_LOGGER.warn "DEPRECATION WARNING: Collection names are now based on the models " \
+          "names. Please rename the collection '#{collection_name.to_s}' of your Forest " \
+          "customisation in '#{collection_name_new}'."
+        return collection_name_new
+      end
+
+      collection_name.to_s
+    end
+
     def model
-      collection = ForestLiana.apimap.find do |x|
-        x.name.to_s == self.collection_name.try(:to_s)
+      collection = ForestLiana.apimap.find do |object|
+        object.name.to_s == self.collection_name.try(:to_s)
       end
 
       if collection.blank?
