@@ -54,6 +54,10 @@ module ForestLiana
       BCrypt::Password.new(password_digest).is_password?(params['password'])
     end
 
+    def forest_url
+      ENV['FOREST_URL'] || 'https://forestadmin-server.herokuapp.com';
+    end
+
     def encode_token(user)
       if ForestLiana.auth_secret.nil?
         @error_message = "Your Forest auth key seems to be missing. Can " \
@@ -62,8 +66,16 @@ module ForestLiana
         FOREST_LOGGER.error @error_message
         nil
       else
+        uri = URI.parse("#{forest_url}/api/environment/#{ForestLiana.env_secret}/authExpirationTime")
+        req = Net::HTTP::Get.new(uri.to_s)
+        res = Net::HTTP.start(uri.host, uri.port) {|http|
+          http.request(req)
+        }
+
+        authExpirationTime = JSON.parse(res.body)['authExpirationTime'] || 60 * 60 * 24 * 14
+
         JWT.encode({
-          exp: Time.now.to_i + 2.weeks.to_i,
+          exp: Time.now.to_i + authExpirationTime.seconds,
           data: {
             id: user['id'],
             type: 'users',
