@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Initialisation - Remove potential warnings on server start.
 
 ## RELEASE 2.0.0 - 2017-11-24
 ### Added

@@ -9,10 +9,13 @@ module ForestLiana
 
       name = module_name if module_name
       name += class_name.demodulize
+      serializer_name = "#{name}Serializer"
 
       # NOTICE: Create the serializer in the UserSpace to avoid conflicts with
       # serializer created from integrations, actions, segments, etc.
-      ForestLiana::UserSpace.const_set("#{name}Serializer", serializer)
+      unless ForestLiana::UserSpace.const_defined?(serializer_name)
+        ForestLiana::UserSpace.const_set(serializer_name, serializer)
+      end
     end
 
     def self.get_serializer_name(active_record_class)
