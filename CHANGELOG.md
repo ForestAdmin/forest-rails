@@ -1,8 +1,10 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Initialisation - Remove potential warnings on server start.
 
-## RELEASE 3.0.0 - 2017-11-24
+## RELEASE 2.0.0 - 2017-11-24
 ### Added
 - STI Models - Support STI Models with a collection for the parent model and each child model, with automatic segments on the parent collection.
 

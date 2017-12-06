@@ -7,8 +7,11 @@ module ForestLiana
 
       name = module_name if module_name
       name += class_name.demodulize
+      controller_name = "#{name}Controller"
 
-      ForestLiana::UserSpace.const_set("#{name}Controller", service)
+      unless ForestLiana::UserSpace.const_defined?(controller_name)
+        ForestLiana::UserSpace.const_set(controller_name, service)
+      end
     end
 
     def self.get_controller_name(active_record_class)
