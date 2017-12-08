@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.0.2 - 2017-12-08
 ### Fixed
 - Records Display - Prevent potential collections display regression due to missing Serializers since version 2.0.1.
 
