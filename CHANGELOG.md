@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## RELEASE 2.0.2 - 2017-12-08
+### Fixed
+- Records Display - Prevent potential collections display regression due to missing Serializers since version 2.0.1.
+
 ## RELEASE 2.0.1 - 2017-12-06
 ### Fixed
 - Initialisation - Remove potential warnings on server start.
