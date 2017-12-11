@@ -43,7 +43,7 @@ module ForestLiana
   end
 
   def self.name_for(model)
-    self.names_overriden[model] || model.try(:name)
+    self.names_overriden[model] || model.try(:name).gsub('::', '__')
   end
 
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
@@ -52,6 +52,6 @@ module ForestLiana
   end
 
   def self.component_prefix(model)
-    self.name_for(model).classify.gsub('::', '')
+    self.name_for(model).classify
   end
 end

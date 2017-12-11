@@ -169,7 +169,7 @@ module ForestLiana::Collection
 
     def serializer_name_for_reference(reference)
       association = opts[:reference].split('.').first
-      component_prefix = association.classify.gsub('::', '')
+      component_prefix = association.classify
       serializer_name = "#{component_prefix}Serializer"
 
       "ForestLiana::UserSpace::#{serializer_name}"
