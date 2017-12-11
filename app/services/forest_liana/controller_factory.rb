@@ -2,12 +2,7 @@ module ForestLiana
   class ControllerFactory
 
     def self.define_controller(active_record_class, service)
-      class_name = ForestLiana.name_for(active_record_class).classify
-      module_name = class_name.deconstantize
-
-      name = module_name if module_name
-      name += class_name.demodulize
-      controller_name = "#{name}Controller"
+      controller_name = self.build_controller_name(active_record_class)
 
       unless ForestLiana::UserSpace.const_defined?(controller_name)
         ForestLiana::UserSpace.const_set(controller_name, service)
@@ -15,13 +10,8 @@ module ForestLiana
     end
 
     def self.get_controller_name(active_record_class)
-      class_name = ForestLiana.name_for(active_record_class).classify
-      module_name = class_name.deconstantize
-
-      name = module_name if module_name
-      name += class_name.demodulize
-
-      "ForestLiana::UserSpace::#{name}Controller"
+      controller_name = self.build_controller_name(active_record_class)
+      "ForestLiana::UserSpace::#{controller_name}"
     end
 
     def controller_for(active_record_class)
@@ -29,6 +19,13 @@ module ForestLiana
 
       ForestLiana::ControllerFactory.define_controller(active_record_class, controller)
       controller
+    end
+
+    private
+
+    def self.build_controller_name(active_record_class)
+      component_prefix = ForestLiana.component_prefix(active_record_class)
+      "#{component_prefix}Controller"
     end
   end
 end

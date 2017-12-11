@@ -4,12 +4,7 @@ module ForestLiana
   class SerializerFactory
 
     def self.define_serializer(active_record_class, serializer)
-      class_name = ForestLiana.name_for(active_record_class).classify
-      module_name = class_name.deconstantize
-
-      name = module_name if module_name
-      name += class_name.demodulize
-      serializer_name = "#{name}Serializer"
+      serializer_name = self.build_serializer_name(active_record_class)
 
       # NOTICE: Create the serializer in the UserSpace to avoid conflicts with
       # serializer created from integrations, actions, segments, etc.
@@ -47,13 +42,8 @@ module ForestLiana
       elsif active_record_class == ForestLiana::Model::Segment
         "ForestLiana::SegmentSerializer"
       else
-        class_name = ForestLiana.name_for(active_record_class).classify
-        module_name = class_name.deconstantize
-
-        name = module_name if module_name
-        name += class_name.demodulize
-
-        "ForestLiana::UserSpace::#{name}Serializer"
+        serializer_name = self.build_serializer_name(active_record_class)
+        "ForestLiana::UserSpace::#{serializer_name}"
       end
     end
 
@@ -257,6 +247,11 @@ module ForestLiana
     end
 
     private
+
+    def self.build_serializer_name(active_record_class)
+      component_prefix = ForestLiana.component_prefix(active_record_class)
+      serializer_name = "#{component_prefix}Serializer"
+    end
 
     def key(active_record_class)
       active_record_class.to_s.tableize.to_sym

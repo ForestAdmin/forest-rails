@@ -160,25 +160,19 @@ module ForestLiana::Collection
       if smart_collection?
         "#{collection_name.to_s.classify}Serializer"
       else
-        class_name = ForestLiana.name_for(active_record_class).classify
-        module_name = class_name.deconstantize
+        component_prefix = ForestLiana.component_prefix(active_record_class)
+        serializer_name = "#{component_prefix}Serializer"
 
-        name = module_name if module_name
-        name += class_name.demodulize
-
-        "ForestLiana::UserSpace::#{name}Serializer"
+        "ForestLiana::UserSpace::#{serializer_name}"
       end
     end
 
     def serializer_name_for_reference(reference)
       association = opts[:reference].split('.').first
-      class_name = association.classify
-      module_name = class_name.deconstantize
+      component_prefix = association.classify
+      serializer_name = "#{component_prefix}Serializer"
 
-      name = module_name if module_name
-      name += class_name.demodulize
-
-      "ForestLiana::UserSpace::#{name}Serializer"
+      "ForestLiana::UserSpace::#{serializer_name}"
     end
 
     def smart_collection?

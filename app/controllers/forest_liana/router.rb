@@ -4,13 +4,10 @@ class ForestLiana::Router
     resource = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collection])
 
     begin
-      class_name = ForestLiana.name_for(resource).classify
-      module_name = class_name.deconstantize
+      component_prefix = ForestLiana.component_prefix(resource)
+      controller_name = "#{component_prefix}Controller"
 
-      name = module_name if module_name
-      name += class_name.demodulize
-
-      controller = "ForestLiana::UserSpace::#{name}Controller".constantize
+      controller = "ForestLiana::UserSpace::#{controller_name}".constantize
       action = nil
 
       case env['REQUEST_METHOD']

@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Server Start - Prevent potential error on server start [regression introduced by the version 2].
+- Collection Names - Make collection names containing colons valid for the Forest UI.
 
 ## RELEASE 2.0.2 - 2017-12-08
 ### Fixed
