@@ -50,4 +50,8 @@ module ForestLiana
   def self.name_old_for(model)
     self.names_old_overriden[model] || model.try(:table_name)
   end
+
+  def self.component_prefix(model)
+    self.name_for(model).classify.gsub('::', '')
+  end
 end

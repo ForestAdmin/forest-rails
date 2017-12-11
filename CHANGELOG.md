@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Server Start - Prevent potential error on server start [regression introduced by the version 2].
 
 ## RELEASE 2.0.2 - 2017-12-08
 ### Fixed

@@ -120,6 +120,8 @@ module ForestLiana
         .try(:each) do |table_name, models|
           models.each do |model|
             unless model.name.deconstantize.blank?
+              # TODO: Remove the gsub call and implement a smooth transition to the new collection
+              #       names.
               ForestLiana.names_overriden[model] = model.name.gsub('::', '__')
             end
             # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
