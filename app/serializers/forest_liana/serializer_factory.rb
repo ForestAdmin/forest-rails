@@ -42,7 +42,7 @@ module ForestLiana
       elsif active_record_class == ForestLiana::Model::Segment
         "ForestLiana::SegmentSerializer"
       else
-        name = self.build_serializer_name(active_record_class)
+        serializer_name = self.build_serializer_name(active_record_class)
         "ForestLiana::UserSpace::#{serializer_name}"
       end
     end
