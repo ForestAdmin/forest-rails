@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Charts - Users can create charts using Live Query.
+
 ### Fixed
 - Security - Remove Rails vulnerabilities upgrading the gem version.
 

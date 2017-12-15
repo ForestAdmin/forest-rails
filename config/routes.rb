@@ -16,6 +16,7 @@ ForestLiana::Engine.routes.draw do
 
   # Stats
   post '/stats/:collection' => 'stats#show'
+  post '/stats' => 'stats#query'
 
   # Stripe Integration
   get '(*collection)_stripe_payments' => 'stripe#payments'

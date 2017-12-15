@@ -1,9 +1,9 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
-      before_filter :find_resource
+      before_filter :find_resource, except: [:query]
     else
-      before_action :find_resource
+      before_action :find_resource, except: [:query]
     end
 
     def show
@@ -21,6 +21,24 @@ module ForestLiana
         render json: serialize_model(stat.record), serializer: nil
       else
         render json: {status: 404}, status: :not_found, serializer: nil
+      end
+    end
+
+    def query
+      begin
+        stat = QueryStatGetter.new(params)
+        stat.perform
+
+        if stat.record
+          render json: serialize_model(stat.record), serializer: nil
+        else
+          render json: {status: 404}, status: :not_found, serializer: nil
+        end
+      rescue => err
+        logger.error err.message
+        logger.error err.backtrace.join("\n")
+        render json: { errors: [{ status: 400, detail: err.message }] },
+          status: :bad_request, serializer: nil
       end
     end
 
