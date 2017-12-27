@@ -23,7 +23,7 @@ module ForestLiana
             hostnames += ENV['CORS_ORIGINS'].split(',') if ENV['CORS_ORIGINS']
 
             origins hostnames
-            resource '*', headers: :any, methods: :any
+            resource '*', headers: :any, methods: :any, max_age: 86400 # NOTICE: 1 day
           end
         end
         nil

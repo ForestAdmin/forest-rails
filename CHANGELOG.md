@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Performance - Set the CORS Max-Age to 1 day to be consistent with the other lianas behaviour.
 
 ## RELEASE 2.0.3 - 2017-12-11
 ### Fixed
