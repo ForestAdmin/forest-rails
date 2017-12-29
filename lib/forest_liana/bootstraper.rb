@@ -71,7 +71,7 @@ module ForestLiana
     end
 
     def create_factories
-      ForestLiana.models.map do |model|
+      ForestLiana.models.uniq.map do |model|
         ForestLiana::SerializerFactory.new.serializer_for(model)
         ForestLiana::ControllerFactory.new.controller_for(model)
       end
