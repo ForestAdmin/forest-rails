@@ -37,11 +37,11 @@ As this gem is open-source, you're free to extend the admin REST API for any ope
 
 One core concept of Forest is to bring all your data back into one single admin interface. Forest integrates with the 3rd party services / SaaS you already use and allow you to manage all your operations from one place.
 
-Check out our documentation about integrations: http://doc.forestadmin.com/developers-guide/#integrations
+Check out our documentation about integrations: https://doc.forestadmin.com/developer-guide/rails.html#integrations
 
 ## Documentation
 
-Complete documentation is available at http://doc.forestadmin.com/developers-guide
+Complete documentation is available at https://doc.forestadmin.com/developer-guide/rails.html
 
 ## How to contribute
 
