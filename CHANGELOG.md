@@ -5,6 +5,7 @@
 ## RELEASE 2.0.4 - 2018-01-08
 ### Changed
 - Performance - Set the CORS Max-Age to 1 day to be consistent with the other lianas behaviour.
+- Dependencies - Update json version in Gemfile.lock to work with ruby >=2.4.x on osx.
 
 ### Fixed
 - Serializer - Fix 'already defined' warning message from serializer on server start.
