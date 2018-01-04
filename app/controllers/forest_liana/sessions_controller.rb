@@ -24,6 +24,27 @@ module ForestLiana
       end
     end
 
+    def create_google
+      @error_message = nil
+
+      renderingId = params['renderingId']
+      accessToken = params['accessToken']
+
+      user = GoogleAuthUserGetter.new.perform(renderingId, accessToken)
+      token = encode_token(user) if user
+
+      if token
+        render json: { token: token }, serializer: nil
+      else
+        if @error_message
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            [{ detail: @error_message }]), status: :unauthorized
+        else
+          head :unauthorized
+        end
+      end
+    end
+
     private
 
     def check_user

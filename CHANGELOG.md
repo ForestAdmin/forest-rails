@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Authentication - Users can connect to their project using Google Single Sign-On.
 
 ## RELEASE 2.0.4 - 2018-01-08
 ### Changed
