@@ -30,7 +30,7 @@ module ForestLiana
       rendering_id = params['renderingId']
       access_token = params['accessToken']
 
-      user = GoogleAuthUserGetter.new(rendering_id, access_token).perform()
+      user = GoogleAuthorizedUserGetter.new(rendering_id, access_token).perform()
       token = encode_token(user) if user
 
       if token

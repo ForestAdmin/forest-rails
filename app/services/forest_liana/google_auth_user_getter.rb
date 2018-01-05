@@ -1,5 +1,5 @@
 module ForestLiana
-  class GoogleAuthUserGetter
+  class GoogleAuthorizedUserGetter
     def initialize(rendering_id, access_token)
       @rendering_id = rendering_id
       @access_token = access_token
