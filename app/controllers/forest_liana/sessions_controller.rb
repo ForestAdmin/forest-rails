@@ -27,10 +27,10 @@ module ForestLiana
     def create_with_google
       @error_message = nil
 
-      renderingId = params['renderingId']
-      accessToken = params['accessToken']
+      rendering_id = params['renderingId']
+      access_token = params['accessToken']
 
-      user = GoogleAuthUserGetter.new.perform(renderingId, accessToken)
+      user = GoogleAuthUserGetter.new(rendering_id, access_token).perform()
       token = encode_token(user) if user
 
       if token

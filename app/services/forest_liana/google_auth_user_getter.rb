@@ -1,7 +1,12 @@
 module ForestLiana
   class GoogleAuthUserGetter
-    def perform(renderingId, accessToken)
-      uri = URI.parse("#{forest_url}/forest/renderings/#{renderingId}/google-authorization")
+    def initialize(rendering_id, access_token)
+      @rendering_id = rendering_id
+      @access_token = access_token
+    end
+
+    def perform
+      uri = URI.parse("#{forest_url}/forest/renderings/#{@rendering_id}/google-authorization")
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true if forest_url.start_with?('https')
 
@@ -10,7 +15,7 @@ module ForestLiana
           request = Net::HTTP::Get.new(uri.path)
           request['Content-Type'] = 'application/json'
           request['forest-secret-key'] = ForestLiana.env_secret
-          request['google-access-token'] = accessToken
+          request['google-access-token'] = @access_token
           response = client.request(request)
 
           if response.is_a?(Net::HTTPOK)
