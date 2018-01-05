@@ -64,7 +64,7 @@ module ForestLiana
     end
 
     def fetch_allowed_users
-      AllowedUsersGetter.new.perform(params['renderingId'])
+      AllowedUsersGetter.new(params['renderingId']).perform()
     end
 
     def has_internal_authentication?
