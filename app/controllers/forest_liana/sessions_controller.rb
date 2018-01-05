@@ -24,7 +24,7 @@ module ForestLiana
       end
     end
 
-    def create_google
+    def create_with_google
       @error_message = nil
 
       renderingId = params['renderingId']
