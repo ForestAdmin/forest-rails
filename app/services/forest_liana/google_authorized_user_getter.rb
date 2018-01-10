@@ -1,7 +1,7 @@
 module ForestLiana
   class GoogleAuthorizedUserGetter < UsersGetter
-    def initialize(rendering_id, forest_jwt)
-      @forest_jwt = forest_jwt
+    def initialize(rendering_id, forest_token)
+      @forest_token = forest_token
       super('google-authorization', rendering_id)
     end
 
