@@ -13,7 +13,7 @@ module ForestLiana
           request = Net::HTTP::Get.new(@uri.path)
           request['Content-Type'] = 'application/json'
           request['forest-secret-key'] = ForestLiana.env_secret
-          request['google-access-token'] = @access_token if @access_token
+          request['forest-jwt'] = @forest_jwt if @forest_jwt
           response = client.request(request)
 
           handle_service_response(response)
