@@ -28,9 +28,9 @@ module ForestLiana
       @error_message = nil
 
       rendering_id = params['renderingId']
-      access_token = params['accessToken']
+      forest_jwt = params['forestJwt']
 
-      user = GoogleAuthorizedUserGetter.new(rendering_id, access_token).perform()
+      user = GoogleAuthorizedUserGetter.new(rendering_id, forest_jwt).perform()
       token = encode_token(user) if user
 
       if token
