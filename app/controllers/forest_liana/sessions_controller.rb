@@ -24,6 +24,27 @@ module ForestLiana
       end
     end
 
+    def create_with_google
+      @error_message = nil
+
+      rendering_id = params['renderingId']
+      forest_token = params['forestToken']
+
+      user = GoogleAuthorizedUserGetter.new(rendering_id, forest_token).perform()
+      token = encode_token(user) if user
+
+      if token
+        render json: { token: token }, serializer: nil
+      else
+        if @error_message
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            [{ detail: @error_message }]), status: :unauthorized
+        else
+          head :unauthorized
+        end
+      end
+    end
+
     private
 
     def check_user
@@ -43,7 +64,7 @@ module ForestLiana
     end
 
     def fetch_allowed_users
-      AllowedUsersGetter.new.perform(params['renderingId'])
+      AllowedUsersGetter.new(params['renderingId']).perform()
     end
 
     def has_internal_authentication?

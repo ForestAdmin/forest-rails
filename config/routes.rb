@@ -6,6 +6,7 @@ ForestLiana::Engine.routes.draw do
 
   # Session
   post 'sessions' => 'sessions#create'
+  post 'sessions-google' => 'sessions#create_with_google'
 
   # Associations
   get ':collection/:id/relationships/:association_name' => 'associations#index'

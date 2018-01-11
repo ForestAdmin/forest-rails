@@ -1,6 +1,11 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Authentication - Users can connect to their project using Google Single Sign-On.
+
+### Changed
+- Dependencies - Upgrade the json gem to work with Ruby versions 2.4.X on OSX.
 
 ## RELEASE 2.0.4 - 2018-01-08
 ### Changed

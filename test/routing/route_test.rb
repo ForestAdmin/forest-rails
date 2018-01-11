@@ -20,6 +20,11 @@ module ForestLiana
       }, {
         controller: 'forest_liana/sessions', action: 'create'
       })
+      assert_routing({
+        method: 'post', path: 'sessions-google'
+      }, {
+        controller: 'forest_liana/sessions', action: 'create_with_google'
+      })
 
       # Associations
       assert_routing({
