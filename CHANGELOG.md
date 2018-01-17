@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Start - Prevent a crash if the server is restarting while Forest services are in maintenance.
 
 ## RELEASE 2.1.0 - 2018-01-11
 ### Added
