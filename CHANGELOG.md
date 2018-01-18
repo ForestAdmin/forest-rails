@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Security - Remove Rails vulnerabilities upgrading the gem version.
 
 ## RELEASE 2.1.1 - 2018-01-17
 ### Fixed
