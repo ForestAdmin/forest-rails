@@ -18,6 +18,7 @@ group :test do
   gem 'sqlite3'
 end
 
+gem 'rails', '4.2.7.1'
 gem 'jsonapi-serializers', '0.14.0'
 gem 'rack-cors'
 gem 'arel-helpers'
@@ -25,4 +26,3 @@ gem 'groupdate'
 gem 'useragent'
 gem 'jwt'
 gem 'bcrypt'
-gem 'rails', '4.2.7.1'
