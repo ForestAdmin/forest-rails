@@ -56,7 +56,12 @@ module ForestLiana
       assert_routing({
         method: 'post', path: '/stats/:collection'
       }, {
-        controller: 'forest_liana/stats', action: 'show', collection: ':collection'
+        controller: 'forest_liana/stats', action: 'get', collection: ':collection'
+      })
+      assert_routing({
+        method: 'post', path: '/stats'
+      }, {
+        controller: 'forest_liana/stats', action: 'get_with_live_query'
       })
 
       # Stripe Integration
