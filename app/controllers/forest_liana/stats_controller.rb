@@ -1,12 +1,12 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
-      before_filter :find_resource, except: [:query]
+      before_filter :find_resource, except: [:get_with_live_query]
     else
-      before_action :find_resource, except: [:query]
+      before_action :find_resource, except: [:get_with_live_query]
     end
 
-    def show
+    def get
       case params[:type].try(:downcase)
       when 'value'
         stat = ValueStatGetter.new(@resource, params)
@@ -24,7 +24,7 @@ module ForestLiana
       end
     end
 
-    def query
+    def get_with_live_query
       begin
         stat = QueryStatGetter.new(params)
         stat.perform
@@ -34,11 +34,10 @@ module ForestLiana
         else
           render json: {status: 404}, status: :not_found, serializer: nil
         end
-      rescue => err
-        logger.error err.message
-        logger.error err.backtrace.join("\n")
-        render json: { errors: [{ status: 400, detail: err.message }] },
-          status: :bad_request, serializer: nil
+      rescue => error
+        FOREST_LOGGER.error "Live Query error: #{error.message}" 
+        render json: { errors: [{ status: 422, detail: error.message }] },
+          status: :unprocessable_entity, serializer: nil
       end
     end
 
@@ -54,4 +53,3 @@ module ForestLiana
     end
   end
 end
-

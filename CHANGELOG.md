@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- Charts - Users can create charts using Live Query.
+- Charts - Users can create charts using raw database queries with the Live Query option
 
 ### Fixed
 - Security - Remove Rails vulnerabilities upgrading the gem version.

@@ -11,51 +11,52 @@ module ForestLiana
         @params['query'].gsub!('?', @params['record_id'].to_s)
       end
 
-      records = ActiveRecord::Base.connection.execute(@params['query'])
+      result = ActiveRecord::Base.connection.execute(@params['query'])
 
       case @params['type']
       when 'Value'
-        if records.count
-          stat = records.first
-          if !stat['value']
-            raise "The result columns must be named 'value' instead of
-              '#{stat.keys.join(', ')}'"
+        if result.count
+          result_line = result.first
+          if !result_line['value']
+            raise error_message(result_line, "'value'")
           else
             @record = Model::Stat.new(value: {
-              countCurrent: stat['value'],
-              countPrevious: stat['previous']
+              countCurrent: result_line['value'],
+              countPrevious: result_line['previous']
             })
           end
         end
-
       when 'Pie'
-        if records.count
-          records.each do |record|
-            if !record['value'] || !record['key']
-              raise "The result columns must be named 'key, value' instead of
-                '#{record.keys.join(', ')}'"
+        if result.count
+          result.each do |result_line|
+            if !result_line['value'] || !result_line['key']
+              raise error_message(result_line, "'key', 'value'")
             end
           end
 
-          @record = Model::Stat.new(value: records.to_a)
+          @record = Model::Stat.new(value: result.to_a)
         end
-
       when 'Line'
-        if records.count
-          records.each do |record|
-            if !record['value'] || !record['key']
-              raise "The result columns must be named 'key, value' instead of
-                '#{record.keys.join(', ')}'"
+        if result.count
+          result.each do |result_line|
+            if !result_line['value'] || !result_line['key']
+              raise error_message(result_line, "'key', 'value'")
             end
           end
 
-          stat = records.map do |r|
-            { label: r['key'], values: { value: r['value'] }}
+          result_formatted = result.map do |result_line|
+            { label: result_line['key'], values: { value: result_line['value'] }}
           end
 
-          @record = Model::Stat.new(value: stat)
+          @record = Model::Stat.new(value: result_formatted)
         end
       end
+    end
+
+    private
+
+    def error_message(result, key_names)
+      "The result columns must be named #{key_names} instead of '#{result.keys.join("', '")}'"
     end
   end
 end
