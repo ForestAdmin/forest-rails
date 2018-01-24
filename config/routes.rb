@@ -15,7 +15,8 @@ ForestLiana::Engine.routes.draw do
   delete ':collection/:id/relationships/:association_name' => 'associations#dissociate'
 
   # Stats
-  post '/stats/:collection' => 'stats#show'
+  post '/stats/:collection' => 'stats#get'
+  post '/stats' => 'stats#get_with_live_query'
 
   # Stripe Integration
   get '(*collection)_stripe_payments' => 'stripe#payments'
