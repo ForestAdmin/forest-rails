@@ -1,10 +1,10 @@
 # Change Log
 
 ## [Unreleased]
-### Added
-- Charts - Users can create charts using raw database queries with the Live Query option
+### Added
+- Charts - Users can create charts using raw database queries with the Live Query option.
 
-### Fixed
+### Fixed
 - Security - Remove Rails vulnerabilities upgrading the gem version.
 
 ## RELEASE 2.1.1 - 2018-01-17
