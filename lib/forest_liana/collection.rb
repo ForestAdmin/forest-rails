@@ -56,17 +56,23 @@ module ForestLiana::Collection
       if serializer_name && ForestLiana::UserSpace.const_defined?(
           serializer_name)
         ForestLiana::UserSpace.const_get(serializer_name).class_eval do
-          compute_value = lambda do |object|
-            begin
-              object.instance_eval(&block)
-            rescue => exception
-              FOREST_LOGGER.error "Cannot retrieve the " + name.to_s + " value because of an " \
-                "internal error in the getter implementation: " + exception.message
-              nil
+          if block
+            # NOTICE: Smart Field case.
+            compute_value = lambda do |object|
+              begin
+                object.instance_eval(&block)
+              rescue => exception
+                FOREST_LOGGER.error "Cannot retrieve the " + name.to_s + " value because of an " \
+                  "internal error in the getter implementation: " + exception.message
+                nil
+              end
             end
-          end
 
-          attribute(name, &compute_value)
+            attribute(name, &compute_value)
+          else
+            # NOTICE: Smart Collection field case.
+            attribute(name)
+          end
         end
       end
     end
