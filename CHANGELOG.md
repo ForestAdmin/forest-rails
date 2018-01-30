@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.2.2 - 2018-01-30
 ### Fixed
 - Smart Collections - Fix a regression on fields values serialization.
 
