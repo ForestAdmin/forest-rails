@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Initialisation - Fix a potential error on database type retrieval on server start.
 
 ## RELEASE 2.2.0 - 2018-01-26
 ### Added
