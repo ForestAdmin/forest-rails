@@ -170,8 +170,7 @@ module ForestLiana
             liana_version: liana_version,
             framework_version: Gem.loaded_specs["rails"].version.version,
             orm_version: Gem.loaded_specs["activerecord"].version.version,
-            database_type: ActiveRecord::Base.connection
-              .instance_values["config"][:adapter]
+            database_type: database_type
           }
         })
 
@@ -505,6 +504,19 @@ module ForestLiana
         .try(:first)
         .try(:version)
         .try(:to_s)
+    end
+
+    def database_type
+      begin
+        connection = ActiveRecord::Base.connection
+        if connection.try(:config)
+          connection.config[:adapter]
+        else
+          connection.instance_values['config'][:adapter]
+        end
+      rescue
+        'unknown'
+      end
     end
   end
 end
