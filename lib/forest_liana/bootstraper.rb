@@ -17,6 +17,12 @@ module ForestLiana
       end
     end
 
+    def apimap_sorter(apimap)
+      apimap['data'] = apimap['data'].sort { |x, y| y['id'] <=> x['id'] }
+      apimap['included'] = apimap['included'].sort { |x, y| y['id'] <=> x['id'] }
+      apimap
+    end
+
     def perform
       fetch_models
       check_integrations_setup
@@ -175,6 +181,7 @@ module ForestLiana
         })
 
         begin
+          apimap = apimap_sorter(apimap)
           uri = URI.parse("#{forest_url}/forest/apimaps")
           http = Net::HTTP.new(uri.host, uri.port)
           http.use_ssl = true if forest_url.start_with?('https')
