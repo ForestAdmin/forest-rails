@@ -104,8 +104,7 @@ module ForestLiana
 
     def render_jsonapi getter
       records = getter.records.map { |record| get_record(record) }
-      fields = params[:fields].to_unsafe_h()
-      models_fields_filter = fields_params_to_filter(fields, @resource)
+      models_fields_filter = fields_per_model(params[:fields], @resource)
 
       json = serialize_models(
         records,
