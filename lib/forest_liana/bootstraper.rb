@@ -39,19 +39,25 @@ module ForestLiana
     def apimap_sorter(apimap)
       apimap = sort_object_keys(apimap)
       apimap['data'] = apimap['data'].sort_by { |x| x[:id] }
+
       apimap['data'].each do |d|
         d = sort_object_keys_data(d)
+
         d['attributes'] = sort_object_keys(d['attributes'])
         d['attributes']['fields'] = d['attributes']['fields'].sort_by { |x| x[:field] }
       end
+
       if apimap['included']
         apimap['included'] = apimap['included'].sort_by { |x| x[:id] }
+
         apimap['included'].each do |i|
           i = sort_object_keys_data(i)
           i['attributes'] = sort_object_keys(i['attributes'])
         end
       end
+
       apimap['meta'] = sort_object_keys(apimap['meta'])
+
       apimap
     end
 
