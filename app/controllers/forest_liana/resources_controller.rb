@@ -104,8 +104,17 @@ module ForestLiana
 
     def render_jsonapi getter
       records = getter.records.map { |record| get_record(record) }
-      render serializer: nil, json: serialize_models(records,
-        include: includes(getter), count: getter.count, params: params)
+      fields_to_serialize = fields_per_model(params[:fields], @resource)
+
+      json = serialize_models(
+        records,
+        include: includes(getter),
+        fields: fields_to_serialize,
+        count: getter.count,
+        params: params
+      )
+
+      render serializer: nil, json: json
     end
   end
 end

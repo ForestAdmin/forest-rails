@@ -115,6 +115,21 @@ module ForestLiana
       end
     end
 
+    def fields_per_model(params_fields, model)
+      params_fields.to_unsafe_h().inject({}) do |fields, param_field|
+        relation_name = param_field[0]
+        relation_fields = param_field[1]
+
+        if relation_name == model.name
+          fields[relation_name] = relation_fields
+        else
+          model_name = model.reflect_on_association(relation_name.to_sym).class_name
+          fields[model_name] = relation_fields
+        end
+        fields
+      end
+    end
+
     def render_csv getter, model
       set_headers_file
       set_headers_streaming
@@ -122,15 +137,16 @@ module ForestLiana
       response.status = 200
       csv_header = params[:header].split(',')
       collection_name = ForestLiana.name_for(model)
-      field_names_requested = params[:fields][collection_name]
-        .split(',').map { |name| name.to_s }
+      field_names_requested = params[:fields][collection_name].split(',').map { |name| name.to_s }
+      fields_to_serialize = fields_per_model(params[:fields], model)
 
       self.response_body = Enumerator.new do |content|
         content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
           records.each do |record|
             json = serialize_model(record, {
-              include: getter.includes.map(&:to_s)
+              include: getter.includes.map(&:to_s),
+              fields: fields_to_serialize
             })
             record_attributes = json['data']['attributes']
             record_relationships = json['data']['relationships'] || {}
