@@ -81,9 +81,22 @@ module ForestLiana
     end
 
     def render_jsonapi getter
+      fields_to_serialize = fields_per_model(params[:fields], @association.klass)
       records = getter.records.map { |record| get_record(record) }
-      render serializer: nil, json: serialize_models(records,
-        include: getter.includes, count: getter.count, params: params)
+
+      if getter.includes.length > 0
+        fields_to_serialize[@association.klass.name] += ",#{getter.includes.join(',')}"
+      end
+
+      json = serialize_models(
+        records,
+        include: getter.includes,
+        fields: fields_to_serialize,
+        count: getter.count,
+        params: params
+      )
+
+      render serializer: nil, json: json
     end
   end
 end

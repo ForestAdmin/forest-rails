@@ -138,7 +138,7 @@ module ForestLiana
       csv_header = params[:header].split(',')
       collection_name = ForestLiana.name_for(model)
       field_names_requested = params[:fields][collection_name].split(',').map { |name| name.to_s }
-      models_fields_filter = fields_per_model(params[:fields], model)
+      fields_to_serialize = fields_per_model(params[:fields], model)
 
       self.response_body = Enumerator.new do |content|
         content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s
@@ -146,7 +146,7 @@ module ForestLiana
           records.each do |record|
             json = serialize_model(record, {
               include: getter.includes.map(&:to_s),
-              fields: models_fields_filter
+              fields: fields_to_serialize
             })
             record_attributes = json['data']['attributes']
             record_relationships = json['data']['relationships'] || {}
