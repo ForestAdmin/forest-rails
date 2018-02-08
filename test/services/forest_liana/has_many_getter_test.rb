@@ -1,5 +1,5 @@
 module ForestLiana
-  class ResourcesGetterTest < ActiveSupport::TestCase
+  class HasManyGetterTest < ActiveSupport::TestCase
 
     collectionOwner = ForestLiana::Model::Collection.new({
       name: 'Owner',

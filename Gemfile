@@ -11,7 +11,10 @@ gemspec
 # your gem to rubygems.org.
 
 # To use a debugger
-gem 'byebug', group: [:development, :test]
+group :development, :test do
+  gem 'byebug'
+  gem 'rspec'
+end
 
 group :test do
   gem 'rake'

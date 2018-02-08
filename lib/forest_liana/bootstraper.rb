@@ -175,6 +175,7 @@ module ForestLiana
         })
 
         begin
+          apimap = ForestLiana::ApimapSorter.new(apimap).perform
           uri = URI.parse("#{forest_url}/forest/apimaps")
           http = Net::HTTP.new(uri.host, uri.port)
           http.use_ssl = true if forest_url.start_with?('https')
