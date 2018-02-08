@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.3.0 - 2018-02-08
 ### Changed
 - Apimap - Prevent random sorting collections and useless updates.
 - Smart Fields - Compute only the necessary Smart Fields values for list views and CSV exports.
