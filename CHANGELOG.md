@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Live Queries - Prevent the execution of obvious "write" queries.
+- Live Queries - Prevent the execution of multiple queries.
 
 ## RELEASE 2.3.0 - 2018-02-08
 ### Changed
