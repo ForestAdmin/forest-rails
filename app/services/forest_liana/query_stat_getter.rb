@@ -1,5 +1,7 @@
 module ForestLiana
   class QueryStatGetter
+    QUERY_SELECT = /\ASELECT\s.*FROM\s.*\z/im
+
     attr_accessor :record
 
     def initialize(params)
@@ -7,11 +9,15 @@ module ForestLiana
     end
 
     def perform
+      raw_query = @params['query'].strip
+
+      check_query(raw_query)
+
       if @params['record_id']
-        @params['query'].gsub!('?', @params['record_id'].to_s)
+        raw_query.gsub!('?', @params['record_id'].to_s)
       end
 
-      result = ActiveRecord::Base.connection.execute(@params['query'])
+      result = ActiveRecord::Base.connection.execute(raw_query)
 
       case @params['type']
       when 'Value'
@@ -54,6 +60,14 @@ module ForestLiana
     end
 
     private
+
+    def check_query(query)
+      raise 'You cannot execute an empty SQL query.' if query.blank?
+      if query.include?(';') && query.index(';') < (query.length - 1)
+        raise 'You cannot chain SQL queries.'
+      end
+      raise 'Only SELECT queries are allowed.' if QUERY_SELECT.match(query).nil?
+    end
 
     def error_message(result, key_names)
       "The result columns must be named #{key_names} instead of '#{result.keys.join("', '")}'"
