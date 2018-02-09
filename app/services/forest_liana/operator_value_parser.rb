@@ -85,9 +85,9 @@ module ForestLiana
     def self.format_value(resource, field, value)
       columns = resource.columns
       field_name = field
-      column = columns.find { |column| column.name == field_name }
+      column_found = columns.find { |column| column.name == field_name }
 
-      if column.type == :boolean
+      if column_found.type == :boolean
         ForestLiana::AdapterHelper.cast_boolean(value)
       else
         "'#{value}'"

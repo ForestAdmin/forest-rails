@@ -18,7 +18,7 @@ module ForestLiana
           end
         end
 
-        value = get_resource()
+        result = get_resource()
           .eager_load(includes)
           .where(conditions.join(filter_operator))
           .group(group_by_field)
@@ -40,7 +40,7 @@ module ForestLiana
             { key: key, value: value }
           end
 
-        @record = Model::Stat.new(value: value)
+        @record = Model::Stat.new(value: result)
       end
     end
 

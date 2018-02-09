@@ -77,6 +77,7 @@ module ForestLiana
           segment.name == @params[:segment]
         end
       end
+      @segment ||= nil
     end
 
     def field_names_requested

@@ -159,8 +159,8 @@ module ForestLiana
                 record_relationships[field_name]['data']
                 relationship_id = record_relationships[field_name]['data']['id']
                 relationship_type = record_relationships[field_name]['data']['type']
-                relationship_object = included.select do |record|
-                  record['id'] == relationship_id && record['type'] == relationship_type
+                relationship_object = included.select do |object|
+                  object['id'] == relationship_id && object['type'] == relationship_type
                 end
 
                 relationship_object = relationship_object.first
