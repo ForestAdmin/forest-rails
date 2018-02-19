@@ -104,7 +104,7 @@ module ForestLiana
       assert records.first.owner.name == 'Arnaud Besnier'
     end
 
-    test 'Filter before x days' do
+    test 'Filter before x hours' do
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
@@ -123,6 +123,24 @@ module ForestLiana
       assert records.first.id == 4
       assert records.first.name == 'Oak'
       assert records.first.owner.name == 'Arnaud Besnier'
+    end
+
+    test 'Filter after x days' do
+      getter = ResourcesGetter.new(Tree, {
+        fields: { 'Tree' => 'id' },
+        page: { size: 10, number: 1 },
+        filter: {
+          'created_at' => '$3HoursAfter',
+        },
+        filterType: 'and',
+        timezone: '-08:00'
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 3
+      assert count = 3
     end
 
     test 'Sort on an ambiguous field name with a filter' do
