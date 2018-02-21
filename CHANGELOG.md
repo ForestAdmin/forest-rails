@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.3.2 - 2018-02-21
 ### Added
 - Filters - Add a new "is after X hours ago" operator to filter on date fields.
 
