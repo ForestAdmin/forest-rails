@@ -37,8 +37,10 @@ module ForestLiana
           }]
         })
 
-        collection.fields.delete_if do |f|
-          ['encrypted_password'].include?(f[:field])
+        collection.fields.each do |field|
+          if field[:field] == 'encrypted_password'
+            field[:field] = 'password'
+          end
         end
       end
 
