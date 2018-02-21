@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Devise - Users now have a password field and can create records for models using Devise gem. 
 
 ## RELEASE 2.3.2 - 2018-02-21
 ### Added
