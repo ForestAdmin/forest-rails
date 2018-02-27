@@ -26,6 +26,8 @@ module ForestLiana
       if ForestLiana.env_secret
         create_apimap
         require_lib_forest_liana
+        set_smart_actions_fields_position
+
         send_apimap
       end
     end
@@ -153,6 +155,18 @@ module ForestLiana
       path = Rails.root.join('lib', 'forest_liana', '**', '*.rb')
       Dir.glob(File.expand_path(path, __FILE__)).each do |file|
         load file
+      end
+    end
+
+    def set_smart_actions_fields_position
+      ForestLiana.apimap.each do |collection|
+        collection.actions.each do |action|
+          if action.fields
+            action.fields.each_with_index do |field, index|
+              field[:position] = index
+            end
+          end
+        end
       end
     end
 
