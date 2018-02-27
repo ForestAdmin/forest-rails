@@ -84,6 +84,10 @@ module ForestLiana
       head :not_found
     end
 
+    def internal_server_error
+      head :internal_server_error
+    end
+
     private
 
     def force_utf8_encoding(json)
@@ -116,17 +120,21 @@ module ForestLiana
     end
 
     def fields_per_model(params_fields, model)
-      params_fields.to_unsafe_h().inject({}) do |fields, param_field|
-        relation_name = param_field[0]
-        relation_fields = param_field[1]
+      if params_fields
+        params_fields.to_unsafe_h().inject({}) do |fields, param_field|
+          relation_name = param_field[0]
+          relation_fields = param_field[1]
 
-        if relation_name == model.name
-          fields[relation_name] = relation_fields
-        else
-          model_name = model.reflect_on_association(relation_name.to_sym).class_name
-          fields[model_name] = relation_fields
+          if relation_name == model.name
+            fields[relation_name] = relation_fields
+          else
+            model_name = model.reflect_on_association(relation_name.to_sym).class_name
+            fields[model_name] = relation_fields
+          end
+          fields
         end
-        fields
+      else
+        nil
       end
     end
 

@@ -14,58 +14,83 @@ module ForestLiana
     end
 
     def index
-      getter = ForestLiana::ResourcesGetter.new(@resource, params)
-      getter.perform
+      begin
+        getter = ForestLiana::ResourcesGetter.new(@resource, params)
+        getter.perform
 
-      respond_to do |format|
-        format.json { render_jsonapi(getter) }
-        format.csv { render_csv(getter, @resource) }
+        respond_to do |format|
+          format.json { render_jsonapi(getter) }
+          format.csv { render_csv(getter, @resource) }
+        end
+      rescue => error
+        FOREST_LOGGER.error "Records Index error: #{error}"
+        internal_server_error
       end
     end
 
     def show
-      getter = ForestLiana::ResourceGetter.new(@resource, params)
-      getter.perform
+      begin
+        getter = ForestLiana::ResourceGetter.new(@resource, params)
+        getter.perform
 
-      render serializer: nil, json:
-        serialize_model(get_record(getter.record), include: includes(getter))
+        render serializer: nil, json:
+          serialize_model(get_record(getter.record), include: includes(getter))
+      rescue => error
+        FOREST_LOGGER.error "Record Show error: #{error}"
+        internal_server_error
+      end
     end
 
     def create
-      creator = ForestLiana::ResourceCreator.new(@resource, params)
-      creator.perform
+      begin
+        creator = ForestLiana::ResourceCreator.new(@resource, params)
+        creator.perform
 
-      if creator.errors
-        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
-          creator.errors), status: 400
-      elsif creator.record.valid?
-        render serializer: nil,
-          json: serialize_model(get_record(creator.record), include: record_includes)
-      else
-        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
-          creator.record.errors), status: 400
+        if creator.errors
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            creator.errors), status: 400
+        elsif creator.record.valid?
+          render serializer: nil,
+            json: serialize_model(get_record(creator.record), include: record_includes)
+        else
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            creator.record.errors), status: 400
+        end
+      rescue => error
+        FOREST_LOGGER.error "Record Create error: #{error}"
+        internal_server_error
       end
     end
 
     def update
-      updater = ForestLiana::ResourceUpdater.new(@resource, params)
-      updater.perform
+      begin
+        updater = ForestLiana::ResourceUpdater.new(@resource, params)
+        updater.perform
 
-      if updater.errors
-        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
-          updater.errors), status: 400
-      elsif updater.record.valid?
-        render serializer: nil,
-          json: serialize_model(get_record(updater.record), include: record_includes)
-      else
-        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
-          updater.record.errors), status: 400
+        if updater.errors
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            updater.errors), status: 400
+        elsif updater.record.valid?
+          render serializer: nil,
+            json: serialize_model(get_record(updater.record), include: record_includes)
+        else
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            updater.record.errors), status: 400
+        end
+      rescue => error
+        FOREST_LOGGER.error "Record Update error: #{error}"
+        internal_server_error
       end
     end
 
     def destroy
-      @resource.destroy(params[:id])
-      head :no_content
+      begin
+        @resource.destroy(params[:id])
+        head :no_content
+      rescue => error
+        FOREST_LOGGER.error "Record Destroy error: #{error}"
+        internal_server_error
+      end
     end
 
     private
