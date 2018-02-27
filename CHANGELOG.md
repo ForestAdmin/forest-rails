@@ -3,10 +3,13 @@
 ## [Unreleased]
 
 ## RELEASE 2.3.4 - 2018-02-27
+### Fixed
+- Search - Prevent the records search to crash if no fields parameter is sent by the client.
+- Error Handling - Send a 500 status code in case of internal server error (instead of a 404).
 
 ## RELEASE 2.3.3 - 2018-02-21
 ### Fixed
-- Devise - Users now have a password field and can create records for models using Devise gem. 
+- Devise - Users now have a password field and can create records for models using Devise gem.
 
 ## RELEASE 2.3.2 - 2018-02-21
 ### Added
