@@ -9,39 +9,59 @@ module ForestLiana
     end
 
     def index
-      getter = HasManyGetter.new(@resource, @association, params)
-      getter.perform
+      begin
+        getter = HasManyGetter.new(@resource, @association, params)
+        getter.perform
 
-      respond_to do |format|
-        format.json { render_jsonapi(getter) }
-        format.csv { render_csv(getter, @association.klass) }
+        respond_to do |format|
+          format.json { render_jsonapi(getter) }
+          format.csv { render_csv(getter, @association.klass) }
+        end
+      rescue => error
+        FOREST_LOGGER.error "Association Index error: #{error}"
+        internal_server_error
       end
     end
 
     def update
-      updater = BelongsToUpdater.new(@resource, @association, params)
-      updater.perform
+      begin
+        updater = BelongsToUpdater.new(@resource, @association, params)
+        updater.perform
 
-      if updater.errors
-        render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
-          updater.errors), status: 422
-      else
-        head :no_content
+        if updater.errors
+          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+            updater.errors), status: 422
+        else
+          head :no_content
+        end
+      rescue => error
+        FOREST_LOGGER.error "Association Update error: #{error}"
+        internal_server_error
       end
     end
 
     def associate
-      associator = HasManyAssociator.new(@resource, @association, params)
-      associator.perform
+      begin
+        associator = HasManyAssociator.new(@resource, @association, params)
+        associator.perform
 
-      head :no_content
+        head :no_content
+      rescue => error
+        FOREST_LOGGER.error "Association Associate error: #{error}"
+        internal_server_error
+      end
     end
 
     def dissociate
-      dissociator = HasManyDissociator.new(@resource, @association, params)
-      dissociator.perform
+      begin
+        dissociator = HasManyDissociator.new(@resource, @association, params)
+        dissociator.perform
 
-      head :no_content
+        head :no_content
+      rescue => error
+        FOREST_LOGGER.error "Association Associate error: #{error}"
+        internal_server_error
+      end
     end
 
     private
