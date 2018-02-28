@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.3.5 - 2018-02-28
 ### Fixed
 - Smart Actions - Display the Smart Actions form fields in the declaration order. [Regression introduced in 2.3.0]
 
