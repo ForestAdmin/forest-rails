@@ -4,6 +4,9 @@
 ### Added
 - Smart Actions - Users can define Smart Actions only available in a record detail.
 
+### Fixed
+- Smart BelongsTo - Users can now display their records list on collections using Smart BelongsTo. [Regression introduced in 2.3.0]
+
 ## RELEASE 2.3.5 - 2018-02-28
 ### Fixed
 - Smart Actions - Display the Smart Actions form fields in the declaration order. [Regression introduced in 2.3.0]

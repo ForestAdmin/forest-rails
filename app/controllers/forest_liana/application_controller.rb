@@ -128,8 +128,11 @@ module ForestLiana
           if relation_name == model.name
             fields[relation_name] = relation_fields
           else
-            model_name = model.reflect_on_association(relation_name.to_sym).class_name
-            fields[model_name] = relation_fields
+            model_association = model.reflect_on_association(relation_name.to_sym)
+            if model_association
+              model_name = model_association.class_name
+              fields[model_name] = relation_fields
+            end
           end
           fields
         end
