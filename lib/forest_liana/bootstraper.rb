@@ -26,7 +26,7 @@ module ForestLiana
       if ForestLiana.env_secret
         create_apimap
         require_lib_forest_liana
-        set_smart_actions_fields_position
+        format_and_validate_smart_actions
 
         send_apimap
       end
@@ -158,10 +158,22 @@ module ForestLiana
       end
     end
 
-    def set_smart_actions_fields_position
+    def format_and_validate_smart_actions
       ForestLiana.apimap.each do |collection|
         collection.actions.each do |action|
+          if action.global
+            FOREST_LOGGER.warn "DEPRECATION WARNING: Smart Action \"global\" option is now " \
+              "deprecated. Please set \"type: 'global'\" instead of \"global: true\" for the " \
+              "\"#{action.name}\" Smart Action."
+          end
+
+          if action.type && !['bulk', 'global', 'single'].include?(action.type)
+            FOREST_LOGGER.warn "Please set a valid Smart Action type (\"bulk\", \"global\" or " \
+              "\"single\") for the \"#{action.name}\" Smart Action."
+          end
+
           if action.fields
+            # NOTICE: Set a position to the Smart Actions fields.
             action.fields.each_with_index do |field, index|
               field[:position] = index
             end
