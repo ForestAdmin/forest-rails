@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.0 - 2018-03-01
 ### Added
 - Smart Actions - Users can define Smart Actions only available in a record detail.
 
