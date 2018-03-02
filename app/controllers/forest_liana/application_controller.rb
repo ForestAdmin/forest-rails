@@ -201,5 +201,9 @@ module ForestLiana
       headers['X-Accel-Buffering'] = 'no'
       headers["Cache-Control"] = "no-cache"
     end
+
+    def format_stacktrace error
+      error.backtrace.join("\n\t")
+    end
   end
 end

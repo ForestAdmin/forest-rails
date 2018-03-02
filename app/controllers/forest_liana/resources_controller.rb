@@ -23,7 +23,7 @@ module ForestLiana
           format.csv { render_csv(getter, @resource) }
         end
       rescue => error
-        FOREST_LOGGER.error "Records Index error: #{error}"
+        FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end
@@ -36,7 +36,7 @@ module ForestLiana
         render serializer: nil, json:
           serialize_model(get_record(getter.record), include: includes(getter))
       rescue => error
-        FOREST_LOGGER.error "Record Show error: #{error}"
+        FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end
@@ -57,7 +57,7 @@ module ForestLiana
             creator.record.errors), status: 400
         end
       rescue => error
-        FOREST_LOGGER.error "Record Create error: #{error}"
+        FOREST_LOGGER.error "Record Create error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end
@@ -78,7 +78,7 @@ module ForestLiana
             updater.record.errors), status: 400
         end
       rescue => error
-        FOREST_LOGGER.error "Record Update error: #{error}"
+        FOREST_LOGGER.error "Record Update error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end
@@ -88,7 +88,7 @@ module ForestLiana
         @resource.destroy(params[:id])
         head :no_content
       rescue => error
-        FOREST_LOGGER.error "Record Destroy error: #{error}"
+        FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end

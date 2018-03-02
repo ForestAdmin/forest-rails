@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Errors - Add the full stack trace in case of internal error calling Forest API.
 
 ## RELEASE 2.4.0 - 2018-03-01
 ### Added
