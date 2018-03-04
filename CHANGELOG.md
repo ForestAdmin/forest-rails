@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.2 - 2018-03-05
 ### Fixed
 - Errors - Fix a typo on association update error handling.
 
