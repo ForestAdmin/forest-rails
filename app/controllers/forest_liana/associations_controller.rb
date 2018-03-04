@@ -35,7 +35,7 @@ module ForestLiana
           head :no_content
         end
       rescue => error
-        FOREST_LOGGER.error "Association Update error: #{error}"\n#{error.backtrace}
+        FOREST_LOGGER.error "Association Update error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end
