@@ -23,7 +23,7 @@ module ForestLiana
       when 'Value'
         if result.count
           result_line = result.first
-          if !result_line['value']
+          if !result_line.key?('value')
             raise error_message(result_line, "'value'")
           else
             @record = Model::Stat.new(value: {
@@ -35,7 +35,7 @@ module ForestLiana
       when 'Pie'
         if result.count
           result.each do |result_line|
-            if !result_line['value'] || !result_line['key']
+            if !result_line.key?('value') || !result_line.key?('key')
               raise error_message(result_line, "'key', 'value'")
             end
           end
@@ -45,7 +45,7 @@ module ForestLiana
       when 'Line'
         if result.count
           result.each do |result_line|
-            if !result_line['value'] || !result_line['key']
+            if !result_line.key?('value') || !result_line.key?('key')
               raise error_message(result_line, "'key', 'value'")
             end
           end
