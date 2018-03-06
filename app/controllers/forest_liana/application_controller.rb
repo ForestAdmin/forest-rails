@@ -108,12 +108,14 @@ module ForestLiana
 
     def force_utf8_attributes_encoding(model)
       # NOTICE: Declare all strings are encoded in utf-8
-      model['attributes'].each do |name, value|
-        if value.respond_to?(:force_encoding)
-          begin
-            model['attributes'][name] = value.force_encoding('utf-8')
-          rescue
-            # NOTICE: Enums are frozen Strings
+      if model['attributes']
+        model['attributes'].each do |name, value|
+          if value.respond_to?(:force_encoding)
+            begin
+              model['attributes'][name] = value.force_encoding('utf-8')
+            rescue
+              # NOTICE: Enums are frozen Strings
+            end
           end
         end
       end
