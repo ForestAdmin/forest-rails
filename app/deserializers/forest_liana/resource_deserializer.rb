@@ -186,7 +186,7 @@ module ForestLiana
     end
 
     def has_acts_as_taggable?
-      @resource.taggable?
+      @resource.try(:taggable?)
     end
 
     def has_devise?

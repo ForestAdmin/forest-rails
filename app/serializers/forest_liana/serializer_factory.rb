@@ -194,7 +194,8 @@ module ForestLiana
         end
 
         # NOTICE: Format ActsAsTaggable attribute
-        if active_record_class.taggable? && active_record_class.respond_to?(:acts_as_taggable) &&
+        if active_record_class.try(:taggable?) &&
+          active_record_class.respond_to?(:acts_as_taggable) &&
           active_record_class.acts_as_taggable.respond_to?(:to_a)
           active_record_class.acts_as_taggable.to_a.each do |key, value|
             serializer.attribute(key) do |x|
