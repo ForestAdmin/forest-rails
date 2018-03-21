@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.8 - 2018-03-21
 ### Fixed
 - Gem ActAsTaggable - Forest does not make all models taggable anymore.
 - Rails Version - Fix a recent incompatibility with Rails 5.1+. [Regression introduced in 2.4.5]
