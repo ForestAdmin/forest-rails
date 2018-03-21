@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.5 - 2018-03-21
 ### Fixed
 - List Views - Fix records retrieval for project using Rails versions from 4.0.0 to 4.2.0. [Regression introduced in 2.3.0]
 
