@@ -23,13 +23,17 @@ module ForestLiana
       when 'Value'
         if result.count
           result_line = result.first
-          if !result_line.key?('value')
-            raise error_message(result_line, "'value'")
+          if result_line
+            if !result_line.key?('value')
+              raise error_message(result_line, "'value'")
+            else
+              @record = Model::Stat.new(value: {
+                countCurrent: result_line['value'],
+                countPrevious: result_line['previous']
+              })
+            end
           else
-            @record = Model::Stat.new(value: {
-              countCurrent: result_line['value'],
-              countPrevious: result_line['previous']
-            })
+            @record = Model::Stat.new(value: { countCurrent: 0, countPrevious: 0 })
           end
         end
       when 'Pie'
