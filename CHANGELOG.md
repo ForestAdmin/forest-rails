@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Rails Version - Fix a recent incompatibility with Rails 5.1+. [Regression introduced in 2.4.5]
 
 ## RELEASE 2.4.7 - 2018-03-21
 ### Fixed
