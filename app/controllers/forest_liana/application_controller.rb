@@ -123,7 +123,7 @@ module ForestLiana
 
     def fields_per_model(params_fields, model)
       if params_fields
-        params_fields.to_unsafe_h().inject({}) do |fields, param_field|
+        params_fields.to_hash.inject({}) do |fields, param_field|
           relation_name = param_field[0]
           relation_fields = param_field[1]
 
