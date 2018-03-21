@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.6 - 2018-03-21
 ### Fixed
 - HasMany Relationships - Fix data display for projects having namespaced models. [Regression introduced in 2.3.0]
 
