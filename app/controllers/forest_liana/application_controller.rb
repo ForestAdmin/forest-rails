@@ -127,7 +127,7 @@ module ForestLiana
           relation_name = param_field[0]
           relation_fields = param_field[1]
 
-          if relation_name == model.name
+          if relation_name == ForestLiana.name_for(model)
             fields[relation_name] = relation_fields
           else
             model_association = model.reflect_on_association(relation_name.to_sym)
