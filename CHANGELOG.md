@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.9 - 2018-03-21
 ### Fixed
 - Gem ActAsTaggable - Prevent errors on collections that are not taggable. [Regression introduced in 2.4.8]
 
