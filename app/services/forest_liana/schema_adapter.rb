@@ -9,8 +9,8 @@ module ForestLiana
       add_associations
 
       # NOTICE: Add ActsAsTaggable fields
-      if @model.respond_to?(:acts_as_taggable) &&
-        @model.acts_as_taggable.respond_to?(:to_a) &&
+      if @model.taggable? && @model.respond_to?(:acts_as_taggable) &&
+        @model.acts_as_taggable.respond_to?(:to_a)
         @model.acts_as_taggable.to_a.each do |key, value|
           field = collection.fields.find { |x| x[:field] == key.to_s }
 

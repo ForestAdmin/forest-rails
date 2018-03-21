@@ -186,8 +186,7 @@ module ForestLiana
     end
 
     def has_acts_as_taggable?
-      @resource.respond_to?(:acts_as_taggable) &&
-        @resource.acts_as_taggable.respond_to?(:to_a)
+      @resource.taggable?
     end
 
     def has_devise?

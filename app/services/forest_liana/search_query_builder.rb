@@ -74,7 +74,7 @@ module ForestLiana
         end
 
         # ActsAsTaggable
-        if @resource.respond_to?(:acts_as_taggable)
+        if @resource.taggable? && @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@params[:search].downcase)
             condition = acts_as_taggable_query(tagged_records)
@@ -189,7 +189,7 @@ module ForestLiana
     end
 
     def acts_as_taggable?(field)
-      @resource.respond_to?(:acts_as_taggable) &&
+      @resource.taggable? && @resource.respond_to?(:acts_as_taggable) &&
         @resource.acts_as_taggable.include?(field)
     end
 
