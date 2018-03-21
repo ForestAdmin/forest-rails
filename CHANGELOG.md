@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.4.4 - 2018-03-21
 ### Fixed
 - Live Queries - Display the Value Charts properly if no data has been retrieved.
 
