@@ -6,5 +6,11 @@ module ForestLiana
         super
       end
     end
+
+    class LiveQueryError < StandardError
+      def initialize(message="Something went wrong")
+        super
+      end
+    end
   end
 end

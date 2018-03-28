@@ -19,6 +19,19 @@ module ForestLiana
         @records = @records.where(@segment.where.call())
       end
 
+      # Live Query mode
+      if @params[:query]
+        LiveQueryChecker.validate(@params[:query])
+
+        begin
+          result = ActiveRecord::Base.connection.execute(@params[:query])
+        rescue => error
+          raise ForestLiana::Errors::LiveQueryError.new(error.message)
+        end
+
+        @records = @records.where(id: result.to_a.map { |r| r['id'] })
+      end
+
       @records = search_query
       @records_to_count = @records
 

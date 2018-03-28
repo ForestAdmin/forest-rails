@@ -22,6 +22,9 @@ module ForestLiana
           format.json { render_jsonapi(getter) }
           format.csv { render_csv(getter, @resource) }
         end
+      rescue ForestLiana::Errors::LiveQueryError => error
+        render json: { errors: [{ status: 422, detail: error.message }] },
+          status: :unprocessable_entity, serializer: nil
       rescue => error
         FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
