@@ -12,13 +12,7 @@ module ForestLiana
       @record = @resource.find(@params[:id])
       associated_records = @resource.find(@params[:id]).send(@association.name)
 
-      remove_association = false
-
-      if @with_deletion
-        remove_association = (@association.macro == :has_and_belongs_to_many)
-      else
-        remove_association = true
-      end
+      remove_association = !@with_deletion || @association.macro == :has_and_belongs_to_many
 
       if remove_association
         if @data.is_a?(Array)
