@@ -17,6 +17,10 @@ module ForestLiana
         FOREST_LOGGER.error "Cannot retrieve the project you\'re trying " \
           "to unlock. Can you check that you properly copied the Forest " \
           "env_secret in the forest_liana initializer?"
+      elsif response.is_a?(Net::HTTPUnprocessableEntity)
+        FOREST_LOGGER.error "Cannot retrieve any users for the project you\'re trying to " \
+          "unlock. Your secret key seems to be missing in your Forest configuration."
+        []
       else
         FOREST_LOGGER.error "Cannot retrieve any users for the project " \
           "you\'re trying to unlock. An error occured in Forest API."
