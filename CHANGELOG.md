@@ -4,6 +4,9 @@
 ### Changed
 - Sessions - Improve the error message if the environment secret is missing on session creation.
 
+### Fixed
+- Charts - Fix some bad Line charts aggregation due to Daylight Saving Time.
+
 ## RELEASE 2.5.0 - 2018-04-03
 ### Added
 - Related Data - Delete records directly from a hasMany listing.

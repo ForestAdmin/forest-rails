@@ -3,12 +3,11 @@ module ForestLiana
     attr_accessor :record
 
     def initialize(resource, params)
-      @timezone_offset = params[:timezone].to_i
       super(resource, params)
     end
 
     def client_timezone
-      ActiveSupport::TimeZone[@timezone_offset].name
+      @params[:timezone]
     end
 
     def get_format

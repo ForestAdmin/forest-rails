@@ -4,7 +4,7 @@ module ForestLiana
       stat = PieStatGetter.new(BooleanField, {
         type: "Pie",
         collection: "boolean_field",
-        timezone: "+02:00",
+        timezone: "Europe/Paris",
         aggregate: "Count",
         group_by_field: "field"
       })
@@ -17,7 +17,7 @@ module ForestLiana
       stat = PieStatGetter.new(BelongsToField, {
         type: "Pie",
         collection: "belongs_to_field",
-        timezone: "+02:00",
+        timezone: "Europe/Paris",
         aggregate: "Count",
         group_by_field: "has_one_field_id"
       })

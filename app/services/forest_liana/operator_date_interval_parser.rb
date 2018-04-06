@@ -25,7 +25,7 @@ module ForestLiana
 
     def initialize(value, timezone)
       @value = value
-      @timezone_offset = timezone.to_i
+      @timezone_offset = Time.now.in_time_zone(timezone).utc_offset / 3600
     end
 
     def is_interval_date_value

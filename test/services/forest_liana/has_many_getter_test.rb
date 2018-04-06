@@ -23,7 +23,7 @@ module ForestLiana
         id: 1,
         association_name: 'trees',
         page: { size: 15, number: 1 },
-        timezone: '-08:00'
+        timezone: 'America/Nome'
       })
       getter.perform
       records = getter.records
@@ -42,7 +42,7 @@ module ForestLiana
         association_name: 'trees',
         sort: '-id',
         page: { size: 15, number: 1 },
-        timezone: '-08:00'
+        timezone: 'America/Nome'
       })
       getter.perform
       records = getter.records
@@ -61,7 +61,7 @@ module ForestLiana
         association_name: 'trees',
         search: 'Fir',
         page: { size: 15, number: 1 },
-        timezone: '-08:00'
+        timezone: 'America/Nome'
       })
       getter.perform
       records = getter.records

@@ -4,7 +4,7 @@ module ForestLiana
       stat = ValueStatGetter.new(BooleanField, {
         type: "Value",
         collection: "boolean_field",
-        timezone: "+02:00",
+        timezone: "Europe/Paris",
         aggregate: "Count",
         filterType: "and",
         filters: [{
@@ -21,7 +21,7 @@ module ForestLiana
       stat = ValueStatGetter.new(BelongsToField, {
         type: "Value",
         collection: "belongs_to_field",
-        timezone: "+02:00",
+        timezone: "Europe/Paris",
         aggregate: "Count",
         filterType: "and",
         filters: [{
@@ -38,7 +38,7 @@ module ForestLiana
       stat = ValueStatGetter.new(BelongsToField, {
         type: "Value",
         collection: "belongs_to_field",
-        timezone: "+02:00",
+        timezone: "Europe/Paris",
         aggregate: "Count",
         filterType: "and",
         filters: [{
@@ -55,7 +55,7 @@ module ForestLiana
       stat = ValueStatGetter.new(BelongsToField, {
         type: "Value",
         collection: "belongs_to_field",
-        timezone: "+02:00",
+        timezone: "Europe/Paris",
         aggregate: "Count",
         filterType: "and",
         filters: [{
