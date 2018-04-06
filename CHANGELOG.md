@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.5.1 - 2018-04-06
 ### Changed
 - Sessions - Improve the error message if the environment secret is missing on session creation.
 
