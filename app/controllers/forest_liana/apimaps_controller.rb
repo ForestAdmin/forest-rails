@@ -1,5 +1,5 @@
 module ForestLiana
-  class ApimapsController < ::ActionController::Base
+  class ApimapsController < ForestLiana::BaseController
     def index
       head :no_content
     end
