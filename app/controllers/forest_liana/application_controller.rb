@@ -2,8 +2,7 @@ require 'jwt'
 require 'csv'
 
 module ForestLiana
-  class ApplicationController < ::ActionController::Base
-
+  class ApplicationController < ForestLiana::BaseController
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
     end

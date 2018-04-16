@@ -1,6 +1,5 @@
 module ForestLiana
-  class SessionsController < ::ActionController::Base
-
+  class SessionsController < ForestLiana::BaseController
     def create
       @error_message = nil
       @user_class = ForestLiana.user_class_name.constantize rescue nil
