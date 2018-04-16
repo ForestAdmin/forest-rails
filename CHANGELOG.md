@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.5.2 - 2018-04-16
 ### Fixed
 - Rails 5.2 - Support New Rails 5.2 apps with config.action_controller.default_protect_from_forgery set to true.
 
