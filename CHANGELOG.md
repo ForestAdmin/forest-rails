@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- IP Whitelist - Add IP Whitelist feature.
 
 ## RELEASE 2.5.2 - 2018-04-16
 ### Fixed
