@@ -118,7 +118,9 @@ module ForestLiana
         model['attributes'].each do |name, value|
           if value.respond_to?(:force_encoding)
             begin
-              model['attributes'][name] = value.force_encoding('utf-8')
+              encoded_value = value.force_encoding('utf-8')
+              encoded_value = value.encode!('utf-8', invalid: :replace, undef: :replace, replace: '?')
+              model['attributes'][name] = encoded_value.valid_encoding? ? encoded_value : nil
             rescue
               # NOTICE: Enums are frozen Strings
             end
