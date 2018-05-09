@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Rails 5 - Tables named "applications" are now properly handled using Rails 5+.
 
 ## RELEASE 2.5.2 - 2018-04-16
 ### Fixed
