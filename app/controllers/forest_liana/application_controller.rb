@@ -138,7 +138,8 @@ module ForestLiana
             model_association = model.reflect_on_association(relation_name.to_sym)
             if model_association
               model_name = model_association.class_name
-              fields[model_name] = relation_fields
+              # NOTICE: Join fields in case of model with self-references.
+              fields[model_name] = [fields[model_name], relation_fields].join(',')
             end
           end
           fields
