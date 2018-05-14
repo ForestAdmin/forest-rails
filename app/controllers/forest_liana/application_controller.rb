@@ -138,7 +138,11 @@ module ForestLiana
             model_association = model.reflect_on_association(relation_name.to_sym)
             if model_association
               model_name = model_association.class_name
-              fields[model_name] = relation_fields
+              if fields[model_name].nil?
+                fields[model_name] = relation_fields
+              else
+                fields[model_name] = "#{fields[model_name]},#{relation_fields}"
+              end
             end
           end
           fields
