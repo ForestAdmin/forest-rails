@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.5.4 - 2018-05-14
 ### Fixed
 - Records List - Fix records retrieval regression for tables having self-references.
 
