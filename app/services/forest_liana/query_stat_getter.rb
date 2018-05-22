@@ -1,16 +1,4 @@
 module ForestLiana
-  class DatabaseResultAdapter
-    def self.perform(data)
-      case ActiveRecord::Base.connection.adapter_name
-      # NOTICE: MySQL returns a different result format when using raw database queries.
-      when 'Mysql', 'Mysql2'
-        { 'value' => data.first.first }
-      else
-        data.first
-      end
-    end
-  end
-
   class QueryStatGetter
     QUERY_SELECT = /\ASELECT\s.*FROM\s.*\z/im
 
@@ -34,7 +22,7 @@ module ForestLiana
       case @params['type']
       when 'Value'
         if result.count
-          result_line = DatabaseResultAdapter.perform(result)
+          result_line = ForestLiana::AdapterHelper.format_live_query_result(result)
           if result_line
             if !result_line.key?('value')
               raise error_message(result_line, "'value'")
