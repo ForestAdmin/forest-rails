@@ -2,8 +2,7 @@ module ForestLiana
   class DatabaseResultAdapter
     def self.perform(data)
       case ActiveRecord::Base.connection.adapter_name
-        # NOTICE: MySQL returns a different type for the result when using raw
-        # database request.
+      # NOTICE: MySQL returns a different result format when using raw database queries.
       when 'Mysql', 'Mysql2'
         { 'value' => data.first.first }
       else
