@@ -14,8 +14,9 @@ module ForestLiana
       end
     end
 
-    def self.format_live_query_result(result)
-      # NOTICE: MySQL returns a different result format when using raw database queries.
+    def self.format_live_query_value_result(result)
+      # NOTICE: MySQL returns a different result format when using raw database queries for value
+      #         charts.
       case ActiveRecord::Base.connection.adapter_name
       when 'Mysql', 'Mysql2'
         { 'value' => result.first.first }

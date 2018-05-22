@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Fixed
-- Live Query - Fix the Live query mode when using MySQL.
+- Live Query - Fix the Value charts in Live query mode when using MySQL.
 
 ## RELEASE 2.5.4 - 2018-05-14
 ### Fixed

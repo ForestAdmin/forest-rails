@@ -22,7 +22,7 @@ module ForestLiana
       case @params['type']
       when 'Value'
         if result.count
-          result_line = ForestLiana::AdapterHelper.format_live_query_result(result)
+          result_line = ForestLiana::AdapterHelper.format_live_query_value_result(result)
           if result_line
             if !result_line.key?('value')
               raise error_message(result_line, "'value'")
