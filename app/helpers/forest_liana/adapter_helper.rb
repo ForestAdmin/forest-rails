@@ -40,7 +40,6 @@ module ForestLiana
       # NOTICE: The adapters have their own specific format for the live query line chart results.
       case ActiveRecord::Base.connection.adapter_name
       when ADAPTER_MYSQL2
-        byebug
         result.map { |value| { 'key' => value[0], 'value' => value[1] } }
       else
         result
