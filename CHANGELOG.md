@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Live Query - Fix the charts in Live query mode when using mysql2 adapter.
 
 ## RELEASE 2.5.4 - 2018-05-14
 ### Fixed

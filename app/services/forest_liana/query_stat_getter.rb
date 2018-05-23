@@ -22,7 +22,7 @@ module ForestLiana
       case @params['type']
       when 'Value'
         if result.count
-          result_line = result.first
+          result_line = ForestLiana::AdapterHelper.format_live_query_value_result(result)
           if result_line
             if !result_line.key?('value')
               raise error_message(result_line, "'value'")
@@ -38,23 +38,27 @@ module ForestLiana
         end
       when 'Pie'
         if result.count
-          result.each do |result_line|
+          values = ForestLiana::AdapterHelper.format_live_query_pie_result(result)
+
+          values.each do |result_line|
             if !result_line.key?('value') || !result_line.key?('key')
               raise error_message(result_line, "'key', 'value'")
             end
           end
 
-          @record = Model::Stat.new(value: result.to_a)
+          @record = Model::Stat.new(value: values)
         end
       when 'Line'
         if result.count
-          result.each do |result_line|
+          values = ForestLiana::AdapterHelper.format_live_query_line_result(result)
+
+          values.each do |result_line|
             if !result_line.key?('value') || !result_line.key?('key')
               raise error_message(result_line, "'key', 'value'")
             end
           end
 
-          result_formatted = result.map do |result_line|
+          result_formatted = values.map do |result_line|
             { label: result_line['key'], values: { value: result_line['value'] }}
           end
 
