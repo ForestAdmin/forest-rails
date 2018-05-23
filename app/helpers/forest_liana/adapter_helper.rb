@@ -1,5 +1,7 @@
 module ForestLiana
   module AdapterHelper
+    ADAPTER_MYSQL2 = 'Mysql2'
+
     def self.format_column_name(table_name, column_name)
       quoted_table_name = ActiveRecord::Base.connection.quote_table_name(table_name)
       quoted_column_name = ActiveRecord::Base.connection.quote_column_name(column_name)
@@ -17,7 +19,7 @@ module ForestLiana
     def self.format_live_query_value_result(result)
       # NOTICE: The adapters have their own specific format for the live query value chart results.
       case ActiveRecord::Base.connection.adapter_name
-      when 'Mysql2'
+      when ADAPTER_MYSQL2
         { 'value' => result.first.first }
       else
         result.first
@@ -27,7 +29,7 @@ module ForestLiana
     def self.format_live_query_pie_result(result)
       # NOTICE: The adapters have their own specific format for the live query pie chart results.
       case ActiveRecord::Base.connection.adapter_name
-      when 'Mysql2'
+      when ADAPTER_MYSQL2
         result.map { |value| { 'key' => value[0], 'value' => value[1] } }
       else
         result.to_a
@@ -37,7 +39,7 @@ module ForestLiana
     def self.format_live_query_line_result(result)
       # NOTICE: The adapters have their own specific format for the live query line chart results.
       case ActiveRecord::Base.connection.adapter_name
-      when 'Mysql2'
+      when ADAPTER_MYSQL2
         byebug
         result.map { |value| { 'key' => value[0], 'value' => value[1] } }
       else
