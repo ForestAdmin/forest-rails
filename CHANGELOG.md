@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.6.1 - 2018-05-29
 ### Fixed
 - Smart Relationships - Fix the serialization of Smart belongs_to relationships in lists and record details.
 
