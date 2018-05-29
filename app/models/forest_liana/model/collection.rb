@@ -29,4 +29,8 @@ class ForestLiana::Model::Collection
   def id
     name
   end
+
+  def fields_belongs_to
+    fields.select { |field| field[:type] == 'String' && !field[:reference].nil? }
+  end
 end

@@ -104,14 +104,15 @@ module ForestLiana
       fields_to_serialize = fields_per_model(params[:fields], @association.klass)
       records = getter.records.map { |record| get_record(record) }
 
-      if getter.includes.length > 0
+      includes = getter.includes_for_serialization
+      if includes.length > 0
         association_name = ForestLiana.name_for(@association.klass)
-        fields_to_serialize[association_name] += ",#{getter.includes.join(',')}"
+        fields_to_serialize[association_name] += ",#{includes.join(',')}"
       end
 
       json = serialize_models(
         records,
-        include: getter.includes,
+        include: includes,
         fields: fields_to_serialize,
         count: getter.count,
         params: params

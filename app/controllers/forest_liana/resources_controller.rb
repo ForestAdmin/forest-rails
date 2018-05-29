@@ -105,7 +105,7 @@ module ForestLiana
     end
 
     def includes(getter)
-      getter.includes.map(&:to_s)
+      getter.includes_for_serialization
     end
 
     def record_includes
