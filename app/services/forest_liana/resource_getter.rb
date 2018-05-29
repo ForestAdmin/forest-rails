@@ -5,6 +5,8 @@ module ForestLiana
     def initialize(resource, params)
       @resource = resource
       @params = params
+      @collection_name = ForestLiana.name_for(@resource)
+      @collection = get_collection(@collection_name)
     end
 
     def perform
