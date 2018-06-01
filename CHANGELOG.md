@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.7.0 - 2018-06-01
 ### Added
 - Segments - Users can create segments with SQL queries.
 
