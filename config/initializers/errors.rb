@@ -6,5 +6,11 @@ module ForestLiana
         super
       end
     end
+
+    class LiveQueryError < StandardError
+      def initialize(message="Invalid SQL query for this Live Query")
+        super
+      end
+    end
   end
 end
