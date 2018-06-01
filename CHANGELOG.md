@@ -2,8 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- Live Query - Let users define segments using SQL.
--
+- Segments - Users can create segments with SQL queries.
 
 ## RELEASE 2.6.1 - 2018-05-29
 ### Fixed
