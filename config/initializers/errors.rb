@@ -8,7 +8,7 @@ module ForestLiana
     end
 
     class LiveQueryError < StandardError
-      def initialize(message="Something went wrong")
+      def initialize(message="Invalid SQL query for this Live Query")
         super
       end
     end

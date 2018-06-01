@@ -19,17 +19,20 @@ module ForestLiana
         @records = @records.where(@segment.where.call())
       end
 
-      # Live Query mode
-      if @params[:query]
-        LiveQueryChecker.validate(@params[:query])
+      # NOTICE: Live Query mode
+      if @params[:segmentQuery]
+        LiveQueryChecker.new(@params[:segmentQuery], 'Live Query Segment').validate()
 
         begin
-          result = ActiveRecord::Base.connection.execute(@params[:query])
+          results = ActiveRecord::Base.connection.execute(@params[:segmentQuery])
         rescue => error
-          raise ForestLiana::Errors::LiveQueryError.new(error.message)
+          error_message = "Live Query Segment: #{error.message}"
+          FOREST_LOGGER.error(error_message)
+          raise ForestLiana::Errors::LiveQueryError.new(error_message)
         end
 
-        @records = @records.where(id: result.to_a.map { |r| r['id'] })
+        record_ids = results.to_a.map { |record| record['id'] }
+        @records = @records.where(id: record_ids)
       end
 
       @records = search_query

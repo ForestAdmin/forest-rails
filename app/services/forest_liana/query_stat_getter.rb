@@ -9,7 +9,7 @@ module ForestLiana
     def perform
       raw_query = @params['query'].strip
 
-      LiveQueryChecker.validate(raw_query)
+      LiveQueryChecker.new(raw_query, 'Live Query Chart').validate()
 
       if @params['record_id']
         raw_query.gsub!('?', @params['record_id'].to_s)
