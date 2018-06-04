@@ -1,35 +1,18 @@
 module ForestLiana
-  class PermissionsGetter
+  class PermissionsGetter < ForestServerRequester
     def initialize
       @uri = URI.parse("#{forest_url}/liana/v1/permissions")
     end
 
     def perform
-      http = Net::HTTP.new(@uri.host, @uri.port)
-      http.use_ssl = true if forest_url.start_with?('https')
-
-      begin
-        http.start do |client|
-          request = Net::HTTP::Get.new(@uri.path)
-          request['Content-Type'] = 'application/json'
-          request['forest-secret-key'] = ForestLiana.env_secret
-          request['forest-token'] = @forest_token if @forest_token
-          response = client.request(request)
-
-          handle_service_response(response)
-        end
-      rescue => exception
-        puts exception
-        FOREST_LOGGER.error "Cannot retrieve the permissions for the project you\'re trying to unlock. Forest API seems to be down right now."
-        nil
-      end
+      perform_request
+    rescue => exception
+      FOREST_LOGGER.error "Cannot retrieve the permissions for the project you\'re trying to unlock. Forest API seems to be down right now."
+      FOREST_LOGGER.error exception
+      nil
     end
 
     private
-
-    def forest_url
-      ENV['FOREST_URL'] || 'https://api.forestadmin.com';
-    end
 
     def handle_service_response(response)
       if response.is_a?(Net::HTTPOK)

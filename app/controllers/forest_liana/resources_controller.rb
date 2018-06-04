@@ -16,11 +16,11 @@ module ForestLiana
     def index
       begin
         if request.format == 'csv'
-          return head :forbidden if !PermissionsChecker.new(@resource, 'export').is_authorized
+          return head :forbidden unless PermissionsChecker.new(@resource, 'export').is_authorized?
         elsif params.has_key?(:searchToEdit)
-          return head :forbidden if !PermissionsChecker.new(@resource, 'searchToEdit').is_authorized
+          return head :forbidden unless PermissionsChecker.new(@resource, 'searchToEdit').is_authorized?
         else
-          return head :forbidden if !PermissionsChecker.new(@resource, 'list').is_authorized
+          return head :forbidden unless PermissionsChecker.new(@resource, 'list').is_authorized?
         end
 
         getter = ForestLiana::ResourcesGetter.new(@resource, params)
@@ -38,7 +38,7 @@ module ForestLiana
 
     def show
       begin
-        return head :forbidden if !PermissionsChecker.new(@resource, 'show').is_authorized
+        return head :forbidden unless PermissionsChecker.new(@resource, 'show').is_authorized?
 
         getter = ForestLiana::ResourceGetter.new(@resource, params)
         getter.perform
@@ -53,7 +53,7 @@ module ForestLiana
 
     def create
       begin
-        return head :forbidden if !PermissionsChecker.new(@resource, 'create').is_authorized
+        return head :forbidden unless PermissionsChecker.new(@resource, 'create').is_authorized?
 
         creator = ForestLiana::ResourceCreator.new(@resource, params)
         creator.perform
@@ -76,7 +76,7 @@ module ForestLiana
 
     def update
       begin
-        return head :forbidden if !PermissionsChecker.new(@resource, 'update').is_authorized
+        return head :forbidden unless PermissionsChecker.new(@resource, 'update').is_authorized?
 
         updater = ForestLiana::ResourceUpdater.new(@resource, params)
         updater.perform
@@ -99,7 +99,7 @@ module ForestLiana
 
     def destroy
       begin
-        return head :forbidden if !PermissionsChecker.new(@resource, 'delete').is_authorized
+        return head :forbidden unless PermissionsChecker.new(@resource, 'delete').is_authorized?
 
         @resource.destroy(params[:id])
         head :no_content
