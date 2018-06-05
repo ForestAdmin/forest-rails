@@ -5,7 +5,7 @@ module ForestLiana
     end
 
     def perform
-      @preform_request
+      perform_request
     rescue => exception
       FOREST_LOGGER.error "Cannot retrieve any users for the project you\'re trying to unlock. Forest API seems to be down right now."
       FOREST_LOGGER.error exception
