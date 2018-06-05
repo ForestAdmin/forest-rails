@@ -1,8 +1,8 @@
 module ForestLiana
-  class ForestServerRequester
+  class ForestApiRequester
     def perform_request
       http = Net::HTTP.new(@uri.host, @uri.port)
-      http.use_ssl = true if forest_url.start_with?('https')
+      http.use_ssl = true if forest_api_url.start_with?('https')
 
       http.start do |client|
         request = Net::HTTP::Get.new(@uri.path)
@@ -15,7 +15,7 @@ module ForestLiana
       end
     end
 
-    def forest_url
+    def forest_api_url
       ENV['FOREST_URL'] || 'https://api.forestadmin.com';
     end
   end

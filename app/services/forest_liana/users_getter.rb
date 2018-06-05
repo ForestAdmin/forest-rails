@@ -1,7 +1,7 @@
 module ForestLiana
-  class UsersGetter < ForestServerRequester
+  class UsersGetter < ForestApiRequester
     def initialize(endpoint, rendering_id)
-      @uri = URI.parse("#{forest_url}/forest/renderings/#{rendering_id}/#{endpoint}")
+      @uri = URI.parse("#{forest_api_url}/forest/renderings/#{rendering_id}/#{endpoint}")
     end
 
     def perform

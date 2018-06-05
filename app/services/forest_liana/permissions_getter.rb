@@ -1,7 +1,7 @@
 module ForestLiana
-  class PermissionsGetter < ForestServerRequester
+  class PermissionsGetter < ForestApiRequester
     def initialize
-      @uri = URI.parse("#{forest_url}/liana/v1/permissions")
+      @uri = URI.parse("#{forest_api_url}/liana/v1/permissions")
     end
 
     def perform
@@ -18,11 +18,11 @@ module ForestLiana
       if response.is_a?(Net::HTTPOK)
         JSON.parse(response.body)
       elsif response.is_a?(Net::HTTPNotFound) || response.is_a?(Net::HTTPUnprocessableEntity)
-        FOREST_LOGGER.error "Cannot retrieve the permissions from the Forest server. Can you check that you properly copied the Forest envSecret in the Liana initializer?"
-        []
+        FOREST_LOGGER.error "Cannot retrieve the permissions from the Forest server. Can you check that you properly set up the forest_env_secret?"
+        nil
       else
         FOREST_LOGGER.error "Cannot retrieve the data from the Forest server. An error occured in Forest API."
-        []
+        nil
       end
     end
   end
