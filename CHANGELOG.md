@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.8.0 - 2018-06-05
 ### Added
 - Permissions - Add a permission mechanism to protect the data accordingly to the UI configuration.
 
