@@ -48,7 +48,7 @@ module ForestLiana
     end
 
     def count
-      @records.to_a.length
+      @records.count
     end
 
     private
