@@ -4,6 +4,9 @@
 ### Changed
 - Onboarding - Improve the information message if the liana is properly setup and users run the "rails g forest_liana:install".
 
+### Fixed
+- Permissions - Fix permissions of the wrong team used for all others.
+
 ## RELEASE 2.8.3 - 2018-06-20
 ### Fixed
 - Onboarding - If the liana is properly setup and users run the "rails g forest_liana:install" command again, the task will be skipped.

@@ -4,8 +4,8 @@ module ForestLiana
       @uri = URI.parse("#{forest_api_url}/liana/v1/permissions")
     end
 
-    def perform
-      perform_request
+    def perform(query_parameters)
+      perform_request(query_parameters)
     rescue => exception
       FOREST_LOGGER.error "Cannot retrieve the permissions for the project you\'re trying to unlock. Forest API seems to be down right now."
       FOREST_LOGGER.error exception
