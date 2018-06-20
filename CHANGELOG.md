@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.8.3 - 2018-06-20
 ### Fixed
 - Onboarding - If the liana is properly setup and users run the "rails g forest_liana:install" command again, the task will be skipped.
 - Onboarding - The install generator now supports credentials.yml.enc file introduced in Rails 5.2.
