@@ -14,20 +14,13 @@ module ForestLiana
 
       route "mount ForestLiana::Engine => '/forest'"
 
-      byebug
-
-      # NOTICE: Detect Rails 5.2+ apps for the new onboarding behaviour.
-      might_use_encrypted_credentials = Rails::VERSION::MAJOR > 4 && Rails::VERSION::MINOR > 1
+      # NOTICE: If it is a Rails 5.2+ apps, the secrets.yml file might not exist
+      #         (replaced by credentials.yml.enc but still supported).
       file_secrets_exists = File.exist? 'config/secrets.yml'
 
       auth_secret = SecureRandom.urlsafe_base64
 
       if file_secrets_exists
-        initializer 'forest_liana.rb' do
-          "ForestLiana.env_secret = Rails.application.secrets.forest_env_secret" +
-          "\nForestLiana.auth_secret = Rails.application.secrets.forest_auth_secret"
-        end
-
         puts "\nForest generated a random authentication secret to secure the " +
           "data access of your local project.\nYou can change it at any time in " +
           "your config/secrets.yml file.\n\n"
@@ -47,7 +40,22 @@ module ForestLiana
           "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
         end
       else
-        # TODO: Implement the onboarding with Rails 5.2 apps.
+        create_file 'config/secrets.yml' do
+          "development:\n" +
+          "  forest_env_secret: #{env_secret}\n" +
+          "  forest_auth_secret: #{auth_secret}\n" +
+          "staging:\n" +
+          "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
+          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n" +
+          "production:\n" +
+          "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
+          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
+        end
+      end
+
+      initializer 'forest_liana.rb' do
+        "ForestLiana.env_secret = Rails.application.secrets.forest_env_secret" +
+        "\nForestLiana.auth_secret = Rails.application.secrets.forest_auth_secret"
       end
     end
   end
