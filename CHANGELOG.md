@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Onboarding - If the liana is properly setup and users run the "rails g forest_liana:install" command again, the task will be skipped.
 
 ## RELEASE 2.8.2 - 2018-06-18
 ### Fixed

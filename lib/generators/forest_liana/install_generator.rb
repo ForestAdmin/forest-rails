@@ -7,6 +7,11 @@ module ForestLiana
     argument :env_secret, type: :string, required: true, desc: 'required', banner: 'env_secret'
 
     def install
+      if ForestLiana.env_secret.present?
+        puts "\nForest liana already installed on this app (environment secret: #{ForestLiana.env_secret})"
+        return
+      end
+
       route "mount ForestLiana::Engine => '/forest'"
 
       initializer 'forest_liana.rb' do
