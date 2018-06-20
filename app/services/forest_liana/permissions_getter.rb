@@ -1,11 +1,12 @@
 module ForestLiana
   class PermissionsGetter < ForestApiRequester
-    def initialize
+    def initialize(rendering_id)
       @uri = URI.parse("#{forest_api_url}/liana/v1/permissions")
+      @rendering_id = rendering_id
     end
 
-    def perform(query_parameters)
-      perform_request(query_parameters)
+    def perform()
+      perform_request({ 'renderingId' => @rendering_id })
     rescue => exception
       FOREST_LOGGER.error "Cannot retrieve the permissions for the project you\'re trying to unlock. Forest API seems to be down right now."
       FOREST_LOGGER.error exception

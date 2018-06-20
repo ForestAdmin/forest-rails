@@ -15,17 +15,23 @@ module ForestLiana
 
     def index
       begin
-        rendering_id = forest_user['data']['relationships']['renderings']['data'][0]['id']
+        rendering_id = forest_user_rendering_id
 
         if request.format == 'csv'
-          return head :forbidden unless
-            ForestLiana::PermissionsChecker.new(@resource, 'export', rendering_id).is_authorized?
+          unless
+             ForestLiana::PermissionsChecker.new(@resource, 'export', rendering_id).is_authorized?
+             return head :forbidden
+          end
         elsif params.has_key?(:searchToEdit)
-          return head :forbidden unless
+          unless
             ForestLiana::PermissionsChecker.new(@resource, 'searchToEdit', rendering_id).is_authorized?
+            return head :forbidden
+          end
         else
-          return head :forbidden unless
+          unless
             ForestLiana::PermissionsChecker.new(@resource, 'list', rendering_id).is_authorized?
+            return head :forbidden
+          end
         end
 
         getter = ForestLiana::ResourcesGetter.new(@resource, params)
@@ -46,8 +52,12 @@ module ForestLiana
 
     def show
       begin
-        return head :forbidden unless
+        rendering_id = forest_user_rendering_id
+
+        unless
           ForestLiana::PermissionsChecker.new(@resource, 'show', rendering_id).is_authorized?
+          return head :forbidden
+        end
 
         getter = ForestLiana::ResourceGetter.new(@resource, params)
         getter.perform
@@ -62,8 +72,12 @@ module ForestLiana
 
     def create
       begin
-        return head :forbidden unless
+        rendering_id = forest_user_rendering_id
+
+        unless
           ForestLiana::PermissionsChecker.new(@resource, 'create', rendering_id).is_authorized?
+          return head :forbidden
+        end
 
         creator = ForestLiana::ResourceCreator.new(@resource, params)
         creator.perform
@@ -86,8 +100,12 @@ module ForestLiana
 
     def update
       begin
-        return head :forbidden unless
+        rendering_id = forest_user_rendering_id
+
+        unless
           ForestLiana::PermissionsChecker.new(@resource, 'update', rendering_id).is_authorized?
+          return head :forbidden
+        end
 
         updater = ForestLiana::ResourceUpdater.new(@resource, params)
         updater.perform
@@ -110,8 +128,12 @@ module ForestLiana
 
     def destroy
       begin
-        return head :forbidden unless
+        rendering_id = forest_user_rendering_id
+
+        unless
           ForestLiana::PermissionsChecker.new(@resource, 'delete', rendering_id).is_authorized?
+          return head :forbidden
+        end
 
         @resource.destroy(params[:id])
         head :no_content

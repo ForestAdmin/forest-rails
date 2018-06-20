@@ -33,6 +33,10 @@ module ForestLiana
       @jwt_decoded_token
     end
 
+    def forest_user_rendering_id
+      forest_user['data']['relationships']['renderings']['data'][0]['id']
+    end
+
     def serialize_model(record, options = {})
       options[:is_collection] = false
       json = JSONAPI::Serializer.serialize(record, options)

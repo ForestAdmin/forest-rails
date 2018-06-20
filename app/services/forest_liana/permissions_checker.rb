@@ -1,6 +1,6 @@
 module ForestLiana
   class PermissionsChecker
-    @@permissions_list = Hash.new
+    @@permissions_per_rendering = Hash.new
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
     def initialize(resource, permission_name, rendering_id)
@@ -16,15 +16,15 @@ module ForestLiana
     private
 
     def get_permissions
-      @@permissions_list &&
-        @@permissions_list[@rendering_id] &&
-        @@permissions_list[@rendering_id]['data']
+      @@permissions_per_rendering &&
+        @@permissions_per_rendering[@rendering_id] &&
+        @@permissions_per_rendering[@rendering_id]['data']
     end
 
     def get_last_retrieve
-      @@permissions_list &&
-        @@permissions_list[@rendering_id] &&
-        @@permissions_list[@rendering_id]['last_retrieve']
+      @@permissions_per_rendering &&
+        @@permissions_per_rendering[@rendering_id] &&
+        @@permissions_per_rendering[@rendering_id]['last_retrieve']
     end
 
     def is_allowed?
@@ -39,10 +39,10 @@ module ForestLiana
     end
 
     def retrieve_permissions
-      @@permissions_list[@rendering_id] = Hash.new
-      @@permissions_list[@rendering_id]['data'] =
-        ForestLiana::PermissionsGetter.new.perform({ 'renderingId' => @rendering_id })
-      @@permissions_list[@rendering_id]['last_retrieve'] = Time.now
+      @@permissions_per_rendering[@rendering_id] = Hash.new
+      @@permissions_per_rendering[@rendering_id]['data'] =
+        ForestLiana::PermissionsGetter.new(@rendering_id).perform()
+      @@permissions_per_rendering[@rendering_id]['last_retrieve'] = Time.now
     end
 
     def date_difference_in_seconds(date1, date2)

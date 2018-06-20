@@ -21,14 +21,13 @@ module ForestLiana
     end
 
     def get_path(query_parameters)
-      if query_parameters.nil?
-        @uri.path
-      else
-        "#{@uri.path}?"
-          .concat(
-            query_parameters.collect { |key, value| "#{key}=#{CGI::escape(value.to_s)}" }.join('&')
-          )
+      route = @uri.path
+      unless query_parameters.nil?
+        query = query_parameters
+          .collect { |parameter, value| "#{parameter}=#{CGI::escape(value.to_s)}" }.join('&')
+        route += "?#{query}"
       end
+      route
     end
   end
 end
