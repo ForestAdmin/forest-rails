@@ -14,17 +14,15 @@ module ForestLiana
 
       route "mount ForestLiana::Engine => '/forest'"
 
-      # NOTICE: If it is a Rails 5.2+ apps, the secrets.yml file might not exist
-      #         (replaced by credentials.yml.enc but still supported).
-      file_secrets_exists = File.exist? 'config/secrets.yml'
-
       auth_secret = SecureRandom.urlsafe_base64
 
-      if file_secrets_exists
-        puts "\nForest generated a random authentication secret to secure the " +
-          "data access of your local project.\nYou can change it at any time in " +
-          "your config/secrets.yml file.\n\n"
+      puts "\nForest generated a random authentication secret to secure the " +
+        "data access of your local project.\nYou can change it at any time in " +
+        "your config/secrets.yml file.\n\n"
 
+      # NOTICE: If it is a Rails 5.2+ apps, the secrets.yml file might not exist
+      #         (replaced by credentials.yml.enc but still supported).
+      if File.exist? 'config/secrets.yml'
         inject_into_file 'config/secrets.yml', after: "development:\n" do
           "  forest_env_secret: #{env_secret}\n" +
           "  forest_auth_secret: #{auth_secret}\n"
