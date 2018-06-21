@@ -5,7 +5,7 @@ module ForestLiana
       @rendering_id = rendering_id
     end
 
-    def perform()
+    def perform
       perform_request({ 'renderingId' => @rendering_id })
     rescue => exception
       FOREST_LOGGER.error "Cannot retrieve the permissions for the project you\'re trying to unlock. Forest API seems to be down right now."

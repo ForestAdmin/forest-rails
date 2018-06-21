@@ -33,10 +33,6 @@ module ForestLiana
       @jwt_decoded_token
     end
 
-    def forest_user_rendering_id
-      forest_user['data']['relationships']['renderings']['data'][0]['id']
-    end
-
     def serialize_model(record, options = {})
       options[:is_collection] = false
       json = JSONAPI::Serializer.serialize(record, options)
@@ -72,6 +68,7 @@ module ForestLiana
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
             { algorithm: 'HS256', leeway: 30 }).try(:first)
+          @rendering_id = @jwt_decoded_token['data']['relationships']['renderings']['data'][0]['id']
         else
           head :unauthorized
         end
