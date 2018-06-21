@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.8.4 - 2018-06-21
 ### Changed
 - Onboarding - Improve the information message if the liana is properly setup and users run the "rails g forest_liana:install".
 
