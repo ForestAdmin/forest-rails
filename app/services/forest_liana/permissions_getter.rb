@@ -1,7 +1,7 @@
 module ForestLiana
   class PermissionsGetter < ForestApiRequester
     def initialize(rendering_id)
-      @uri = URI.parse("#{forest_api_url}/liana/v1/permissions")
+      @uri = URI.parse("#{forest_api_url}/liana/v2/permissions")
       @rendering_id = rendering_id
     end
 
