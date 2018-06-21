@@ -8,7 +8,9 @@ module ForestLiana
 
     def install
       if ForestLiana.env_secret.present?
-        puts "\nForest liana already installed on this app (environment secret: #{ForestLiana.env_secret})"
+        puts "\nForest liana already installed on this app.\nHere is your current environment " +
+          "secret: #{ForestLiana.env_secret}\nYou can update the config/secrets.yml file with the " +
+          "new environment secret: #{env_secret}"
         return
       end
 
