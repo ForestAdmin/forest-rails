@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Namespacing - Fix conflict with ResourcesController
 
 ## RELEASE 2.8.4 - 2018-06-21
 ### Changed
