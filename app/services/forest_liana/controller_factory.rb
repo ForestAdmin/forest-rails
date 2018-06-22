@@ -16,7 +16,7 @@ module ForestLiana
     end
 
     def controller_for(active_record_class)
-      controller = Class.new(ResourcesController) { }
+      controller = Class.new(ForestLiana::ResourcesController) { }
 
       ForestLiana::ControllerFactory.define_controller(active_record_class, controller)
       controller
