@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.8.5 - 2018-06-26
 ### Fixed
 - Namespacing - Prevent a potential error on server start if a ResourcesController class already exists in another lib of the client project.
 - Filters - Filtering on 2 different belongsTo foreign keys referencing the same table now returns the expected records.
