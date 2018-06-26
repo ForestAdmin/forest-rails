@@ -260,7 +260,19 @@ module ForestLiana
       operator, value = OperatorValueParser.parse(value)
       filter = OperatorValueParser
         .get_condition_end(subfield, operator, value, association.klass, @params[:timezone])
-      @records.where("#{association.table_name}.#{subfield} #{filter}")
+
+      association_name_pluralized = association.name.to_s.pluralize
+
+      if association_name_pluralized == association.table_name
+        # NOTICE: Default case. When the belongsTo association name and the referenced table name are identical.
+        association_name_for_condition = association.table_name
+      else
+        # NOTICE: When the the belongsTo association name and the referenced table name are identical.
+        #         Format with the ActiveRecord query generator style.
+        association_name_for_condition = "#{association_name_pluralized}_#{@resource.table_name}"
+      end
+
+      @records.where("#{association_name_for_condition}.#{subfield} #{filter}")
     end
 
     def belongs_to_filter
