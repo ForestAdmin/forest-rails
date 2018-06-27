@@ -295,7 +295,7 @@ module ForestLiana
           {
             field: :geoloc,
             type: 'String',
-            widget: 'google map',
+            widget: 'map',
             'is-filterable': false
           }
         ]

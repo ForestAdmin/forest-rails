@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Intercom Integration - Users can now access to the Intercom Details page.
 
 ## RELEASE 2.8.5 - 2018-06-26
 ### Fixed
