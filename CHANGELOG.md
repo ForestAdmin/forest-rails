@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.9.0 - 2018-06-28
 ### Added
 - Search - Display highlighted matches on table view when searching.
 
