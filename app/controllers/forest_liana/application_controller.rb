@@ -1,6 +1,5 @@
 require 'jwt'
 require 'csv'
-require_relative '../../utils/records-decorator'
 
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
@@ -41,14 +40,15 @@ module ForestLiana
       force_utf8_encoding(json)
     end
 
-    def serialize_models(records, options = {}, fields_searched)
+    def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
       json = JSONAPI::Serializer.serialize(records, options)
 
       if options[:params][:search]
         # NOTICE: Add the Smart Fields with a 'String' type.
         fields_searched.concat(get_collection.string_smart_fields_names).uniq!
-        json['meta'][:decorators] = decorate_for_search(json, fields_searched, options[:params][:search])
+        json['meta'][:decorators] = ForestLiana::DecorationHelper
+          .decorate_for_search(json, fields_searched, options[:params][:search])
       end
 
       if !options[:has_more].nil?
