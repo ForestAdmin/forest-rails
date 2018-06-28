@@ -1,5 +1,7 @@
 module ForestLiana
   class ResourcesGetter < BaseGetter
+    attr_reader :search_query_builder
+
     def initialize(resource, params)
       @resource = resource
       @params = params
@@ -8,6 +10,7 @@ module ForestLiana
       @collection = get_collection(@collection_name)
       @field_names_requested = field_names_requested
       get_segment()
+      @search_query_builder = SearchQueryBuilder.new(@params, includes, @collection)
     end
 
     def perform
@@ -122,7 +125,7 @@ module ForestLiana
     end
 
     def search_query
-      SearchQueryBuilder.new(@records, @params, includes, @collection).perform
+      @search_query_builder.perform(@records)
     end
 
     def sort_query

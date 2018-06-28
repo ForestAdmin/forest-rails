@@ -6,7 +6,7 @@ module ForestLiana
 
       render serializer: nil, json: serialize_models(getter.records, {
         context: { type: get_serializer_type('intercom_conversations') },
-        count: getter.count
+        meta: { count: getter.count }
       })
     end
 

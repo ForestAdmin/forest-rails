@@ -1,3 +1,5 @@
+require_relative '../../utils/records-decorator'
+
 module ForestLiana
   class ResourcesController < ForestLiana::ApplicationController
     begin
@@ -157,13 +159,23 @@ module ForestLiana
       records = getter.records.map { |record| get_record(record) }
       fields_to_serialize = fields_per_model(params[:fields], @resource)
 
+      meta = {
+        count: getter.count
+      }
+
+      if params[:search]
+        meta[:decorators] = decorateForSearch(records, getter.search_query_builder.fields_searched, params[:search])
+      end
+
       json = serialize_models(
         records,
         include: includes(getter),
         fields: fields_to_serialize,
-        count: getter.count,
+        meta: meta,
         params: params
       )
+
+
 
       render serializer: nil, json: json
     end

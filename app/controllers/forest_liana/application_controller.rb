@@ -44,13 +44,7 @@ module ForestLiana
       options[:is_collection] = true
       json = JSONAPI::Serializer.serialize(records, options)
 
-      if options[:count]
-        json[:meta] = {} unless json[:meta]
-        json[:meta][:count] = options[:count]
-      end
-
       if !options[:has_more].nil?
-        json[:meta] = {} unless json[:meta]
         json[:meta][:has_more] = options[:has_more]
       end
 
