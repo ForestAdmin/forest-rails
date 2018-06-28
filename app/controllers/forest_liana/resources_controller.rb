@@ -159,13 +159,21 @@ module ForestLiana
 
       json = serialize_models(
         records,
-        include: includes(getter),
-        fields: fields_to_serialize,
-        count: getter.count,
-        params: params
+        {
+          include: includes(getter),
+          fields: fields_to_serialize,
+          meta: { count: getter.count },
+          params: params
+        },
+        getter.search_query_builder.fields_searched
       )
 
       render serializer: nil, json: json
+    end
+
+    def get_collection
+      collection_name = ForestLiana.name_for(@resource)
+      @collection ||= ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
     end
   end
 end

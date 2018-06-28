@@ -33,4 +33,10 @@ class ForestLiana::Model::Collection
   def fields_belongs_to
     fields.select { |field| field[:type] == 'String' && !field[:reference].nil? }
   end
+
+  def string_smart_fields_names
+    fields
+      .select { |field| field[:'is-virtual'] && field[:type] == 'String' }
+      .map { |field| field[:field].to_s }
+  end
 end

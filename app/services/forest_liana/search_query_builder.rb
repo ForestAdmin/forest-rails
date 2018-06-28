@@ -2,14 +2,17 @@ module ForestLiana
   class SearchQueryBuilder
     REGEX_UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
-    def initialize(resource, params, includes, collection)
-      @resource = @records = resource
+    attr_reader :fields_searched
+
+    def initialize(params, includes, collection)
       @params = params
       @includes = includes
       @collection = collection
+      @fields_searched = []
     end
 
-    def perform
+    def perform(resource)
+      @resource = @records = resource
       @records = search_param
       @records = filter_param
       @records = has_many_filter
@@ -50,6 +53,7 @@ module ForestLiana
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
+          @fields_searched << column.name if [:string, :text].include? column.type
           column_name = format_column_name(@resource.table_name, column.name)
           if (@collection.search_fields && !@collection.search_fields.include?(column.name))
             conditions

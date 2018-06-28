@@ -1,11 +1,15 @@
 module ForestLiana
   class HasManyGetter < BaseGetter
+    attr_reader :search_query_builder
+
     def initialize(resource, association, params)
       @resource = resource
       @association = association
       @params = params
       @field_names_requested = field_names_requested
       @collection = get_collection(ForestLiana.name_for(model_association))
+      includes_symbols = includes.map { |association| association.to_sym }
+      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
     end
 
     def perform
@@ -18,8 +22,7 @@ module ForestLiana
     end
 
     def search_query
-      includesSymbols = includes.map { |association| association.to_sym }
-      SearchQueryBuilder.new(@records, @params, includesSymbols, @collection).perform
+      @search_query_builder.perform(@records)
     end
 
     def includes

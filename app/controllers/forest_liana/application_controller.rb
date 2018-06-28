@@ -40,18 +40,19 @@ module ForestLiana
       force_utf8_encoding(json)
     end
 
-    def serialize_models(records, options = {})
+    def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
       json = JSONAPI::Serializer.serialize(records, options)
 
-      if options[:count]
-        json[:meta] = {} unless json[:meta]
-        json[:meta][:count] = options[:count]
+      if options[:params][:search]
+        # NOTICE: Add the Smart Fields with a 'String' type.
+        fields_searched.concat(get_collection.string_smart_fields_names).uniq!
+        json['meta'][:decorators] = ForestLiana::DecorationHelper
+          .decorate_for_search(json, fields_searched, options[:params][:search])
       end
 
       if !options[:has_more].nil?
-        json[:meta] = {} unless json[:meta]
-        json[:meta][:has_more] = options[:has_more]
+        json['meta'][:has_more] = options[:has_more]
       end
 
       force_utf8_encoding(json)
