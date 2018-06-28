@@ -175,8 +175,6 @@ module ForestLiana
         params: params
       )
 
-
-
       render serializer: nil, json: json
     end
   end
