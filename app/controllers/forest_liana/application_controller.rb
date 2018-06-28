@@ -1,5 +1,6 @@
 require 'jwt'
 require 'csv'
+require_relative '../../utils/records-decorator'
 
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
@@ -40,12 +41,16 @@ module ForestLiana
       force_utf8_encoding(json)
     end
 
-    def serialize_models(records, options = {})
+    def serialize_models(records, options = {}, fields_searched)
       options[:is_collection] = true
       json = JSONAPI::Serializer.serialize(records, options)
 
+      if options[:params][:search]
+        json['meta'][:decorators] = decorateForSearch(records, fields_searched, options[:params][:search])
+      end
+
       if !options[:has_more].nil?
-        json[:meta][:has_more] = options[:has_more]
+        json['meta'][:has_more] = options[:has_more]
       end
 
       force_utf8_encoding(json)

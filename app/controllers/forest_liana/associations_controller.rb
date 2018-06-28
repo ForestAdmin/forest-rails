@@ -1,5 +1,3 @@
-require_relative '../../utils/records-decorator'
-
 module ForestLiana
   class AssociationsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
@@ -112,20 +110,15 @@ module ForestLiana
         fields_to_serialize[association_name] += ",#{includes.join(',')}"
       end
 
-      meta = {
-        count: getter.count
-      }
-
-      if params[:search]
-        meta[:decorators] = decorateForSearch(records, getter.search_query_builder.fields_searched, params[:search])
-      end
-
       json = serialize_models(
         records,
-        include: includes,
-        fields: fields_to_serialize,
-        meta: meta,
-        params: params
+        {
+          include: includes,
+          fields: fields_to_serialize,
+          meta: { count: getter.count },
+          params: params
+        },
+        getter.search_query_builder.fields_searched
       )
 
       render serializer: nil, json: json
