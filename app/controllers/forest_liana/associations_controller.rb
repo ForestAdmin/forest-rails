@@ -123,5 +123,11 @@ module ForestLiana
 
       render serializer: nil, json: json
     end
+
+    def get_collection
+      model_association = @resource.reflect_on_association(params[:association_name].to_sym).klass
+      collection_name = ForestLiana.name_for(model_association)
+      @collection ||= ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+    end
   end
 end

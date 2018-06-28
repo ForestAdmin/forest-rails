@@ -1,18 +1,18 @@
-def decorateForSearch(records, fields, search_value)
+def decorate_for_search(records_serialized, field_names, search_value)
   matchFields = {}
-  records.each_with_index do |record, index|
-    fields.each do |fieldName|
-      value = record[fieldName.to_sym].to_s
+  records_serialized['data'].each_with_index do |record, index|
+    field_names.each do |field_name|
+      value = record['attributes'][field_name]
       if value
         match = value.match(/#{search_value}/i)
         if match
           if matchFields[index].nil?
             matchFields[index] = {
-              id: record.id,
+              id: record['id'],
               search: []
             }
           end
-          matchFields[index][:search] << fieldName
+          matchFields[index][:search] << field_name
         end
       end
     end
