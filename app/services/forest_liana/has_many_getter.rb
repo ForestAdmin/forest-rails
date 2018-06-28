@@ -8,8 +8,8 @@ module ForestLiana
       @params = params
       @field_names_requested = field_names_requested
       @collection = get_collection(ForestLiana.name_for(model_association))
-      includesSymbols = includes.map { |association| association.to_sym }
-      @search_query_builder = SearchQueryBuilder.new(@params, includesSymbols, @collection)
+      includes_symbols = includes.map { |association| association.to_sym }
+      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
     end
 
     def perform
