@@ -39,6 +39,9 @@ ForestLiana::Engine.routes.draw do
   get ':collection/:id/intercom_attributes' => 'intercom#attributes'
   get '(*collection)_intercom_conversations/:conversation_id' => 'intercom#conversation'
 
+  # Mixpanel Integration
+  get ':collection/:id/mixpanel_last_events' => 'mixpanel#last_events'
+
   # Devise support
   post '/actions/change-password' => 'devise#change_password'
 

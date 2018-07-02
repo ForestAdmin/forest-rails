@@ -25,4 +25,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "groupdate"
   s.add_runtime_dependency "useragent"
   s.add_runtime_dependency "bcrypt"
+  s.add_runtime_dependency "mixpanel_client"
 end
