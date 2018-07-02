@@ -277,7 +277,7 @@ module ForestLiana
         type = 'Date'
       when :integer, :float, :decimal
         type = 'Number'
-      when :json, :jsonb
+      when :json, :jsonb, :hstore
         type = 'Json'
       when :string, :text, :citext, :uuid
         type = 'String'
