@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Technical - Use the "official" domain for the default server host.
 ### Added
 - Column Types - Support HSTORE column type. 
 
