@@ -523,7 +523,7 @@ module ForestLiana
     end
 
     def forest_url
-      ENV['FOREST_URL'] || 'https://forestadmin-server.herokuapp.com';
+      ENV['FOREST_URL'] || 'https://api.forestadmin.com';
     end
 
     def liana_version
