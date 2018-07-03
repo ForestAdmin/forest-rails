@@ -4,6 +4,9 @@
 ### Changed
 - Technical - Use the "official" domain for the default server host.
 
+### Fixed
+- Record Creation - Fix the search of belongsTo associated records in record creation forms if the belongsTo foreign key is a UUID.
+
 ## RELEASE 2.9.0 - 2018-06-28
 ### Added
 - Search - Display highlighted matches on table view when searching.

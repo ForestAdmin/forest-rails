@@ -15,7 +15,7 @@ module ForestLiana
 
     def includes_for_serialization
       includes_initial = includes
-      includes_for_smart_belongs_to = @collection.fields_belongs_to.map { |field| field[:field] }
+      includes_for_smart_belongs_to = @collection.fields_smart_belongs_to.map { |field| field[:field] }
       includes_initial.concat(includes_for_smart_belongs_to).map(&:to_s)
     end
   end
