@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Database Connection - If the database is not accessible on server start, the liana doesn't send an Apimap anymore (it was a "partial" Apimap in such case).
 
 ## RELEASE 2.9.1 - 2018-07-03
 ### Changed
