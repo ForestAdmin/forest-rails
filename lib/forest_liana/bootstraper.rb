@@ -564,7 +564,7 @@ module ForestLiana
 
       custom_properties = ForestLiana.integrations[:mixpanel][:custom_properties]
       custom_properties = custom_properties.map { |property|
-        { field: property.to_sym, type: 'String', 'is-filterable': false }
+        { field: property.to_sym, type: 'String' }.merge(field_attributes)
       }
 
       fields = fields.concat(custom_properties)
