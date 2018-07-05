@@ -542,23 +542,25 @@ module ForestLiana
     def setup_mixpanel_integration(collection_name_and_field)
       collection_name = collection_name_and_field.split('.')[0]
       model_name = ForestLiana.name_for(collection_name.constantize)
-      # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
-      model_name_old = ForestLiana.name_old_for(collection_name.constantize)
       collection_display_name = model_name.capitalize
 
+      field_attributes = { 'is-filterable': false , 'is-virtual': true, 'is-sortable': false }
+
       fields = [
-        { field: :id, type: 'String', 'is-filterable': false },
-        { field: :event, type: 'String', 'is-filterable': false },
-        { field: :date, type: 'Date', 'is-filterable': false },
-        { field: :city, type: 'String', 'is-filterable': false },
-        { field: :region, type: 'String', 'is-filterable': false },
-        { field: :country, type: 'String', 'is-filterable': false },
-        { field: :timezone, type: 'String', 'is-filterable': false },
-        { field: :os, type: 'String', 'is-filterable': false },
-        { field: :osVersion, type: 'String', 'is-filterable': false },
-        { field: :browser, type: 'String', 'is-filterable': false },
-        { field: :browserVersion, type: 'String', 'is-filterable': false },
+        { field: :id, type: 'String' },
+        { field: :event, type: 'String' },
+        { field: :date, type: 'Date' },
+        { field: :city, type: 'String' },
+        { field: :region, type: 'String' },
+        { field: :country, type: 'String' },
+        { field: :timezone, type: 'String' },
+        { field: :os, type: 'String' },
+        { field: :osVersion, type: 'String' },
+        { field: :browser, type: 'String' },
+        { field: :browserVersion, type: 'String' },
       ]
+
+      fields = fields.map { |field| field.merge(field_attributes) }
 
       custom_properties = ForestLiana.integrations[:mixpanel][:custom_properties]
       custom_properties = custom_properties.map { |property|
@@ -569,8 +571,7 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_mixpanel_events",
-        name_old: "#{model_name_old}_mixpanel_events",
-        display_name: collection_display_name + ' Events',
+        display_name: "#{collection_display_name} Events",
         icon: 'mixpanel',
         integration: 'mixpanel',
         is_virtual: true,

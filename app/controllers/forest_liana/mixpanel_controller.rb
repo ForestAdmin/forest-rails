@@ -2,7 +2,9 @@ module ForestLiana
   class MixpanelController < ForestLiana::ApplicationController
     def last_events
       collection_name = params[:collection]
-      field_name = ForestLiana.integrations[:mixpanel][:mapping][0].split('.')[1]
+      mapping = ForestLiana.integrations[:mixpanel][:mapping]
+      mapping_for_current_collection = mapping.find { |item| item.start_with?(collection_name) }
+      field_name = mapping_for_current_collection.split('.')[1]
       id = params[:id]
       field_value = collection_name.constantize.find_by('id': id)[field_name]
 

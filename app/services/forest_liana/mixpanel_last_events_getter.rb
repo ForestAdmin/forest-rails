@@ -10,7 +10,6 @@ module ForestLiana
     def initialize(params)
       @params = params
       api_secret = ForestLiana.integrations[:mixpanel][:api_secret]
-      @mapping = ForestLiana.integrations[:mixpanel][:mapping]
       @custom_properties = ForestLiana.integrations[:mixpanel][:custom_properties]
       @mixpanel = Mixpanel::Client.new(api_secret: api_secret)
     end
@@ -65,7 +64,7 @@ module ForestLiana
         time = properties['time'].to_s
         new_event['date'] = DateTime.strptime(time,'%s').strftime("%Y-%m-%dT%H:%M:%S%z")
 
-        custom_attributes =  event['properties'].select { |key, _| @custom_properties.include? key }
+        custom_attributes = event['properties'].select { |key, _| @custom_properties.include? key }
         new_event = new_event.merge(custom_attributes)
 
         MixpanelLastEvents.new(new_event)
