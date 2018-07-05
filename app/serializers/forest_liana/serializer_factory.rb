@@ -41,7 +41,7 @@ module ForestLiana
         "ForestLiana::ActionSerializer"
       elsif active_record_class == ForestLiana::Model::Segment
         "ForestLiana::SegmentSerializer"
-      elsif active_record_class == ::ForestLiana::MixpanelLastEvents
+      elsif active_record_class == ForestLiana::MixpanelEvent
         "ForestLiana::MixpanelEventSerializer"
       else
         serializer_name = self.build_serializer_name(active_record_class)

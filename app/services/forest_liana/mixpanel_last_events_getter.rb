@@ -1,9 +1,4 @@
-require 'mixpanel_client'
-
 module ForestLiana
-  class MixpanelLastEvents < OpenStruct
-  end
-
   class MixpanelLastEventsGetter < IntegrationBaseGetter
     attr_accessor :record
 
@@ -67,7 +62,7 @@ module ForestLiana
         custom_attributes = event['properties'].select { |key, _| @custom_properties.include? key }
         new_event = new_event.merge(custom_attributes)
 
-        MixpanelLastEvents.new(new_event)
+        ForestLiana::MixpanelEvent.new(new_event)
       }
     end
 
