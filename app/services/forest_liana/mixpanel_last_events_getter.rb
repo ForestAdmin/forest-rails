@@ -19,6 +19,11 @@ module ForestLiana
         }"
       )
 
+      if result.length == 0
+        @records = []
+        return
+      end
+
       from_date = (DateTime.now << 6).strftime("%Y-%m-%d")
       to_date = DateTime.now.strftime("%Y-%m-%d")
       distinct_id = result[0]['distinct_id']
@@ -33,6 +38,11 @@ module ForestLiana
 
       if result['status'] != 'ok'
         FOREST_LOGGER.error "Cannot retrieve the Mixpanel last events"
+        @records = []
+        return
+      end
+
+      if result.length == 0
         @records = []
         return
       end
