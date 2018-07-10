@@ -179,6 +179,28 @@ module ForestLiana
         end
       end
 
+      # NOTICE: Add Mixpanel field
+      mixpanel_mapping = ForestLiana.integrations
+        .try(:[], :mixpanel)
+        .try(:[], :mapping)
+
+      if mixpanel_mapping && mixpanel_mapping
+          .select { |mapping| mapping.split('.')[0] == @model.name }
+          .size > 0
+
+        model_name = ForestLiana.name_for(@model)
+
+        collection.fields << {
+          field: :mixpanel_last_events,
+          type: ['String'],
+          reference: "#{model_name}_mixpanel_events.id",
+          column: nil,
+          'is-filterable': false,
+          'display-name': 'Last events',
+          integration: 'mixpanel',
+        }
+      end
+
       # NOTICE: Add Paperclip url attributes
       if @model.respond_to?(:attachment_definitions)
         @model.attachment_definitions.each do |key, value|

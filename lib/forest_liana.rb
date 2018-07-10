@@ -4,6 +4,9 @@ module Forest
 end
 
 module ForestLiana
+
+  autoload :MixpanelEvent, 'forest_liana/mixpanel_event'
+
   module UserSpace
   end
 

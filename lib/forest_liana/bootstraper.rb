@@ -113,6 +113,17 @@ module ForestLiana
             'Please go to https://doc.forestadmin.com for more information.'
         end
       end
+
+      if mixpanel_integration?
+        if mixpanel_integration_valid?
+          ForestLiana.integrations[:mixpanel][:mapping] =
+            cast_to_array(ForestLiana.integrations[:mixpanel][:mapping])
+          @integration_mixpanel_valid = true
+        else
+          FOREST_LOGGER.error 'Cannot setup properly your Mixpanel integration. ' \
+            'Please go to https://doc.forestadmin.com for more information.'
+        end
+      end
     end
 
     def namespace_duplicated_models
@@ -147,6 +158,12 @@ module ForestLiana
       if @integration_intercom_valid
         ForestLiana.integrations[:intercom][:mapping].each do |collection_name|
           setup_intercom_integration collection_name
+        end
+      end
+
+      if @integration_mixpanel_valid
+        ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
+          setup_mixpanel_integration collection_name
         end
       end
     end
@@ -520,6 +537,61 @@ module ForestLiana
       end
 
       is_deprecated
+    end
+
+    def setup_mixpanel_integration(collection_name_and_field)
+      collection_name = collection_name_and_field.split('.')[0]
+      model_name = ForestLiana.name_for(collection_name.constantize)
+      collection_display_name = model_name.capitalize
+
+      field_attributes = { 'is-filterable': false , 'is-virtual': true, 'is-sortable': false }
+
+      fields = [
+        { field: :id, type: 'String' },
+        { field: :event, type: 'String' },
+        { field: :date, type: 'Date' },
+        { field: :city, type: 'String' },
+        { field: :region, type: 'String' },
+        { field: :country, type: 'String' },
+        { field: :timezone, type: 'String' },
+        { field: :os, type: 'String' },
+        { field: :osVersion, type: 'String' },
+        { field: :browser, type: 'String' },
+        { field: :browserVersion, type: 'String' },
+      ]
+
+      fields = fields.map { |field| field.merge(field_attributes) }
+
+      custom_properties = ForestLiana.integrations[:mixpanel][:custom_properties]
+      custom_properties = custom_properties.map { |property|
+        { field: property.to_sym, type: 'String' }.merge(field_attributes)
+      }
+
+      fields = fields.concat(custom_properties)
+
+      ForestLiana.apimap << ForestLiana::Model::Collection.new({
+        name: "#{model_name}_mixpanel_events",
+        display_name: "#{collection_display_name} Events",
+        icon: 'mixpanel',
+        integration: 'mixpanel',
+        is_virtual: true,
+        is_read_only: true,
+        only_for_relationships: true,
+        pagination_type: 'cursor',
+        fields: fields
+      })
+    end
+
+    def mixpanel_integration?
+      ForestLiana.integrations
+        .try(:[], :mixpanel)
+        .present?
+    end
+
+    def mixpanel_integration_valid?
+      integration = ForestLiana.integrations.try(:[], :mixpanel)
+      integration.present? && integration.has_key?(:api_secret) &&
+      integration.has_key?(:mapping)
     end
 
     def forest_url

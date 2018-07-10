@@ -41,6 +41,8 @@ module ForestLiana
         "ForestLiana::ActionSerializer"
       elsif active_record_class == ForestLiana::Model::Segment
         "ForestLiana::SegmentSerializer"
+      elsif active_record_class == ForestLiana::MixpanelEvent
+        "ForestLiana::MixpanelEventSerializer"
       else
         serializer_name = self.build_serializer_name(active_record_class)
         "ForestLiana::UserSpace::#{serializer_name}"
@@ -109,6 +111,13 @@ module ForestLiana
             end
           end
 
+          if mixpanel_integration?
+            case attribute_name
+            when :mixpanel_last_events
+              ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/mixpanel_last_events"
+            end
+          end
+
           if ret[:href].blank?
             begin
               if @options[:include].try(:include?, attribute_name.to_s)
@@ -140,6 +149,21 @@ module ForestLiana
         def stripe_integration?
           mapping = ForestLiana.integrations
             .try(:[], :stripe)
+            .try(:[], :mapping)
+
+          if mapping
+            collection_names = mapping.map do |collection_name_and_field|
+              collection_name_and_field.split('.')[0]
+            end
+            collection_names.include?(object.class.name)
+          else
+            false
+          end
+        end
+
+        def mixpanel_integration?
+          mapping = ForestLiana.integrations
+            .try(:[], :mixpanel)
             .try(:[], :mapping)
 
           if mapping
@@ -248,6 +272,11 @@ module ForestLiana
         serializer.send(:has_many, :stripe_bank_accounts) { }
       end
 
+      # Mixpanel
+      if has_mixpanel_integration?(active_record_class.name)
+        serializer.send(:has_many, :mixpanel_last_events) { }
+      end
+
       ForestLiana::SerializerFactory.define_serializer(active_record_class,
                                                        serializer)
 
@@ -275,6 +304,21 @@ module ForestLiana
     def has_stripe_integration?(collection_name)
       mapping = ForestLiana.integrations
         .try(:[], :stripe)
+        .try(:[], :mapping)
+
+      if mapping
+        collection_names = mapping.map do |collection_name_and_field|
+          collection_name_and_field.split('.')[0]
+        end
+        collection_names.include?(collection_name)
+      else
+        false
+      end
+    end
+
+    def has_mixpanel_integration?(collection_name)
+      mapping = ForestLiana.integrations
+        .try(:[], :mixpanel)
         .try(:[], :mapping)
 
       if mapping
