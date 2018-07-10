@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Smart Views - Fix associated data retrieval from Smart Views (where the fields to retrieve are not specified in the query params).
 
 ## RELEASE 2.10.1 - 2018-07-10
 ### Fixed
