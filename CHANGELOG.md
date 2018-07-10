@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.10.0 - 2018-07-10
 ### Added
 - Mixpanel Integration - Add the integration to display the last 100 Mixpanel events of a "user" record.
 
