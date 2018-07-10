@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.10.1 - 2018-07-10
 ### Fixed
 - Stripe Integration - Improve the error handling if the customer Stripe Id is not found.
 - Stripe Integration - Trial to prevent uninitialized constant errors with Stripe classes.
