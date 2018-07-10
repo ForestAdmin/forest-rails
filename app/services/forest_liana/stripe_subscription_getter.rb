@@ -9,7 +9,7 @@ module ForestLiana
 
     def perform
       query = {}
-      @record = Stripe::Subscription.retrieve(@params[:subscription_id])
+      @record = ::Stripe::Subscription.retrieve(@params[:subscription_id])
 
       query[field] = @record.customer
       if collection

@@ -31,18 +31,23 @@ module ForestLiana
     end
 
     def fetch_bank_accounts(customer, params)
-      @cards = Stripe::Customer.retrieve(customer).sources.all(params)
-      if @cards.blank?
+      begin
+        @cards = ::Stripe::Customer.retrieve(customer).sources.all(params)
+        if @cards.blank?
+          @records = []
+          return
+        end
+
+        @records = @cards.data.map do |d|
+          query = {}
+          query[field] = d.customer
+          d.customer = collection.find_by(query)
+
+          d
+        end
+      rescue ::Stripe::InvalidRequestError => error
+        FOREST_LOGGER.error "Stripe error: #{error.message}"
         @records = []
-        return
-      end
-
-      @records = @cards.data.map do |d|
-        query = {}
-        query[field] = d.customer
-        d.customer = collection.find_by(query)
-
-        d
       end
     end
 

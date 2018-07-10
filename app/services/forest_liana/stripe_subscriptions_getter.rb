@@ -12,40 +12,45 @@ module ForestLiana
     end
 
     def perform
-      query = {
-        limit: limit,
-        starting_after: starting_after,
-        ending_before: ending_before
-      }
+      begin
+        query = {
+          limit: limit,
+          starting_after: starting_after,
+          ending_before: ending_before
+        }
 
-      if @params[:id] && collection && field
-        resource = collection.find(@params[:id])
-        query[:customer] = resource[field]
-      end
-
-      query['include[]'] = 'total_count'
-      @subscriptions = fetch_subscriptions(query)
-      if @subscriptions.blank?
-        @records = []
-        return
-      end
-
-      @records = @subscriptions.data.map do |d|
-        query = {}
-        query[field] = d.customer
-        if collection
-          d.customer = collection.find_by(query)
-        else
-          d.customer = nil
+        if @params[:id] && collection && field
+          resource = collection.find(@params[:id])
+          query[:customer] = resource[field]
         end
 
-        d
+        query['include[]'] = 'total_count'
+        @subscriptions = fetch_subscriptions(query)
+        if @subscriptions.blank?
+          @records = []
+          return
+        end
+
+        @records = @subscriptions.data.map do |d|
+          query = {}
+          query[field] = d.customer
+          if collection
+            d.customer = collection.find_by(query)
+          else
+            d.customer = nil
+          end
+
+          d
+        end
+      rescue ::Stripe::InvalidRequestError => error
+        FOREST_LOGGER.error "Stripe error: #{error.message}"
+        @records = []
       end
     end
 
     def fetch_subscriptions(params)
       return if @params[:id] && params[:customer].blank?
-      Stripe::Subscription.all(params)
+      ::Stripe::Subscription.all(params)
     end
 
     def starting_after

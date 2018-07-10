@@ -11,7 +11,7 @@ module ForestLiana
       resource = collection.find(@params[:recordId])
       customer = resource[field]
 
-      @record = Stripe::Customer
+      @record = ::Stripe::Customer
         .retrieve(customer)
         .sources.retrieve(@params[:objectId])
 

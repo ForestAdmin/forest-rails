@@ -9,7 +9,7 @@ module ForestLiana
 
     def perform
       query = {}
-      @record = Stripe::Charge.retrieve(@params[:payment_id])
+      @record = ::Stripe::Charge.retrieve(@params[:payment_id])
 
       @record.created = Time.at(@record.created).to_datetime
       @record.amount /= 100.00

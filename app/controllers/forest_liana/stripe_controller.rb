@@ -31,8 +31,8 @@ module ForestLiana
         refunder.perform
 
         render serializer: nil, json: {}
-      rescue Stripe::InvalidRequestError => err
-        render serializer: nil, json: { error: err.message }, status: 400
+      rescue ::Stripe::InvalidRequestError => error
+        render serializer: nil, json: { error: error.message }, status: 400
       end
     end
 
