@@ -9,7 +9,7 @@ module ForestLiana
 
     def perform
       query = {}
-      @record = Stripe::Invoice.retrieve(@params[:invoice_id])
+      @record = ::Stripe::Invoice.retrieve(@params[:invoice_id])
 
       @record.date = Time.at(@record.date).to_datetime
       @record.period_start = Time.at(@record.period_start).to_datetime

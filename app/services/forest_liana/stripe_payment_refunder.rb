@@ -9,7 +9,7 @@ module ForestLiana
       return unless @params[:data][:attributes][:ids]
 
       @params[:data][:attributes][:ids].each do |id|
-        ch = Stripe::Charge.retrieve(id)
+        ch = ::Stripe::Charge.retrieve(id)
         ch.refunds.create
       end
     end
