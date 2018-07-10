@@ -49,6 +49,17 @@ module ForestLiana
 
     error = configure_forest_cors unless ENV['FOREST_CORS_DEACTIVATED']
 
+    def eager_load_active_record_descendants app
+      # HACK: Force the ActiveRecord descendants classes from ActiveStorage to load for
+      #       introspection.
+      if defined? ActiveStorage
+        ActiveStorage::Blob
+        ActiveStorage::Attachment
+      end
+
+      app.eager_load!
+    end
+
     config.after_initialize do |app|
       if !Rails.env.test? && !rake?
         if error
@@ -56,7 +67,7 @@ module ForestLiana
             "domains for CORS constraint:\n#{error}"
         end
 
-        app.eager_load!
+        eager_load_active_record_descendants(app)
 
         if database_available?
           # NOTICE: Do not run the code below on rails g forest_liana:install.

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- ActiveStorage - Support ActiveStorage without having to set eager_load property to true in development environments.
 
 ## RELEASE 2.10.2 - 2018-07-10
 ### Fixed
