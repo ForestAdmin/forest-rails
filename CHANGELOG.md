@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- HasMany Relationships - Fix the performance of the related data retrieval if the collection has hidden belongsTo associations in the list.
 
 ## RELEASE 2.10.4 - 2018-07-11
 ### Fixed
