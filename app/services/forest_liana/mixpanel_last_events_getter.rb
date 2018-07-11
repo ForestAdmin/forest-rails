@@ -24,7 +24,7 @@ module ForestLiana
         return
       end
 
-      from_date = (DateTime.now << 6).strftime("%Y-%m-%d")
+      from_date = (DateTime.now - 60.days).strftime("%Y-%m-%d")
       to_date = DateTime.now.strftime("%Y-%m-%d")
       distinct_id = result[0]['distinct_id']
 
