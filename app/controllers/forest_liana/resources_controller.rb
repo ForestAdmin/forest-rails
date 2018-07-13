@@ -42,6 +42,26 @@ module ForestLiana
       end
     end
 
+    def count
+      begin
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'list', @rendering_id)
+        return head :forbidden unless checker.is_authorized?
+
+        getter = ForestLiana::ResourcesGetter.new(@resource, params)
+        getter.count
+
+        render serializer: nil, json:
+          { count: getter.records_count }
+
+      rescue ForestLiana::Errors::LiveQueryError => error
+        render json: { errors: [{ status: 422, detail: error.message }] },
+          status: :unprocessable_entity, serializer: nil
+      rescue => error
+        FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
+        internal_server_error
+      end
+    end
+
     def show
       begin
         checker = ForestLiana::PermissionsChecker.new(@resource, 'show', @rendering_id)
