@@ -12,67 +12,16 @@ module ForestLiana
       @field_names_requested = field_names_requested
       get_segment()
       @search_query_builder = SearchQueryBuilder.new(@params, includes, @collection)
-      @records_count = nil
+
+      prepare_query()
     end
 
     def perform
-      @records = get_resource
-
-      if @segment && @segment.scope
-        @records = @records.send(@segment.scope)
-      elsif @segment && @segment.where
-        @records = @records.where(@segment.where.call())
-      end
-
-      # NOTICE: Live Query mode
-      if @params[:segmentQuery]
-        LiveQueryChecker.new(@params[:segmentQuery], 'Live Query Segment').validate()
-
-        begin
-          results = ActiveRecord::Base.connection.execute(@params[:segmentQuery])
-        rescue => error
-          error_message = "Live Query Segment: #{error.message}"
-          FOREST_LOGGER.error(error_message)
-          raise ForestLiana::Errors::LiveQueryError.new(error_message)
-        end
-
-        record_ids = results.to_a.map { |record| record['id'] }
-        @records = @records.where(id: record_ids)
-      end
-
-      @records = search_query
-
       @records = @records.eager_load(includes)
       @records_sorted = sort_query
     end
 
     def count
-      @records = get_resource
-
-      if @segment && @segment.scope
-        @records = @records.send(@segment.scope)
-      elsif @segment && @segment.where
-        @records = @records.where(@segment.where.call())
-      end
-
-      # NOTICE: Live Query mode
-      if @params[:segmentQuery]
-        LiveQueryChecker.new(@params[:segmentQuery], 'Live Query Segment').validate()
-
-        begin
-          results = ActiveRecord::Base.connection.execute(@params[:segmentQuery])
-        rescue => error
-          error_message = "Live Query Segment: #{error.message}"
-          FOREST_LOGGER.error(error_message)
-          raise ForestLiana::Errors::LiveQueryError.new(error_message)
-        end
-
-        record_ids = results.to_a.map { |record| record['id'] }
-        @records = @records.where(id: record_ids)
-      end
-
-      @records = search_query
-
       # NOTICE: For performance reasons, do not eager load the data if there is
       #         no search or filters on associations.
       @records_count = @count_needs_includes ? @records.eager_load(includes).count : @records.count
@@ -172,6 +121,34 @@ module ForestLiana
       end
 
       @records
+    end
+
+    def prepare_query
+      @records = get_resource
+
+      if @segment && @segment.scope
+        @records = @records.send(@segment.scope)
+      elsif @segment && @segment.where
+        @records = @records.where(@segment.where.call())
+      end
+
+      # NOTICE: Live Query mode
+      if @params[:segmentQuery]
+        LiveQueryChecker.new(@params[:segmentQuery], 'Live Query Segment').validate()
+
+        begin
+          results = ActiveRecord::Base.connection.execute(@params[:segmentQuery])
+        rescue => error
+          error_message = "Live Query Segment: #{error.message}"
+          FOREST_LOGGER.error(error_message)
+          raise ForestLiana::Errors::LiveQueryError.new(error_message)
+        end
+
+        record_ids = results.to_a.map { |record| record['id'] }
+        @records = @records.where(id: record_ids)
+      end
+
+      @records = search_query
     end
 
     def detect_sort_order(field)

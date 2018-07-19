@@ -12,23 +12,16 @@ module ForestLiana
       @collection = get_collection(@collection_name)
       includes_symbols = includes.map { |association| association.to_sym }
       @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
-      @records_count = nil
+
+      prepare_query()
     end
 
     def perform
-      @records = get_resource()
-        .find(@params[:id])
-        .send(@params[:association_name])
-        .eager_load(includes)
       @records = search_query
       @records = sort_query
     end
 
     def count
-      @records = get_resource()
-        .find(@params[:id])
-        .send(@params[:association_name])
-        .eager_load(includes)
       @records_count = @records.count
     end
 
@@ -75,6 +68,13 @@ module ForestLiana
 
     def model_association
       @resource.reflect_on_association(@params[:association_name].to_sym).klass
+    end
+
+    def prepare_query
+      @records = get_resource()
+        .find(@params[:id])
+        .send(@params[:association_name])
+        .eager_load(includes)
     end
 
     def offset
