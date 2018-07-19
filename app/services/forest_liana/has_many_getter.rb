@@ -1,6 +1,7 @@
 module ForestLiana
   class HasManyGetter < BaseGetter
     attr_reader :search_query_builder
+    attr_reader :records_count
 
     def initialize(resource, association, params)
       @resource = resource
@@ -11,15 +12,17 @@ module ForestLiana
       @collection = get_collection(@collection_name)
       includes_symbols = includes.map { |association| association.to_sym }
       @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
+
+      prepare_query()
     end
 
     def perform
-      @records = get_resource()
-        .find(@params[:id])
-        .send(@params[:association_name])
-        .eager_load(includes)
       @records = search_query
       @records = sort_query
+    end
+
+    def count
+      @records_count = @records.count
     end
 
     def search_query
@@ -51,10 +54,6 @@ module ForestLiana
       @records.limit(limit).offset(offset)
     end
 
-    def count
-      @records.count
-    end
-
     private
 
     def field_names_requested
@@ -69,6 +68,13 @@ module ForestLiana
 
     def model_association
       @resource.reflect_on_association(@params[:association_name].to_sym).klass
+    end
+
+    def prepare_query
+      @records = get_resource()
+        .find(@params[:id])
+        .send(@params[:association_name])
+        .eager_load(includes)
     end
 
     def offset

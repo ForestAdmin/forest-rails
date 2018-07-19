@@ -47,12 +47,10 @@ module ForestLiana
       if options.dig :params, :search
         # NOTICE: Add the Smart Fields with a 'String' type.
         fields_searched.concat(get_collection.string_smart_fields_names).uniq!
-        json['meta'][:decorators] = ForestLiana::DecorationHelper
-          .decorate_for_search(json, fields_searched, options[:params][:search])
-      end
-
-      if !options[:has_more].nil?
-        json['meta'][:has_more] = options[:has_more]
+        json['meta'] = {
+          decorators: ForestLiana::DecorationHelper
+            .decorate_for_search(json, fields_searched, options[:params][:search])
+        }
       end
 
       force_utf8_encoding(json)
