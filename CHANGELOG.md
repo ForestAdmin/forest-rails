@@ -4,6 +4,10 @@
 ### Changed
 - Security - Avoid SQL Injection by escaping the search parameter when using active record escaping pattern.
 
+## RELEASE 2.11.0 - 2018-07-19
+### Changed
+- Performance - Improve the speed of listing the records by executing their count into another request.
+
 ## RELEASE 2.10.5 - 2018-07-11
 ### Fixed
 - HasMany Relationships - Fix the performance of the related data retrieval if the collection has hidden belongsTo associations in the list.

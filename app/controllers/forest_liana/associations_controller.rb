@@ -23,6 +23,18 @@ module ForestLiana
       end
     end
 
+    def count
+      begin
+        getter = HasManyGetter.new(@resource, @association, params)
+        getter.count
+
+        render serializer: nil, json: { count: getter.records_count }
+      rescue => error
+        FOREST_LOGGER.error "Association Index Count error: #{error}\n#{format_stacktrace(error)}"
+        internal_server_error
+      end
+    end
+
     def update
       begin
         updater = BelongsToUpdater.new(@resource, @association, params)
@@ -115,7 +127,6 @@ module ForestLiana
         {
           include: includes,
           fields: fields_to_serialize,
-          meta: { count: getter.count },
           params: params
         },
         getter.search_query_builder.fields_searched

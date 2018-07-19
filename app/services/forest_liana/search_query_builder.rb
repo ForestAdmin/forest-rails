@@ -9,6 +9,7 @@ module ForestLiana
       @includes = includes
       @collection = collection
       @fields_searched = []
+      @search = @params[:search]
     end
 
     def perform(resource)
@@ -25,7 +26,7 @@ module ForestLiana
             begin
               @records = field[:search].call(@records, @search)
             rescue => exception
-              FOREST_LOGGER.error "Cannot search properly on Smart Field :\n" \
+              FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \
                 "#{exception}"
             end
           end
@@ -63,8 +64,7 @@ module ForestLiana
               value = @search.to_i
               conditions << "#{@resource.table_name}.id = #{value}" if value > 0
             elsif REGEX_UUID.match(@search)
-              conditions << "#{@resource.table_name}.id =
-                :id_search"
+              conditions << "#{@resource.table_name}.id = :id_search"
             end
           # NOTICE: Rails 3 do not have a defined_enums method
           elsif @resource.respond_to?(:defined_enums) &&
