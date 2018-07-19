@@ -34,6 +34,12 @@ module ForestLiana
         collection: ':collection', id: ':id', association_name: ':association_name'
       })
       assert_routing({
+        method: 'get', path: ':collection/:id/relationships/:association_name/count'
+      }, {
+        controller: 'forest_liana/associations', action: 'count',
+        collection: ':collection', id: ':id', association_name: ':association_name'
+      })
+      assert_routing({
         method: 'put', path: ':collection/:id/relationships/:association_name'
       }, {
         controller: 'forest_liana/associations', action: 'update',
