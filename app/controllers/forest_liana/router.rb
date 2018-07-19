@@ -14,7 +14,7 @@ class ForestLiana::Router
       when 'GET'
         if params[:id]
           action = 'show'
-        elsif File.basename(env['PATH_INFO']) == 'count'
+        elsif env['PATH_INFO'] == "/#{component_prefix}/count"
           action = 'count'
         else
           action = 'index'

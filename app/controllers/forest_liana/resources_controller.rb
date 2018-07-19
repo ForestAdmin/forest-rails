@@ -50,14 +50,13 @@ module ForestLiana
         getter = ForestLiana::ResourcesGetter.new(@resource, params)
         getter.count
 
-        render serializer: nil, json:
-          { count: getter.records_count }
+        render serializer: nil, json: { count: getter.records_count }
 
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
       rescue => error
-        FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
+        FOREST_LOGGER.error "Records Index Count error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end
@@ -182,7 +181,6 @@ module ForestLiana
         {
           include: includes(getter),
           fields: fields_to_serialize,
-          meta: { count: getter.count },
           params: params
         },
         getter.search_query_builder.fields_searched
