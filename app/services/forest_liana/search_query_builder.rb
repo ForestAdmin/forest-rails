@@ -9,6 +9,7 @@ module ForestLiana
       @includes = includes
       @collection = collection
       @fields_searched = []
+      @search = @params[:search]
     end
 
     def perform(resource)
@@ -18,13 +19,13 @@ module ForestLiana
       @records = has_many_filter
       @records = belongs_to_filter
 
-      if @params[:search]
+      if @search
         ForestLiana.schema_for_resource(@resource).fields.each do |field|
           if field.try(:[], :search)
             begin
-              @records = field[:search].call(@records, @params[:search])
+              @records = field[:search].call(@records, @search)
             rescue => exception
-              FOREST_LOGGER.error "Cannot search properly on Smart Field :\n" \
+              FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \
                 "#{exception}"
             end
           end
@@ -49,7 +50,7 @@ module ForestLiana
     end
 
     def search_param
-      if @params[:search]
+      if @search
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
@@ -59,28 +60,27 @@ module ForestLiana
             conditions
           elsif column.name == 'id'
             if column.type == :integer
-              value = @params[:search].to_i
+              value = @search.to_i
               conditions << "#{@resource.table_name}.id = #{value}" if value > 0
-            elsif REGEX_UUID.match(@params[:search])
-              conditions << "#{@resource.table_name}.id =
-                '#{@params[:search]}'"
+            elsif REGEX_UUID.match(@search)
+              conditions << "#{@resource.table_name}.id = '#{@search}'"
             end
           # NOTICE: Rails 3 do not have a defined_enums method
           elsif @resource.respond_to?(:defined_enums) &&
             @resource.defined_enums.has_key?(column.name) &&
-            !@resource.defined_enums[column.name][@params[:search].downcase].nil?
+            !@resource.defined_enums[column.name][@search.downcase].nil?
             conditions << "#{column_name} =
-              #{@resource.defined_enums[column.name][@params[:search].downcase]}"
+              #{@resource.defined_enums[column.name][@search.downcase]}"
           elsif !(column.respond_to?(:array) && column.array) &&
             (column.type == :string || column.type == :text)
-            conditions << "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
+            conditions << "LOWER(#{column_name}) LIKE '%#{@search.downcase}%'"
           end
         end
 
         # ActsAsTaggable
         if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
-            tagged_records = @records.tagged_with(@params[:search].downcase)
+            tagged_records = @records.tagged_with(@search.downcase)
             condition = acts_as_taggable_query(tagged_records)
             conditions << condition if condition
           end
@@ -145,7 +145,7 @@ module ForestLiana
 
     def association_search_condition table_name, column_name
       column_name = format_column_name(table_name, column_name)
-      "LOWER(#{column_name}) LIKE '%#{@params[:search].downcase}%'"
+      "LOWER(#{column_name}) LIKE '%#{@search.downcase}%'"
     end
 
     def filter_param
