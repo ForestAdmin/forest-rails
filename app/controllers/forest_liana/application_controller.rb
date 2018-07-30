@@ -44,7 +44,7 @@ module ForestLiana
       options[:is_collection] = true
       json = JSONAPI::Serializer.serialize(records, options)
 
-      if options.dig :params, :search
+      if options[:params] && options[:params][:search]
         # NOTICE: Add the Smart Fields with a 'String' type.
         fields_searched.concat(get_collection.string_smart_fields_names).uniq!
         json['meta'] = {
