@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.3 - 2018-07-30
 ### Fixed
 - Records Display - Fix collections display for project using Ruby version inferior to 2.3.0. [Regression introduced in 2.10.1]
 
