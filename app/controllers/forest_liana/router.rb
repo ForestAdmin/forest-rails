@@ -1,7 +1,8 @@
 class ForestLiana::Router
   def call(env)
     params = env['action_dispatch.request.path_parameters']
-    resource = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collection])
+    collection_name = params[:collection]
+    resource = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
 
     begin
       component_prefix = ForestLiana.component_prefix(resource)
@@ -14,7 +15,7 @@ class ForestLiana::Router
       when 'GET'
         if params[:id]
           action = 'show'
-        elsif env['PATH_INFO'] == "/#{component_prefix}/count"
+        elsif env['PATH_INFO'] == "/#{collection_name}/count"
           action = 'count'
         else
           action = 'index'
