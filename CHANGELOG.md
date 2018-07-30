@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.1 - 2018-07-30
 ### Fixed
 - Records Count - Fix list display error if the collection name is different from the class name (routing issue to compute the count).
 
