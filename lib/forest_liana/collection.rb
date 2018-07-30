@@ -80,6 +80,7 @@ module ForestLiana::Collection
     def has_many(name, opts, &block)
       model.fields << opts.merge({
         field: name,
+        :'is-virtual' => true,
         :'is-searchable' => false,
         type: ['String']
       })
@@ -97,6 +98,7 @@ module ForestLiana::Collection
     def belongs_to(name, opts, &block)
       model.fields << opts.merge({
         field: name,
+        :'is-virtual' => true,
         :'is-searchable' => false,
         type: 'String'
       })

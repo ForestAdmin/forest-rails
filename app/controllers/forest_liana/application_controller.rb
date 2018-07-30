@@ -148,7 +148,14 @@ module ForestLiana
             if model_association
               model_name = model_association.class_name
               # NOTICE: Join fields in case of model with self-references.
-              fields[model_name] = [fields[model_name], relation_fields].join(',')
+              if fields[model_name]
+                fields[model_name] = [
+                  fields[model_name],
+                  relation_fields
+                ].join(',').split(',').uniq.join(',')
+              else
+                fields[model_name] = relation_fields
+              end
             end
           end
           fields
