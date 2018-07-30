@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.2 - 2018-07-30
 ### Fixed
 - Smart BelongsTo - Fix the reference field values display in the records list of collections using Smart BelongsTo relationships.
 
