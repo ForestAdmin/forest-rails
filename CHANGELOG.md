@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.5 - 2018-07-31
 ### Fixed
 - Search - Fix the broken search if the collection contains Array fields. [Regression introduced in 2.9.0]
 - Search - Highlight the records id if it matches with the search value.
