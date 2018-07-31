@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.4 - 2018-07-31
 ### Fixed
 - Search - Fix the search while typing single quotes in the search value.
 
