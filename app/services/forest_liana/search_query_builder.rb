@@ -13,7 +13,6 @@ module ForestLiana
     end
 
     def perform(resource)
-      @search = @params[:search]
       @resource = @records = resource
       @records = search_param
       @records = filter_param
@@ -64,7 +63,7 @@ module ForestLiana
               value = @search.to_i
               conditions << "#{@resource.table_name}.id = #{value}" if value > 0
             elsif REGEX_UUID.match(@search)
-              conditions << "#{@resource.table_name}.id = :id_search"
+              conditions << "#{@resource.table_name}.id = :search_value_for_uuid"
             end
           # NOTICE: Rails 3 do not have a defined_enums method
           elsif @resource.respond_to?(:defined_enums) &&
@@ -74,7 +73,7 @@ module ForestLiana
               #{@resource.defined_enums[column.name][@search.downcase]}"
           elsif !(column.respond_to?(:array) && column.array) &&
             (column.type == :string || column.type == :text)
-            conditions << "LOWER(#{column_name}) LIKE :like_search"
+            conditions << "LOWER(#{column_name}) LIKE :search_value_for_string"
           end
         end
 
@@ -140,8 +139,8 @@ module ForestLiana
 
         @records = @resource.where(
           conditions.join(' OR '),
-          like_search: "%#{@search.downcase}%",
-          id_search: @search.to_s
+          search_value_for_string: "%#{@search.downcase}%",
+          search_value_for_uuid: @search.to_s
         )
       end
 
@@ -150,7 +149,7 @@ module ForestLiana
 
     def association_search_condition table_name, column_name
       column_name = format_column_name(table_name, column_name)
-      "LOWER(#{column_name}) LIKE :like_search"
+      "LOWER(#{column_name}) LIKE :search_value_for_string"
     end
 
     def filter_param
