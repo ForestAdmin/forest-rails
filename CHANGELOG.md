@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Security - Avoid SQL Injection by escaping the search parameter when using active record escaping pattern.
 
 ## RELEASE 2.11.3 - 2018-07-30
 ### Fixed
