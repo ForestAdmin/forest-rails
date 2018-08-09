@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.6 - 2018-08-09
 ### Fixed
 - Smart BelongsTo - Fix records list retrieval if the collection contains a Smart BelongsTo column that has been hidden. [Regression introduced in 2.9.1]
 
