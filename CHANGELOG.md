@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Gems Support - Improve ActiveType::Object detection to ignore it.
 
 ## RELEASE 2.11.8 - 2018-08-10
 ### Fixed

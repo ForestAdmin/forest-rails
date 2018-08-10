@@ -78,7 +78,7 @@ module ForestLiana
     # NOTICE: Ignores ActiveType::Object association during introspection and interactions.
     #         See the gem documentation: https://github.com/makandra/active_type
     def self.is_active_type? model
-      model.primary_key.nil? && model.columns == []
+      Object.const_defined?('ActiveType::Object') && model < ActiveType::Object
     end
 
     def self.sti_child?(model)
