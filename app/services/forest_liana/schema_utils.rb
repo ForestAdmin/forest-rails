@@ -4,7 +4,7 @@ module ForestLiana
     def self.associations(active_record_class)
       active_record_class
         .reflect_on_all_associations
-        .select {|a| !polymorphic?(a)}
+        .select { |association| !polymorphic?(association) && !is_active_type?(association.klass) }
     end
 
     def self.one_associations(active_record_class)
@@ -73,6 +73,12 @@ module ForestLiana
 
     def self.habtm?(model)
       model.name.starts_with?('HABTM')
+    end
+
+    # NOTICE: Ignores ActiveType::Object association during introspection and interactions.
+    #         See the gem documentation: https://github.com/makandra/active_type
+    def self.is_active_type? model
+      model.primary_key.nil? && model.columns == []
     end
 
     def self.sti_child?(model)
