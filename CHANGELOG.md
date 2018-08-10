@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records Details - Fix record details display. [Regression introduced in 2.11.6]
 
 ## RELEASE 2.11.6 - 2018-08-09
 ### Fixed
