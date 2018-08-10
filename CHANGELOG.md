@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.8 - 2018-08-10
 ### Fixed
 - Gems Support - Ignores ActiveType::Object association during introspection and interactions (https://github.com/makandra/active_type).
 
