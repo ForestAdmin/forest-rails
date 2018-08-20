@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Apimap - Allow users to use field `type` as a simple field when sti configured on another field.
 
 ## RELEASE 2.11.9 - 2018-08-10
 ### Fixed
