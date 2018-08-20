@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Collections - Fixing issue on tables named 'Searches'.
 
 ## RELEASE 2.11.9 - 2018-08-10
 ### Fixed
