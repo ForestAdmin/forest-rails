@@ -336,7 +336,8 @@ module ForestLiana
 
     def sti_column?(column)
       (@model.inheritance_column &&
-       column.name == @model.inheritance_column) || column.name == 'type'
+        column.name == @model.inheritance_column) ||
+        (!@model.inheritance_column && column.name == 'type')
     end
 
     def is_sti_parent?
