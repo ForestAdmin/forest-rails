@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Fixed
-- Collections - Fixing issue on tables named 'Searches'.
+- Collections - Fixes potential behaviour issues of collections having a name that collides with query params keys (searches, pages, sorts, timezones,...).
 
 ## RELEASE 2.11.9 - 2018-08-10
 ### Fixed
