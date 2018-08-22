@@ -19,8 +19,6 @@ module ForestLiana
       before_action :set_paper_trail_whodunnit if self.papertrail?
     end
 
-    wrap_parameters format: [:json] if respond_to?(:wrap_parameters)
-
     if self.papertrail?
       # NOTICE: The Forest user email is returned to track changes made using
       #         Forest with Papertrail.
