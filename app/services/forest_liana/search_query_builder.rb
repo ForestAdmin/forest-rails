@@ -50,7 +50,7 @@ module ForestLiana
     end
 
     def search_param
-      if (@search && !@search.empty?())
+      if @search
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
