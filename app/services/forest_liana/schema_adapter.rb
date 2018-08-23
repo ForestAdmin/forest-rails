@@ -347,7 +347,7 @@ module ForestLiana
     def is_sti_parent?
       @model.try(:table_exists?) &&
         @model.inheritance_column &&
-        @model.columns.find { |column| column.name == @model.inheritance_column } &&
+        @model.columns.any? { |column| sti_column?(column) } &&
         @model.name == @model.base_class.to_s
     end
 
