@@ -1,8 +1,12 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- STI Models - Display a warning on server start for any STI parent models that do not have children.
+
 ### Fixed
 - Collections - Fixes potential behaviour issues of collections having a name that collides with query params keys (searches, pages, sorts, timezones,...).
+- STI Models - Make the field corresponding to the inheritance_column (`type` by default) accessible to STI parent models that don't have children.
 
 ## RELEASE 2.11.9 - 2018-08-10
 ### Fixed

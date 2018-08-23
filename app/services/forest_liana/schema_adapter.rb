@@ -46,6 +46,12 @@ module ForestLiana
 
       # NOTICE: Define an automatic segment for each STI child model.
       if is_sti_parent?
+        if @model.descendants.empty?
+          FOREST_LOGGER.warn "Looks like your Rails STI parent model named \"#{@model.name}\" " +
+            "does not have any child model. If you want to deactivate the STI feature, add " +
+            "\"self.inheritance_column = nil\" in the model."
+        end
+
         column_type = @model.inheritance_column
         @model.descendants.each do |submodel_sti|
           type = submodel_sti.sti_name
@@ -335,19 +341,18 @@ module ForestLiana
     end
 
     def sti_column?(column)
-      (@model.inheritance_column &&
-       column.name == @model.inheritance_column) || column.name == 'type'
+      @model.inheritance_column && column.name == @model.inheritance_column
     end
 
     def is_sti_parent?
-      return false unless @model.try(:table_exists?)
-
-      @model.inheritance_column &&
-        @model.columns.find { |column| column.name == @model.inheritance_column }
+      @model.try(:table_exists?) &&
+        @model.inheritance_column &&
+        @model.columns.any? { |column| sti_column?(column) } &&
+        @model.name == @model.base_class.to_s
     end
 
     def is_sti_column_of_child_model?(column)
-      sti_column?(column) && @model.descendants.empty?
+      sti_column?(column) && !is_sti_parent? && @model.descendants.empty?
     end
 
     def add_default_value(column_schema, column)
