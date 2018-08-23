@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.10 - 2018-08-23
 ### Changed
 - STI Models - Display a warning on server start for any STI parent models that do not have children.
 
