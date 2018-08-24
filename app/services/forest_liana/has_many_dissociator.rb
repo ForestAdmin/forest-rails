@@ -25,6 +25,7 @@ module ForestLiana
       if @with_deletion
         if @data.is_a?(Array)
           record_ids = @data.map { |record| record[:id] }
+          record_ids = record_ids.select { |record_id| @association.klass.exists?(record_id) }
           @association.klass.destroy(record_ids)
         end
       end
