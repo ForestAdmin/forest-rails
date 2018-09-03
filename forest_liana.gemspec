@@ -25,4 +25,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "groupdate"
   s.add_runtime_dependency "useragent"
   s.add_runtime_dependency "bcrypt"
+  s.add_runtime_dependency "rotp"
+  s.add_runtime_dependency "base32"
+  s.add_runtime_dependency "httparty"
 end

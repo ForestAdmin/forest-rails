@@ -1,33 +1,41 @@
+require 'httparty'
+
 module ForestLiana
   class ForestApiRequester
-    def perform_request(query_parameters = nil)
-      http = Net::HTTP.new(@uri.host, @uri.port)
-      http.use_ssl = true if forest_api_url.start_with?('https')
-
-      http.start do |client|
-        path = get_path(query_parameters)
-        request = Net::HTTP::Get.new(path)
-        request['Content-Type'] = 'application/json'
-        request['forest-secret-key'] = ForestLiana.env_secret
-        request['forest-token'] = @forest_token if @forest_token
-        response = client.request(request)
-
-        handle_service_response(response)
+    def self.get(route, query: nil, headers: {})
+      begin
+        HTTParty.get("#{forest_api_url}#{route}", {
+          headers: base_headers.merge(headers),
+          query: query,
+        }).response
+      rescue
+        raise 'Cannot reach Forest API, it seems to be down right now.'
       end
     end
 
-    def forest_api_url
-      ENV['FOREST_URL'] || 'https://api.forestadmin.com';
+    def self.post(route, body: nil, query: nil, headers: {})
+      begin
+        HTTParty.post("#{forest_api_url}#{route}", {
+          headers: base_headers.merge(headers),
+          query: query,
+          body: body.to_json,
+        }).response
+      rescue
+        raise 'Cannot reach Forest API, it seems to be down right now.'
+      end
     end
 
-    def get_path(query_parameters)
-      route = @uri.path
-      unless query_parameters.nil?
-        query = query_parameters
-          .collect { |parameter, value| "#{parameter}=#{CGI::escape(value.to_s)}" }.join('&')
-        route += "?#{query}"
-      end
-      route
+    private
+
+    def self.base_headers
+      {
+        'Content-Type' => 'application/json',
+        'forest-secret-key' => ForestLiana.env_secret,
+      }
+    end
+
+    def self.forest_api_url
+      ENV['FOREST_URL'] || 'https://api.forestadmin.com'
     end
   end
 end

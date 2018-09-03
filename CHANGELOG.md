@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Authentication - Add two factor authentication.
 
 ## RELEASE 2.11.13 - 2018-09-11
 ### Added
