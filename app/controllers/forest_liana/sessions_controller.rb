@@ -53,7 +53,12 @@ module ForestLiana
           raise Errors::HTTP401Error
         end
 
-        # TODO: Add ip whitelist retrieving when it exists.
+        # NOTICE: The IP Whitelist is retrieved on any request if it was not retrieved yet, or when
+        #         an IP is rejected, to ensure the IP is still rejected (meaning the configuration
+        #         on the projects has not changed). To handle the last case, which is rejecting an
+        #         IP which was not initaliy rejected, we need periodically refresh the whitelist.
+        #         This is done here on the login of any user. 
+        IpWhitelist.retrieve
 
         reponse_data = LoginHandler.new(
           rendering_id,

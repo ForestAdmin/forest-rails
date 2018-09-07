@@ -22,7 +22,7 @@ module ForestLiana
         @message = message
       end
 
-      def display_error()
+      def display_error
         ExceptionHelper.recursively_print(self)
       end
     end
@@ -30,6 +30,12 @@ module ForestLiana
     class HTTP401Error < ExpectedError
       def initialize(message = "Unauthorized")
         super(401, :unauthorized, message)
+      end
+    end
+
+    class HTTP403Error < ExpectedError
+      def initialize(message = "Forbidden")
+        super(403, :forbidden, message)
       end
     end
 

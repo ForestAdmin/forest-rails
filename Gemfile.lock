@@ -7,6 +7,7 @@ PATH
       bcrypt
       groupdate
       httparty
+      ipaddress
       jsonapi-serializers (>= 0.14.0)
       jwt
       rack-cors
@@ -72,6 +73,7 @@ GEM
       multi_xml (>= 0.5.2)
     i18n (0.9.1)
       concurrent-ruby (~> 1.0)
+    ipaddress (0.8.3)
     json (1.8.6)
     jsonapi-serializers (0.14.0)
       activesupport
@@ -155,6 +157,7 @@ DEPENDENCIES
   forest_liana!
   groupdate
   httparty (= 0.13.7)
+  ipaddress (= 0.8.3)
   jsonapi-serializers (= 0.14.0)
   jwt
   rack-cors

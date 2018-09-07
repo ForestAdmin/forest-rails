@@ -28,4 +28,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "rotp"
   s.add_runtime_dependency "base32"
   s.add_runtime_dependency "httparty"
+  s.add_runtime_dependency "ipaddress"
 end
