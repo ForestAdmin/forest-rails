@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.12 - 2018-09-10
 ### Fixed
 - Logs - Display an error log (and stacktrace) in case of NoMethodError in the find_resource before_filter.
 
