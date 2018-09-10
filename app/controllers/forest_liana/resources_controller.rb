@@ -141,11 +141,16 @@ module ForestLiana
     private
 
     def find_resource
-      @resource = SchemaUtils.find_model_from_collection_name(params[:collection])
+      begin
+        @resource = SchemaUtils.find_model_from_collection_name(params[:collection])
 
-      if @resource.nil? || !SchemaUtils.model_included?(@resource) ||
+        if @resource.nil? || !SchemaUtils.model_included?(@resource) ||
           !@resource.ancestors.include?(ActiveRecord::Base)
-        render serializer: nil, json: {status: 404}, status: :not_found
+          render serializer: nil, json: { status: 404 }, status: :not_found
+        end
+      rescue => error
+        FOREST_LOGGER.error "Find Collection error: #{error}\n#{format_stacktrace(error)}"
+        render serializer: nil, json: { status: 404 }, status: :not_found
       end
     end
 
