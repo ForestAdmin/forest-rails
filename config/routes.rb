@@ -5,7 +5,7 @@ ForestLiana::Engine.routes.draw do
   get '/' => 'apimaps#index'
 
   # Session
-  post 'sessions' => 'sessions#create'
+  post 'sessions' => 'sessions#create_with_password'
   post 'sessions-google' => 'sessions#create_with_google'
 
   # Associations

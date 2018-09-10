@@ -18,7 +18,7 @@ module ForestLiana
       assert_routing({
         method: 'post', path: 'sessions'
       }, {
-        controller: 'forest_liana/sessions', action: 'create'
+        controller: 'forest_liana/sessions', action: 'create_with_password'
       })
       assert_routing({
         method: 'post', path: 'sessions-google'

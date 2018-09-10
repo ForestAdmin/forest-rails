@@ -1,6 +1,6 @@
 module ForestLiana
   class SessionsController < ForestLiana::BaseController
-    def create
+    def create_with_password
       @error_message = nil
       @user_class = ForestLiana.user_class_name.constantize rescue nil
 
