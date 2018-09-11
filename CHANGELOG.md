@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.11.13 - 2018-09-11
 ### Added
 - Logs - Display an error log (and stacktrace) in case of routing error.
 
