@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## RELEASE 2.13.0 - 2018-09-13
+
 ## RELEASE 2.12.0 - 2018-09-13
 ### Added
 - Authentication - Add two factor authentication.
