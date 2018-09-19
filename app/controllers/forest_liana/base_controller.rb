@@ -10,16 +10,16 @@ module ForestLiana
       begin
         ip = request.remote_ip
 
-        if !IpWhitelist.is_ip_whitelist_retrieved || !IpWhitelist.is_ip_valid(ip)
-          unless IpWhitelist.retrieve
-            raise Errors::HTTP403Error.new("IP whitelist not retrieved")
+        if !ForestLiana::IpWhitelist.is_ip_whitelist_retrieved || !ForestLiana::IpWhitelist.is_ip_valid(ip)
+          unless ForestLiana::IpWhitelist.retrieve
+            raise ForestLiana::Errors::HTTP403Error.new("IP whitelist not retrieved")
           end
 
-          unless IpWhitelist.is_ip_valid(ip)
-            raise Errors::HTTP403Error.new("IP address rejected (#{ip})")
+          unless ForestLiana::IpWhitelist.is_ip_valid(ip)
+            raise ForestLiana::Errors::HTTP403Error.new("IP address rejected (#{ip})")
           end
         end
-      rescue Errors::ExpectedError => exception
+      rescue ForestLiana::Errors::ExpectedError => exception
         exception.display_error
         error_data = JSONAPI::Serializer.serialize_errors([{
           status: exception.error_code,

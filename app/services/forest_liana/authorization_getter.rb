@@ -24,7 +24,8 @@ module ForestLiana
           query_parameters['two-factor-registration'] = true
         end
 
-        response = ForestApiRequester.get(@route, query: query_parameters, headers: headers)
+        response = ForestLiana::ForestApiRequester
+          .get(@route, query: query_parameters, headers: headers)
 
         if response.is_a?(Net::HTTPOK)
           body = JSON.parse(response.body)
@@ -39,7 +40,7 @@ module ForestLiana
           end
         end
       rescue
-        raise Errors::HTTP401Error
+        raise ForestLiana::Errors::HTTP401Error
       end
     end
   end

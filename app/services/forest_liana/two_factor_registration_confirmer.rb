@@ -20,16 +20,16 @@ module ForestLiana
           body_data['email'] = @auth_data[:email]
         end
 
-        response = ForestApiRequester.post(
+        response = ForestLiana::ForestApiRequester.post(
           "/liana/v2/projects/#{@project_id}/two-factor-registration-confirm",
           body: body_data,
         )
 
         unless response.is_a?(Net::HTTPOK)
-          raise "Cannot retrieve the data from the Forest server. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
+          raise "Cannot retrieve the data from the Forest server. Forest API returned an #{ForestLiana::Errors::HTTPErrorHelper.format(response)}"
         end
       rescue
-        raise Errors::HTTP401Error
+        raise ForestLiana::Errors::HTTP401Error
       end
     end
   end
