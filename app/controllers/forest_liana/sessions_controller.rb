@@ -50,17 +50,17 @@ module ForestLiana
     )
       begin
         if two_factor_registration && two_factor_token.nil?
-          raise Errors::HTTP401Error
+          raise ForestLiana::Errors::HTTP401Error
         end
 
         # NOTICE: The IP Whitelist is retrieved on any request if it was not retrieved yet, or when
         #         an IP is rejected, to ensure the IP is still rejected (meaning the configuration
         #         on the projects has not changed). To handle the last case, which is rejecting an
         #         IP which was not initaliy rejected, we need periodically refresh the whitelist.
-        #         This is done here on the login of any user. 
-        IpWhitelist.retrieve
+        #         This is done here on the login of any user.
+        ForestLiana::IpWhitelist.retrieve
 
-        reponse_data = LoginHandler.new(
+        reponse_data = ForestLiana::LoginHandler.new(
           rendering_id,
           auth_data,
           use_google_authentication,

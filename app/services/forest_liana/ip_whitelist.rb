@@ -5,7 +5,7 @@ module ForestLiana
 
     def self.retrieve
       begin
-        response = ForestApiRequester.get('/liana/v1/ip-whitelist-rules')
+        response = ForestLiana::ForestApiRequester.get('/liana/v1/ip-whitelist-rules')
 
         if response.is_a?(Net::HTTPOK)
           body = JSON.parse(response.body)
@@ -20,7 +20,7 @@ module ForestLiana
       rescue => exception
         FOREST_LOGGER.error 'Cannot retrieve the IP Whitelist from the Forest server.'
         FOREST_LOGGER.error 'Which was caused by:'
-        Errors::ExceptionHelper.recursively_print(exception, margin: ' ', is_error: true)
+        ForestLiana::Errors::ExceptionHelper.recursively_print(exception, margin: ' ', is_error: true)
         false
       end
     end
@@ -31,7 +31,7 @@ module ForestLiana
 
     def self.is_ip_valid(ip)
       if @@use_ip_whitelist
-        return IpWhitelistChecker.is_ip_matches_any_rule(ip, @@ip_whitelist_rules)
+        return ForestLiana::IpWhitelistChecker.is_ip_matches_any_rule(ip, @@ip_whitelist_rules)
       end
 
       true
