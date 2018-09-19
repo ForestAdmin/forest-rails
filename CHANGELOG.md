@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.13.1 - 2018-09-19
 ### Fixed
 - Development Autoreload - Prevent "A copy of ForestLiana::BaseController has been removed from the module tree but is still active!" in development mode.
 
