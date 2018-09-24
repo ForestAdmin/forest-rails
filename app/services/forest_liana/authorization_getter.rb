@@ -13,9 +13,9 @@ module ForestLiana
     def perform
       begin
         if @use_google_authentication
-          headers = { 'forest-token': @auth_data[:forest_token] }
+          headers = { 'forest-token' => @auth_data[:forest_token] }
         else
-          headers = { email: @auth_data[:email], password: @auth_data[:password] }
+          headers = { 'email' => @auth_data[:email], 'password' => @auth_data[:password] }
         end
 
         query_parameters = { 'renderingId' => @rendering_id }
