@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.13.2 - 2018-09-24
 ### Fixed
 - Authentication - Fix authentication for projects using Ruby 2.2.X.
 
