@@ -2,7 +2,7 @@
 
 TODO: Please describe here the behavior you are expecting.
 
-## Actual behavior
+## Actual behavior
 
 TODO: What is the current behavior?
 
