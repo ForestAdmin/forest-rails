@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.13.3 - 2018-09-25
 ### Fixed
 - Permissions - Fix potential bad forbidden responses on first requests after server start.
 
