@@ -29,7 +29,6 @@ module ForestLiana
 
     def is_allowed?
       permissions = get_permissions
-
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
         permissions[@collection_name]['collection'][@permission_name]
@@ -40,8 +39,8 @@ module ForestLiana
 
     def retrieve_permissions
       @@permissions_per_rendering[@rendering_id] = Hash.new
-      @@permissions_per_rendering[@rendering_id]['data'] =
-        ForestLiana::PermissionsGetter.new(@rendering_id).perform()
+      permissions = ForestLiana::PermissionsGetter.new(@rendering_id).perform()
+      @@permissions_per_rendering[@rendering_id]['data'] = permissions
       @@permissions_per_rendering[@rendering_id]['last_retrieve'] = Time.now
     end
 
