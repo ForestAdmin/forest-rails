@@ -39,6 +39,12 @@ module ForestLiana
       end
     end
 
+    class HTTP404Error < ExpectedError
+      def initialize(message = "Not Found")
+        super(404, :not_found, message)
+      end
+    end
+
     class ExceptionHelper
       def self.recursively_print(error, margin: '', is_error: false)
         logger = is_error ?

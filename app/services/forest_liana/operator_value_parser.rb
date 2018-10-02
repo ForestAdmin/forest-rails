@@ -42,6 +42,12 @@ module ForestLiana
         fieldSplit = field.split(':')
         association = fieldSplit.first.to_sym
         field = fieldSplit.last
+        resource_association = resource.reflect_on_association(association)
+
+        if resource_association.nil?
+          raise ForestLiana::Errors::HTTP404Error.new("Association not found")
+        end
+
         resource = resource.reflect_on_association(association).klass
       end
 
