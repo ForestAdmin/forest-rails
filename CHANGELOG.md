@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Segment - Return an error 404 instead of 500 when a collection with an incorrect segment is called.
 
 ## RELEASE 2.13.3 - 2018-09-25
 ### Fixed
