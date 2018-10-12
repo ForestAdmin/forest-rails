@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Live Query Segment - Optimize resource retrieving to avoid using too much memory.
 
 ## RELEASE 2.13.4 - 2018-10-03
 ### Fixed
