@@ -31,6 +31,31 @@ module ForestLiana
       @jwt_decoded_token
     end
 
+    def define_belongsTo_id(records, already_mapped_records = {})
+      records.each do |record|
+        if !already_mapped_records.key?(record.class.name)
+          already_mapped_records[record.class.name] = []
+        end
+        if !already_mapped_records[record.class.name].include? record.id
+          already_mapped_records[record.class.name] << record.id
+          @associations = record.class.reflect_on_all_associations
+          @associations.each do |association|
+            if [:belongs_to, :has_one].include?(association.macro) &&
+              !record[association.name] &&
+              !record.association(association.name).loaded?
+              record.send("build_#{association.name}", "#{association.join_primary_key}": record.send(association.join_foreign_key))
+            elsif record.association(association.name).loaded? && !record.send(association.name).nil?
+              if [:belongs_to, :has_one].include?(association.macro)
+                define_belongsTo_id([record.send(association.name)], already_mapped_records)
+              else
+                define_belongsTo_id(record.send(association.name), already_mapped_records)
+              end
+            end
+          end
+        end
+      end
+    end
+
     def serialize_model(record, options = {})
       options[:is_collection] = false
       json = JSONAPI::Serializer.serialize(record, options)
@@ -40,6 +65,7 @@ module ForestLiana
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
+      define_belongsTo_id(records)
       json = JSONAPI::Serializer.serialize(records, options)
 
       if options[:params] && options[:params][:search]
