@@ -93,6 +93,10 @@ module ForestLiana
       field_name = field
       column_found = columns.find { |column| column.name == field_name }
 
+      if column_found.nil?
+        raise ForestLiana::Errors::HTTP404Error.new("Column not found")
+      end
+
       if column_found.type == :boolean
         ForestLiana::AdapterHelper.cast_boolean(value)
       else
