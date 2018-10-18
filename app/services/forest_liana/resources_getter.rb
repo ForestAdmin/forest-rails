@@ -137,7 +137,7 @@ module ForestLiana
         LiveQueryChecker.new(@params[:segmentQuery], 'Live Query Segment').validate()
 
         begin
-          segmentQuery = @params[:segmentQuery].gsub(/\;$/, '')
+          segmentQuery = @params[:segmentQuery].gsub(/\;\s*$/, '')
           @records = @records.where(
             "#{@resource.table_name}.#{@resource.primary_key} IN (SELECT id FROM (#{segmentQuery}) as ids)"
           )

@@ -3,7 +3,7 @@ module ForestLiana
     QUERY_SELECT = /\ASELECT\s.*FROM\s.*\z/im
 
     def initialize(query, context)
-      @query = query
+      @query = query.strip
       @context = context
     end
 

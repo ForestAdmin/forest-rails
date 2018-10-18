@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Live Query - Trim whitespaces in all queries and subqueries to avoid errors.
 
 ## RELEASE 2.13.5 - 2018-10-12
 ### Fixed
