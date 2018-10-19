@@ -269,9 +269,10 @@ module ForestLiana
       filter = OperatorValueParser
         .get_condition_end(subfield, operator, value, association.klass, @params[:timezone])
 
-      association_name_pluralized = association.name.to_s.pluralize
+      association_name = association.name.to_s
+      association_name_pluralized = association_name.pluralize
 
-      if association_name_pluralized == association.table_name
+      if [association_name, association_name_pluralized].include? association.table_name
         # NOTICE: Default case. When the belongsTo association name and the referenced table name are identical.
         association_name_for_condition = association.table_name
       else

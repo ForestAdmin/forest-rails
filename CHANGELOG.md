@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Filters - Fix BelongsTo filters on a destination table having a "non conventional" singular name. [Regression introduced in 2.8.5]
 
 ## RELEASE 2.13.6 - 2018-10-18
 ### Fixed
