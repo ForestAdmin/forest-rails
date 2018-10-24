@@ -67,11 +67,13 @@ module ForestLiana
             "domains for CORS constraint:\n#{error}"
         end
 
-        eager_load_active_record_descendants(app)
+        unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+          eager_load_active_record_descendants(app)
 
-        if database_available?
-          # NOTICE: Do not run the code below on rails g forest_liana:install.
-          Bootstraper.new().perform if ForestLiana.env_secret || ForestLiana.secret_key
+          if database_available?
+            # NOTICE: Do not run the code below on rails g forest_liana:install.
+            Bootstraper.new().perform if ForestLiana.env_secret || ForestLiana.secret_key
+          end
         end
       end
     end

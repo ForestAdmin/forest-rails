@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Apimap - Developers can deactivate the automatic Apimap sending on server start (using FOREST_DEACTIVATE_AUTOMATIC_APIMAP environment variable).
+
 ### Change
 - Technical - Remove a useless query param in the authorizations request.
 - Technical - Simplify the Bootstraper initialize signature.
