@@ -18,7 +18,7 @@ module ForestLiana
           headers = { 'email' => @auth_data[:email], 'password' => @auth_data[:password] }
         end
 
-        query_parameters = { 'renderingId' => @rendering_id }
+        query_parameters = {}
 
         if @two_factor_registration
           query_parameters['two-factor-registration'] = true

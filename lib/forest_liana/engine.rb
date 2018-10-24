@@ -71,7 +71,7 @@ module ForestLiana
 
         if database_available?
           # NOTICE: Do not run the code below on rails g forest_liana:install.
-          Bootstraper.new(app).perform if ForestLiana.env_secret || ForestLiana.secret_key
+          Bootstraper.new().perform if ForestLiana.env_secret || ForestLiana.secret_key
         end
       end
     end

@@ -1,9 +1,7 @@
 module ForestLiana
   class Bootstraper
 
-    def initialize(app)
-      @app = app
-
+    def initialize
       @integration_stripe_valid = false
       @integration_intercom_valid = false
 

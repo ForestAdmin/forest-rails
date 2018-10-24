@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Change
+- Technical - Remove a useless query param in the authorizations request.
+- Technical - Simplify the Bootstraper initialize signature.
 
 ## RELEASE 2.13.7 - 2018-10-19
 ### Fixed
