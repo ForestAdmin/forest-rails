@@ -1,4 +1,5 @@
 require 'forest_liana/engine'
+require 'forest_liana/railtie' if defined? Rails
 
 module Forest
 end
