@@ -15,22 +15,38 @@ module ForestLiana
       end
     end
 
-    def perform
-      fetch_models
-      check_integrations_setup
-      namespace_duplicated_models
-      create_factories
+    def perform(with_feedback=false)
+      introspect_and_generate_factories
 
       if ForestLiana.env_secret
-        create_apimap
-        require_lib_forest_liana
-        format_and_validate_smart_actions
+        generate_apimap
+        send_apimap(with_feedback)
+      end
+    end
 
-        send_apimap
+    def display_apimap
+      introspect_and_generate_factories
+
+      if ForestLiana.env_secret
+        generate_apimap
+        puts " = Current Forest Apimap:\n#{JSON.pretty_generate(get_apimap_serialized)}"
       end
     end
 
     private
+
+    def introspect_and_generate_factories
+      fetch_models
+      check_integrations_setup
+      namespace_duplicated_models
+      create_factories
+    end
+
+    def generate_apimap
+      create_apimap
+      require_lib_forest_liana
+      format_and_validate_smart_actions
+    end
 
     def is_sti_parent_model?(model)
       return false unless model.try(:table_exists?)
@@ -197,26 +213,32 @@ module ForestLiana
       end
     end
 
-    def send_apimap
+    def get_apimap_serialized
+      apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
+        is_collection: true,
+        include: ['actions', 'segments'],
+        meta: {
+          liana: 'forest-rails',
+          liana_version: liana_version,
+          framework_version: Gem.loaded_specs["rails"].version.version,
+          orm_version: Gem.loaded_specs["activerecord"].version.version,
+          database_type: database_type
+        }
+      })
+
+      ForestLiana::ApimapSorter.new(apimap).perform
+    end
+
+    def send_apimap(with_feedback=false)
       if ForestLiana.env_secret && ForestLiana.env_secret.length != 64
         FOREST_LOGGER.error "Your env_secret does not seem to be correct. " \
           "Can you check on Forest that you copied it properly in the " \
           "forest_liana initializer?"
       else
-        apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
-          is_collection: true,
-          include: ['actions', 'segments'],
-          meta: {
-            liana: 'forest-rails',
-            liana_version: liana_version,
-            framework_version: Gem.loaded_specs["rails"].version.version,
-            orm_version: Gem.loaded_specs["activerecord"].version.version,
-            database_type: database_type
-          }
-        })
+        apimap = get_apimap_serialized
 
         begin
-          apimap = ForestLiana::ApimapSorter.new(apimap).perform
+          puts " = Sending Forest Apimap:\n#{JSON.pretty_generate(apimap)}" if with_feedback
           uri = URI.parse("#{forest_url}/forest/apimaps")
           http = Net::HTTP.new(uri.host, uri.port)
           http.use_ssl = true if forest_url.start_with?('https')
@@ -230,6 +252,14 @@ module ForestLiana
             if ['200', '202', '204', '400', '404', '503'].include? response.code
               unless response.body.blank?
                 warning = JSON.parse(response.body)['warning']
+              end
+
+              if with_feedback
+                if response.is_a?(Net::HTTPOK) || response.is_a?(Net::HTTPNoContent)
+                  puts " = Apimap Received - nothing changed"
+                elsif response.is_a?(Net::HTTPAccepted)
+                  puts " = Apimap Received - update detected (currently updating the UI)"
+                end
               end
 
               if response.is_a?(Net::HTTPNotFound) # NOTICE: HTTP 404 Error
