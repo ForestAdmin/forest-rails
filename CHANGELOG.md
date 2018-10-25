@@ -4,9 +4,9 @@
 
 ## RELEASE 2.14.0 - 2018-10-25
 ### Added
-- Apimap - Developers can deactivate the automatic Apimap sending on server start (using FOREST_DEACTIVATE_AUTOMATIC_APIMAP environment variable).
-- Apimap - Add a forest:display_apimap rake task to manually inspect the current Apimap version.
-- Apimap - Add a forest:send_apimap rake task to manually synchonize the models/customization with Forest servers.
+- Apimap - Developers can deactivate the automatic Apimap sending on server start (using `FOREST_DEACTIVATE_AUTOMATIC_APIMAP` environment variable).
+- Apimap - Add a `forest:display_apimap` rake task to manually inspect the current Apimap version.
+- Apimap - Add a `forest:send_apimap` rake task to manually synchonize the models/customization with Forest servers.
 
 ### Change
 - Technical - Remove a useless query param in the authorizations request.
