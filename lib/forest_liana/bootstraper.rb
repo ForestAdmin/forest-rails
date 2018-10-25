@@ -29,7 +29,7 @@ module ForestLiana
 
       if ForestLiana.env_secret
         generate_apimap
-        puts " = Current Forest Apimap:\n#{JSON.pretty_generate(get_apimap)}"
+        puts " = Current Forest Apimap:\n#{JSON.pretty_generate(get_apimap_serialized)}"
       end
     end
 
@@ -213,7 +213,7 @@ module ForestLiana
       end
     end
 
-    def get_apimap
+    def get_apimap_serialized
       apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
         is_collection: true,
         include: ['actions', 'segments'],
@@ -235,7 +235,7 @@ module ForestLiana
           "Can you check on Forest that you copied it properly in the " \
           "forest_liana initializer?"
       else
-        apimap = get_apimap
+        apimap = get_apimap_serialized
 
         begin
           puts " = Sending Forest Apimap:\n#{JSON.pretty_generate(apimap)}" if with_feedback
