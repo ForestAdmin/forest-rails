@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.14.0 - 2018-10-25
 ### Added
 - Apimap - Developers can deactivate the automatic Apimap sending on server start (using FOREST_DEACTIVATE_AUTOMATIC_APIMAP environment variable).
 - Apimap - Add a forest:display_apimap rake task to manually inspect the current Apimap version.
