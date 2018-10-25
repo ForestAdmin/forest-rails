@@ -254,6 +254,14 @@ module ForestLiana
                 warning = JSON.parse(response.body)['warning']
               end
 
+              if with_feedback
+                if response.is_a?(Net::HTTPOK) || response.is_a?(Net::HTTPNoContent)
+                  puts " = Apimap Received - nothing changed"
+                elsif response.is_a?(Net::HTTPAccepted)
+                  puts " = Apimap Received - update detected (currently updating the UI)"
+                end
+              end
+
               if response.is_a?(Net::HTTPNotFound) # NOTICE: HTTP 404 Error
                 FOREST_LOGGER.error "Cannot find the project related to the " \
                   "env_secret you configured. Can you check on Forest that " \
