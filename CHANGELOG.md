@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Fixed
-- Segment - Handle filter on a bad association or a bad field in resource getter.
+- Collection - Avoid crash when filtering on a bad association or a bad field in resource getter.
 - Technical - Add test for resource getter.
 
 ## RELEASE 2.13.6 - 2018-10-18
