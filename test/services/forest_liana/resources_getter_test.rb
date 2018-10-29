@@ -222,7 +222,7 @@ module ForestLiana
           collection: 'Tree'
         })
       }
-      assert_equal('Association not found', exception.message)
+      assert_equal("Association 'leaf' not found", exception.message)
     end
 
     test 'Filter on a field that does not exists' do
@@ -237,7 +237,7 @@ module ForestLiana
         })
       }
 
-      assert_equal('Column not found', exception.message)
+      assert_equal("Column 'content' not found", exception.message)
     end
 
   end
