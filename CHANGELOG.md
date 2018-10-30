@@ -5,6 +5,11 @@
 - Collection - Avoid crash when filtering on a bad association or a bad field in resource getter.
 - Technical - Add test for resource getter to check error handling.
 
+## RELEASE 2.14.1 - 2018-10-30
+### Fixed
+- API - Fix API crashes due to bad Forest API initialization if `FOREST_DEACTIVATE_AUTOMATIC_APIMAP` is configured.
+- Apimap - Fix the Apimap info sent with the `forest:display_apimap` task.
+
 ## RELEASE 2.14.0 - 2018-10-25
 ### Added
 - Apimap - Developers can deactivate the automatic Apimap sending on server start (using `FOREST_DEACTIVATE_AUTOMATIC_APIMAP` environment variable).

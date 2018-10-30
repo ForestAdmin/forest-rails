@@ -61,18 +61,21 @@ module ForestLiana
     end
 
     config.after_initialize do |app|
-      if !Rails.env.test? && !rake?
+      if !Rails.env.test?
         if error
           FOREST_LOGGER.error "Impossible to set the whitelisted Forest " \
             "domains for CORS constraint:\n#{error}"
         end
 
-        unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
-          eager_load_active_record_descendants(app)
+        eager_load_active_record_descendants(app)
 
-          if database_available?
-            # NOTICE: Do not run the code below on rails g forest_liana:install.
-            Bootstraper.new().perform if ForestLiana.env_secret || ForestLiana.secret_key
+        if database_available?
+          # NOTICE: Do not run the code below on rails g forest_liana:install.
+          if ForestLiana.env_secret || ForestLiana.secret_key
+            unless rake?
+              bootstraper = Bootstraper.new
+              bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+            end
           end
         end
       end
