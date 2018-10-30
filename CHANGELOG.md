@@ -1,6 +1,7 @@
 # Change Log
 
 ## [Unreleased]
+## RELEASE 2.14.1 - 2018-10-30
 ### Fixed
 - API - Fix API crashes due to bad Forest API initialization if `FOREST_DEACTIVATE_AUTOMATIC_APIMAP` is configured.
 - Apimap - Fix the Apimap info sent with the `forest:display_apimap` task.
