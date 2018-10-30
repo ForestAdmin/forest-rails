@@ -210,5 +210,35 @@ module ForestLiana
       assert records.count == 0
       assert count = 0
     end
+
+    test 'Filter on a field of an associated collection that does not exist' do
+      exception = assert_raises(ForestLiana::Errors::HTTP404Error) {
+        getter = ForestLiana::ResourcesGetter.new(Tree, {
+          fields: { 'Tree' => 'id'},
+          filterType: 'and',
+          searchExtended: '0',
+          timezone: 'Europe/Paris',
+          filter: { 'leaf:id' => '1' },
+          collection: 'Tree'
+        })
+      }
+      assert_equal("Association 'leaf' not found", exception.message)
+    end
+
+    test 'Filter on a field that does not exists' do
+      exception = assert_raises(ForestLiana::Errors::HTTP404Error) {
+        getter = ForestLiana::ResourcesGetter.new(Tree, {
+          fields: { 'Tree' => 'id'},
+          filterType: 'and',
+          searchExtended: '0',
+          timezone: 'Europe/Paris',
+          filter: { 'content' => '*c*' },
+          collection: 'Article'
+        })
+      }
+
+      assert_equal("Column 'content' not found", exception.message)
+    end
+
   end
 end
