@@ -3,8 +3,8 @@ namespace :forest do
   task(:send_apimap).clear
   task send_apimap: :environment do
     if ForestLiana.env_secret
-      bootstraper = ForestLiana::Bootstraper.new()
-      bootstraper.perform(true)
+      bootstraper = ForestLiana::Bootstraper.new
+      bootstraper.synchronize(true)
     else
       puts 'Cannot send the Apimap, Forest cannot find your env_secret'
     end

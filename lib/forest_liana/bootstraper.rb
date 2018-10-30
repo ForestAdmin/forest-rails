@@ -13,34 +13,26 @@ module ForestLiana
         ForestLiana.env_secret = ForestLiana.secret_key
         ForestLiana.auth_secret = ForestLiana.auth_key
       end
+
+      fetch_models
+      check_integrations_setup
+      namespace_duplicated_models
+      create_factories
+
+      generate_apimap if ForestLiana.env_secret
     end
 
-    def perform(with_feedback=false)
-      introspect_and_generate_factories
-
-      if ForestLiana.env_secret
-        generate_apimap
-        send_apimap(with_feedback)
-      end
+    def synchronize(with_feedback=false)
+      send_apimap(with_feedback) if ForestLiana.env_secret
     end
 
     def display_apimap
-      introspect_and_generate_factories
-
       if ForestLiana.env_secret
-        generate_apimap
         puts " = Current Forest Apimap:\n#{JSON.pretty_generate(get_apimap_serialized)}"
       end
     end
 
     private
-
-    def introspect_and_generate_factories
-      fetch_models
-      check_integrations_setup
-      namespace_duplicated_models
-      create_factories
-    end
 
     def generate_apimap
       create_apimap
