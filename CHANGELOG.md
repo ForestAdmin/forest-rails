@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.14.2 - 2018-10-31
 ### Fixed
 - Collection - Avoid crash when filtering on a bad association or a bad field in resource getter.
 
