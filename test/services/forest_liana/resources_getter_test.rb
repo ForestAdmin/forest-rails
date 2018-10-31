@@ -212,7 +212,7 @@ module ForestLiana
     end
 
     test 'Filter on a field of an associated collection that does not exist' do
-      exception = assert_raises(ForestLiana::Errors::HTTP404Error) {
+      exception = assert_raises(ForestLiana::Errors::HTTP422Error) {
         getter = ForestLiana::ResourcesGetter.new(Tree, {
           fields: { 'Tree' => 'id'},
           filterType: 'and',
@@ -226,7 +226,7 @@ module ForestLiana
     end
 
     test 'Filter on a field that does not exists' do
-      exception = assert_raises(ForestLiana::Errors::HTTP404Error) {
+      exception = assert_raises(ForestLiana::Errors::HTTP422Error) {
         getter = ForestLiana::ResourcesGetter.new(Tree, {
           fields: { 'Tree' => 'id'},
           filterType: 'and',
@@ -237,7 +237,7 @@ module ForestLiana
         })
       }
 
-      assert_equal("Column 'content' not found", exception.message)
+      assert_equal("Field 'content' not found", exception.message)
     end
 
   end

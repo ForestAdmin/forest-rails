@@ -45,7 +45,7 @@ module ForestLiana
         resource_association = resource.reflect_on_association(association)
 
         if resource_association.nil?
-          raise ForestLiana::Errors::HTTP404Error.new("Association '#{association.to_s}' not found")
+          raise ForestLiana::Errors::HTTP422Error.new("Association '#{association.to_s}' not found")
         end
 
         resource = resource.reflect_on_association(association).klass
@@ -93,8 +93,8 @@ module ForestLiana
       field_name = field
       column_found = columns.find { |column| column.name == field_name }
 
-      if column_found.nil?
-        raise ForestLiana::Errors::HTTP404Error.new("Column '#{field_name}' not found")
+      if true #column_found.nil?
+        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field_name}' not found")
       end
 
       if column_found.type == :boolean

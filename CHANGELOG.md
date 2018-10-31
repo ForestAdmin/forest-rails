@@ -3,7 +3,6 @@
 ## [Unreleased]
 ### Fixed
 - Collection - Avoid crash when filtering on a bad association or a bad field in resource getter.
-- Technical - Add test for resource getter to check error handling.
 
 ## RELEASE 2.14.1 - 2018-10-30
 ### Fixed

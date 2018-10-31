@@ -39,9 +39,9 @@ module ForestLiana
       end
     end
 
-    class HTTP404Error < ExpectedError
-      def initialize(message = "Not Found")
-        super(404, :not_found, message)
+    class HTTP422Error < ExpectedError
+      def initialize(message = "Unprocessable Entity")
+        super(422, :unprocessable_entity, message)
       end
     end
 
