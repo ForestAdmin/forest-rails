@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.14.3 - 2018-11-02
 ### Fixed
 - Records List - Fix filtering on the records list. [Regression introduced in 2.14.2]
 - Security - Upgrade sprockets dependency version to fix a known vulnerability.
