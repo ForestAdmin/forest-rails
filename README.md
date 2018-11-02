@@ -26,12 +26,58 @@ href="https://www.forestadmin.com/">Forest Admin</a>.
 - [Shadow](https://shadow.tech)
 - And hundreds more…
 
-## Installation
+## Getting Started
 
 [https://docs.forestadmin.com/rails/getting-started/installation](https://docs.forestadmin.com/rails/getting-started/installation)
 
 ## Documentation
 [https://docs.forestadmin.com/rails](https://docs.forestadmin.com/rails)
+
+## What is it for?
+
+### Browse your application's data
+Unleash the power of your data in the simplest way.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-browse-data.svg" alt="Browser">
+
+### Manipulate your data
+
+Provide your operational team with a tool with which they can perform any actions towards your customers' success.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-manipulate-data.svg" alt="Manipulate">
+
+### Listen to your data
+
+Anticipate/predict your customer needs before they're even able to formulate it for better lead nurturing, trial conversion, and upsells.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-listen-data.svg" alt="Listen">
+
+
+### Organize your application's data
+Backend architecture can be immensely complex. Forest will scan your ORM to retrieve the database models, and generate an admin REST API that will communicate directly with our back office interface.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-organise-data.svg" alt="Organize">
+
+### Reconcile your data
+
+Bring additional intelligence and consistency by leveraging data from third party services coupled with your application’s data in a single interface.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-reconciliate-data.svg" alt="Reconcile">
+
+### Streamline your workflow
+
+Forest fits into your existing workflows and provides you with the framework to streamline those business processes effortlessly.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-streamline-data.svg" alt="Streamline">
+
+### Collaborate on your data
+
+As your team grows, so do all the little things it takes for your operations to run smoothly. With Forest, simplify collaboration and productivity all across your office.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-collaborate-data.svg" alt="Collaborate">
+
+
+
 
 ## How to contribute
 
