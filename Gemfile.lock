@@ -89,7 +89,7 @@ GEM
     multi_xml (0.6.0)
     nokogiri (1.8.1)
       mini_portile2 (~> 2.3.0)
-    rack (1.6.8)
+    rack (1.6.10)
     rack-cors (0.4.0)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -132,7 +132,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.7.0)
     rspec-support (3.7.1)
-    sprockets (3.7.1)
+    sprockets (3.7.2)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-rails (3.2.1)
@@ -169,4 +169,4 @@ DEPENDENCIES
   useragent
 
 BUNDLED WITH
-   1.16.4
+   1.16.6
