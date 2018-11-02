@@ -1,44 +1,42 @@
-# Forest Rails Liana [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
+# Forest Admin in Rails [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
 
-The official Rails liana for [Forest Admin](https://www.forestadmin.com).
-Forest is a modern admin interface (see the [live demo](https://app.forestadmin.com/23065?livedemo)) that works on all major web frameworks.
-forest_liana is a Rails Admin Gem that makes Forest admin work on any Rails application (Rails >= 4.0). 
+Forest is a modern Admin Interface (see the [live
+demo](https://app.forestadmin.com/login?livedemo)) that works on all major web
+frameworks including Rails.
+
+The main difference between *forest_liana* and gems like *Administrate*, *Active Admin*
+or *Rails Admin* is that *forest_liana* creates a Rails Engine that automatically
+generates a highly flexible admin REST API and deploys a WYSIWYG interface to <a
+href="https://www.forestadmin.com/">Forest Admin</a>.
+
+<p align="center" style="margin: 60px 0">
+  <img width="70%" src="https://s3.amazonaws.com/forest-assets/screenshot.png" alt="Forest Admin screenshot">
+</p>
+
+## Who Uses Forest Admin
+- [Apartmentlist](https://www.apartmentlist.com)
+- [Carbon Health](https://carbonhealth.com)
+- [Ebanx](https://www.ebanx.com)
+- [First circle](https://www.firstcircle.ph)
+- [Forest Admin](https://www.forestadmin) of course :-)
+- [Heetch](https://www.heetch.com)
+- [Lunchr](https://www.lunchr.co)
+- [Pillow](https://www.pillow.com)
+- [Qonto](https://www.qonto.eu)
+- [Shadow](https://shadow.tech)
+- And hundreds more…
 
 ## Installation
 
-Visit [Forest's website](https://www.forestadmin.com), enter your email and click "Get started".  
-You will then follow a 4-step process:
-
-1. Choose your stack (Rails)
-2. Install Forest Liana
-  ```ruby
-  ## Add to your application's Gemfile
-  gem 'forest_liana'
-
-  ## Bundle it
-  bundle install
-
-  ## Install it with the provided environment secret
-  rails g forest_liana:install FOREST-ENV-SECRET
-  ```
-3. Get your app running, provide your application URL and check if you have successfully installed Forest Liana on your app.  
-4. Choose your credentials, log into https://app.forestadmin.com and start customizing your admin interface! 🎉
-
-## How it works
-
-Installing `forest_liana` into your app will automatically generate an admin REST API for your app.  
-This API allows the Forest admin UI to communicate with your app and operate on your data.  
-Note that data from your app will never reach Forest's servers. Only your UI configuration is saved.  
-As this gem is open-source, you're free to extend the admin REST API for any operation specific to your app.  
+[https://docs.forestadmin.com/rails/getting-started/installation](https://docs.forestadmin.com/rails/getting-started/installation)
 
 ## Documentation
-
-Complete documentation is available at https://docs.forestadmin.com/rails
+[https://docs.forestadmin.com/rails](https://docs.forestadmin.com/rails)
 
 ## How to contribute
 
-This liana is officially maintained by Forest.  
-We're always happy to get contributions for other fellow lumberjacks.  
+This liana is officially maintained by Forest.
+We're always happy to get contributions for other fellow lumberjacks.
 All contributions will be reviewed by Forest's team before being merged into master.
 
 Here is the contribution workflow:
