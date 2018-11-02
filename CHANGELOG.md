@@ -1,10 +1,12 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records List - Fix filtering on the records list. [Regression introduced in 2.14.2]
 
 ## RELEASE 2.14.2 - 2018-10-31
 ### Fixed
-- Collection - Avoid crash when filtering on a bad association or a bad field in resource getter.
+- Records List - Avoid crash when filtering on a bad association or a bad field in resource getter.
 
 ## RELEASE 2.14.1 - 2018-10-30
 ### Fixed

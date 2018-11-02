@@ -93,7 +93,7 @@ module ForestLiana
       field_name = field
       column_found = columns.find { |column| column.name == field_name }
 
-      if true #column_found.nil?
+      if column_found.nil?
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field_name}' not found")
       end
 
