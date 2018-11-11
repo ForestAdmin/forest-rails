@@ -17,6 +17,21 @@ module ForestLiana
       assert records.last.id == 16
     end
 
+    test 'on a model having a reserved name' do
+      getter = ResourcesGetter.new(Reference, {
+        page: { size: 10, number: 1 },
+        sort: '-id',
+        timezone: 'America/Nome'
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 1
+      assert count = 1
+      assert records.first.id == 1
+    end
+
     test 'StringField page 2 size 10' do
       getter = ResourcesGetter.new(StringField, {
         page: { size: 10, number: 2 },

@@ -101,26 +101,33 @@ module ForestLiana
     end
 
     def sort_query
+      column = nil
+      order = 'DESC'
+
       if @params[:sort]
         @params[:sort].split(',').each do |field|
-          order = detect_sort_order(@params[:sort])
-          field.slice!(0) if order == :desc
+          order_detected = detect_sort_order(@params[:sort])
+          order = order_detected.upcase
+          field.slice!(0) if order_detected == :desc
 
           field = detect_reference(field)
           if field.index('.').nil?
-            @records = @records
-              .order("#{@resource.table_name}.#{field} #{order.upcase}")
+            column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, field)
           else
-            @records = @records.order("#{field} #{order.upcase}")
+            column = field
           end
         end
       elsif @resource.column_names.include?('created_at')
-        @records = @records.order("#{@resource.table_name}.created_at DESC")
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
       elsif @resource.column_names.include?('id')
-        @records = @records.order("#{@resource.table_name}.id DESC")
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
       end
 
-      @records
+      if column
+        @records = @records.order(Arel.sql("#{column} #{order}"))
+      else
+        @records
+      end
     end
 
     def prepare_query

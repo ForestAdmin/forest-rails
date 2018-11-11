@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Models - Fix models having a table name being a reserved SQL word.
 
 ## RELEASE 2.14.3 - 2018-11-02
 ### Fixed
