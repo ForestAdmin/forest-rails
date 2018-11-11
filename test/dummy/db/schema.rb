@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170614141921) do
+ActiveRecord::Schema.define(version: 20181111162121) do
 
   create_table "belongs_to_class_name_fields", force: :cascade do |t|
     t.integer "foo_id"
@@ -80,6 +80,9 @@ ActiveRecord::Schema.define(version: 20170614141921) do
   end
 
   add_index "polymorphic_fields", ["has_one_field_id"], name: "index_polymorphic_fields_on_has_one_field_id"
+
+  create_table "references", force: :cascade do |t|
+  end
 
   create_table "serialize_fields", force: :cascade do |t|
     t.string "field"

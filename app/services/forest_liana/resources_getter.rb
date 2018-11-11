@@ -108,16 +108,18 @@ module ForestLiana
 
           field = detect_reference(field)
           if field.index('.').nil?
-            @records = @records
-              .order("#{@resource.table_name}.#{field} #{order.upcase}")
+            column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, field)
           else
-            @records = @records.order("#{field} #{order.upcase}")
+            column = ActiveRecord::Base.connection.quote_column_name(field)
           end
+          @records = @records.order("#{field} #{order.upcase}")
         end
       elsif @resource.column_names.include?('created_at')
-        @records = @records.order("#{@resource.table_name}.created_at DESC")
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
+        @records = @records.order("#{column} DESC")
       elsif @resource.column_names.include?('id')
-        @records = @records.order("#{@resource.table_name}.id DESC")
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
+        @records = @records.order("#{column} DESC")
       end
 
       @records
