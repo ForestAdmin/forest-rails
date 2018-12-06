@@ -61,13 +61,14 @@ module ForestLiana
 
     def self.model_included?(model)
       # NOTICE: all models are included by default.
-      return true if ForestLiana.included_models.empty? &&
-        ForestLiana.excluded_models.empty?
+      return true if ForestLiana.included_models.empty? && ForestLiana.excluded_models.empty?
+
+      model_name = ForestLiana.name_for(model)
 
       if ForestLiana.included_models.any?
-        ForestLiana.included_models.include?(model)
+        ForestLiana.included_models.include?(model_name)
       else
-        ForestLiana.excluded_models.exclude?(model)
+        ForestLiana.excluded_models.exclude?(model_name)
       end
     end
 
