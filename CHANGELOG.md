@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.14.5 - 2018-12-06
 ### Fixed
 - Initialization - Fix `included_models` and `excluded_models` options.
 
