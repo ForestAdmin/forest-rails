@@ -19,7 +19,7 @@ module ForestLiana
       end
     end
 
-    def self.find_model_from_collection_name(collection_name)
+    def self.find_model_from_collection_name(collection_name, logs = false)
       model_found = nil
 
       ForestLiana.models.each do |model|
@@ -34,6 +34,10 @@ module ForestLiana
         end
 
         break if model_found
+      end
+
+      if logs && model_found.nil?
+        FOREST_LOGGER.warn "No model found for collection #{collection_name}"
       end
 
       model_found

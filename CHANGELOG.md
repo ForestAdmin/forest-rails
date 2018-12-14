@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Error Logging - Improve routing error logs for some edge cases.
 
 ## RELEASE 2.14.5 - 2018-12-06
 ### Fixed
