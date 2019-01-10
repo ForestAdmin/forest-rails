@@ -179,7 +179,7 @@ module ForestLiana
     end
 
     def create_apimap_json
-      File.open(File.join(Rails.root, 'forestadmin.json'), 'w') do |f|
+      File.open(File.join(Rails.root, 'forestadmin-schema.json'), 'w') do |f|
         f.puts JSON.pretty_generate(ForestLiana.apimap.as_json)
       end
     end
