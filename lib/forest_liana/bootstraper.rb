@@ -38,6 +38,10 @@ module ForestLiana
       create_apimap
       require_lib_forest_liana
       format_and_validate_smart_actions
+
+      unless Rails.env.production?
+        create_apimap_json
+      end
     end
 
     def is_sti_parent_model?(model)
@@ -171,6 +175,12 @@ module ForestLiana
         ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
           setup_mixpanel_integration collection_name
         end
+      end
+    end
+
+    def create_apimap_json
+      File.open(File.join(Rails.root, 'forestadmin-schema.json'), 'w') do |f|
+        f.puts JSON.pretty_generate(ForestLiana.apimap.as_json)
       end
     end
 
