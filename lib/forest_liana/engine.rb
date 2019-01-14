@@ -74,7 +74,7 @@ module ForestLiana
           if ForestLiana.env_secret || ForestLiana.secret_key
             unless rake?
               bootstraper = Bootstraper.new
-              bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+              bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY']
             end
           end
         end

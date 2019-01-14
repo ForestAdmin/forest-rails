@@ -35,7 +35,13 @@ module ForestLiana
     private
 
     def generate_apimap
-      create_apimap
+      if Rails.env.production?
+        load_apimap_schema
+        create_apimap(false)
+      else
+        create_apimap
+      end
+
       require_lib_forest_liana
       format_and_validate_smart_actions
 
@@ -152,35 +158,69 @@ module ForestLiana
         end
     end
 
-    def create_apimap
+    def create_apimap(with_integration=true)
       ForestLiana.models.map do |model|
         if analyze_model?(model)
           SchemaAdapter.new(model).perform
         end
       end
 
-      if @integration_stripe_valid
-        ForestLiana.integrations[:stripe][:mapping].each do |collection|
-          setup_stripe_integration collection
+      if with_integration
+        if @integration_stripe_valid
+          ForestLiana.integrations[:stripe][:mapping].each do |collection|
+            setup_stripe_integration collection
+          end
+        end
+
+        if @integration_intercom_valid
+          ForestLiana.integrations[:intercom][:mapping].each do |collection_name|
+            setup_intercom_integration collection_name
+          end
+        end
+
+        if @integration_mixpanel_valid
+          ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
+            setup_mixpanel_integration collection_name
+          end
         end
       end
+    end
 
-      if @integration_intercom_valid
-        ForestLiana.integrations[:intercom][:mapping].each do |collection_name|
-          setup_intercom_integration collection_name
+    def load_apimap_schema
+      if File.exists?(File.join(Rails.root, 'forestadmin-schema.json'))
+        begin
+          apimap = File.read(File.join(Rails.root, 'forestadmin-schema.json'))
+          apimap = JSON.parse(apimap)
+          ForestLiana.apimap = ForestLiana::Model::Collection.from_json(apimap['collections'])
+        rescue JSON::JSONError
+          FOREST_LOGGER.error "File forestadmin-schema.json does not appear to be valid json."
         end
-      end
-
-      if @integration_mixpanel_valid
-        ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
-          setup_mixpanel_integration collection_name
-        end
+      else
+        FOREST_LOGGER.error "File forestadmin-schema.json does not exist."\
+          "Make sure to deploy this file in your production environment."
       end
     end
 
     def create_apimap_json
       File.open(File.join(Rails.root, 'forestadmin-schema.json'), 'w') do |f|
-        f.puts JSON.pretty_generate(ForestLiana.apimap.as_json)
+        collections = ForestLiana.apimap.as_json
+        collections = collections.map do |collection|
+          collection['fields'].sort { |field1, field2| [field1['field'], field1['type']] <=> [field2['field'], field2['type']] }
+          collection['fields'] = collection['fields'].map { |field| field.sort.to_h }
+          collection.sort.to_h
+        end
+        collections.sort { |collection1, collection2| collection1['name'] <=> collection2['name'] }
+
+        f.puts JSON.pretty_generate({
+          collections: collections,
+          meta: {
+            database_type: database_type,
+            framework_version: Gem.loaded_specs["rails"].version.version,
+            liana: 'forest-rails',
+            liana_version: liana_version,
+            orm_version: Gem.loaded_specs["activerecord"].version.version
+          }
+        })
       end
     end
 
