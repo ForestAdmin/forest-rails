@@ -36,8 +36,7 @@ module ForestLiana
 
     def generate_apimap
       if Rails.env.production?
-        load_apimap_schema
-        create_apimap(false)
+        load_apimap
       else
         create_apimap
       end
@@ -158,39 +157,50 @@ module ForestLiana
         end
     end
 
-    def create_apimap(with_integration=true)
+    def setup_forest_liana_meta
+      ForestLiana.meta = {
+        database_type: database_type,
+        framework_version: Gem.loaded_specs["rails"].version.version,
+        liana: 'forest-rails',
+        liana_version: liana_version,
+        orm_version: Gem.loaded_specs["activerecord"].version.version
+      }
+    end
+
+    def create_apimap
+      setup_forest_liana_meta
+
       ForestLiana.models.map do |model|
         if analyze_model?(model)
           SchemaAdapter.new(model).perform
         end
       end
 
-      if with_integration
-        if @integration_stripe_valid
-          ForestLiana.integrations[:stripe][:mapping].each do |collection|
-            setup_stripe_integration collection
-          end
+      if @integration_stripe_valid
+        ForestLiana.integrations[:stripe][:mapping].each do |collection|
+          setup_stripe_integration collection
         end
+      end
 
-        if @integration_intercom_valid
-          ForestLiana.integrations[:intercom][:mapping].each do |collection_name|
-            setup_intercom_integration collection_name
-          end
+      if @integration_intercom_valid
+        ForestLiana.integrations[:intercom][:mapping].each do |collection_name|
+          setup_intercom_integration collection_name
         end
+      end
 
-        if @integration_mixpanel_valid
-          ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
-            setup_mixpanel_integration collection_name
-          end
+      if @integration_mixpanel_valid
+        ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
+          setup_mixpanel_integration collection_name
         end
       end
     end
 
-    def load_apimap_schema
+    def load_apimap
       if File.exists?(File.join(Rails.root, 'forestadmin-schema.json'))
         begin
           apimap = File.read(File.join(Rails.root, 'forestadmin-schema.json'))
           apimap = JSON.parse(apimap)
+          ForestLiana.meta = apimap['meta']
           ForestLiana.apimap = ForestLiana::Model::Collection.from_json(apimap['collections'])
         rescue JSON::JSONError
           FOREST_LOGGER.error "File forestadmin-schema.json does not appear to be valid json."
@@ -213,13 +223,7 @@ module ForestLiana
 
         f.puts JSON.pretty_generate({
           collections: collections,
-          meta: {
-            database_type: database_type,
-            framework_version: Gem.loaded_specs["rails"].version.version,
-            liana: 'forest-rails',
-            liana_version: liana_version,
-            orm_version: Gem.loaded_specs["activerecord"].version.version
-          }
+          meta: ForestLiana.meta
         })
       end
     end
@@ -259,13 +263,7 @@ module ForestLiana
       apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
         is_collection: true,
         include: ['actions', 'segments'],
-        meta: {
-          liana: 'forest-rails',
-          liana_version: liana_version,
-          framework_version: Gem.loaded_specs["rails"].version.version,
-          orm_version: Gem.loaded_specs["activerecord"].version.version,
-          database_type: database_type
-        }
+        meta: ForestLiana.meta
       })
 
       ForestLiana::ApimapSorter.new(apimap).perform
