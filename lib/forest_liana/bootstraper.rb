@@ -35,16 +35,16 @@ module ForestLiana
     private
 
     def generate_apimap
-      if Rails.env.production?
-        load_apimap
-      else
+      if Rails.env.development?
         create_apimap
+      else
+        load_apimap
       end
 
       require_lib_forest_liana
       format_and_validate_smart_actions
 
-      unless Rails.env.production?
+      if Rails.env.development?
         create_apimap_json
       end
     end
