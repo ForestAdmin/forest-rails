@@ -45,7 +45,7 @@ module ForestLiana
       format_and_validate_smart_actions
 
       if Rails.env.development?
-        create_apimap_json
+        update_schema_file
       end
     end
 
@@ -211,7 +211,7 @@ module ForestLiana
       end
     end
 
-    def create_apimap_json
+    def update_schema_file
       File.open(File.join(Rails.root, 'forestadmin-schema.json'), 'w') do |f|
         collections = ForestLiana.apimap.as_json
         collections = collections.map do |collection|

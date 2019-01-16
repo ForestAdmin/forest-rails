@@ -4,7 +4,9 @@
 ### Added
 - Technical - On start, create a forestadmin-schema.json file that contains the apimap definition.
 - Developer Experience - On production, load forestadmin-schema.json to update the apimap.
-- Developer Experience - Allow to desactivate the automatic apimap sending on each start with the environment variable `FOREST_DISABLE_AUTO_SCHEMA_APPLY`.
+
+### Changed
+- Apimap - Developers can deactivate the automatic Apimap sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
 
 ## RELEASE 2.14.6 - 2018-12-14
 ### Changed
