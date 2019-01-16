@@ -4,7 +4,6 @@
 ### Added
 - Technical - On start, create a forestadmin-schema.json file that contains the apimap definition.
 - Developer Experience - On production, load forestadmin-schema.json to update the apimap.
-- Developer Experience - Allow to desactivate the automatic apimap sending on each start with the environment variable `FOREST_DISABLE_AUTO_SCHEMA_APPLY`.
 - Build - Tag versions on git for each release.
 - Build - Developers can now create beta versions.
 
