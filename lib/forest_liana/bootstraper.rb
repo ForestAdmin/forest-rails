@@ -323,8 +323,6 @@ module ForestLiana
         # NOTICE: Remove unecessary keys
         collections = collections.map do |collection|
           collection['fields'] = collection['fields'].map do |field|
-            field['crap'] = 'Yeahhhhh'
-
             unless field['validations'].nil?
               field['validations'] = field['validations'].map { |validation| validation.slice(*validation_keys_whitelist) }
             end
