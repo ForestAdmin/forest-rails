@@ -41,13 +41,13 @@ describe ForestLiana::ApimapSorter do
           id: 'animals',
           attributes: {
             fields: [
-              { 'is-sortable': false, field: 'id', 'is-filterable': false,  type: 'Number' },
+              { is_sortable: false, field: 'id', is_filterable: false,  type: 'Number' },
               { type: 'Date', field: 'createdAt' },
               { field: 'updatedAt', type: 'Date' },
             ],
             name: 'animals',
             integration: 'close.io',
-            'is-virtual': true,
+            is_virtual: true,
           }
         }],
         'included': [{
@@ -119,7 +119,7 @@ describe ForestLiana::ApimapSorter do
       end
 
       it 'should sort the data collections attributes values' do
-        expect(apimap_sorted['data'][0]['attributes'].keys).to eq(['name', 'integration', 'is-virtual', 'fields'])
+        expect(apimap_sorted['data'][0]['attributes'].keys).to eq(['name', 'integration', 'is_virtual', 'fields'])
         expect(apimap_sorted['data'][1]['attributes'].keys).to eq(['name', 'fields'])
         expect(apimap_sorted['data'][2]['attributes'].keys).to eq(['name', 'fields'])
       end
@@ -131,7 +131,7 @@ describe ForestLiana::ApimapSorter do
       end
 
       it 'should sort the data collections attributes fields values' do
-        expect(apimap_sorted['data'][0]['attributes']['fields'][1].keys).to eq(['field', 'type', 'is-filterable', 'is-sortable'])
+        expect(apimap_sorted['data'][0]['attributes']['fields'][1].keys).to eq(['field', 'type', 'is_filterable', 'is_sortable'])
       end
 
       it 'should sort the included actions and segments objects' do

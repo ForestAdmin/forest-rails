@@ -1,8 +1,6 @@
 require 'jsonapi-serializers'
 
-class ForestLiana::ActionSerializer
-  include JSONAPI::Serializer
-
+class ForestLiana::ActionSerializer < ForestLiana::BaseSerializer
   attribute :name
   attribute :http_method
   attribute :endpoint
