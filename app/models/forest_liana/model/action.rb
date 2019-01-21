@@ -9,7 +9,7 @@ class ForestLiana::Model::Action
 
   def initialize(attributes = {})
     if attributes.key?(:global)
-      FOREST_LOGGER.error "REMOVED OPTION:Th support for Smart Action \"global\" option is now " \
+      FOREST_LOGGER.error "REMOVED OPTION: The support for Smart Action \"global\" option is now " \
         "removed. Please set \"type: 'global'\" instead of \"global: true\" for the " \
         "\"#{attributes[:name]}\" Smart Action."
     end
