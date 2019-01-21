@@ -19,7 +19,7 @@ class ForestLiana::Model::Collection
   end
 
   def init_properties_with_default
-    @only_for_relationships ||= nil
+    @only_for_relationships = nil if @only_for_relationships.nil?
     @is_virtual ||= false
     @is_read_only ||= false
     @is_searchable = true if @is_searchable.nil?
