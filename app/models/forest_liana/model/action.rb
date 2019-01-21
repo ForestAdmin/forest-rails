@@ -95,4 +95,12 @@ class ForestLiana::Model::Action
     action = ForestLiana::Model::Action.new
     action.from_json(record.to_json)
   end
+
+  def read_attribute_for_serialization(attr)
+    if attr.to_s == "fields"
+      @fields.as_json
+    else
+      super(attr)
+    end
+  end
 end

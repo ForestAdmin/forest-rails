@@ -11,16 +11,14 @@ class ForestLiana::Model::Collection
     :name_old
 
   def initialize(attributes = {})
-    @actions = []
-    @segments = []
-    @is_searchable = true
-    @is_read_only = false
-    @search_fields = nil
-
     attributes.each do |name, value|
       send("#{name}=", value)
     end
 
+    init_properties_with_default
+  end
+
+  def init_properties_with_default
     @only_for_relationships ||= nil
     @is_virtual ||= false
     @is_read_only ||= false
@@ -28,6 +26,10 @@ class ForestLiana::Model::Collection
     @pagination_type ||= "page"
     @icon ||= nil
     @name_old ||= @name
+    @search_fields ||= nil
+    @actions ||= []
+    @segments ||= []
+    @fields ||= []
   end
 
   def attributes=(hash)
@@ -43,6 +45,8 @@ class ForestLiana::Model::Collection
         send("#{key}=", value)
       end
     end
+
+    init_properties_with_default
   end
 
   def attributes
@@ -82,5 +86,13 @@ class ForestLiana::Model::Collection
 
     collection = ForestLiana::Model::Collection.new
     collection.from_json(record.to_json)
+  end
+
+  def read_attribute_for_serialization(attr)
+    if attr.to_s == "fields"
+      @fields.as_json
+    else
+      super(attr)
+    end
   end
 end

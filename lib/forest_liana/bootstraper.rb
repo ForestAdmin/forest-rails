@@ -380,20 +380,21 @@ module ForestLiana
 
     def update_schema_file
       File.open(File.join(Rails.root, '.forestadmin-schema.json'), 'w') do |f|
-        collections = ForestLiana.apimap.as_json
+        collections = ForestLiana.apimap.as_json({ include: { actions: { except: [:id] }, segments: { only: [:name] } } })
 
         # NOTICE: Remove unecessary keys
         collections = collections.map do |collection|
-          collection[:fields] = collection[:fields].map do |field|
-            unless field[:validations].nil?
-              field[:validations] = field[:validations].map { |validation| validation.slice(*@validation_keys_whitelist) }
+          collection['fields'] = collection['fields'].map do |field|
+            unless field['validations'].nil?
+              field['validations'] = field['validations'].map { |validation| validation.slice(*@validation_keys_whitelist) }
             end
             field.slice(*@field_keys_whitelist)
           end
 
-          collection[:actions] = collection[:actions].map do |action|
+          collection['actions'] = collection['actions'].map do |action|
             action.slice(*@action_keys_whitelist)
-            action[:fields] = action[:fields].map { |field| field.slice(*@action_fields_keys_whitelist) }
+            action['fields'] = action['fields'].map { |field| field.slice(*@action_fields_keys_whitelist) }
+            action
           end
 
           collection['segments'] = collection['segments'].map do |segment|

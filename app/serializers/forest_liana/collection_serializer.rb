@@ -12,13 +12,8 @@ class ForestLiana::CollectionSerializer < ForestLiana::BaseSerializer
   attribute :is_searchable
   attribute :pagination_type
 
-  has_many :actions do
-    object.actions
-  end
-
-  has_many :segments do
-    object.segments
-  end
+  has_many :actions
+  has_many :segments
 
   def relationship_related_link(attribute_name)
     nil
