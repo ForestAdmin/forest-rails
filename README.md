@@ -1,17 +1,22 @@
 # Forest Admin in Rails [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
 
-Forest is a modern Admin Interface (see the [live
-demo](https://app.forestadmin.com/login?livedemo)) that works on all major web
-frameworks including Rails.
+Forest Admin provides an off-the-shelf administration panel based on a highly-extensible API plugged into your application.
 
-The main difference between *forest_liana* and gems like *Administrate*, *Active Admin*
-or *Rails Admin* is that *forest_liana* creates a Rails Engine that automatically
-generates a highly flexible admin REST API and deploys a WYSIWYG interface to <a
-href="https://www.forestadmin.com/">Forest Admin</a>.
+This project has been designed with scalability in mind to fit requirements from small projects to mature companies.
 
-<p align="center" style="margin: 60px 0">
-  <img width="70%" src="https://s3.amazonaws.com/forest-assets/screenshot.png" alt="Forest Admin screenshot">
-</p>
+## Who Uses Forest Admin
+- [Apartmentlist](https://www.apartmentlist.com)
+- [Carbon Health](https://carbonhealth.com)
+- [Ebanx](https://www.ebanx.com)
+- [First circle](https://www.firstcircle.ph)
+- [Forest Admin](https://www.forestadmin.com) of course :-)
+- [Heetch](https://www.heetch.com)
+- [Lunchr](https://www.lunchr.co)
+- [Pillow](https://www.pillow.com)
+- [Qonto](https://www.qonto.eu)
+- [Raspberry PI](https://www.raspberrypi.org/)
+- [Shadow](https://shadow.tech)
+- And hundreds more…
 
 ## Who Uses Forest Admin
 - [Apartmentlist](https://www.apartmentlist.com)
@@ -28,62 +33,114 @@ href="https://www.forestadmin.com/">Forest Admin</a>.
 
 ## Getting Started
 
-[https://docs.forestadmin.com/rails/getting-started/installation](https://docs.forestadmin.com/rails/getting-started/installation)
+Install Forest Admin here: [https://www.forestadmin.com](https://www.forestadmin.com)
 
 ## Documentation
 [https://docs.forestadmin.com/rails](https://docs.forestadmin.com/rails)
 
-## What is it for?
+## Features
 
-### Browse your application's data
-Unleash the power of your data in the simplest way.
+### CRUD
+All of your CRUD operations are natively supported. The API automatically
+supports your data models' validation and allows you to easily extend or
+override any API routes' with your very own custom logic.
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-browse-data.svg" alt="Browser">
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/crud.svg" alt="CRUD">
 
-### Manipulate your data
+### Search & Filters
+Forest Admin has a built-in search allowing you to run basic queries to
+retrieve your application's data. Set advanced filters based on fields and
+relationships to handle complex search use cases.
 
-Provide your operational team with a tool with which they can perform any actions towards your customers' success.
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/search.svg" alt="Search and Filters">
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-manipulate-data.svg" alt="Manipulate">
+### Sorting & Pagination
+Sorting and pagination features are natively handled by the Admin API. We're
+continuously optimizing how queries are run in order to display results faster
+and reduce the load of your servers.
 
-### Listen to your data
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/sorting.svg" alt="Sorting and Pagination">
 
-Anticipate/predict your customer needs before they're even able to formulate it for better lead nurturing, trial conversion, and upsells.
+### Custom action
+A custom action is a button which allows you to trigger an API call to execute
+a custom logic. With virtually no limitations, you can extend the way you
+manipulate data and trigger actions (e.g. refund a customer, apply a coupon,
+ban a user, etc.)
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-listen-data.svg" alt="Listen">
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/custom.svg" alt="Sorting and Pagination">
 
+### Export
+Sometimes you need to export your data to a good old fashioned CSV. Yes, we
+know this can come in handy sometimes :-)
 
-### Organize your application's data
-Backend architecture can be immensely complex. Forest will scan your ORM to retrieve the database models, and generate an admin REST API that will communicate directly with our back office interface.
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/export.svg" alt="Export">
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-organise-data.svg" alt="Organize">
+### Segments
+Get in app access to a subset of your application data by doing a basic search
+or typing an SQL query or implementing an API route.
 
-### Reconcile your data
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/segments.svg" alt="Segments">
 
-Bring additional intelligence and consistency by leveraging data from third party services coupled with your application’s data in a single interface.
+### Dashboards
+Forest Admin is able to tap into your actual data to chart out your metrics
+using a simple UI panel, a SQL query or a custom API call.
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-reconciliate-data.svg" alt="Reconcile">
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/dashboard.svg" alt="Dashboard">
 
-### Streamline your workflow
+### WYSIWYG
+The WYSIWYG interface saves you a tremendous amount of frontend development
+time using drag'n'drop as well as advanced widgets to build customizable views.
 
-Forest fits into your existing workflows and provides you with the framework to streamline those business processes effortlessly.
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/wysiwyg.svg" alt="WYSIWYG">
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-streamline-data.svg" alt="Streamline">
+### Custom HTML/JS/CSS
+Code your own views using JS, HTML, and CSS to display your application data in
+a more appropriate way (e.g. Kanban, Map, Calendar, Gallery, etc.).
 
-### Collaborate on your data
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/customhtml.svg" alt="Custom views">
 
-As your team grows, so do all the little things it takes for your operations to run smoothly. With Forest, simplify collaboration and productivity all across your office.
+### Team-based permissions
+Without any lines of code, manage directly from the UI who has access or can
+act on which data using a team-based permission system.
 
-<img width="300px" src="https://www.forestadmin.com/public/img/illustrations/home/forest-collaborate-data.svg" alt="Collaborate">
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/team.svg" alt="Team based permissions">
 
+### Third-party integrations
+Leverage data from third-party services by reconciling it with your
+application’s data and providing it directly to your Admin Panel. All your
+actions can be performed at the same place, bringing additional intelligence to
+your Admin Panel and ensuring consistency.
 
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/thirdparty.svg" alt="Third-party integrations">
 
+### Notes & Comments
+Assign your teammates to specific tasks, leave a note or simply comment a
+record, thereby simplifying collaboration all across your organization.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/notes.svg" alt="Notes and Comments">
+
+### Activity logs
+Monitor each action executed and follow the trail of modification on any data
+with an extensive activity log system.
+
+<img width="300px" src="https://www.forestadmin.com/public/img/illustrations-dev/screens/activity.svg" alt="Activity logs">
+
+## How it works
+
+The Forest Admin NPM package (aka Forest Liana) introspects all your data model
+and dynamically generates the Admin API hosted on your servers. The Forest Admin
+interface is a web application that handles communication between the admin
+user and your application data through the Admin API.
+
+<p align="center" style="margin: 60px 0">
+  <img width="100%" src="https://www.forestadmin.com/public/img/illustrations-dev/schema-1.svg" alt="Howitworks">
+</p>
 
 ## How to contribute
 
-This liana is officially maintained by Forest.
+This repository is officially maintained by Forest Admin.
 We're always happy to get contributions for other fellow lumberjacks.
-All contributions will be reviewed by Forest's team before being merged into master.
+All contributions will be reviewed by Forest Admin's team before being merged into master.
 
 Here is the contribution workflow:
 
