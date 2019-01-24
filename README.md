@@ -113,7 +113,7 @@ with an extensive activity log system.
 
 ## How it works
 
-The Forest Admin NPM package (aka Forest Liana) introspects all your data model
+The Forest Admin gem (aka Forest Liana) introspects all your data model
 and dynamically generates the Admin API hosted on your servers. The Forest Admin
 interface is a web application that handles communication between the admin
 user and your application data through the Admin API.
