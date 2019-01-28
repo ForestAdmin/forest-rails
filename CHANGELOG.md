@@ -3,6 +3,8 @@
 ## [Unreleased]
 ### Added
 - Technical - On start, create a forestadmin-schema.json file that contains the apimap definition.
+- Build - Tag versions on git for each release.
+- Build - Developers can now create beta versions.
 
 ## RELEASE 2.14.6 - 2018-12-14
 ### Changed
