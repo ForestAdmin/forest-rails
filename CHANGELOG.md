@@ -2,8 +2,8 @@
 
 ## [Unreleased]
 ### Added
-- Technical - On start, create a forestadmin-schema.json file that contains the apimap definition.
-- Developer Experience - On production, load forestadmin-schema.json to update the apimap.
+- Developer Experience - On start, create a `.forestadmin-schema.json` file that contains the schema definition.
+- Developer Experience - On production, load `.forestadmin-schema.json` for schema update.
 - Build - Tag versions on git for each release.
 - Build - Developers can now create beta versions.
 
