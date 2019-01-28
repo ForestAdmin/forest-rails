@@ -74,7 +74,10 @@ module ForestLiana
           if ForestLiana.env_secret || ForestLiana.secret_key
             unless rake?
               bootstraper = Bootstraper.new
-              bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+              if ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+                FOREST_LOGGER.warn "DEPRECATION WARNING: FOREST_DEACTIVATE_AUTOMATIC_APIMAP option has been renamed. Please use FOREST_DISABLE_AUTO_SCHEMA_APPLY instead."
+              end
+              bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY']
             end
           end
         end

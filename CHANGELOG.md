@@ -6,6 +6,9 @@
 - Build - Tag versions on git for each release.
 - Build - Developers can now create beta versions.
 
+### Changed
+- Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
 ## RELEASE 2.14.6 - 2018-12-14
 ### Changed
 - Error Logging - Improve routing error logs for some edge cases.
