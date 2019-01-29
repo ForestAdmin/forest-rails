@@ -43,19 +43,15 @@ module ForestLiana
       format_and_validate_smart_actions
 
       if Rails.env.development?
-        collections = ForestLiana.apimap.as_json({
-          include: {
-            actions: { except: [:id] },
-            segments: { only: [:name] }
-          }
-        })
-        SchemaFileUpdater.new(SCHEMA_FILENAME, collections, ForestLiana.meta).perform()
+        @collections_sent = ForestLiana.apimap.as_json
+        @meta_sent = ForestLiana.meta
+        SchemaFileUpdater.new(SCHEMA_FILENAME, @collections_sent, @meta_sent).perform()
       else
         if File.exists?(SCHEMA_FILENAME)
           begin
             content = JSON.parse(File.read(SCHEMA_FILENAME))
-            @schema_meta = content['meta']
-            @schema_collections = content['collections']
+            @collections_sent = content['collections']
+            @meta_sent = content['meta']
           rescue JSON::JSONError
             FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
             FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
@@ -234,12 +230,8 @@ module ForestLiana
     end
 
     def get_apimap_serialized
-      apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
-        is_collection: true,
-        include: ['actions', 'segments'],
-        meta: ForestLiana.meta
-      })
-
+      serializer = ForestLiana::SchemaSerializer.new(@collections_sent, @meta_sent)
+      apimap = serializer.serialize
       ForestLiana::ApimapSorter.new(apimap).perform
     end
 
@@ -401,7 +393,6 @@ module ForestLiana
         ],
         actions: [
           ForestLiana::Model::Action.new({
-            id: 'stripe.Refund',
             name: 'Refund',
             endpoint: '/forest/stripe_payments/refunds'
           })

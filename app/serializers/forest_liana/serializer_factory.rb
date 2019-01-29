@@ -35,12 +35,6 @@ module ForestLiana
         "ForestLiana::StripeBankAccountSerializer"
       elsif active_record_class == ForestLiana::Model::Stat
         "ForestLiana::StatSerializer"
-      elsif active_record_class == ForestLiana::Model::Collection
-        "ForestLiana::CollectionSerializer"
-      elsif active_record_class == ForestLiana::Model::Action
-        "ForestLiana::ActionSerializer"
-      elsif active_record_class == ForestLiana::Model::Segment
-        "ForestLiana::SegmentSerializer"
       elsif active_record_class == ForestLiana::MixpanelEvent
         "ForestLiana::MixpanelEventSerializer"
       else

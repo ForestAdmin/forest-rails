@@ -24,13 +24,11 @@ module ForestLiana::Collection
     end
 
     def action(name, opts = {})
-      opts[:id] = "#{self.collection_name.to_s}.#{name}"
       opts[:name] = name
       model.actions << ForestLiana::Model::Action.new(opts)
     end
 
     def segment(name, opts = {}, &block)
-      opts[:id] = "#{self.collection_name.to_s}.#{name}"
       opts[:name] = name
       model.segments << ForestLiana::Model::Segment.new(opts, &block)
     end

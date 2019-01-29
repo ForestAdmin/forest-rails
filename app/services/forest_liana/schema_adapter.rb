@@ -280,6 +280,7 @@ module ForestLiana
         is_sortable: true,
         is_read_only: false,
         is_required: false,
+        is_virtual: false,
         default_value: nil,
         integration: nil,
         reference: nil,

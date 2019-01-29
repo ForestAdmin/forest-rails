@@ -74,6 +74,22 @@ module ForestLiana
           unless field['validations'].nil?
             field['validations'] = field['validations'].map { |validation| validation.slice(*KEYS_VALIDATION) }
           end
+
+          field['type'] = 'String' unless field.has_key?('type')
+          field['default_value'] = nil unless field.has_key?('default_value')
+          field['enums'] = nil unless field.has_key?('enums')
+          field['integration'] = nil unless field.has_key?('integration')
+          field['is_filterable'] = false unless field.has_key?('is_filterable')
+          field['is_read_only'] = true unless field.has_key?('is_read_only')
+          field['is_required'] = false unless field.has_key?('is_required')
+          field['is_sortable'] = false unless field.has_key?('is_sortable')
+          field['is_virtual'] = false unless field.has_key?('is_virtual')
+          field['reference'] = nil unless field.has_key?('reference')
+          field['inverse_of'] = nil unless field.has_key?('inverse_of')
+          field['relationships'] = nil unless field.has_key?('relationships')
+          field['widget'] = nil unless field.has_key?('widget')
+          field['validations'] = [] unless field.has_key?('validations')
+
           field.slice(*KEYS_COLLECTION_FIELD)
         end
 
@@ -109,7 +125,8 @@ module ForestLiana
         end
         collection.sort_by { |key, value| KEYS_COLLECTION.index key }.to_h
       end
-      collections.sort { |collection1, collection2| collection1['name'] <=> collection2['name'] }
+
+      @collections.sort! { |collection1, collection2| collection1['name'] <=> collection2['name'] }
     end
 
     def perform
