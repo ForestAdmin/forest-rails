@@ -24,6 +24,7 @@ module ForestLiana
   mattr_accessor :included_models
   mattr_accessor :user_class_name
   mattr_accessor :names_overriden
+  mattr_accessor :meta
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
 
@@ -34,6 +35,7 @@ module ForestLiana
   self.included_models = []
   self.user_class_name = nil
   self.names_overriden = {}
+  self.meta = {}
 
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   self.names_old_overriden = {}

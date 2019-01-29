@@ -41,13 +41,13 @@ describe ForestLiana::ApimapSorter do
           id: 'animals',
           attributes: {
             fields: [
-              { 'is-sortable': false, field: 'id', 'is-filterable': false,  type: 'Number' },
+              { is_sortable: false, field: 'id', is_filterable: false,  type: 'Number' },
               { type: 'Date', field: 'createdAt' },
               { field: 'updatedAt', type: 'Date' },
             ],
             name: 'animals',
             integration: 'close.io',
-            'is-virtual': true,
+            is_virtual: true,
           }
         }],
         'included': [{
@@ -65,16 +65,16 @@ describe ForestLiana::ApimapSorter do
           attributes: {
             name: 'import',
             fields: [{
-              isRequired: true,
+              is_required: true,
               type: 'Boolean',
               field: 'Save',
               description: 'save the import file if true.',
-              defaultValue: 'true'
+              default_value: 'true'
             }, {
               type: 'File',
               field: 'File'
             }],
-            'http-method': nil
+            http_method: 'POST'
           }
         }, {
           attributes: {
@@ -94,7 +94,7 @@ describe ForestLiana::ApimapSorter do
             download: nil,
             endpoint: nil,
             redirect: nil,
-            'http-method': nil
+            http_method: 'POST'
           }
         }]
       }
@@ -119,7 +119,7 @@ describe ForestLiana::ApimapSorter do
       end
 
       it 'should sort the data collections attributes values' do
-        expect(apimap_sorted['data'][0]['attributes'].keys).to eq(['name', 'integration', 'is-virtual', 'fields'])
+        expect(apimap_sorted['data'][0]['attributes'].keys).to eq(['name', 'integration', 'is_virtual', 'fields'])
         expect(apimap_sorted['data'][1]['attributes'].keys).to eq(['name', 'fields'])
         expect(apimap_sorted['data'][2]['attributes'].keys).to eq(['name', 'fields'])
       end
@@ -131,7 +131,7 @@ describe ForestLiana::ApimapSorter do
       end
 
       it 'should sort the data collections attributes fields values' do
-        expect(apimap_sorted['data'][0]['attributes']['fields'][1].keys).to eq(['field', 'type', 'is-filterable', 'is-sortable'])
+        expect(apimap_sorted['data'][0]['attributes']['fields'][1].keys).to eq(['field', 'type', 'is_filterable', 'is_sortable'])
       end
 
       it 'should sort the included actions and segments objects' do
@@ -147,8 +147,8 @@ describe ForestLiana::ApimapSorter do
       end
 
       it 'should sort the included actions and segments objects attributes values' do
-        expect(apimap_sorted['included'][0]['attributes'].keys).to eq(['name', 'download', 'endpoint', 'global', 'http-method', 'redirect'])
-        expect(apimap_sorted['included'][1]['attributes'].keys).to eq(['name', 'http-method', 'fields'])
+        expect(apimap_sorted['included'][0]['attributes'].keys).to eq(['name', 'endpoint', 'http_method', 'redirect', 'download'])
+        expect(apimap_sorted['included'][1]['attributes'].keys).to eq(['name', 'http_method', 'fields'])
         expect(apimap_sorted['included'][2]['attributes'].keys).to eq(['name'])
         expect(apimap_sorted['included'][3]['attributes'].keys).to eq(['name'])
       end
@@ -158,7 +158,7 @@ describe ForestLiana::ApimapSorter do
       end
 
       it 'should sort the included action fields values' do
-        expect(apimap_sorted['included'][1]['attributes']['fields'][1].keys).to eq(['field', 'type', 'defaultValue', 'description', 'isRequired'])
+        expect(apimap_sorted['included'][1]['attributes']['fields'][1].keys).to eq(['field', 'type', 'default_value', 'is_required', 'description'])
       end
 
       it 'should sort the meta values' do

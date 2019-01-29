@@ -113,16 +113,16 @@ module ForestLiana
           type: ['String'],
           reference: "#{model_name}_intercom_conversations.id",
           column: nil,
-          'is-filterable': false,
+          is_filterable: false,
           integration: 'intercom'
         }
 
-        @collection.fields << {
+        collection.fields << {
           field: :intercom_attributes,
           type: 'String',
           reference: "#{model_name}_intercom_attributes.id",
           column: nil,
-          'is-filterable': false,
+          is_filterable: false,
           integration: 'intercom'
         }
       end
@@ -143,7 +143,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_payments.id",
             column: nil,
-            'is-filterable': false,
+            is_filterable: false,
             integration: 'stripe'
           }
 
@@ -152,7 +152,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_invoices.id",
             column: nil,
-            'is-filterable': false,
+            is_filterable: false,
             integration: 'stripe'
           }
 
@@ -161,7 +161,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_cards.id",
             column: nil,
-            'is-filterable': false,
+            is_filterable: false,
             integration: 'stripe'
           }
 
@@ -170,7 +170,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_subscriptions.id",
             column: nil,
-            'is-filterable': false,
+            is_filterable: false,
             integration: 'stripe'
           }
 
@@ -179,7 +179,7 @@ module ForestLiana
             type: ['String'],
             reference: "#{model_name}_stripe_bank_accounts.id",
             column: nil,
-            'is-filterable': false,
+            is_filterable: false,
             integration: 'stripe'
           }
         end
@@ -201,8 +201,7 @@ module ForestLiana
           type: ['String'],
           reference: "#{model_name}_mixpanel_events.id",
           column: nil,
-          'is-filterable': false,
-          'display-name': 'Last events',
+          is_filterable: false,
           integration: 'mixpanel',
         }
       end
@@ -243,7 +242,7 @@ module ForestLiana
             [:has_one, :belongs_to].include?(association.macro)
               field[:reference] = get_reference_for(association)
               field[:field] = association.name
-              field[:inverseOf] = inverse_of(association)
+              field[:inverse_of] = inverse_of(association)
           # NOTICE: Create the fields of hasOne, HasMany, … relationships.
           else
             collection.fields << get_schema_for_association(association)
@@ -274,7 +273,22 @@ module ForestLiana
     end
 
     def get_schema_for_column(column)
-      schema = { field: column.name, type: get_type_for(column) }
+      schema = {
+        field: column.name,
+        type: get_type_for(column),
+        is_filterable: true,
+        is_sortable: true,
+        is_read_only: false,
+        is_required: false,
+        is_virtual: false,
+        default_value: nil,
+        integration: nil,
+        reference: nil,
+        inverse_of: nil,
+        relationships: nil,
+        widget: nil,
+        validations: []
+      }
       add_enum_values_if_is_enum(schema, column)
       add_enum_values_if_is_sti_model(schema, column)
       add_default_value(schema, column)
@@ -286,8 +300,17 @@ module ForestLiana
         field: association.name.to_s,
         type: get_type_for_association(association),
         reference: "#{ForestLiana.name_for(association.klass)}.id",
-        inverseOf: inverse_of(association),
-        'is-filterable': !is_many_association(association)
+        inverse_of: inverse_of(association),
+        is_filterable: !is_many_association(association),
+        is_sortable: true,
+        is_read_only: false,
+        is_required: false,
+        is_virtual: false,
+        default_value: nil,
+        integration: nil,
+        relationships: nil,
+        widget: nil,
+        validations: []
       }
     end
 
@@ -358,7 +381,7 @@ module ForestLiana
     def add_default_value(column_schema, column)
       # TODO: detect/introspect the attribute default value with Rails 5
       #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
-      column_schema['default-value'] = column.default if column.default
+      column_schema[:default_value] = column.default if column.default
     end
 
     def add_validations(column_schema, column)
@@ -369,8 +392,6 @@ module ForestLiana
       end
 
       if @model._validators? && @model._validators[column.name.to_sym].size > 0
-        column_schema[:validations] = []
-
         @model._validators[column.name.to_sym].each do |validator|
           # NOTICE: Do not consider conditional validations
           next if validator.options[:if] || validator.options[:unless]
@@ -381,7 +402,7 @@ module ForestLiana
               type: 'is present',
               message: validator.options[:message]
             }
-            column_schema['is-required'] = true
+            column_schema[:is_required] = true
           when ActiveModel::Validations::NumericalityValidator
             validator.options.each do |option, value|
               case option

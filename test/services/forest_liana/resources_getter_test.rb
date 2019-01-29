@@ -140,7 +140,7 @@ module ForestLiana
       assert records.first.owner.name == 'Arnaud Besnier'
     end
 
-    test 'Filter after x days' do
+    test 'Filter after x hours' do
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
@@ -228,7 +228,7 @@ module ForestLiana
 
     test 'Filter on a field of an associated collection that does not exist' do
       exception = assert_raises(ForestLiana::Errors::HTTP422Error) {
-        getter = ForestLiana::ResourcesGetter.new(Tree, {
+        ForestLiana::ResourcesGetter.new(Tree, {
           fields: { 'Tree' => 'id'},
           filterType: 'and',
           searchExtended: '0',
@@ -242,7 +242,7 @@ module ForestLiana
 
     test 'Filter on a field that does not exists' do
       exception = assert_raises(ForestLiana::Errors::HTTP422Error) {
-        getter = ForestLiana::ResourcesGetter.new(Tree, {
+        ForestLiana::ResourcesGetter.new(Tree, {
           fields: { 'Tree' => 'id'},
           filterType: 'and',
           searchExtended: '0',
