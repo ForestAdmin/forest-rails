@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.0.0-beta.0 - 2019-01-30
 ### Added
 - Developer Experience - On start, create a `.forestadmin-schema.json` file that contains the schema definition.
 - Developer Experience - On production, load `.forestadmin-schema.json` for schema update.
