@@ -41,7 +41,7 @@ module ForestLiana
       'fields',
     ]
     KEYS_ACTION_FIELD = [
-      'name',
+      'field',
       'type',
       'default_value',
       'enums',
@@ -76,7 +76,7 @@ module ForestLiana
 
           @apimap['included'].map! do |object|
             object = reorder_keys_child(object)
-            if object['type'] === 'action'
+            if object['type'] === 'actions'
               object['attributes'] = reorder_action_attributes(object['attributes'])
               if object['attributes']['fields']
                 object['attributes']['fields'] = sort_array_of_fields(object['attributes']['fields'])

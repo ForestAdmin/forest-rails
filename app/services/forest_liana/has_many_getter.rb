@@ -10,7 +10,7 @@ module ForestLiana
       @collection_name = ForestLiana.name_for(model_association)
       @field_names_requested = field_names_requested
       @collection = get_collection(@collection_name)
-      includes_symbols = includes.map { |association| association.to_sym }
+      includes_symbols = includes.map { |include| include.to_sym }
       @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
 
       prepare_query()
