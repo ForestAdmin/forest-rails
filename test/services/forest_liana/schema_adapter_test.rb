@@ -41,7 +41,7 @@ module ForestLiana
         field: :has_one_field,
         type: 'Number',
         reference: 'HasOneField.id',
-        inverseOf: 'belongs_to_field'
+        inverse_of: 'belongs_to_field'
       })
     end
 
@@ -51,8 +51,8 @@ module ForestLiana
         field: 'belongs_to_field',
         type: 'Number',
         reference: 'BelongsToField.id',
-        inverseOf: 'has_one_field',
-        "is-filterable": true
+        inverse_of: 'has_one_field',
+        is_filterable: true
       })
     end
 
@@ -62,8 +62,8 @@ module ForestLiana
         field: 'belongs_to_fields',
         type: ['Number'],
         reference: 'BelongsToField.id',
-        inverseOf: 'has_many_field',
-        "is-filterable": false
+        inverse_of: 'has_many_field',
+        is_filterable: false
       })
     end
 
@@ -73,8 +73,8 @@ module ForestLiana
         field: 'foo',
         type: ['Number'],
         reference: 'BelongsToField.id',
-        inverseOf: 'has_many_class_name_field',
-        "is-filterable": false
+        inverse_of: 'has_many_class_name_field',
+        is_filterable: false
       })
     end
 
@@ -84,7 +84,7 @@ module ForestLiana
         field: :foo,
         type: 'Number',
         reference: 'HasOneField.id',
-        inverseOf: 'belongs_to_class_name_field'
+        inverse_of: 'belongs_to_class_name_field'
       })
     end
 

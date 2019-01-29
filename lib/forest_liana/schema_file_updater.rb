@@ -4,40 +4,39 @@ module ForestLiana
   class SchemaFileUpdater
     include JsonPrinter
 
+    # TODO: Remove nameOld attribute once the lianas versions older than 2.0.0 are minority.
     KEYS_COLLECTION = [
       'name',
-      'nameOld',
-      'displayName',
+      'name_old',
       'icon',
       'integration',
-      'isReadOnly',
-      'isSearchable',
-      'isVirtual',
-      'onlyForRelationships',
-      'paginationType',
+      'is_read_only',
+      'is_searchable',
+      'is_virtual',
+      'only_for_relationships',
+      'pagination_type',
       'fields',
       'segments',
-      'actions'
+      'actions',
     ]
     KEYS_COLLECTION_FIELD = [
       'field',
       'type',
-      'column',
-      'defaultValue',
+      'default_value',
       'enums',
       'integration',
-      'isFilterable',
-      'isReadOnly',
-      'isRequired',
-      'isSortable',
-      'isVirtual',
+      'is_filterable',
+      'is_read_only',
+      'is_required',
+      'is_sortable',
+      'is_virtual',
       'reference',
-      'inverseOf',
+      'inverse_of',
       'relationship',
       'widget',
-      'validations'
+      'validations',
     ]
-    KEYS_FIELD_VALIDATION = [
+    KEYS_VALIDATION = [
       'message',
       'type',
       'value',
@@ -45,13 +44,23 @@ module ForestLiana
     KEYS_ACTION = [
       'name',
       'type',
-      'baseUrl',
+      'base_url',
       'endpoint',
-      'httpMethod',
-      'download',
+      'http_method',
       'redirect',
-      'global',
-      'fields'
+      'download',
+      'fields',
+    ]
+    KEYS_ACTION_FIELD = [
+      'name',
+      'type',
+      'default_value',
+      'enums',
+      'is_required',
+      'reference',
+      'description',
+      'position',
+      'widget',
     ]
     KEYS_SEGMENT = ['name']
 
@@ -63,13 +72,15 @@ module ForestLiana
       @collections = collections.map do |collection|
         collection['fields'] = collection['fields'].map do |field|
           unless field['validations'].nil?
-            field['validations'] = field['validations'].map { |validation| validation.slice(*KEYS_FIELD_VALIDATION) }
+            field['validations'] = field['validations'].map { |validation| validation.slice(*KEYS_VALIDATION) }
           end
           field.slice(*KEYS_COLLECTION_FIELD)
         end
 
         collection['actions'] = collection['actions'].map do |action|
           action.slice(*KEYS_ACTION)
+          action['fields'] = action['fields'].map { |field| field.slice(*KEYS_ACTION_FIELD) }
+          action
         end
 
         collection['segments'] = collection['segments'].map do |segment|
@@ -88,7 +99,7 @@ module ForestLiana
         collection['fields'] = collection['fields'].map do |field|
           unless field['validations'].nil?
             field['validations'] = field['validations'].map do |validation|
-              validation.sort_by { |key, value| KEYS_FIELD_VALIDATION.index key }.to_h
+              validation.sort_by { |key, value| KEYS_VALIDATION.index key }.to_h
             end
           end
           field.sort_by { |key, value| KEYS_COLLECTION_FIELD.index key }.to_h

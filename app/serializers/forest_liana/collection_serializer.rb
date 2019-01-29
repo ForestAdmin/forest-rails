@@ -1,11 +1,8 @@
 require 'jsonapi-serializers'
 
-class ForestLiana::CollectionSerializer
-  include JSONAPI::Serializer
-
+class ForestLiana::CollectionSerializer < ForestLiana::BaseSerializer
   attribute :name
   attribute :name_old # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
-  attribute :display_name
   attribute :icon
   attribute :integration
   attribute :fields
@@ -15,13 +12,8 @@ class ForestLiana::CollectionSerializer
   attribute :is_searchable
   attribute :pagination_type
 
-  has_many :actions do
-    object.actions
-  end
-
-  has_many :segments do
-    object.segments
-  end
+  has_many :actions
+  has_many :segments
 
   def relationship_related_link(attribute_name)
     nil
