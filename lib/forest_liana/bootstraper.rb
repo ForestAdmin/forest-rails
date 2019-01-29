@@ -1,5 +1,8 @@
+require_relative 'schema_file_updater'
+
 module ForestLiana
   class Bootstraper
+    SCHEMA_FILENAME = File.join(Dir.pwd, '.forestadmin-schema.json')
 
     def initialize
       @integration_stripe_valid = false
@@ -35,17 +38,26 @@ module ForestLiana
     private
 
     def generate_apimap
-      if Rails.env.development?
-        create_apimap
-      else
-        load_apimap
-      end
-
+      create_apimap
       require_lib_forest_liana
       format_and_validate_smart_actions
 
       if Rails.env.development?
-        update_schema_file
+        SchemaFileUpdater.new(SCHEMA_FILENAME, ForestLiana.apimap.as_json, ForestLiana.meta).perform()
+      else
+        if File.exists?(SCHEMA_FILENAME)
+          begin
+            content = JSON.parse(File.read(SCHEMA_FILENAME))
+            @schema_meta = content['meta']
+            @schema_collections = content['collections']
+          rescue JSON::JSONError
+            FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
+            FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
+          end
+        else
+          FOREST_LOGGER.error "The .forestadmin-schema.json file does not exists."
+          FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
+        end
       end
     end
 
@@ -192,176 +204,6 @@ module ForestLiana
         ForestLiana.integrations[:mixpanel][:mapping].each do |collection_name|
           setup_mixpanel_integration collection_name
         end
-      end
-    end
-
-    def load_apimap
-      if File.exists?(File.join(Rails.root, 'forestadmin-schema.json'))
-        begin
-          apimap = File.read(File.join(Rails.root, 'forestadmin-schema.json'))
-          apimap = JSON.parse(apimap)
-          ForestLiana.meta = apimap['meta']
-          ForestLiana.apimap = ForestLiana::Model::Collection.from_json(apimap['collections'])
-        rescue JSON::JSONError
-          FOREST_LOGGER.error "File forestadmin-schema.json does not appear to be valid json."
-        end
-      else
-        FOREST_LOGGER.error "File forestadmin-schema.json does not exist."\
-          "Make sure to deploy this file in your production environment."
-      end
-    end
-
-    def pretty_print_json(json, indentation = "")
-      result = ""
-
-      if json.kind_of?(Array)
-        result << "["
-        is_small = json.length < 3
-        is_primary_value = false
-        json.each_index do |index|
-          item = json[index]
-          is_primary_value = !item.kind_of?(Hash) && !item.kind_of?(Array)
-
-          if index == 0 && is_primary_value && !is_small
-            result << "\n" << indentation << "  "
-          elsif index > 0 && is_primary_value && !is_small
-            result << ",\n" << indentation << "  "
-          elsif index > 0
-            result << ", "
-          end
-
-          result << pretty_print_json(item, is_primary_value ? indentation + "  " : indentation);
-        end
-
-        if is_primary_value && !is_small
-          result << "\n" << indentation
-        end
-        result << "]"
-      elsif json.kind_of?(Hash)
-        result << "{\n"
-
-        is_first = true
-        json = json.stringify_keys
-        json.each do |key, value|
-          unless is_first
-            result << ",\n"
-          end
-          is_first = false
-          result << indentation << '  "' << key << '": '
-          result << pretty_print_json(value, indentation + "  ")
-        end
-
-        result << "\n" << indentation << "}"
-      elsif json.nil?
-        result << "null"
-      elsif !!json == json
-        result << (json ? "true" : "false")
-      elsif json.is_a? String
-        result << '"' << json << '"'
-      else
-        result << json.to_s
-      end
-
-      result
-    end
-
-    def update_schema_file
-      File.open(File.join(Rails.root, 'forestadmin-schema.json'), 'w') do |f|
-        collections = ForestLiana.apimap.as_json
-
-        collection_keys_whitelist = [
-          'name',
-          'displayName',
-          'icon',
-          'integration',
-          'isReadOnly',
-          'isSearchable',
-          'isVirtual',
-          'nameOld',
-          'onlyForRelationships',
-          'paginationType',
-          'fields',
-          'segments',
-          'actions',
-        ]
-        field_keys_whitelist = [
-          'field',
-          'collection_name',
-          'column',
-          'defaultValue',
-          'displayName',
-          'enums',
-          'integration',
-          'isFilterable',
-          'isReadOnly',
-          'isRequired',
-          'isSortable',
-          'isVirtual',
-          'reference',
-          'relationship',
-          'type',
-          'widget',
-          'validations',
-        ]
-        validation_keys_whitelist = [
-          'message',
-          'type',
-          'value',
-        ],
-        action_keys_whitelist = [
-          'name',
-          'baseUrl',
-          'download',
-          'endpoint',
-          'global',
-          'httpMethod',
-          'redirect',
-          'type',
-          'fields',
-        ]
-        segment_keys_whitelist = ['name']
-        # NOTICE: Remove unecessary keys
-        collections = collections.map do |collection|
-          collection['fields'] = collection['fields'].map do |field|
-            unless field['validations'].nil?
-              field['validations'] = field['validations'].map { |validation| validation.slice(*validation_keys_whitelist) }
-            end
-            field.slice(*field_keys_whitelist)
-          end
-
-          collection['actions'] = collection['actions'].map do |action|
-            action.slice(*action_keys_whitelist)
-          end
-
-          collection['segments'] = collection['segments'].map do |segment|
-            segment.slice(*segment_keys_whitelist)
-          end
-
-          collection.slice(*collection_keys_whitelist)
-        end
-
-        # NOTICE: Sort keys
-        collections = collections.map do |collection|
-          collection['fields'].sort { |field1, field2| [field1['field'], field1['type']] <=> [field2['field'], field2['type']] }
-          collection['fields'] = collection['fields'].map do |field|
-            unless field['validations'].nil?
-              field['validations'] = field['validations'].map do |validation|
-                validation.sort_by { |key, value| validation_keys_whitelist.index key }.to_h
-              end
-            end
-            field.sort_by { |key, value| field_keys_whitelist.index key }.to_h
-          end
-          collection['actions'] = collection['actions'].map do |action|
-            action.sort_by { |key, value| action_keys_whitelist.index key }.to_h
-          end
-          collection.sort_by { |key, value| collection_keys_whitelist.index key }.to_h
-        end
-        collections.sort { |collection1, collection2| collection1['name'] <=> collection2['name'] }
-
-        f.puts pretty_print_json({
-          collections: collections,
-          meta: ForestLiana.meta
-        })
       end
     end
 
