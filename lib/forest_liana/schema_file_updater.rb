@@ -52,7 +52,7 @@ module ForestLiana
       'fields',
     ]
     KEYS_ACTION_FIELD = [
-      'name',
+      'field',
       'type',
       'default_value',
       'enums',
