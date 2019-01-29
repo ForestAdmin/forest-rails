@@ -140,7 +140,7 @@ module ForestLiana
       assert records.first.owner.name == 'Arnaud Besnier'
     end
 
-    test 'Filter after x days' do
+    test 'Filter after x hours' do
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
