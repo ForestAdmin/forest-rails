@@ -64,6 +64,7 @@ gulp.task('build', () => {
     .mergeFromTo(BRANCH_DEVEL, BRANCH_MASTER)
     .then(() => { console.log(`Merge ${BRANCH_DEVEL} on ${BRANCH_MASTER} done.`); })
     .push()
+    .then(() => { exec('gem build forest_liana.gemspec'); });
     .addTag(tag)
     .push('origin', tag)
     .then(() => { console.log(`Tag ${tag} on ${BRANCH_MASTER} done.`); })
