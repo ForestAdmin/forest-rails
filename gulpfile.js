@@ -4,14 +4,15 @@ const moment = require('moment');
 const fs = require('fs');
 const simpleGit = require('simple-git')();
 const semver = require('semver');
+const exec = require('child_process').execSync;
 
 let BRANCH_MASTER = 'master';
 let BRANCH_DEVEL = 'devel';
 let RELEASE_OPTIONS = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease'];
 
 gulp.task('build', () => {
-  const releaseType = 'patch';
-  const prereleaseTag;
+  let releaseType = 'patch';
+  let prereleaseTag;
 
   if (process.argv) {
     if (process.argv[3]) {
