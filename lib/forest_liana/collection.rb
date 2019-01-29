@@ -41,22 +41,22 @@ module ForestLiana::Collection
       # TODO: Handle empty name
 
       if opts.key?(:isRequired)
-        FOREST_LOGGER.warn "DEPRECATION WANING: isRequired on field #{name} is deprecated. Please use is_required."
+        FOREST_LOGGER.warn "DEPRECATION WARNING: isRequired on field \"#{name}\" is deprecated. Please use is_required."
         opts[:is_required] = !!opts[:isRequired]
         opts.delete(:isRequired)
       end
       if opts.key?(:isReadOnly)
-        FOREST_LOGGER.warn "DEPRECATION WANING: isReadOnly on field #{name} is deprecated. Please use is_read_only."
+        FOREST_LOGGER.warn "DEPRECATION WARNING: isReadOnly on field \"#{name}\" is deprecated. Please use is_read_only."
         opts[:is_read_only] = !!opts[:isReadOnly]
         opts.delete(:isReadOnly)
       end
       if opts.key?(:isFilterable)
-        FOREST_LOGGER.warn "DEPRECATION WANING: isFilterable on field #{name} is deprecated. Please use is_filterable."
+        FOREST_LOGGER.warn "DEPRECATION WARNING: isFilterable on field \"#{name}\" is deprecated. Please use is_filterable."
         opts[:is_filterable] = !!opts[:isFilterable]
         opts.delete(:isFilterable)
       end
       if opts.key?(:isSortable)
-        FOREST_LOGGER.warn "DEPRECATION WANING: isSortable on field #{name} is deprecated. Please use is_sortable."
+        FOREST_LOGGER.warn "DEPRECATION WARNING: isSortable on field \"#{name}\" is deprecated. Please use is_sortable."
         opts[:is_sortable] = !!opts[:isSortable]
         opts.delete(:isSortable)
       end

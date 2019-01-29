@@ -27,14 +27,19 @@ class ForestLiana::Model::Action
     @fields ||= []
 
     has_fields_without_name = false
+
     @fields.delete_if do |field|
-      if field.key?(:name)
+      if field.key?(:field)
+        false
+      else
         has_fields_without_name = true
         true
       end
+    end
 
+    @fields.map! do |field|
       if field.key?(:isRequired)
-        FOREST_LOGGER.warn "DEPRECATION WANING: isRequired on field #{field[:name]} is deprecated. Please use is_required."
+        FOREST_LOGGER.warn "DEPRECATION WARNING: isRequired on field \"#{field[:field]}\" is deprecated. Please use is_required."
         field[:is_required] = !!field[:isRequired]
         field.delete(:isRequired)
       end
@@ -46,7 +51,7 @@ class ForestLiana::Model::Action
       field[:reference] = nil unless field.key?(:reference)
       field[:description] = nil unless field.key?(:description)
       field[:widget] = nil unless field.key?(:widget)
-      false
+      field
     end
 
     if has_fields_without_name
