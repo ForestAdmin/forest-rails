@@ -9,10 +9,10 @@ Gem::Specification.new do |s|
   s.version     = ForestLiana::VERSION
   s.authors     = ["Sandro Munda"]
   s.email       = ["sandro@munda.me"]
-  s.homepage    = nil
+  s.homepage    = 'https://github.com/ForestAdmin/forest-rails'
   s.summary     = "Official Rails Liana for Forest"
   s.description = "Forest is a modern admin interface that works on all major web frameworks. forest_liana is the gem that makes Forest admin work on any Rails application (Rails >= 4.0)."
-  s.license     = "GPL v3"
+  s.license     = "GPL-3.0"
 
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]

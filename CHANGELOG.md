@@ -1,6 +1,10 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Build - Tag versions on git for each release.
+- Build - Developers can now create beta versions.
+
 ### Fixed
 - Validations - Remove badly set validations on Array fields.
 
