@@ -34,9 +34,6 @@ gulp.task('build', () => {
   versionFile[1] = `  VERSION = "${version}"`;
   const newVersionFile = versionFile.join('\n');
 
-  // BUNDLE
-  exec('bundle install');
-
   // CHANGELOG
   let changes = fs.readFileSync('CHANGELOG.md').toString().split('\n');
   let today = moment().format('YYYY-MM-DD');
@@ -54,6 +51,7 @@ gulp.task('build', () => {
       fs.writeFileSync('lib/forest_liana/version.rb', newVersionFile);
       fs.writeFileSync('CHANGELOG.md', newChanges);
     })
+    .then(() => { exec('bundle install'); })
     .add('*')
     .commit(`Release ${version}`)
     .push()
@@ -64,7 +62,7 @@ gulp.task('build', () => {
     .mergeFromTo(BRANCH_DEVEL, BRANCH_MASTER)
     .then(() => { console.log(`Merge ${BRANCH_DEVEL} on ${BRANCH_MASTER} done.`); })
     .push()
-    .then(() => { exec('gem build forest_liana.gemspec'); });
+    .then(() => { exec('gem build forest_liana.gemspec'); })
     .addTag(tag)
     .push('origin', tag)
     .then(() => { console.log(`Tag ${tag} on ${BRANCH_MASTER} done.`); })
