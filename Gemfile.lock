@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (3.0.0.pre.beta.1)
+    forest_liana (3.0.0.pre.beta.2)
       arel-helpers
       base32
       bcrypt
