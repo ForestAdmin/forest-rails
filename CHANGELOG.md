@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Validations - Remove badly set validations on Array fields.
 
 ## RELEASE 3.0.0-beta.4 - 2019-01-30
 ### Fixed
