@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ## RELEASE 3.0.0-beta.1 - 2019-01-30
+### Fixed
+- Build - Fix regressions in the build script.
 
 ## RELEASE 3.0.0-beta.0 - 2019-01-30
 ### Added
