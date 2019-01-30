@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (3.0.0.pre.beta.3)
+    forest_liana (3.0.0.pre.beta.4)
       arel-helpers
       base32
       bcrypt
@@ -169,4 +169,4 @@ DEPENDENCIES
   useragent
 
 BUNDLED WITH
-   1.16.6
+   1.17.3
