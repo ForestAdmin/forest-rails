@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Build - Fix liana version set in the `.forestadmin-schema.json` meta.
 
 ## RELEASE 3.0.0-beta.2 - 2019-01-30
 ### Fixed

@@ -1,4 +1,5 @@
 require_relative 'schema_file_updater'
+require_relative 'version'
 
 module ForestLiana
   class Bootstraper
