@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Schema - Fix empty validations set in the schema file.
 
 ## RELEASE 3.0.0-beta.3 - 2019-01-30
 ### Fixed

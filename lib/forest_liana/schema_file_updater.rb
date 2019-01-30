@@ -40,7 +40,7 @@ module ForestLiana
       'message',
       'type',
       'value',
-    ],
+    ]
     KEYS_ACTION = [
       'name',
       'type',
