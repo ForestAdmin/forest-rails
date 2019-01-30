@@ -421,31 +421,33 @@ module ForestLiana
               end
             end
           when ActiveModel::Validations::LengthValidator
-            validator.options.each do |option, value|
-              case option
-              when :minimum
-                column_schema[:validations] << {
-                  type: 'is longer than',
-                  value: value,
-                  message: validator.options[:message]
-                }
-              when :maximum
-                column_schema[:validations] << {
-                  type: 'is shorter than',
-                  value: value,
-                  message: validator.options[:message]
-                }
-              when :is
-                column_schema[:validations] << {
-                  type: 'is longer than',
-                  value: value,
-                  message: validator.options[:message]
-                }
-                column_schema[:validations] << {
-                  type: 'is shorter than',
-                  value: value,
-                  message: validator.options[:message]
-                }
+            if column_schema[:type] == 'String'
+              validator.options.each do |option, value|
+                case option
+                when :minimum
+                  column_schema[:validations] << {
+                    type: 'is longer than',
+                    value: value,
+                    message: validator.options[:message]
+                  }
+                when :maximum
+                  column_schema[:validations] << {
+                    type: 'is shorter than',
+                    value: value,
+                    message: validator.options[:message]
+                  }
+                when :is
+                  column_schema[:validations] << {
+                    type: 'is longer than',
+                    value: value,
+                    message: validator.options[:message]
+                  }
+                  column_schema[:validations] << {
+                    type: 'is shorter than',
+                    value: value,
+                    message: validator.options[:message]
+                  }
+                end
               end
             end
           when ActiveModel::Validations::FormatValidator

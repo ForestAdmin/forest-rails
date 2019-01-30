@@ -22,11 +22,17 @@
 ### Added
 - Developer Experience - On start, create a `.forestadmin-schema.json` file that contains the schema definition.
 - Developer Experience - On production, load `.forestadmin-schema.json` for schema update.
-- Build - Tag versions on git for each release.
-- Build - Developers can now create beta versions.
 
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
+## RELEASE 2.14.7 - 2019-01-30
+### Added
+- Build - Tag versions on git for each release.
+- Build - Developers can now create beta versions.
+
+### Fixed
+- Validations - Remove badly set validations on Array fields.
 
 ## RELEASE 2.14.6 - 2018-12-14
 ### Changed
