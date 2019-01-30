@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## RELEASE 3.0.0-beta.1 - 2019-01-30
+
 ## RELEASE 3.0.0-beta.0 - 2019-01-30
 ### Added
 - Developer Experience - On start, create a `.forestadmin-schema.json` file that contains the schema definition.
