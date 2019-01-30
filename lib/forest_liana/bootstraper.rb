@@ -176,7 +176,7 @@ module ForestLiana
         database_type: database_type,
         framework_version: Gem.loaded_specs["rails"].version.version,
         liana: 'forest-rails',
-        liana_version: liana_version,
+        liana_version: ForestLiana::VERSION,
         orm_version: Gem.loaded_specs["activerecord"].version.version
       }
     end
@@ -618,13 +618,6 @@ module ForestLiana
 
     def forest_url
       ENV['FOREST_URL'] || 'https://api.forestadmin.com';
-    end
-
-    def liana_version
-      Gem::Specification.find_all_by_name('forest_liana')
-        .try(:first)
-        .try(:version)
-        .try(:to_s)
     end
 
     def database_type
