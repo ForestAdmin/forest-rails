@@ -2,10 +2,6 @@ module ForestLiana
   class LineStatGetter < StatGetter
     attr_accessor :record
 
-    def initialize(resource, params)
-      super(resource, params)
-    end
-
     def client_timezone
       @params[:timezone]
     end

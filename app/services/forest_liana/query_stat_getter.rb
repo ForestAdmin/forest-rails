@@ -2,6 +2,12 @@ module ForestLiana
   class QueryStatGetter
     attr_accessor :record
 
+    CHART_TYPE_VALUE = 'Value';
+    CHART_TYPE_PIE = 'Pie';
+    CHART_TYPE_LINE = 'Line';
+    CHART_TYPE_LEADERBOARD = 'Leaderboard';
+    CHART_TYPE_OBJECTIVE = 'Objective';
+
     def initialize(params)
       @params = params
     end
@@ -18,7 +24,7 @@ module ForestLiana
       result = ActiveRecord::Base.connection.execute(raw_query)
 
       case @params['type']
-      when 'Value'
+      when CHART_TYPE_VALUE
         if result.count
           result_line = ForestLiana::AdapterHelper.format_live_query_value_result(result)
           if result_line
@@ -34,7 +40,7 @@ module ForestLiana
             @record = Model::Stat.new(value: { countCurrent: 0, countPrevious: 0 })
           end
         end
-      when 'Pie'
+      when CHART_TYPE_PIE, CHART_TYPE_LEADERBOARD
         if result.count
           values = ForestLiana::AdapterHelper.format_live_query_pie_result(result)
 
@@ -46,7 +52,7 @@ module ForestLiana
 
           @record = Model::Stat.new(value: values)
         end
-      when 'Line'
+      when CHART_TYPE_LINE
         if result.count
           values = ForestLiana::AdapterHelper.format_live_query_line_result(result)
 
@@ -61,6 +67,22 @@ module ForestLiana
           end
 
           @record = Model::Stat.new(value: result_formatted)
+        end
+      when CHART_TYPE_OBJECTIVE
+        if result.count
+          result_line = ForestLiana::AdapterHelper.format_live_query_value_result(result)
+          if result_line
+            if !result_line.key?('value') || !result_line.key?('objective')
+              raise error_message(result_line, "'value', 'objective'")
+            else
+              @record = Model::Stat.new(value: {
+                value: result_line['value'],
+                objective: result_line['objective']
+              })
+            end
+          else
+            @record = Model::Stat.new(value: { value: 0, objective: 0 })
+          end
         end
       end
     end

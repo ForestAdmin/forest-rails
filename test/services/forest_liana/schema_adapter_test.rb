@@ -40,6 +40,7 @@ module ForestLiana
       assert schema.fields.include?({
         field: :has_one_field,
         type: 'Number',
+        relationship: 'BelongsTo',
         reference: 'HasOneField.id',
         inverseOf: 'belongs_to_field'
       })
@@ -50,6 +51,7 @@ module ForestLiana
       assert schema.fields.include?({
         field: 'belongs_to_field',
         type: 'Number',
+        relationship: 'HasOne',
         reference: 'BelongsToField.id',
         inverseOf: 'has_one_field',
         "is-filterable": true
@@ -61,6 +63,7 @@ module ForestLiana
       assert schema.fields.include?({
         field: 'belongs_to_fields',
         type: ['Number'],
+        relationship: 'HasMany',
         reference: 'BelongsToField.id',
         inverseOf: 'has_many_field',
         "is-filterable": false
@@ -72,6 +75,7 @@ module ForestLiana
       assert schema.fields.include?({
         field: 'foo',
         type: ['Number'],
+        relationship: 'HasMany',
         reference: 'BelongsToField.id',
         inverseOf: 'has_many_class_name_field',
         "is-filterable": false
@@ -83,6 +87,7 @@ module ForestLiana
       assert schema.fields.include?({
         field: :foo,
         type: 'Number',
+        relationship: 'BelongsTo',
         reference: 'HasOneField.id',
         inverseOf: 'belongs_to_class_name_field'
       })
