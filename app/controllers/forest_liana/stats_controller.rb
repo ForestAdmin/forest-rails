@@ -13,13 +13,15 @@ module ForestLiana
     CHART_TYPE_OBJECTIVE = 'Objective';
 
     def get
-      case params[:type].try(:downcase)
-      when CHART_TYPE_VALUE, CHART_TYPE_OBJECTIVE
+      case params[:type]
+      when CHART_TYPE_VALUE
         stat = ValueStatGetter.new(@resource, params)
       when CHART_TYPE_PIE
         stat = PieStatGetter.new(@resource, params)
       when CHART_TYPE_LINE
         stat = LineStatGetter.new(@resource, params)
+      when CHART_TYPE_OBJECTIVE
+        stat = ObjectiveStatGetter.new(@resource, params)
       when CHART_TYPE_LEADERBOARD
         # const schema = Schemas.schemas[model.name];
         # const modelRelationship = getAssociationModel(schema, request.body.relationship_field);
