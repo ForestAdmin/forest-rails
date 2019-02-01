@@ -3,6 +3,7 @@ module ForestLiana
     include JSONAPI::Serializer
 
     attribute :value
+    attribute :objective
 
     def type
       'stats'

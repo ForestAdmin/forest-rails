@@ -1,6 +1,11 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Charts - Users can create "Leaderboard" charts.
+- Charts - Users can create "Objective" charts.
+- Technical - Add a new apimap property "relationship".
+('BelongsTo', 'HasOne', 'HasMany', 'BelongsToMany')
 
 ## RELEASE 2.14.7 - 2019-01-30
 ### Added

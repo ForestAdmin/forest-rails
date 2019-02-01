@@ -6,14 +6,26 @@ module ForestLiana
       before_action :find_resource, except: [:get_with_live_query]
     end
 
+    CHART_TYPE_VALUE = 'Value';
+    CHART_TYPE_PIE = 'Pie';
+    CHART_TYPE_LINE = 'Line';
+    CHART_TYPE_LEADERBOARD = 'Leaderboard';
+    CHART_TYPE_OBJECTIVE = 'Objective';
+
     def get
       case params[:type].try(:downcase)
-      when 'value'
+      when CHART_TYPE_VALUE, CHART_TYPE_OBJECTIVE
         stat = ValueStatGetter.new(@resource, params)
-      when 'pie'
+      when CHART_TYPE_PIE
         stat = PieStatGetter.new(@resource, params)
-      when 'line'
+      when CHART_TYPE_LINE
         stat = LineStatGetter.new(@resource, params)
+      when CHART_TYPE_LEADERBOARD
+        # const schema = Schemas.schemas[model.name];
+        # const modelRelationship = getAssociationModel(schema, request.body.relationship_field);
+        #
+        # promise = new Implementation
+        #   .LeaderboardStatGetter(model, modelRelationship, request.body, opts).perform();
       end
 
       stat.perform
