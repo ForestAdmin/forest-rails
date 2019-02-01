@@ -40,7 +40,7 @@ module ForestLiana
             @record = Model::Stat.new(value: { countCurrent: 0, countPrevious: 0 })
           end
         end
-      when CHART_TYPE_PIE
+      when CHART_TYPE_PIE, CHART_TYPE_LEADERBOARD
         if result.count
           values = ForestLiana::AdapterHelper.format_live_query_pie_result(result)
 
