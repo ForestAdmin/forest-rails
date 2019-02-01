@@ -41,6 +41,7 @@ module ForestLiana
       fields = schema.fields.select do |field|
         field[:field] == :has_one_field &&
           field[:type] == 'Number' &&
+          field[:relationship] == 'BelongsTo' &&
           field[:reference] == 'HasOneField.id' &&
           field[:inverse_of] == 'belongs_to_field'
       end
@@ -52,6 +53,7 @@ module ForestLiana
       fields = schema.fields.select do |field|
         field[:field] == 'belongs_to_field' &&
           field[:type] == 'Number' &&
+          field[:relationship] == 'HasOne' &&
           field[:reference] == 'BelongsToField.id' &&
           field[:inverse_of] == 'has_one_field' &&
           field[:is_filterable] == true
@@ -64,6 +66,7 @@ module ForestLiana
       fields = schema.fields.select do |field|
         field[:field] == 'belongs_to_fields' &&
           field[:type] == ['Number'] &&
+          field[:relationship] == 'HasMany' &&
           field[:reference] == 'BelongsToField.id' &&
           field[:inverse_of] == 'has_many_field' &&
           field[:is_filterable] == false
@@ -76,6 +79,7 @@ module ForestLiana
       fields = schema.fields.select do |field|
         field[:field] == 'foo' &&
           field[:type] == ['Number'] &&
+          field[:relationship] == 'HasMany' &&
           field[:reference] == 'BelongsToField.id' &&
           field[:inverse_of] == 'has_many_class_name_field' &&
           field[:is_filterable] == false
@@ -88,6 +92,7 @@ module ForestLiana
       fields = schema.fields.select do |field|
         field[:field] == :foo &&
           field[:type] == 'Number' &&
+          field[:relationship] == 'BelongsTo' &&
           field[:reference] == 'HasOneField.id' &&
           field[:inverse_of] == 'belongs_to_class_name_field'
       end

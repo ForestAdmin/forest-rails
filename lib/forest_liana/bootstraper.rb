@@ -388,6 +388,7 @@ module ForestLiana
           {
             field: :customer,
             type: 'String',
+            relationship: 'BelongsTo',
             reference: "#{model_name}.id",
             is_filterable: false
           }
@@ -428,6 +429,7 @@ module ForestLiana
           {
             field: :customer,
             type: 'String',
+            relationship: 'BelongsTo',
             reference: "#{model_name}.id",
             is_filterable: false
           }
@@ -463,6 +465,7 @@ module ForestLiana
           {
             field: :customer,
             type: 'String',
+            relationship: 'BelongsTo',
             reference: "#{model_name}.id",
             is_filterable: false
           }
@@ -496,6 +499,7 @@ module ForestLiana
           {
             field: :customer,
             type: 'String',
+            relationship: 'BelongsTo',
             reference: "#{model_name}.id",
             is_filterable: false
           }
@@ -528,6 +532,7 @@ module ForestLiana
           {
             field: :customer,
             type: 'String',
+            relationship: 'BelongsTo',
             reference: "#{model_name}.id",
             is_filterable: false
           }

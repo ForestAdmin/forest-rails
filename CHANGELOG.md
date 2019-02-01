@@ -1,6 +1,10 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Charts - Users can create "Leaderboard" charts.
+- Charts - Users can create "Objective" charts.
+- Technical - Add a new apimap property "relationship".
 
 ## RELEASE 3.0.0-beta.5 - 2019-01-30
 ### Fixed
@@ -29,6 +33,12 @@
 
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
+## RELEASE 2.15.0 - 2019-02-01
+### Added
+- Charts - Users can create "Leaderboard" charts.
+- Charts - Users can create "Objective" charts.
+- Technical - Add a new apimap property "relationship".
 
 ## RELEASE 2.14.7 - 2019-01-30
 ### Added
