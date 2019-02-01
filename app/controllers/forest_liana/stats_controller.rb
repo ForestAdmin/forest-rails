@@ -23,11 +23,7 @@ module ForestLiana
       when CHART_TYPE_OBJECTIVE
         stat = ObjectiveStatGetter.new(@resource, params)
       when CHART_TYPE_LEADERBOARD
-        # const schema = Schemas.schemas[model.name];
-        # const modelRelationship = getAssociationModel(schema, request.body.relationship_field);
-        #
-        # promise = new Implementation
-        #   .LeaderboardStatGetter(model, modelRelationship, request.body, opts).perform();
+        stat = LeaderboardStatGetter.new(@resource, params)
       end
 
       stat.perform
