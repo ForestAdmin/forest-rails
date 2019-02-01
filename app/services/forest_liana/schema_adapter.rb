@@ -244,6 +244,7 @@ module ForestLiana
               field[:reference] = get_reference_for(association)
               field[:field] = association.name
               field[:inverseOf] = inverse_of(association)
+              field[:relationship] = get_relationship_type(association)
           # NOTICE: Create the fields of hasOne, HasMany, … relationships.
           else
             collection.fields << get_schema_for_association(association)
@@ -286,9 +287,14 @@ module ForestLiana
         field: association.name.to_s,
         type: get_type_for_association(association),
         reference: "#{ForestLiana.name_for(association.klass)}.id",
+        relationship: get_relationship_type(association),
         inverseOf: inverse_of(association),
         'is-filterable': !is_many_association(association)
       }
+    end
+
+    def get_relationship_type(association)
+      association.macro.to_s.camelize
     end
 
     def get_type_for(column)
