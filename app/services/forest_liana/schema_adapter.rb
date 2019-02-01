@@ -111,6 +111,7 @@ module ForestLiana
         collection.fields << {
           field: :intercom_conversations,
           type: ['String'],
+          relationship: 'HasMany',
           reference: "#{model_name}_intercom_conversations.id",
           column: nil,
           'is-filterable': false,
@@ -120,6 +121,7 @@ module ForestLiana
         @collection.fields << {
           field: :intercom_attributes,
           type: 'String',
+          relationship: 'HasOne',
           reference: "#{model_name}_intercom_attributes.id",
           column: nil,
           'is-filterable': false,
@@ -141,6 +143,7 @@ module ForestLiana
           collection.fields << {
             field: :stripe_payments,
             type: ['String'],
+            relationship: 'HasMany',
             reference: "#{model_name}_stripe_payments.id",
             column: nil,
             'is-filterable': false,
@@ -150,6 +153,7 @@ module ForestLiana
           collection.fields << {
             field: :stripe_invoices,
             type: ['String'],
+            relationship: 'HasMany',
             reference: "#{model_name}_stripe_invoices.id",
             column: nil,
             'is-filterable': false,
@@ -159,6 +163,7 @@ module ForestLiana
           collection.fields << {
             field: :stripe_cards,
             type: ['String'],
+            relationship: 'HasMany',
             reference: "#{model_name}_stripe_cards.id",
             column: nil,
             'is-filterable': false,
@@ -168,6 +173,7 @@ module ForestLiana
           collection.fields << {
             field: :stripe_subscriptions,
             type: ['String'],
+            relationship: 'HasMany',
             reference: "#{model_name}_stripe_subscriptions.id",
             column: nil,
             'is-filterable': false,
@@ -177,6 +183,7 @@ module ForestLiana
           collection.fields << {
             field: :stripe_bank_accounts,
             type: ['String'],
+            relationship: 'HasMany',
             reference: "#{model_name}_stripe_bank_accounts.id",
             column: nil,
             'is-filterable': false,
@@ -199,6 +206,7 @@ module ForestLiana
         collection.fields << {
           field: :mixpanel_last_events,
           type: ['String'],
+          relationship: 'HasMany',
           reference: "#{model_name}_mixpanel_events.id",
           column: nil,
           'is-filterable': false,
@@ -286,8 +294,8 @@ module ForestLiana
       {
         field: association.name.to_s,
         type: get_type_for_association(association),
-        reference: "#{ForestLiana.name_for(association.klass)}.id",
         relationship: get_relationship_type(association),
+        reference: "#{ForestLiana.name_for(association.klass)}.id",
         inverseOf: inverse_of(association),
         'is-filterable': !is_many_association(association)
       }
