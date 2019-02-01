@@ -13,10 +13,10 @@ module ForestLiana
 
     def perform
       result = @model_relationship
-        .eager_load(includes)
+        .joins(includes)
         .group(@groub_by)
-        .limit(@limit)
         .order(order)
+        .limit(@limit)
         .send(@aggregate, @aggregate_field)
         .map { |key, value| { key: key, value: value } }
 
@@ -37,7 +37,7 @@ module ForestLiana
       if @aggregate == 'sum'
         field = @aggregate_field.downcase
       else
-        field = Rails::VERSION::MAJOR >= 5 || includes.size > 0 ? 'id' : 'all'
+        field = 'all'
       end
       "#{@aggregate}_#{field} #{order}"
     end
