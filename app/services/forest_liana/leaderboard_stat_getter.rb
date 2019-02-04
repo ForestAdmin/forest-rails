@@ -1,9 +1,10 @@
 module ForestLiana
   class LeaderboardStatGetter < StatGetter
     def initialize(resource, params)
-      super(resource, params)
-
+      @resource = resource
+      @params = params
       @model_relationship =  @resource.reflect_on_association(@params[:relationship_field]).klass
+      compute_includes()
       @label_field = @params[:label_field]
       @aggregate = @params[:aggregate].downcase
       @aggregate_field = @params[:aggregate_field]
@@ -13,7 +14,7 @@ module ForestLiana
 
     def perform
       result = @model_relationship
-        .joins(includes)
+        .joins(@includes)
         .group(@groub_by)
         .order(order)
         .limit(@limit)
@@ -23,8 +24,8 @@ module ForestLiana
       @record = Model::Stat.new(value: result)
     end
 
-    def includes
-      SchemaUtils.one_associations(@model_relationship)
+    def compute_includes
+      @includes = SchemaUtils.one_associations(@model_relationship)
         .select { |association| SchemaUtils.model_included?(association.klass) }
         .map(&:name)
     end

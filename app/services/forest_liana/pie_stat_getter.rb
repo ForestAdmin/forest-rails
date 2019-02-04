@@ -19,7 +19,7 @@ module ForestLiana
         end
 
         result = get_resource()
-          .eager_load(includes)
+          .eager_load(@includes)
           .where(conditions.join(filter_operator))
           .group(group_by_field)
           .order(order)
@@ -62,7 +62,7 @@ module ForestLiana
       if @params[:aggregate].downcase == 'sum'
         field = @params[:aggregate_field].downcase
       else
-        field = Rails::VERSION::MAJOR >= 5 || includes.size > 0 ? 'id' : 'all'
+        field = Rails::VERSION::MAJOR >= 5 || @includes.size > 0 ? 'id' : 'all'
       end
       "#{@params[:aggregate].downcase}_#{field} #{order}"
     end

@@ -14,7 +14,7 @@ module ForestLiana
     end
 
     def includes_for_serialization
-      includes_initial = includes
+      includes_initial = @includes
       includes_for_smart_belongs_to = @collection.fields_smart_belongs_to.map { |field| field[:field] }
 
       if @field_names_requested
@@ -22,6 +22,14 @@ module ForestLiana
       end
 
       includes_initial.concat(includes_for_smart_belongs_to).map(&:to_s)
+    end
+
+    private
+
+    def compute_includes
+      @includes = SchemaUtils.one_associations(@resource)
+        .select { |association| SchemaUtils.model_included?(association.klass) }
+        .map(&:name)
     end
   end
 end

@@ -5,14 +5,7 @@ module ForestLiana
     def initialize(resource, params)
       @resource = resource
       @params = params
-    end
-
-    private
-
-    def includes
-      SchemaUtils.one_associations(@resource)
-        .select { |association| SchemaUtils.model_included?(association.klass) }
-        .map(&:name)
+      compute_includes()
     end
   end
 end

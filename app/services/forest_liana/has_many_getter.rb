@@ -10,8 +10,9 @@ module ForestLiana
       @collection_name = ForestLiana.name_for(model_association)
       @field_names_requested = field_names_requested
       @collection = get_collection(@collection_name)
-      includes_symbols = includes.map { |include| include.to_sym }
-      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
+      compute_includes()
+      includes_symbols = @includes.map { |include| include.to_sym }
+      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, {}, @collection)
 
       prepare_query()
     end
@@ -29,8 +30,18 @@ module ForestLiana
       @search_query_builder.perform(@records)
     end
 
-    def includes
-      @association.klass
+    def query_for_batch
+      @records
+    end
+
+    def records
+      @records.limit(limit).offset(offset)
+    end
+
+    private
+
+    def compute_includes
+      @includes = @association.klass
         .reflect_on_all_associations
         .select do |association|
           inclusion = !association.options[:polymorphic] &&
@@ -45,16 +56,6 @@ module ForestLiana
         end
         .map { |association| association.name.to_s }
     end
-
-    def query_for_batch
-      @records
-    end
-
-    def records
-      @records.limit(limit).offset(offset)
-    end
-
-    private
 
     def field_names_requested
       return nil unless @params[:fields] && @params[:fields][@collection_name]
@@ -74,7 +75,7 @@ module ForestLiana
       @records = get_resource()
         .find(@params[:id])
         .send(@params[:association_name])
-        .eager_load(includes)
+        .eager_load(@includes)
     end
 
     def offset

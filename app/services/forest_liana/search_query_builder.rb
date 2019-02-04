@@ -4,12 +4,13 @@ module ForestLiana
 
     attr_reader :fields_searched
 
-    def initialize(params, includes, collection)
+    def initialize(params, includes, tables_associated, collection)
       @params = params
       @includes = includes
       @collection = collection
       @fields_searched = []
       @search = @params[:search]
+      @tables_associated = tables_associated
     end
 
     def perform(resource)
@@ -273,12 +274,22 @@ module ForestLiana
       association_name_pluralized = association_name.pluralize
 
       if [association_name, association_name_pluralized].include? association.table_name
-        # NOTICE: Default case. When the belongsTo association name and the referenced table name are identical.
+        # NOTICE: Default case. When the belongsTo association name and the referenced table name
+        #         are identical.
         association_name_for_condition = association.table_name
       else
-        # NOTICE: When the the belongsTo association name and the referenced table name are identical.
-        #         Format with the ActiveRecord query generator style.
-        association_name_for_condition = "#{association_name_pluralized}_#{@resource.table_name}"
+        # NOTICE: When the the belongsTo association name and the referenced table name are not
+        #         identical. Format with the ActiveRecord query generator style.
+        relations_on_this_table = @tables_associated[association.table_name]
+        has_several_associations_to_the_table = !relations_on_this_table.nil? &&
+          relations_on_this_table.size > 1 &&
+          relations_on_this_table.find_index(association.name) > 0
+
+        if has_several_associations_to_the_table
+          association_name_for_condition = "#{association_name_pluralized}_#{@resource.table_name}"
+        else
+          association_name_for_condition = association.table_name
+        end
       end
 
       @records.where("#{association_name_for_condition}.#{subfield} #{filter}")
