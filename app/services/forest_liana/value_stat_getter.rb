@@ -4,8 +4,8 @@ module ForestLiana
 
     def perform
       return if @params[:aggregate].blank?
-      valueCurrent = get_resource().eager_load(includes)
-      valuePrevious = get_resource().eager_load(includes)
+      valueCurrent = get_resource().eager_load(@includes)
+      valuePrevious = get_resource().eager_load(@includes)
       filter_date_interval = false
 
       if @params[:filterType] && @params[:filters]
