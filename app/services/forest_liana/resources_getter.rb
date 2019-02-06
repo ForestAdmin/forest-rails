@@ -10,10 +10,10 @@ module ForestLiana
       @collection_name = ForestLiana.name_for(@resource)
       @collection = get_collection(@collection_name)
       @field_names_requested = field_names_requested
-      @tables_associated = {}
+      @tables_associated_to_relations_name = {}
       get_segment()
       compute_includes()
-      @search_query_builder = SearchQueryBuilder.new(@params, @includes, @tables_associated, @collection)
+      @search_query_builder = SearchQueryBuilder.new(@params, @includes, @tables_associated_to_relations_name, @collection)
 
       prepare_query()
     end
@@ -42,8 +42,10 @@ module ForestLiana
         .select { |association| SchemaUtils.model_included?(association.klass) }
 
       includes = associations_has_one.each do |association|
-        @tables_associated[association.table_name] = [] if @tables_associated[association.table_name].nil?
-        @tables_associated[association.table_name] << association.name
+        if @tables_associated_to_relations_name[association.table_name].nil?
+          @tables_associated_to_relations_name[association.table_name] = []
+        end
+        @tables_associated_to_relations_name[association.table_name] << association.name
       end
 
       includes = associations_has_one.map(&:name)
