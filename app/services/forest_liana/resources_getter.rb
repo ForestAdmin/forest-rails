@@ -10,21 +10,23 @@ module ForestLiana
       @collection_name = ForestLiana.name_for(@resource)
       @collection = get_collection(@collection_name)
       @field_names_requested = field_names_requested
+      @tables_associated_to_relations_name = {}
       get_segment()
-      @search_query_builder = SearchQueryBuilder.new(@params, includes, @collection)
+      compute_includes()
+      @search_query_builder = SearchQueryBuilder.new(@params, @includes, @tables_associated_to_relations_name, @collection)
 
       prepare_query()
     end
 
     def perform
-      @records = @records.eager_load(includes)
+      @records = @records.eager_load(@includes)
       @records_sorted = sort_query
     end
 
     def count
-      # NOTICE: For performance reasons, do not eager load the data if there is
-      #         no search or filters on associations.
-      @records_count = @count_needs_includes ? @records.eager_load(includes).count : @records.count
+      # NOTICE: For performance reasons, do not eager load the data if there is  no search or
+      #         filters on associations.
+      @records_count = @count_needs_includes ? @records.eager_load(@includes).count : @records.count
     end
 
     def query_for_batch
@@ -35,10 +37,18 @@ module ForestLiana
       @records_sorted.offset(offset).limit(limit).to_a
     end
 
-    def includes
-      includes = SchemaUtils.one_associations(@resource)
+    def compute_includes
+      associations_has_one = SchemaUtils.one_associations(@resource)
         .select { |association| SchemaUtils.model_included?(association.klass) }
-        .map(&:name)
+
+      includes = associations_has_one.each do |association|
+        if @tables_associated_to_relations_name[association.table_name].nil?
+          @tables_associated_to_relations_name[association.table_name] = []
+        end
+        @tables_associated_to_relations_name[association.table_name] << association.name
+      end
+
+      includes = associations_has_one.map(&:name)
       includes_for_smart_search = []
 
       if @collection && @collection.search_fields
@@ -54,9 +64,9 @@ module ForestLiana
       end
 
       if @field_names_requested
-        (includes & @field_names_requested).concat(includes_for_smart_search)
+        @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
       else
-        includes
+        @includes = includes
       end
     end
 
