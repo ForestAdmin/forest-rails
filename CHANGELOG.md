@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.15.1 - 2019-02-06
 ### Fixed
 - Filters - Fix association filtering on collections having several associations targeting the same table.
 
