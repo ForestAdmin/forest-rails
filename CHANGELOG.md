@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.15.2 - 2019-02-20
 ### Fixed
 - Export - Fix broken export action. [Regression introduced in 2.15.1]
 
