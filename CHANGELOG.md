@@ -4,7 +4,7 @@
 
 ## RELEASE 3.0.0-beta.8 - 2019-02-20
 ### Fixed
-- Export - Fix broken export action. [Regression introduced in 2.15.1]
+- Export - Fix broken export action. [Regression introduced in 3.0.0-beta.7]
 
 ## RELEASE 3.0.0-beta.7 - 2019-02-06
 ### Fixed
