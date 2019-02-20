@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Export - Fix broken export action. [Regression introduced in 2.15.1]
 
 ## RELEASE 3.0.0-beta.7 - 2019-02-06
 ### Fixed
@@ -39,6 +41,14 @@
 
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
+## RELEASE 2.15.2 - 2019-02-20
+### Fixed
+- Export - Fix broken export action. [Regression introduced in 2.15.1]
+
+## RELEASE 2.15.1 - 2019-02-06
+### Fixed
+- Filters - Fix association filtering on collections having several associations targeting the same table.
 
 ## RELEASE 2.15.0 - 2019-02-01
 ### Added
