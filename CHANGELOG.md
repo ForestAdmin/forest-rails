@@ -44,6 +44,11 @@
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
 
+## RELEASE 2.15.3 - 2019-02-25
+### Fixed
+- Charts - Fix Value charts having filters on associations targeting a collection having with a custom table name. 🛡
+- Charts - Fix Value charts having filters on associations targeting a collection associated through multiple `belongs_to` association to the current resource. 🛡
+
 ## RELEASE 2.15.2 - 2019-02-20
 ### Fixed
 - Export - Fix broken export action. [Regression introduced in 2.15.1]

@@ -25,9 +25,7 @@ module ForestLiana
     end
 
     def compute_includes
-      @includes = SchemaUtils.one_associations(@model_relationship)
-        .select { |association| SchemaUtils.model_included?(association.klass) }
-        .map(&:name)
+      @includes = ForestLiana::QueryHelper.get_one_association_names_symbol(@model_relationship)
     end
 
     def order
