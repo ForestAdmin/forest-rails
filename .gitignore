@@ -9,6 +9,8 @@
 /test/version_tmp/
 /test/dummy/log/
 /test/dummy/db/*.sqlite3
+/spec/dummy/log/
+/spec/dummy/db/*.sqlite3
 /tmp/
 .byebug_history
 
