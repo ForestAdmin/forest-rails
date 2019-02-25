@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## RELEASE 3.0.0-beta.9 - 2019-02-25
+### Fixed
+- Charts - Fix Value charts having filters on associations targeting a collection having with a custom table name. 🛡
+- Charts - Fix Value charts having filters on associations targeting a collection associated through multiple `belongs_to` association to the current resource. 🛡
+
 ## RELEASE 3.0.0-beta.8 - 2019-02-20
 ### Fixed
 - Export - Fix broken export action. [Regression introduced in 3.0.0-beta.7]
