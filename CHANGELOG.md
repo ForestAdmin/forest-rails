@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Charts - Fix Value charts having filters on associations targeting a collection having with a custom table name. 🛡
+- Charts - Fix Value charts having filters on associations targeting a collection associated through multiple `belongs_to` association to the current resource. 🛡
 
 ## RELEASE 2.15.2 - 2019-02-20
 ### Fixed

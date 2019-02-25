@@ -79,7 +79,7 @@ module ForestLiana
 
     def self.get_field_name(field, resource)
       if self.is_belongs_to(field)
-        association = field.split(':')[0].pluralize
+        association = self.get_association_name_for_condition(resource, field)
         "#{ActiveRecord::Base.connection.quote_column_name(association)}." +
         "#{ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])}"
       else
@@ -106,6 +106,51 @@ module ForestLiana
 
     def self.is_belongs_to(field)
       field.split(':').size >= 2
+    end
+
+    def self.get_has_one_condition(resource, field, value, timezone)
+      field, subfield = field.split(':')
+
+      association = resource.reflect_on_association(field.to_sym)
+      return nil if association.blank?
+
+      operator, value = OperatorValueParser.parse(value)
+      filter = OperatorValueParser
+        .get_condition_end(subfield, operator, value, association.klass, timezone)
+
+      association_name_for_condition = self.get_association_name_for_condition(resource, field)
+      association_name_for_condition ? "#{association_name_for_condition}.#{subfield} #{filter}" : nil
+    end
+
+    def self.get_association_name_for_condition(resource, field)
+      field, subfield = field.split(':')
+
+      association = resource.reflect_on_association(field.to_sym)
+      return nil if association.blank?
+
+      tables_associated_to_relations_name =
+        ForestLiana::QueryHelper.get_tables_associated_to_relations_name(resource)
+      association_name = association.name.to_s
+      association_name_pluralized = association_name.pluralize
+
+      if [association_name, association_name_pluralized].include? association.table_name
+        # NOTICE: Default case. When the belongsTo association name and the referenced table name
+        #         are identical.
+        association_name_for_condition = association.table_name
+      else
+        # NOTICE: When the the belongsTo association name and the referenced table name are not
+        #         identical. Format with the ActiveRecord query generator style.
+        relations_on_this_table = tables_associated_to_relations_name[association.table_name]
+        has_several_associations_to_the_table_and_is_not_first_one =
+          !relations_on_this_table.nil? && relations_on_this_table.size > 1 &&
+          relations_on_this_table.find_index(association.name) > 0
+
+        if has_several_associations_to_the_table_and_is_not_first_one
+          association_name_for_condition = "#{association_name_pluralized}_#{resource.table_name}"
+        else
+          association_name_for_condition = association.table_name
+        end
+      end
     end
   end
 end

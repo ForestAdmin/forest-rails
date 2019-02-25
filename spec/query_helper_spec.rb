@@ -39,5 +39,36 @@ module ForestLiana
         expect(QueryHelper.get_one_association_names_string(Tree)).to eq(['owner', 'cutter', 'island'])
       end
     end
+
+    describe 'get_tables_associated_to_relations_name' do
+      context 'on a model having 2 hasMany associations' do
+        it 'should return an empty hash' do
+          tables_associated_to_relations_name =
+            QueryHelper.get_tables_associated_to_relations_name(User)
+          expect(tables_associated_to_relations_name.keys.length).to eq(0)
+        end
+      end
+
+      context 'on a model having 2 belongsTo associations' do
+        tables_associated_to_relations_name =
+          QueryHelper.get_tables_associated_to_relations_name(Tree)
+
+        it 'should return the one-one associations' do
+          expect(tables_associated_to_relations_name.keys.length).to eq(2)
+        end
+
+        it 'should return relationships having a name different than the targeted model' do
+          expect(tables_associated_to_relations_name['users'].length).to eq(2)
+          expect(tables_associated_to_relations_name['users'].first).to eq(:owner)
+          expect(tables_associated_to_relations_name['users'].second).to eq(:cutter)
+        end
+
+        it 'should return relationships on models having a custom table name' do
+          expect(tables_associated_to_relations_name['isle'].length).to eq(1)
+          expect(tables_associated_to_relations_name['isle'].first).to eq(:island)
+        end
+      end
+    end
+
   end
 end

@@ -4,17 +4,18 @@ module ForestLiana
 
     attr_reader :fields_searched
 
-    def initialize(params, includes, tables_associated_to_relations_name, collection)
+    def initialize(params, includes, collection)
       @params = params
       @includes = includes
       @collection = collection
       @fields_searched = []
       @search = @params[:search]
-      @tables_associated_to_relations_name = tables_associated_to_relations_name
     end
 
     def perform(resource)
       @resource = @records = resource
+      @tables_associated_to_relations_name =
+        ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
       @records = filter_param
       @records = has_many_filter
@@ -260,38 +261,8 @@ module ForestLiana
     end
 
     def belongs_to_subfield_filter(field, value)
-      field, subfield = field.split(':')
-
-      association = @resource.reflect_on_association(field.to_sym)
-      return if association.blank?
-
-      operator, value = OperatorValueParser.parse(value)
-      filter = OperatorValueParser
-        .get_condition_end(subfield, operator, value, association.klass, @params[:timezone])
-
-      association_name = association.name.to_s
-      association_name_pluralized = association_name.pluralize
-
-      if [association_name, association_name_pluralized].include? association.table_name
-        # NOTICE: Default case. When the belongsTo association name and the referenced table name
-        #         are identical.
-        association_name_for_condition = association.table_name
-      else
-        # NOTICE: When the the belongsTo association name and the referenced table name are not
-        #         identical. Format with the ActiveRecord query generator style.
-        relations_on_this_table = @tables_associated_to_relations_name[association.table_name]
-        has_several_associations_to_the_table_and_is_not_first_one =
-          !relations_on_this_table.nil? && relations_on_this_table.size > 1 &&
-          relations_on_this_table.find_index(association.name) > 0
-
-        if has_several_associations_to_the_table_and_is_not_first_one
-          association_name_for_condition = "#{association_name_pluralized}_#{@resource.table_name}"
-        else
-          association_name_for_condition = association.table_name
-        end
-      end
-
-      @records.where("#{association_name_for_condition}.#{subfield} #{filter}")
+      condition = OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
+      @records.where(condition) if condition
     end
 
     def belongs_to_filter

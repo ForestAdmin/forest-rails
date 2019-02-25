@@ -12,7 +12,7 @@ module ForestLiana
       @collection = get_collection(@collection_name)
       compute_includes()
       includes_symbols = @includes.map { |association| association.to_sym }
-      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, {}, @collection)
+      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
 
       prepare_query()
     end
