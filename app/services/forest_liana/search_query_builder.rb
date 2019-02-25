@@ -88,8 +88,7 @@ module ForestLiana
         end
 
         if (@params['searchExtended'].to_i == 1)
-          SchemaUtils.one_associations(@resource).map(&:name).each do
-            |association|
+          ForestLiana::QueryHelper.get_one_association_names_symbol(@resource).each do |association|
             if @collection.search_fields
               association_search = @collection.search_fields.map do |field|
                 if field.include?('.') && field.split('.')[0] == association.to_s

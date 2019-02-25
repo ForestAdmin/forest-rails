@@ -173,9 +173,7 @@ module ForestLiana
     end
 
     def record_includes
-      SchemaUtils.one_associations(@resource)
-        .select { |a| SchemaUtils.model_included?(a.klass) }
-        .map { |a| a.name.to_s }
+      ForestLiana::QueryHelper.get_one_association_names_string(@resource)
     end
 
     def record_not_found

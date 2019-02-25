@@ -39,8 +39,7 @@ module ForestLiana
     end
 
     def compute_includes
-      associations_has_one = SchemaUtils.one_associations(@resource)
-        .select { |association| SchemaUtils.model_included?(association.klass) }
+      associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
 
       includes = associations_has_one.each do |association|
         if @tables_associated_to_relations_name[association.table_name].nil?
