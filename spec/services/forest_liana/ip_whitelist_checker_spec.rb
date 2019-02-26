@@ -1,7 +1,5 @@
-require './app/services/forest_liana/ip_whitelist_checker.rb'
-
 module ForestLiana
-  RSpec.describe IpWhitelistChecker do
+  describe IpWhitelistChecker do
     describe 'Check is_ip_matches_rule function' do
       describe 'with IP "90.88.0.1" and "90.88.0.2"' do
         it 'should return false' do
