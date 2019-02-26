@@ -5,5 +5,5 @@ before_install:
 rvm:
   - 2.2.0
 script:
-  - RAILS_ENV=test bundle exec rake --trace db:migrate test
-  - RAILS_ENV=test bundle exec rspec --color --format doc
+  - RAILS_ENV=test bundle exec rake test
+  - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
