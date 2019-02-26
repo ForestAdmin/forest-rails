@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Schema - Ensure that unhandled field types are not defined anymore in collections schemas. 🛡
 
 ## RELEASE 3.0.0-beta.9 - 2019-02-25
 ### Fixed
@@ -48,6 +50,10 @@
 
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
+## RELEASE 2.15.4 - 2019-02-26
+### Fixed
+- Schema - Ensure that unhandled field types are not defined anymore in collections schemas. 🛡
 
 ## RELEASE 2.15.3 - 2019-02-25
 ### Fixed
