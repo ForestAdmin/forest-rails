@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Schema - Ensure that unhandled field types are not defined anymore in collections schemas. 🛡
 
 ## RELEASE 2.15.3 - 2019-02-25
 ### Fixed

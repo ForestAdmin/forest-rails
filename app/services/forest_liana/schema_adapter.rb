@@ -98,7 +98,8 @@ module ForestLiana
     def add_columns
       @model.columns.each do |column|
         unless is_sti_column_of_child_model?(column)
-          collection.fields << get_schema_for_column(column)
+          field_schema = get_schema_for_column(column)
+          collection.fields << field_schema unless field_schema.nil?
         end
       end
 
@@ -283,7 +284,10 @@ module ForestLiana
     end
 
     def get_schema_for_column(column)
-      schema = { field: column.name, type: get_type_for(column) }
+      column_type = get_type_for(column)
+      return nil if column_type.nil?
+
+      schema = { field: column.name, type: column_type }
       add_enum_values_if_is_enum(schema, column)
       add_enum_values_if_is_sti_model(schema, column)
       add_default_value(schema, column)
