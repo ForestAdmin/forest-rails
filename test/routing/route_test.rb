@@ -1,5 +1,3 @@
-#require 'rails_helper'
-
 module ForestLiana
   class RouteTest < ActiveSupport::TestCase
     include ActionDispatch::Assertions::RoutingAssertions

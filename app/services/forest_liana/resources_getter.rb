@@ -10,6 +10,7 @@ module ForestLiana
       @count_needs_includes = false
       @collection_name = ForestLiana.name_for(@resource)
       @collection = get_collection(@collection_name)
+      @fields_to_serialize = get_fields_to_serialize
       @field_names_requested = field_names_requested
       get_segment()
       compute_includes()
@@ -62,7 +63,15 @@ module ForestLiana
       end
     end
 
+    def includes_for_serialization
+      super & @fields_to_serialize.map(&:to_s)
+    end
+
     private
+
+    def get_fields_to_serialize
+      @params[:fields][@collection_name].split(',').map { |name| name.to_sym }
+    end
 
     def get_segment
       if @params[:segment]
@@ -94,8 +103,7 @@ module ForestLiana
         associations_for_query << @params[:sort].split('.').first.to_sym
       end
 
-      field_names = @params[:fields][@collection_name].split(',').map { |name| name.to_sym }
-      field_names | associations_for_query
+      @fields_to_serialize | associations_for_query
     end
 
     def search_query

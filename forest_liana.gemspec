@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.license     = "GPL-3.0"
 
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
-  s.test_files = Dir["test/**/*"]
+  s.test_files = Dir["test/**/*", "spec/**/*"]
 
   s.add_runtime_dependency "rails", ">= 4.0"
   s.add_runtime_dependency "jsonapi-serializers", ">= 0.14.0"

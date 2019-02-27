@@ -61,24 +61,22 @@ module ForestLiana
     end
 
     config.after_initialize do |app|
-      if !Rails.env.test?
-        if error
-          FOREST_LOGGER.error "Impossible to set the whitelisted Forest " \
-            "domains for CORS constraint:\n#{error}"
-        end
+      if error
+        FOREST_LOGGER.error "Impossible to set the whitelisted Forest " \
+          "domains for CORS constraint:\n#{error}"
+      end
 
-        eager_load_active_record_descendants(app)
+      eager_load_active_record_descendants(app)
 
-        if database_available?
-          # NOTICE: Do not run the code below on rails g forest_liana:install.
-          if ForestLiana.env_secret || ForestLiana.secret_key
-            unless rake?
-              bootstraper = Bootstraper.new
-              if ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
-                FOREST_LOGGER.warn "DEPRECATION WARNING: FOREST_DEACTIVATE_AUTOMATIC_APIMAP option has been renamed. Please use FOREST_DISABLE_AUTO_SCHEMA_APPLY instead."
-              end
-              bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY']
+      if database_available?
+        # NOTICE: Do not run the code below on rails g forest_liana:install.
+        if ForestLiana.env_secret || ForestLiana.secret_key
+          unless rake?
+            bootstraper = Bootstraper.new
+            if ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+              FOREST_LOGGER.warn "DEPRECATION WARNING: FOREST_DEACTIVATE_AUTOMATIC_APIMAP option has been renamed. Please use FOREST_DISABLE_AUTO_SCHEMA_APPLY instead."
             end
+            bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY'] || Rails.env.test?
           end
         end
       end

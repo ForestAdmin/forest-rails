@@ -13,7 +13,7 @@ gemspec
 # To use a debugger
 group :development, :test do
   gem 'byebug'
-  gem 'rspec-rails'
+  gem 'rspec-rails', '3.8.2'
 end
 
 group :test do
@@ -22,7 +22,7 @@ group :test do
 end
 
 gem 'rails', '4.2.7.1'
-gem 'jsonapi-serializers', '0.14.0'
+gem 'jsonapi-serializers', '1.0.1'
 gem 'rack-cors'
 gem 'arel-helpers'
 gem 'groupdate'
