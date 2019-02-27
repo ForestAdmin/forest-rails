@@ -13,7 +13,7 @@ gemspec
 # To use a debugger
 group :development, :test do
   gem 'byebug'
-  gem 'rspec-rails'
+  gem 'rspec-rails', '3.8.2'
 end
 
 group :test do

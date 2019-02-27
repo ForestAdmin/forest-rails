@@ -168,7 +168,7 @@ DEPENDENCIES
   rails (= 4.2.7.1)
   rake
   rotp (= 3.1)
-  rspec-rails
+  rspec-rails (= 3.8.2)
   sqlite3
   useragent
 
