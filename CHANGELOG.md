@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Filters - Fix resources display if filtered with associations conditions with the related columns are hidden in the list. 🛡
 
 ## RELEASE 2.15.4 - 2019-02-26
 ### Fixed
