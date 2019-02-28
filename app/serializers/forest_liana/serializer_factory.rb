@@ -179,17 +179,27 @@ module ForestLiana
 
       unless @is_smart_collection
         attributes(active_record_class).each do |attribute|
-          serializer.attribute(attribute)
+          serializer.attribute(attribute) do |x|
+            begin
+              object.send(attribute)
+            rescue
+              nil
+            end
+          end
         end
 
         # NOTICE: Format time type fields during the serialization.
         attributes_time(active_record_class).each do |attribute|
           serializer.attribute(attribute) do |x|
-            value = object.send(attribute)
-            if value
-              match = /(\d{2}:\d{2}:\d{2})/.match(value.to_s)
-              (match && match[1]) ? match[1] : nil
-            else
+            begin
+              value = object.send(attribute)
+              if value
+                match = /(\d{2}:\d{2}:\d{2})/.match(value.to_s)
+                (match && match[1]) ? match[1] : nil
+              else
+                nil
+              end
+            rescue
               nil
             end
           end
@@ -198,22 +208,38 @@ module ForestLiana
         # NOTICE: Format serialized fields.
         attributes_serialized(active_record_class).each do |attr, serialization|
           serializer.attribute(attr) do |x|
-            value = object.send(attr)
-            value ? value.to_json : nil
+            begin
+              value = object.send(attr)
+              value ? value.to_json : nil
+            rescue
+              nil
+            end
           end
         end
 
         # NOTICE: Format CarrierWave url attribute
         if active_record_class.respond_to?(:mount_uploader)
           active_record_class.uploaders.each do |key, value|
-            serializer.attribute(key) { |x| object.send(key).try(:url) }
+            serializer.attribute(key) do |x|
+              begin
+                object.send(key).try(:url)
+              rescue
+                nil
+              end
+            end
           end
         end
 
         # NOTICE: Format Paperclip url attribute
         if active_record_class.respond_to?(:attachment_definitions)
           active_record_class.attachment_definitions.each do |key, value|
-            serializer.attribute(key) { |x| object.send(key) }
+            serializer.attribute(key) do |x|
+              begin
+                object.send(key)
+              rescue
+                nil
+              end
+            end
           end
         end
 
@@ -223,7 +249,11 @@ module ForestLiana
           active_record_class.acts_as_taggable.respond_to?(:to_a)
           active_record_class.acts_as_taggable.to_a.each do |key, value|
             serializer.attribute(key) do |x|
-              object.send(key).map(&:name)
+              begin
+                object.send(key).map(&:name)
+              rescue
+                nil
+              end
             end
           end
         end
@@ -277,8 +307,7 @@ module ForestLiana
         serializer.send(:has_many, :mixpanel_last_events) { }
       end
 
-      ForestLiana::SerializerFactory.define_serializer(active_record_class,
-                                                       serializer)
+      ForestLiana::SerializerFactory.define_serializer(active_record_class, serializer)
 
       serializer
     end
