@@ -70,7 +70,11 @@ module ForestLiana
     private
 
     def get_fields_to_serialize
-      @params[:fields][@collection_name].split(',').map { |name| name.to_sym }
+      if @params[:fields] && @params[:fields][@collection_name]
+        @params[:fields][@collection_name].split(',').map { |name| name.to_sym }
+      else
+        []
+      end
     end
 
     def get_segment

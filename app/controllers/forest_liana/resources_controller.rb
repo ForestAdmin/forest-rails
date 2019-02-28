@@ -83,8 +83,7 @@ module ForestLiana
         getter = ForestLiana::ResourceGetter.new(@resource, params)
         getter.perform
 
-        render serializer: nil, json:
-          serialize_model(get_record(getter.record), include: includes(getter))
+        render serializer: nil, json: render_record_jsonapi(getter)
       rescue => error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
@@ -187,6 +186,18 @@ module ForestLiana
 
     def get_record record
       is_sti_model? ? record.becomes(@resource) : record
+    end
+
+    def render_record_jsonapi getter
+      collection_fields = getter.collection.fields.map { |field| field[:field] }
+      fields_to_serialize = {
+        ForestLiana.name_for(@resource) => collection_fields.join(',')
+      }
+
+      serialize_model(get_record(getter.record), {
+        include: includes(getter),
+        fields: fields_to_serialize
+      })
     end
 
     def render_jsonapi getter
