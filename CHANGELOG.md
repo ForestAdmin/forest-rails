@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.15.6 - 2019-02-28
 ### Fixed
 - Records Display - Ensure that the data is properly sent even if an attribute serialization happens for an unknown reason.
 
