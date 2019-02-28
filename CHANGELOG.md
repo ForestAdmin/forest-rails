@@ -4,7 +4,7 @@
 
 ## RELEASE 2.15.5 - 2019-02-27
 ### Fixed
-- Filters - Fix resources display if filtered with associations conditions with the related columns are hidden in the list. 🛡
+- Filters - Fix resources display if filtered with associations conditions with the related columns hidden in the list. 🛡
 
 ## RELEASE 2.15.4 - 2019-02-26
 ### Fixed
