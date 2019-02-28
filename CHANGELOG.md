@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records Display - Ensure that the data is properly sent even if an attribute serialization happens for an unknown reason.
 
 ## RELEASE 3.0.0-beta.11 - 2019-02-27
 ### Fixed
@@ -56,6 +58,10 @@
 
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
+## RELEASE 2.15.6 - 2019-02-28
+### Fixed
+- Records Display - Ensure that the data is properly sent even if an attribute serialization happens for an unknown reason.
 
 ## RELEASE 2.15.5 - 2019-02-27
 ### Fixed
