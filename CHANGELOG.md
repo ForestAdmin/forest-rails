@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.0.0-beta.13 - 2019-02-28
 ### Fixed
 - Records Display - Restrict record data serialization based the schema collection fields in the #show action.
 
