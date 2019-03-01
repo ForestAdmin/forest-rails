@@ -1,7 +1,6 @@
 module ForestLiana
   class ResourceGetter < BaseGetter
     attr_accessor :record
-    attr_reader :collection
 
     def initialize(resource, params)
       @resource = resource

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Records Display - Restrict record data serialization based the schema collection fields in the #create and #update actions.
 
 ## RELEASE 3.0.0-beta.13 - 2019-02-28
 ### Fixed
@@ -64,6 +66,10 @@
 
 ### Changed
 - Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
+## RELEASE 2.15.8 - 2019-03-01
+### Fixed
+- Records Display - Restrict record data serialization based the schema collection fields in the #create and #update actions.
 
 ## RELEASE 2.15.7 - 2019-02-28
 ### Fixed

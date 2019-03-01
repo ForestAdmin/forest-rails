@@ -83,7 +83,7 @@ module ForestLiana
         getter = ForestLiana::ResourceGetter.new(@resource, params)
         getter.perform
 
-        render serializer: nil, json: render_record_jsonapi(getter)
+        render serializer: nil, json: render_record_jsonapi(getter.record)
       rescue => error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
@@ -102,8 +102,7 @@ module ForestLiana
           render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
             creator.errors), status: 400
         elsif creator.record.valid?
-          render serializer: nil,
-            json: serialize_model(get_record(creator.record), include: record_includes)
+          render serializer: nil, json: render_record_jsonapi(creator.record)
         else
           render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
             creator.record.errors), status: 400
@@ -126,8 +125,7 @@ module ForestLiana
           render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
             updater.errors), status: 400
         elsif updater.record.valid?
-          render serializer: nil,
-            json: serialize_model(get_record(updater.record), include: record_includes)
+          render serializer: nil, json: render_record_jsonapi(updater.record)
         else
           render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
             updater.record.errors), status: 400
@@ -188,14 +186,15 @@ module ForestLiana
       is_sti_model? ? record.becomes(@resource) : record
     end
 
-    def render_record_jsonapi getter
-      collection_fields = getter.collection.fields.map { |field| field[:field] }
+    def render_record_jsonapi record
+      collection = ForestLiana::SchemaHelper.find_collection_from_model(@resource)
+      collection_fields = collection.fields.map { |field| field[:field] }
       fields_to_serialize = {
         ForestLiana.name_for(@resource) => collection_fields.join(',')
       }
 
-      serialize_model(get_record(getter.record), {
-        include: includes(getter),
+      serialize_model(get_record(record), {
+        include: record_includes,
         fields: fields_to_serialize
       })
     end
