@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 2.15.8 - 2019-03-01
 ### Fixed
 - Records Display - Restrict record data serialization based the schema collection fields in the #create and #update actions.
 
