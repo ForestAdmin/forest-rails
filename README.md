@@ -19,10 +19,10 @@ This project has been designed with scalability in mind to fit requirements from
 
 ## Getting Started
 
-Install Forest Admin here: [https://www.forestadmin.com](https://www.forestadmin.com)
+Install Forest Admin here: [https://docs.forestadmin.com/documentation/getting-started/installation](https://docs.forestadmin.com/documentation/getting-started/installation)
 
 ## Documentation
-[https://docs.forestadmin.com/rails](https://docs.forestadmin.com/rails)
+[https://docs.forestadmin.com/documentation/](https://docs.forestadmin.com/documentation/)
 
 ## Features
 
