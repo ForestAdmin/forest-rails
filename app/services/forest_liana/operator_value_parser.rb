@@ -55,8 +55,7 @@ module ForestLiana
     end
 
     def self.get_condition_end(field, operator, value, resource, timezone)
-      operator_date_interval_parser = OperatorDateIntervalParser
-        .new(value, timezone)
+      operator_date_interval_parser = OperatorDateIntervalParser.new(value, timezone)
 
       if operator_date_interval_parser.is_interval_date_value()
         filter = operator_date_interval_parser.get_interval_date_filter()
