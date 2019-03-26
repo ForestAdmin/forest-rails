@@ -61,6 +61,7 @@ module ForestLiana
         if request.headers
           if request.headers['Authorization']
             token = request.headers['Authorization'].split.second
+          # NOTICE: Necessary for downloads authentication.
           elsif request.headers['cookie']
             match = REGEX_COOKIE_SESSION_TOKEN.match(request.headers['cookie'])
             token = match[1] if match && match[1]
