@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.0.0-beta.15 - 2019-03-27
 ### Changed
 - Security - Do not pass session token in query params while downloading collections records.
 
