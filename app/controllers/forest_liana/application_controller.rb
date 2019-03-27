@@ -3,6 +3,8 @@ require 'csv'
 
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
+    REGEX_COOKIE_SESSION_TOKEN = /sessionToken=(.*);?/;
+
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
     end
@@ -56,11 +58,13 @@ module ForestLiana
 
     def authenticate_user_from_jwt
       begin
-        if request.headers['Authorization'] || params['sessionToken']
+        if request.headers
           if request.headers['Authorization']
             token = request.headers['Authorization'].split.second
-          else
-            token = params['sessionToken']
+          # NOTICE: Necessary for downloads authentication.
+          elsif request.headers['cookie']
+            match = REGEX_COOKIE_SESSION_TOKEN.match(request.headers['cookie'])
+            token = match[1] if match && match[1]
           end
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
