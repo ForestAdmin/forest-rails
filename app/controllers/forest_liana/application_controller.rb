@@ -3,7 +3,7 @@ require 'csv'
 
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
-    REGEX_COOKIE_SESSION_TOKEN = /sessionToken=(.*);?/;
+    REGEX_COOKIE_SESSION_TOKEN = /forest_session_token=([^;]*)/;
 
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
