@@ -278,8 +278,8 @@ module ForestLiana
 
     private
 
-    def text_type?(type_str)
-      [:string, :text, :citext].include? type_str
+    def text_type?(type_sym)
+      [:string, :text, :citext].include? type_sym
     end
   end
 end
