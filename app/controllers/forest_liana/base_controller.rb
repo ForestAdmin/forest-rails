@@ -20,7 +20,6 @@ module ForestLiana
           end
         end
       rescue ForestLiana::Errors::ExpectedError => exception
-        exception.display_error
         error_data = JSONAPI::Serializer.serialize_errors([{
           status: exception.error_code,
           detail: exception.message
