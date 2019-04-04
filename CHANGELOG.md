@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.0.0-beta.17 - 2019-04-04
 ### Changed
 - Error Handling - Display an explicit error message if the envSecret is detected as missing or unknown during data a API request.
 
