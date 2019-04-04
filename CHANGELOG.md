@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Search - Enable PostgreSQL's CITEXT fields in search.
 
 ## RELEASE 2.15.8 - 2019-03-01
 ### Fixed
