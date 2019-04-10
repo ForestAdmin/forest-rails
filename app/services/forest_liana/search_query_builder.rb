@@ -56,7 +56,7 @@ module ForestLiana
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
-          @fields_searched << column.name if [:string, :text].include? column.type
+          @fields_searched << column.name if text_type? column.type
           column_name = format_column_name(@resource.table_name, column.name)
           if (@collection.search_fields && !@collection.search_fields.include?(column.name))
             conditions
@@ -73,8 +73,7 @@ module ForestLiana
             !@resource.defined_enums[column.name][@search.downcase].nil?
             conditions << "#{column_name} =
               #{@resource.defined_enums[column.name][@search.downcase]}"
-          elsif !(column.respond_to?(:array) && column.array) &&
-            (column.type == :string || column.type == :text)
+          elsif !(column.respond_to?(:array) && column.array) && text_type?(column.type)
             conditions << "LOWER(#{column_name}) LIKE :search_value_for_string"
           end
         end
@@ -101,8 +100,7 @@ module ForestLiana
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)
               resource.klass.columns.each do |column|
-                if !(column.respond_to?(:array) && column.array) &&
-                  (column.type == :string || column.type == :text)
+                if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
                   if @collection.search_fields.nil? || (association_search &&
                     association_search.include?(column.name))
                     conditions << association_search_condition(resource.table_name,
@@ -125,8 +123,7 @@ module ForestLiana
               unless association_search.empty?
                 resource = @resource.reflect_on_association(association.to_sym)
                 resource.klass.columns.each do |column|
-                  if !(column.respond_to?(:array) && column.array) &&
-                    (column.type == :string || column.type == :text)
+                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
                     if association_search.include?(column.name)
                       conditions << association_search_condition(resource.table_name,
                         column.name)
@@ -277,6 +274,12 @@ module ForestLiana
       end
 
       @records
+    end
+
+    private
+
+    def text_type?(type_sym)
+      [:string, :text, :citext].include? type_sym
     end
   end
 end
