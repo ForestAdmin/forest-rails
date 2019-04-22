@@ -15,7 +15,10 @@ module ForestLiana
           @@ip_whitelist_rules = ip_whitelist_data['rules']
           true
         else
-          raise "Cannot retrieve the data from the Forest server. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
+          FOREST_LOGGER.error 'An error occured while retrieving your IP whitelist. Your Forest ' +
+            'env_secret seems to be missing or unknown. Can you check that you properly set your ' +
+            'Forest env_secret in the forest_liana initializer?'
+          false
         end
       rescue => exception
         FOREST_LOGGER.error 'Cannot retrieve the IP Whitelist from the Forest server.'

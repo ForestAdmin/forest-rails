@@ -1,5 +1,9 @@
+require_relative 'schema_file_updater'
+require_relative 'version'
+
 module ForestLiana
   class Bootstraper
+    SCHEMA_FILENAME = File.join(Dir.pwd, '.forestadmin-schema.json')
 
     def initialize
       @integration_stripe_valid = false
@@ -38,6 +42,26 @@ module ForestLiana
       create_apimap
       require_lib_forest_liana
       format_and_validate_smart_actions
+
+      if Rails.env.development?
+        @collections_sent = ForestLiana.apimap.as_json
+        @meta_sent = ForestLiana.meta
+        SchemaFileUpdater.new(SCHEMA_FILENAME, @collections_sent, @meta_sent).perform()
+      else
+        if File.exists?(SCHEMA_FILENAME)
+          begin
+            content = JSON.parse(File.read(SCHEMA_FILENAME))
+            @collections_sent = content['collections']
+            @meta_sent = content['meta']
+          rescue JSON::JSONError
+            FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
+            FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
+          end
+        else
+          FOREST_LOGGER.error "The .forestadmin-schema.json file does not exists."
+          FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
+        end
+      end
     end
 
     def is_sti_parent_model?(model)
@@ -148,7 +172,19 @@ module ForestLiana
         end
     end
 
+    def setup_forest_liana_meta
+      ForestLiana.meta = {
+        database_type: database_type,
+        framework_version: Gem.loaded_specs["rails"].version.version,
+        liana: 'forest-rails',
+        liana_version: ForestLiana::VERSION,
+        orm_version: Gem.loaded_specs["activerecord"].version.version
+      }
+    end
+
     def create_apimap
+      setup_forest_liana_meta
+
       ForestLiana.models.map do |model|
         if analyze_model?(model)
           SchemaAdapter.new(model).perform
@@ -184,17 +220,6 @@ module ForestLiana
     def format_and_validate_smart_actions
       ForestLiana.apimap.each do |collection|
         collection.actions.each do |action|
-          if action.global
-            FOREST_LOGGER.warn "DEPRECATION WARNING: Smart Action \"global\" option is now " \
-              "deprecated. Please set \"type: 'global'\" instead of \"global: true\" for the " \
-              "\"#{action.name}\" Smart Action."
-          end
-
-          if action.type && !['bulk', 'global', 'single'].include?(action.type)
-            FOREST_LOGGER.warn "Please set a valid Smart Action type (\"bulk\", \"global\" or " \
-              "\"single\") for the \"#{action.name}\" Smart Action."
-          end
-
           if action.fields
             # NOTICE: Set a position to the Smart Actions fields.
             action.fields.each_with_index do |field, index|
@@ -206,18 +231,8 @@ module ForestLiana
     end
 
     def get_apimap_serialized
-      apimap = JSONAPI::Serializer.serialize(ForestLiana.apimap, {
-        is_collection: true,
-        include: ['actions', 'segments'],
-        meta: {
-          liana: 'forest-rails',
-          liana_version: liana_version,
-          framework_version: Gem.loaded_specs["rails"].version.version,
-          orm_version: Gem.loaded_specs["activerecord"].version.version,
-          database_type: database_type
-        }
-      })
-
+      serializer = ForestLiana::SchemaSerializer.new(@collections_sent, @meta_sent)
+      apimap = serializer.serialize
       ForestLiana::ApimapSorter.new(apimap).perform
     end
 
@@ -287,12 +302,10 @@ module ForestLiana
       model_name = ForestLiana.name_for(collection_name.constantize)
       # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
       model_name_old = ForestLiana.name_old_for(collection_name.constantize)
-      collection_display_name = collection_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_intercom_conversations",
         name_old: "#{model_name_old}_intercom_conversations",
-        display_name: collection_display_name + ' Conversations',
         icon: 'intercom',
         integration: 'intercom',
         only_for_relationships: true,
@@ -310,30 +323,29 @@ module ForestLiana
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_intercom_attributes",
         name_old: "#{model_name_old}_intercom_attributes",
-        display_name: collection_display_name + ' Attributes',
         icon: 'intercom',
         integration: 'intercom',
         only_for_relationships: true,
         is_virtual: true,
         is_searchable: false,
         fields: [
-          { field: :created_at, type: 'Date', 'is-filterable': false },
-          { field: :updated_at, type: 'Date', 'is-filterable': false },
-          { field: :session_count, type: 'Number', 'is-filterable': false },
-          { field: :last_seen_ip, type: 'String', 'is-filterable': false },
-          { field: :signed_up_at, type: 'Date', 'is-filterable': false },
-          { field: :country, type: 'String', 'is-filterable': false },
-          { field: :city, type: 'String', 'is-filterable': false },
-          { field: :browser, type: 'String', 'is-filterable': false },
-          { field: :platform, type: 'String', 'is-filterable': false },
-          { field: :companies, type: 'String', 'is-filterable': false },
-          { field: :segments, type: 'String', 'is-filterable': false },
-          { field: :tags, type: 'String', 'is-filterable': false },
+          { field: :created_at, type: 'Date', is_filterable: false },
+          { field: :updated_at, type: 'Date', is_filterable: false },
+          { field: :session_count, type: 'Number', is_filterable: false },
+          { field: :last_seen_ip, type: 'String', is_filterable: false },
+          { field: :signed_up_at, type: 'Date', is_filterable: false },
+          { field: :country, type: 'String', is_filterable: false },
+          { field: :city, type: 'String', is_filterable: false },
+          { field: :browser, type: 'String', is_filterable: false },
+          { field: :platform, type: 'String', is_filterable: false },
+          { field: :companies, type: 'String', is_filterable: false },
+          { field: :segments, type: 'String', is_filterable: false },
+          { field: :tags, type: 'String', is_filterable: false },
           {
             field: :geoloc,
             type: 'String',
             widget: 'map',
-            'is-filterable': false
+            is_filterable: false
           }
         ]
       })
@@ -355,12 +367,10 @@ module ForestLiana
       model_name = ForestLiana.name_for(collection_name.constantize)
       # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
       model_name_old = ForestLiana.name_old_for(collection_name.constantize)
-      collection_display_name = model_name.capitalize
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_payments",
         name_old: "#{model_name_old}_stripe_payments",
-        display_name: collection_display_name + ' Payments',
         icon: 'stripe',
         integration: 'stripe',
         is_virtual: true,
@@ -368,24 +378,23 @@ module ForestLiana
         is_searchable: false,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', 'is-filterable': false },
-          { field: :created, type: 'Date', 'is-filterable': false },
-          { field: :amount, type: 'Number', 'is-filterable': false },
-          { field: :status, type: 'String', 'is-filterable': false },
-          { field: :currency, type: 'String', 'is-filterable': false },
-          { field: :refunded, type: 'Boolean', 'is-filterable': false },
-          { field: :description, type: 'String', 'is-filterable': false },
+          { field: :id, type: 'String', is_filterable: false },
+          { field: :created, type: 'Date', is_filterable: false },
+          { field: :amount, type: 'Number', is_filterable: false },
+          { field: :status, type: 'String', is_filterable: false },
+          { field: :currency, type: 'String', is_filterable: false },
+          { field: :refunded, type: 'Boolean', is_filterable: false },
+          { field: :description, type: 'String', is_filterable: false },
           {
             field: :customer,
             type: 'String',
             relationship: 'BelongsTo',
             reference: "#{model_name}.id",
-            'is-filterable': false
+            is_filterable: false
           }
         ],
         actions: [
           ForestLiana::Model::Action.new({
-            id: 'stripe.Refund',
             name: 'Refund',
             endpoint: '/forest/stripe_payments/refunds'
           })
@@ -395,7 +404,6 @@ module ForestLiana
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_invoices",
         name_old: "#{model_name_old}_stripe_invoices",
-        display_name: collection_display_name + ' Invoices',
         icon: 'stripe',
         integration: 'stripe',
         is_virtual: true,
@@ -403,27 +411,27 @@ module ForestLiana
         is_searchable: false,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', 'is-filterable': false },
-          { field: :amount_due, type: 'Number', 'is-filterable': false },
-          { field: :attempt_count, type: 'Number', 'is-filterable': false },
-          { field: :attempted, type: 'Boolean', 'is-filterable': false },
-          { field: :closed, type: 'Boolean', 'is-filterable': false },
-          { field: :currency, type: 'String', 'is-filterable': false },
-          { field: :date, type: 'Date', 'is-filterable': false },
-          { field: :forgiven, type: 'Boolean', 'is-filterable': false },
-          { field: :period_start, type: 'Date', 'is-filterable': false },
-          { field: :period_end, type: 'Date', 'is-filterable': false },
-          { field: :subtotal, type: 'Number', 'is-filterable': false },
-          { field: :total, type: 'Number', 'is-filterable': false },
-          { field: :application_fee, type: 'Number', 'is-filterable': false },
-          { field: :tax, type: 'Number', 'is-filterable': false },
-          { field: :tax_percent, type: 'Number', 'is-filterable': false },
+          { field: :id, type: 'String', is_filterable: false },
+          { field: :amount_due, type: 'Number', is_filterable: false },
+          { field: :attempt_count, type: 'Number', is_filterable: false },
+          { field: :attempted, type: 'Boolean', is_filterable: false },
+          { field: :closed, type: 'Boolean', is_filterable: false },
+          { field: :currency, type: 'String', is_filterable: false },
+          { field: :date, type: 'Date', is_filterable: false },
+          { field: :forgiven, type: 'Boolean', is_filterable: false },
+          { field: :period_start, type: 'Date', is_filterable: false },
+          { field: :period_end, type: 'Date', is_filterable: false },
+          { field: :subtotal, type: 'Number', is_filterable: false },
+          { field: :total, type: 'Number', is_filterable: false },
+          { field: :application_fee, type: 'Number', is_filterable: false },
+          { field: :tax, type: 'Number', is_filterable: false },
+          { field: :tax_percent, type: 'Number', is_filterable: false },
           {
             field: :customer,
             type: 'String',
             relationship: 'BelongsTo',
             reference: "#{model_name}.id",
-            'is-filterable': false
+            is_filterable: false
           }
         ]
       })
@@ -431,7 +439,6 @@ module ForestLiana
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_cards",
         name_old: "#{model_name_old}_stripe_cards",
-        display_name: collection_display_name + ' Cards',
         icon: 'stripe',
         integration: 'stripe',
         is_virtual: true,
@@ -440,27 +447,27 @@ module ForestLiana
         only_for_relationships: true,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', 'is-filterable': false },
-          { field: :last4, type: 'String', 'is-filterable': false },
-          { field: :brand, type: 'String', 'is-filterable': false },
-          { field: :funding, type: 'String', 'is-filterable': false },
-          { field: :exp_month, type: 'Number', 'is-filterable': false },
-          { field: :exp_year, type: 'Number', 'is-filterable': false },
-          { field: :country, type: 'String', 'is-filterable': false },
-          { field: :name, type: 'String', 'is-filterable': false },
-          { field: :address_line1, type: 'String', 'is-filterable': false },
-          { field: :address_line2, type: 'String', 'is-filterable': false },
-          { field: :address_city, type: 'String', 'is-filterable': false },
-          { field: :address_state, type: 'String', 'is-filterable': false },
-          { field: :address_zip, type: 'String', 'is-filterable': false },
-          { field: :address_country, type: 'String', 'is-filterable': false },
-          { field: :cvc_check, type: 'String', 'is-filterable': false },
+          { field: :id, type: 'String', is_filterable: false },
+          { field: :last4, type: 'String', is_filterable: false },
+          { field: :brand, type: 'String', is_filterable: false },
+          { field: :funding, type: 'String', is_filterable: false },
+          { field: :exp_month, type: 'Number', is_filterable: false },
+          { field: :exp_year, type: 'Number', is_filterable: false },
+          { field: :country, type: 'String', is_filterable: false },
+          { field: :name, type: 'String', is_filterable: false },
+          { field: :address_line1, type: 'String', is_filterable: false },
+          { field: :address_line2, type: 'String', is_filterable: false },
+          { field: :address_city, type: 'String', is_filterable: false },
+          { field: :address_state, type: 'String', is_filterable: false },
+          { field: :address_zip, type: 'String', is_filterable: false },
+          { field: :address_country, type: 'String', is_filterable: false },
+          { field: :cvc_check, type: 'String', is_filterable: false },
           {
             field: :customer,
             type: 'String',
             relationship: 'BelongsTo',
             reference: "#{model_name}.id",
-            'is-filterable': false
+            is_filterable: false
           }
         ]
       })
@@ -468,7 +475,6 @@ module ForestLiana
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_subscriptions",
         name_old: "#{model_name_old}_stripe_subscriptions",
-        display_name: collection_display_name + ' Subscriptions',
         icon: 'stripe',
         integration: 'stripe',
         is_virtual: true,
@@ -476,26 +482,26 @@ module ForestLiana
         is_searchable: false,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', 'is-filterable': false },
-          { field: :cancel_at_period_end, type: 'Boolean', 'is-filterable': false },
-          { field: :canceled_at, type: 'Date', 'is-filterable': false },
-          { field: :created, type: 'Date', 'is-filterable': false },
-          { field: :current_period_end, type: 'Date', 'is-filterable': false },
-          { field: :current_period_start, type: 'Date', 'is-filterable': false },
-          { field: :ended_at, type: 'Date', 'is-filterable': false },
-          { field: :livemode, type: 'Boolean', 'is-filterable': false },
-          { field: :quantity, type: 'Number', 'is-filterable': false },
-          { field: :start, type: 'Date', 'is-filterable': false },
-          { field: :status, type: 'String', 'is-filterable': false },
-          { field: :tax_percent, type: 'Number', 'is-filterable': false },
-          { field: :trial_end, type: 'Date', 'is-filterable': false },
-          { field: :trial_start, type: 'Date', 'is-filterable': false },
+          { field: :id, type: 'String', is_filterable: false },
+          { field: :cancel_at_period_end, type: 'Boolean', is_filterable: false },
+          { field: :canceled_at, type: 'Date', is_filterable: false },
+          { field: :created, type: 'Date', is_filterable: false },
+          { field: :current_period_end, type: 'Date', is_filterable: false },
+          { field: :current_period_start, type: 'Date', is_filterable: false },
+          { field: :ended_at, type: 'Date', is_filterable: false },
+          { field: :livemode, type: 'Boolean', is_filterable: false },
+          { field: :quantity, type: 'Number', is_filterable: false },
+          { field: :start, type: 'Date', is_filterable: false },
+          { field: :status, type: 'String', is_filterable: false },
+          { field: :tax_percent, type: 'Number', is_filterable: false },
+          { field: :trial_end, type: 'Date', is_filterable: false },
+          { field: :trial_start, type: 'Date', is_filterable: false },
           {
             field: :customer,
             type: 'String',
             relationship: 'BelongsTo',
             reference: "#{model_name}.id",
-            'is-filterable': false
+            is_filterable: false
           }
         ]
       })
@@ -503,7 +509,6 @@ module ForestLiana
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_stripe_bank_accounts",
         name_old: "#{model_name_old}_stripe_bank_accounts",
-        display_name: collection_display_name + ' Bank Accounts',
         icon: 'stripe',
         integration: 'stripe',
         is_virtual: true,
@@ -512,24 +517,24 @@ module ForestLiana
         only_for_relationships: true,
         pagination_type: 'cursor',
         fields: [
-          { field: :id, type: 'String', 'is-filterable': false },
-          { field: :account, type: 'String', 'is-filterable': false },
-          { field: :account_holder_name, type: 'String', 'is-filterable': false },
-          { field: :account_holder_type, type: 'String', 'is-filterable': false },
-          { field: :bank_name, type: 'String', 'is-filterable': false },
-          { field: :country, type: 'String', 'is-filterable': false },
-          { field: :currency, type: 'String', 'is-filterable': false },
-          { field: :default_for_currency, type: 'Boolean', 'is-filterable': false },
-          { field: :fingerprint, type: 'String', 'is-filterable': false },
-          { field: :last4, type: 'String', 'is-filterable': false },
-          { field: :rooting_number, type: 'String', 'is-filterable': false },
-          { field: :status, type: 'String', 'is-filterable': false },
+          { field: :id, type: 'String', is_filterable: false },
+          { field: :account, type: 'String', is_filterable: false },
+          { field: :account_holder_name, type: 'String', is_filterable: false },
+          { field: :account_holder_type, type: 'String', is_filterable: false },
+          { field: :bank_name, type: 'String', is_filterable: false },
+          { field: :country, type: 'String', is_filterable: false },
+          { field: :currency, type: 'String', is_filterable: false },
+          { field: :default_for_currency, type: 'Boolean', is_filterable: false },
+          { field: :fingerprint, type: 'String', is_filterable: false },
+          { field: :last4, type: 'String', is_filterable: false },
+          { field: :rooting_number, type: 'String', is_filterable: false },
+          { field: :status, type: 'String', is_filterable: false },
           {
             field: :customer,
             type: 'String',
             relationship: 'BelongsTo',
             reference: "#{model_name}.id",
-            'is-filterable': false
+            is_filterable: false
           }
         ]
       })
@@ -567,9 +572,8 @@ module ForestLiana
     def setup_mixpanel_integration(collection_name_and_field)
       collection_name = collection_name_and_field.split('.')[0]
       model_name = ForestLiana.name_for(collection_name.constantize)
-      collection_display_name = model_name.capitalize
 
-      field_attributes = { 'is-filterable': false , 'is-virtual': true, 'is-sortable': false }
+      field_attributes = { is_filterable: false , is_virtual: true, is_sortable: false }
 
       fields = [
         { field: :id, type: 'String' },
@@ -596,7 +600,6 @@ module ForestLiana
 
       ForestLiana.apimap << ForestLiana::Model::Collection.new({
         name: "#{model_name}_mixpanel_events",
-        display_name: "#{collection_display_name} Events",
         icon: 'mixpanel',
         integration: 'mixpanel',
         is_virtual: true,
@@ -621,13 +624,6 @@ module ForestLiana
 
     def forest_url
       ENV['FOREST_URL'] || 'https://api.forestadmin.com';
-    end
-
-    def liana_version
-      Gem::Specification.find_all_by_name('forest_liana')
-        .try(:first)
-        .try(:version)
-        .try(:to_s)
     end
 
     def database_type

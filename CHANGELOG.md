@@ -2,6 +2,89 @@
 
 ## [Unreleased]
 
+## RELEASE 3.0.0-beta.18 - 2019-04-10
+### Fixed
+- Search - Enable PostgreSQL's CITEXT fields in search.
+
+## RELEASE 3.0.0-beta.17 - 2019-04-04
+### Changed
+- Error Handling - Display an explicit error message if the envSecret is detected as missing or unknown during data a API request.
+
+## RELEASE 3.0.0-beta.16 - 2019-03-29
+### Fixed
+- Security - Fix implementation of session token passed in headers while downloading collections records.
+
+## RELEASE 3.0.0-beta.15 - 2019-03-27
+### Changed
+- Security - Do not pass session token in query params while downloading collections records.
+
+## RELEASE 3.0.0-beta.14 - 2019-03-01
+### Fixed
+- Records Display - Restrict record data serialization based the schema collection fields in the #create and #update actions.
+
+## RELEASE 3.0.0-beta.13 - 2019-02-28
+### Fixed
+- Records Display - Restrict record data serialization based the schema collection fields in the #show action.
+
+## RELEASE 3.0.0-beta.12 - 2019-02-28
+### Fixed
+- Records Display - Ensure that the data is properly sent even if an attribute serialization happens for an unknown reason.
+
+## RELEASE 3.0.0-beta.11 - 2019-02-27
+### Fixed
+- Filters - Fix resources display if filtered with associations conditions with the related columns hidden in the list. 🛡
+
+## RELEASE 3.0.0-beta.10 - 2019-02-26
+### Fixed
+- Schema - Ensure that unhandled field types are not defined anymore in collections schemas. 🛡
+
+## RELEASE 3.0.0-beta.9 - 2019-02-25
+### Fixed
+- Charts - Fix Value charts having filters on associations targeting a collection having with a custom table name. 🛡
+- Charts - Fix Value charts having filters on associations targeting a collection associated through multiple `belongs_to` association to the current resource. 🛡
+
+## RELEASE 3.0.0-beta.8 - 2019-02-20
+### Fixed
+- Export - Fix broken export action. [Regression introduced in 3.0.0-beta.7]
+
+## RELEASE 3.0.0-beta.7 - 2019-02-06
+### Fixed
+- Filters - Fix association filtering on collections having several associations targeting the same table.
+
+## RELEASE 3.0.0-beta.6 - 2019-02-01
+### Added
+- Charts - Users can create "Leaderboard" charts.
+- Charts - Users can create "Objective" charts.
+- Technical - Add a new apimap property "relationship".
+
+## RELEASE 3.0.0-beta.5 - 2019-01-30
+### Fixed
+- Validations - Remove badly set validations on Array fields.
+
+## RELEASE 3.0.0-beta.4 - 2019-01-30
+### Fixed
+- Schema - Fix empty validations set in the schema file.
+
+## RELEASE 3.0.0-beta.3 - 2019-01-30
+### Fixed
+- Build - Fix liana version set in the `.forestadmin-schema.json` meta.
+
+## RELEASE 3.0.0-beta.2 - 2019-01-30
+### Fixed
+- Build - Fix liana version set in the `.forestadmin-schema.json` meta.
+
+## RELEASE 3.0.0-beta.1 - 2019-01-30
+### Fixed
+- Build - Fix regressions in the build script.
+
+## RELEASE 3.0.0-beta.0 - 2019-01-30
+### Added
+- Developer Experience - On start, create a `.forestadmin-schema.json` file that contains the schema definition.
+- Developer Experience - On production, load `.forestadmin-schema.json` for schema update.
+
+### Changed
+- Schema - Developers can deactivate the automatic schema sending on server start (using `FOREST_DISABLE_AUTO_SCHEMA_APPLY` environment variable, deprecating `FOREST_DEACTIVATE_AUTOMATIC_APIMAP`).
+
 ## RELEASE 2.15.8 - 2019-03-01
 ### Fixed
 - Records Display - Restrict record data serialization based the schema collection fields in the #create and #update actions.

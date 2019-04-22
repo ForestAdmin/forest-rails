@@ -23,7 +23,7 @@ module ForestLiana
             hostnames += ENV['CORS_ORIGINS'].split(',') if ENV['CORS_ORIGINS']
 
             origins hostnames
-            resource '*', headers: :any, methods: :any, max_age: 86400 # NOTICE: 1 day
+            resource '*', headers: :any, methods: :any, credentials: true, max_age: 86400 # NOTICE: 1 day
           end
         end
         nil
@@ -73,7 +73,10 @@ module ForestLiana
         if ForestLiana.env_secret || ForestLiana.secret_key
           unless rake?
             bootstraper = Bootstraper.new
-            bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || Rails.env.test?
+            if ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
+              FOREST_LOGGER.warn "DEPRECATION WARNING: FOREST_DEACTIVATE_AUTOMATIC_APIMAP option has been renamed. Please use FOREST_DISABLE_AUTO_SCHEMA_APPLY instead."
+            end
+            bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY'] || Rails.env.test?
           end
         end
       end

@@ -82,6 +82,10 @@ module ForestLiana
 
         render(serializer: nil, json: nil, status: :internal_server_error)
       else
+        # NOTICE: Set a cookie to ensure secure authentication using export feature.
+        # NOTICE: The token is empty at first authentication step if the 2FA option is active.
+        response.set_cookie("forest_session_token", reponse_data[:token]) if reponse_data[:token]
+
         render(json: reponse_data, serializer: nil)
       end
     end

@@ -43,28 +43,47 @@ gulp.task('build', () => {
 
   const tag = `v${version}`;
 
-  simpleGit
-    .checkout(BRANCH_DEVEL)
-    .pull((error) => { if (error) { console.log(error); } })
-    .then(() => { console.log(`Pull ${BRANCH_DEVEL} done.`); })
-    .then(() => {
-      fs.writeFileSync('lib/forest_liana/version.rb', newVersionFile);
-      fs.writeFileSync('CHANGELOG.md', newChanges);
-    })
-    .then(() => { exec('bundle install'); })
-    .add('*')
-    .commit(`Release ${version}`)
-    .push()
-    .then(() => { console.log(`Commit Release on ${BRANCH_DEVEL} done.`); })
-    .checkout(BRANCH_MASTER)
-    .pull((error) => { if (error) { console.log(error); } })
-    .then(() => { console.log(`Pull ${BRANCH_MASTER} done.`); })
-    .mergeFromTo(BRANCH_DEVEL, BRANCH_MASTER)
-    .then(() => { console.log(`Merge ${BRANCH_DEVEL} on ${BRANCH_MASTER} done.`); })
-    .push()
-    .then(() => { exec('gem build forest_liana.gemspec'); })
-    .addTag(tag)
-    .push('origin', tag)
-    .then(() => { console.log(`Tag ${tag} on ${BRANCH_MASTER} done.`); })
-    .checkout(BRANCH_DEVEL);
+  if (prereleaseTag) {
+    simpleGit
+      .pull((error) => { if (error) { console.log(error); } })
+      .then(() => { console.log(`Pull done.`); })
+      .then(() => {
+        fs.writeFileSync('lib/forest_liana/version.rb', newVersionFile);
+        fs.writeFileSync('CHANGELOG.md', newChanges);
+      })
+      .then(() => { exec('bundle install'); })
+      .add('*')
+      .commit(`Release ${version}`)
+      .push()
+      .then(() => { console.log(`Commit Release done.`); })
+      .then(() => { exec('gem build forest_liana.gemspec'); })
+      .addTag(tag)
+      .push('origin', tag)
+      .then(() => { console.log(`Tag ${tag} done.`); });
+  } else {
+    simpleGit
+      .checkout(BRANCH_DEVEL)
+      .pull((error) => { if (error) { console.log(error); } })
+      .then(() => { console.log(`Pull ${BRANCH_DEVEL} done.`); })
+      .then(() => {
+        fs.writeFileSync('lib/forest_liana/version.rb', newVersionFile);
+        fs.writeFileSync('CHANGELOG.md', newChanges);
+      })
+      .then(() => { exec('bundle install'); })
+      .add('*')
+      .commit(`Release ${version}`)
+      .push()
+      .then(() => { console.log(`Commit Release on ${BRANCH_DEVEL} done.`); })
+      .checkout(BRANCH_MASTER)
+      .pull((error) => { if (error) { console.log(error); } })
+      .then(() => { console.log(`Pull ${BRANCH_MASTER} done.`); })
+      .mergeFromTo(BRANCH_DEVEL, BRANCH_MASTER)
+      .then(() => { console.log(`Merge ${BRANCH_DEVEL} on ${BRANCH_MASTER} done.`); })
+      .push()
+      .then(() => { exec('gem build forest_liana.gemspec'); })
+      .addTag(tag)
+      .push('origin', tag)
+      .then(() => { console.log(`Tag ${tag} on ${BRANCH_MASTER} done.`); })
+      .checkout(BRANCH_DEVEL);
+  }
 });

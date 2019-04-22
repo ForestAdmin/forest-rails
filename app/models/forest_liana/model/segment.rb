@@ -10,7 +10,7 @@ class ForestLiana::Model::Segment
     attributes.each do |name, value|
       send("#{name}=", value)
     end
-    
+
     @where = block if block
   end
 
