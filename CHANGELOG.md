@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Smart Action - Fix crash on server start.
 
 ## RELEASE 3.0.0 - 2019-04-22
 

@@ -94,9 +94,8 @@ module ForestLiana
         end
 
         collection['actions'] = collection['actions'].map do |action|
-          action.slice(*KEYS_ACTION)
           action['fields'] = action['fields'].map { |field| field.slice(*KEYS_ACTION_FIELD) }
-          action
+          action.slice(*KEYS_ACTION)
         end
 
         collection['segments'] = collection['segments'].map do |segment|
