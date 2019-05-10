@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.0.2 - 2019-05-10
 ### Fixed
 - Smart Actions - Fix broken Smart Actions having a name containing emoji without custom endpoint.
 
