@@ -59,7 +59,7 @@ class ForestLiana::Model::Action
         "(Smart Actions fields without name are ignored)."
     end
 
-    dasherized_name = @name.downcase.gsub!(" ", "-") unless @name.nil?
+    dasherized_name = ActiveSupport::Inflector.parameterize(@name) unless @name.nil?
     @endpoint ||= "forest/actions/#{dasherized_name}" unless dasherized_name.nil?
     @http_method ||= "POST"
     @redirect ||= nil

@@ -1,10 +1,12 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Smart Actions - Fix broken Smart Actions having a name containing emoji without custom endpoint.
 
 ## RELEASE 3.0.1 - 2019-04-29
 ### Fixed
-- Smart Action - Fix crash on server start.
+- Smart Actions - Fix crash on server start.
 
 ## RELEASE 3.0.0 - 2019-04-22
 
