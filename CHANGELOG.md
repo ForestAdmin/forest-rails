@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Exports - Fix broken exports if users restart a new browser session (ie quit/restart browser).
 
 ## RELEASE 3.0.2 - 2019-05-10
 ### Fixed
