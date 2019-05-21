@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Record Update - Prevent `encrypted_password` removal on Devise users models update.
 
 ## RELEASE 3.0.3 - 2019-05-15
 ### Fixed
