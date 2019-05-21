@@ -144,7 +144,7 @@ module ForestLiana
 
       if @params['data']['attributes']['password'] == '**********'
         @params['data']['attributes'].delete('password')
-      else
+      elsif @params['data']['attributes']['password'].present?
         @attributes['password'] = @params['data']['attributes']['password']
       end
     end
