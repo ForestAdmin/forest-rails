@@ -15,6 +15,10 @@ module ForestLiana
 
         if has_strong_parameter
           @record.update_attributes(resource_params)
+        elsif Rails::VERSION::MAJOR >= 5
+          @record.update_attributes(resource_params.to_unsafe_hash)
+        elsif Rails::VERSION::MAJOR == 4
+          @record.update_attributes(resource_params.to_hash)
         else
           @record.update_attributes(resource_params, without_protection: true)
         end

@@ -1,3 +1,5 @@
+require 'minitest/mock'
+
 module ForestLiana
   class ResourceUpdaterTest < ActiveSupport::TestCase
 
@@ -65,7 +67,7 @@ module ForestLiana
       assert updater.errors[0][:detail] == "Bad format for 'field' attribute value."
     end
 
-    test 'Update a record on a "serialize" attribute with a well formated value' do
+    test 'Update a record on a "serialize" attribute with a well formatted value' do
       params = ActionController::Parameters.new(
         id: 1,
         data: {
@@ -81,6 +83,27 @@ module ForestLiana
 
       assert updater.record.valid?
       assert updater.record.field == ["test", "test"]
+    end
+
+    test 'Update a record on a "serialize" attribute with a well formatted value without strong params' do
+      params = ActionController::Parameters.new(
+        id: 1,
+        data: {
+          id: 1,
+          type: "SerializeField",
+          attributes: {
+            field: "[\"test\", \"test\"]"
+          }
+        }
+      )
+      
+      updater = ResourceUpdater.new(SerializeField, params)
+      updater.stub :has_strong_parameter, false do
+        updater.perform
+
+        assert updater.record.valid?
+        assert updater.record.field == ["test", "test"]
+      end
     end
   end
 end

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Record Update/Creation - Add support for Rails 4 and 5 when request does not have strong params
 
 ## RELEASE 3.0.4 - 2019-05-21
 ### Fixed
