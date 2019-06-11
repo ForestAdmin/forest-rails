@@ -25,12 +25,8 @@ module ForestLiana
       # NOTICE: The Forest user email is returned to track changes made using
       #         Forest with Papertrail.
       define_method :user_for_paper_trail do
-        forest_user['data']['data']['email']
+        @jwt_decoded_token['email']
       end
-    end
-
-    def forest_user
-      @jwt_decoded_token
     end
 
     def serialize_model(record, options = {})
@@ -69,12 +65,18 @@ module ForestLiana
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
             { algorithm: 'HS256', leeway: 30 }).try(:first)
-          @rendering_id = @jwt_decoded_token['data']['relationships']['renderings']['data'][0]['id']
+          if @jwt_decoded_token['data']
+            raise ForestLiana::Errors::HTTP403Error.new("Deprecated token format")
+          end
+          @rendering_id = @jwt_decoded_token['rendering_id']
         else
           head :unauthorized
         end
       rescue JWT::ExpiredSignature, JWT::VerificationError
         render json: { error: 'expired_token' }, status: :unauthorized,
+          serializer: nil
+      rescue ForestLiana::Errors::HTTP403Error
+        render json: { error: 'deprecated_token' }, status: :unauthorized,
           serializer: nil
       rescue
         head :unauthorized
