@@ -68,7 +68,7 @@ module ForestLiana
           end
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
-            { algorithm: 'HS256', leeway: 30 }).try(:first)
+            { algorithm: 'HS256' }).try(:first)
           @rendering_id = @jwt_decoded_token['data']['relationships']['renderings']['data'][0]['id']
         else
           head :unauthorized
