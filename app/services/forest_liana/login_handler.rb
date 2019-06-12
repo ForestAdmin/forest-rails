@@ -98,7 +98,7 @@ module ForestLiana
         email: user['email'],
         first_name: user['first_name'],
         last_name: user['last_name'],
-        teams: user['teams'],
+        team: user['teams'][0],
         rendering_id: rendering_id,
         exp: Time.now.to_i + 2.weeks.to_i
       }, ForestLiana.auth_secret, 'HS256')

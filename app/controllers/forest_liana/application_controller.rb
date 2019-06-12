@@ -29,6 +29,11 @@ module ForestLiana
       end
     end
 
+    # NOTICE: Needed for user's customization
+    def forest_user
+      @jwt_decoded_token
+    end
+
     def serialize_model(record, options = {})
       options[:is_collection] = false
       json = JSONAPI::Serializer.serialize(record, options)
@@ -67,7 +72,7 @@ module ForestLiana
             { algorithm: 'HS256', leeway: 30 }).try(:first)
 
           if @jwt_decoded_token['data']
-            raise ForestLiana::Errors::HTTP401Error.new("Deprecated token format")
+            raise ForestLiana::Errors::HTTP401Error.new("Your token format is invalid, please login again.")
           end
 
           @rendering_id = @jwt_decoded_token['rendering_id']

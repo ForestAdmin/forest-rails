@@ -24,7 +24,7 @@ describe 'Requesting Tree resources', :type => :request  do
     email: 'michael.kelso@that70.show',
     first_name: 'Michael',
     last_name: 'Kelso',
-    teams: 'Operations',
+    team: 'Operations',
     rendering_id: 16,
     exp: Time.now.to_i + 2.weeks.to_i
   }, ForestLiana.auth_secret, 'HS256')
@@ -32,7 +32,7 @@ describe 'Requesting Tree resources', :type => :request  do
   headers = {
     'Accept' => 'application/json',
     'Content-Type' => 'application/json',
-    'Authorization' => 'Bearer ' + token
+    'Authorization' => "Bearer #{token}"
   }
 
   describe 'index' do
