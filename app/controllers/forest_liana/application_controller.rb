@@ -65,18 +65,17 @@ module ForestLiana
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
             { algorithm: 'HS256', leeway: 30 }).try(:first)
+
           if @jwt_decoded_token['data']
-            raise ForestLiana::Errors::HTTP403Error.new("Deprecated token format")
+            raise ForestLiana::Errors::HTTP401Error.new("Deprecated token format")
           end
+
           @rendering_id = @jwt_decoded_token['rendering_id']
         else
           head :unauthorized
         end
       rescue JWT::ExpiredSignature, JWT::VerificationError
         render json: { error: 'expired_token' }, status: :unauthorized,
-          serializer: nil
-      rescue ForestLiana::Errors::HTTP403Error
-        render json: { error: 'deprecated_token' }, status: :unauthorized,
           serializer: nil
       rescue
         head :unauthorized

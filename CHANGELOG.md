@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Technical - Makes the JWT lighter and consistent across lianas
 
 ## RELEASE 3.0.4 - 2019-05-21
 ### Fixed
