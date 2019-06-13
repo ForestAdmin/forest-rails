@@ -25,10 +25,11 @@ module ForestLiana
       # NOTICE: The Forest user email is returned to track changes made using
       #         Forest with Papertrail.
       define_method :user_for_paper_trail do
-        forest_user['data']['data']['email']
+        @jwt_decoded_token['email']
       end
     end
 
+    # NOTICE: Helper method for Smart Routes logic based on current user info.
     def forest_user
       @jwt_decoded_token
     end
@@ -69,7 +70,13 @@ module ForestLiana
 
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
             { algorithm: 'HS256' }).try(:first)
-          @rendering_id = @jwt_decoded_token['data']['relationships']['renderings']['data'][0]['id']
+
+          # NOTICE: Automatically logs out the users that use tokens having an old data format.
+          if @jwt_decoded_token['data']
+            raise ForestLiana::Errors::HTTP401Error.new("Your token format is invalid, please login again.")
+          end
+
+          @rendering_id = @jwt_decoded_token['rendering_id']
         else
           head :unauthorized
         end

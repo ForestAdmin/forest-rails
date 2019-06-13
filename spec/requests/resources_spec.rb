@@ -19,10 +19,20 @@ describe 'Requesting Tree resources', :type => :request  do
     allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
   end
 
+  token = JWT.encode({
+    id: 38,
+    email: 'michael.kelso@that70.show',
+    first_name: 'Michael',
+    last_name: 'Kelso',
+    team: 'Operations',
+    rendering_id: 16,
+    exp: Time.now.to_i + 2.weeks.to_i
+  }, ForestLiana.auth_secret, 'HS256')
+
   headers = {
     'Accept' => 'application/json',
     'Content-Type' => 'application/json',
-    'Authorization' => 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJleHAiOiIxODQ5ODc4ODYzIiwiZGF0YSI6eyJpZCI6IjM4IiwidHlwZSI6InVzZXJzIiwiZGF0YSI6eyJlbWFpbCI6Im1pY2hhZWwua2Vsc29AdGhhdDcwLnNob3ciLCJmaXJzdF9uYW1lIjoiTWljaGFlbCIsImxhc3RfbmFtZSI6IktlbHNvIiwidGVhbXMiOiJPcGVyYXRpb25zIn0sInJlbGF0aW9uc2hpcHMiOnsicmVuZGVyaW5ncyI6eyJkYXRhIjpbeyJ0eXBlIjoicmVuZGVyaW5ncyIsImlkIjoxNn1dfX19fQ.U4Mxi0tq0Ce7y5FRXP47McNPRPhUx37LznQ5E3mJIp4'
+    'Authorization' => "Bearer #{token}"
   }
 
   describe 'index' do

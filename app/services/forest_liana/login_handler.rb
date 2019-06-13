@@ -94,25 +94,13 @@ module ForestLiana
 
     def create_token(user, rendering_id)
       JWT.encode({
-        exp: Time.now.to_i + 2.weeks.to_i,
-        data: {
-          id: user['id'],
-          type: 'users',
-          data: {
-            email: user['email'],
-            first_name: user['first_name'],
-            last_name: user['last_name'],
-            teams: user['teams']
-          },
-          relationships: {
-            renderings: {
-              data: [{
-                type: 'renderings',
-                id: rendering_id
-              }]
-            }
-          }
-        }
+        id: user['id'],
+        email: user['email'],
+        first_name: user['first_name'],
+        last_name: user['last_name'],
+        team: user['teams'][0],
+        rendering_id: rendering_id,
+        exp: Time.now.to_i + 2.weeks.to_i
       }, ForestLiana.auth_secret, 'HS256')
     end
   end
