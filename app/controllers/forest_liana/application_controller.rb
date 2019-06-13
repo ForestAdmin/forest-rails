@@ -29,7 +29,7 @@ module ForestLiana
       end
     end
 
-    # NOTICE: Needed for user's customization
+    # NOTICE: Helper method for Smart Routes logic based on current user info.
     def forest_user
       @jwt_decoded_token
     end
