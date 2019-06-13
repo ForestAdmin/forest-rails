@@ -1,6 +1,7 @@
 module ForestLiana
   class HasManyGetter < BaseGetter
     attr_reader :search_query_builder
+    attr_reader :includes
     attr_reader :records_count
 
     def initialize(resource, association, params)
