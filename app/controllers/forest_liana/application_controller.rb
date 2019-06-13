@@ -71,6 +71,7 @@ module ForestLiana
           @jwt_decoded_token = JWT.decode(token, ForestLiana.auth_secret, true,
             { algorithm: 'HS256', leeway: 30 }).try(:first)
 
+          # NOTICE: Automatically logs out the users that use tokens having an old data format.
           if @jwt_decoded_token['data']
             raise ForestLiana::Errors::HTTP401Error.new("Your token format is invalid, please login again.")
           end
