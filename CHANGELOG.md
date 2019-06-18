@@ -4,6 +4,9 @@
 ### Changed
 - Security - Remove unnecessary leeway of 30s on JWTs.
 
+### Fixed
+- Schema - Fix crash server due to comparison between types array.
+
 ## RELEASE 3.0.5 - 2019-06-13
 ### Fixed
 - Export - Fix broken export action from related data. [Regression introduced in 2.15.1]
