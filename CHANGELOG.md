@@ -7,7 +7,7 @@
 - Security - Remove unnecessary leeway of 30s on JWTs.
 
 ### Fixed
-- Schema - Fix crash server due to comparison between types array.
+- Schema - Fix potential server crash on start due schema formatting internal error.
 
 ## RELEASE 3.0.5 - 2019-06-13
 ### Fixed
