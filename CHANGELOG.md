@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.0.6 - 2019-06-18
 ### Changed
 - Security - Remove unnecessary leeway of 30s on JWTs.
 
