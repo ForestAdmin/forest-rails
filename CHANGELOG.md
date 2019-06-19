@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Filters - Fix issue where 'or' filter is not handled on belongsTo/hasOne associations.
 
 ## RELEASE 3.0.6 - 2019-06-18
 ### Changed

@@ -264,15 +264,30 @@ module ForestLiana
 
     def belongs_to_filter
       if @params[:filter]
-        @params[:filter].each do |field, values|
-          next unless belongs_to_association?(field)
+        if @params[:filterType] == 'or'
+          condition = '';
+          @params[:filter].each do |field, values|
+            next unless belongs_to_association?(field)
 
-          values.split(',').each do |value|
-            @records = belongs_to_subfield_filter(field, value)
+            values.split(',').each do |value|
+              if condition.empty?
+                condition = OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
+              else
+                condition = [condition, OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])].join(' OR ')
+              end
+            end
+          end
+          @records = @records.where(condition);
+        else
+          @params[:filter].each do |field, values|
+            next unless belongs_to_association?(field)
+
+            values.split(',').each do |value|
+              @records = belongs_to_subfield_filter(field, value)
+            end
           end
         end
       end
-
       @records
     end
 
