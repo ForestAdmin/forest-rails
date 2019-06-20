@@ -156,6 +156,7 @@ module ForestLiana
 
     def filter_param
       conditions = []
+
       if @params[:filterType] && @params[:filter]
 
         @params[:filter].each do |field, values|
@@ -179,6 +180,7 @@ module ForestLiana
           end
         end
       end
+
       conditions
     end
 
@@ -264,6 +266,7 @@ module ForestLiana
 
     def belongs_to_filter
       conditions = []
+
       if @params[:filter]
         operator = " #{@params[:filterType]} ".upcase
         @params[:filter].each do |field, values|
@@ -274,6 +277,7 @@ module ForestLiana
           end
         end
       end
+
       conditions
     end
 
