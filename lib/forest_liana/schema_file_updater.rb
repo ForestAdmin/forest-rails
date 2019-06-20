@@ -130,10 +130,12 @@ module ForestLiana
 
     def perform
       File.open(@filename, 'w') do |file|
+        # NOTICE: Escape '\' characters to ensure the generation of valid JSON files. It fixes
+        #         potential issues if some fields have validations using complex regexp.
         file.puts pretty_print({
           collections: @collections,
           meta: @meta
-        })
+        }).gsub(/[^\\](\\)[^\\"]/) { |x| x.gsub($1, "\\\\\\") }
       end
     end
   end
