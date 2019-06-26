@@ -268,12 +268,11 @@ module ForestLiana
       conditions = []
 
       if @params[:filter]
-        operator = " #{@params[:filterType]} ".upcase
         @params[:filter].each do |field, values|
           next unless belongs_to_association?(field)
 
           values.split(',').each do |value|
-              conditions << OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
+            conditions << OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
           end
         end
       end
