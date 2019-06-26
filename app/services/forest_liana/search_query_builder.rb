@@ -15,7 +15,7 @@ module ForestLiana
     def perform(resource)
       @resource = @records = resource
       @tables_associated_to_relations_name =
-          ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
+        ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
       @records = has_many_filter
       @records = belongs_to_and_params_filter
@@ -47,8 +47,8 @@ module ForestLiana
 
     def acts_as_taggable_query(tagged_records)
       ids = tagged_records
-                .map {|t| t[@resource.primary_key]}
-                .join(',')
+        .map {|t| t[@resource.primary_key]}
+        .join(',')
 
       if ids.present?
         return "#{@resource.primary_key} IN (#{ids})"
@@ -71,10 +71,10 @@ module ForestLiana
             elsif REGEX_UUID.match(@search)
               conditions << "#{@resource.table_name}.id = :search_value_for_uuid"
             end
-            # NOTICE: Rails 3 do not have a defined_enums method
+          # NOTICE: Rails 3 do not have a defined_enums method
           elsif @resource.respond_to?(:defined_enums) &&
-              @resource.defined_enums.has_key?(column.name) &&
-              !@resource.defined_enums[column.name][@search.downcase].nil?
+            @resource.defined_enums.has_key?(column.name) &&
+            !@resource.defined_enums[column.name][@search.downcase].nil?
             conditions << "#{column_name} =
               #{@resource.defined_enums[column.name][@search.downcase]}"
           elsif !(column.respond_to?(:array) && column.array) && text_type?(column.type)
@@ -106,9 +106,9 @@ module ForestLiana
               resource.klass.columns.each do |column|
                 if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
                   if @collection.search_fields.nil? || (association_search &&
-                      association_search.include?(column.name))
+                    association_search.include?(column.name))
                     conditions << association_search_condition(resource.table_name,
-                                                               column.name)
+                      column.name)
                   end
                 end
               end
@@ -117,7 +117,7 @@ module ForestLiana
 
           if @collection.search_fields
             SchemaUtils.many_associations(@resource).map(&:name).each do
-            |association|
+              |association|
               association_search = @collection.search_fields.map do |field|
                 if field.include?('.') && field.split('.')[0] == association.to_s
                   field.split('.')[1]
@@ -130,7 +130,7 @@ module ForestLiana
                   if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
                     if association_search.include?(column.name)
                       conditions << association_search_condition(resource.table_name,
-                                                                 column.name)
+                        column.name)
                     end
                   end
                 end
@@ -140,9 +140,9 @@ module ForestLiana
         end
 
         @records = @resource.where(
-            conditions.join(' OR '),
-            search_value_for_string: "%#{@search.downcase}%",
-            search_value_for_uuid: @search.to_s
+          conditions.join(' OR '),
+          search_value_for_string: "%#{@search.downcase}%",
+          search_value_for_uuid: @search.to_s
         )
       end
 
@@ -175,7 +175,7 @@ module ForestLiana
             values.split(',').each do |value|
               operator, value = OperatorValueParser.parse(value)
               conditions << OperatorValueParser.get_condition(field, operator,
-                                                              value, @resource, @params[:timezone])
+                value, @resource, @params[:timezone])
             end
           end
         end
@@ -198,7 +198,7 @@ module ForestLiana
 
     def acts_as_taggable?(field)
       @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable) &&
-          @resource.acts_as_taggable.include?(field)
+        @resource.acts_as_taggable.include?(field)
     end
 
     def has_many_filter
@@ -226,13 +226,13 @@ module ForestLiana
       operator, value = OperatorValueParser.parse(value)
 
       @records = @records
-                     .select("#{@resource.table_name}.*,
+        .select("#{@resource.table_name}.*,
                 COUNT(#{association.table_name}.id)
                 #{association.table_name}_has_many_count")
-                     .joins(ArelHelpers.join_association(@resource, association.name,
-                                                         Arel::Nodes::OuterJoin))
-                     .group("#{@resource.table_name}.id")
-                     .having("COUNT(#{association.table_name}) #{operator} #{value}")
+        .joins(ArelHelpers.join_association(@resource, association.name,
+          Arel::Nodes::OuterJoin))
+        .group("#{@resource.table_name}.id")
+        .having("COUNT(#{association.table_name}) #{operator} #{value}")
     end
 
     def has_many_subfield_filter(field, value)
@@ -244,13 +244,13 @@ module ForestLiana
       operator, value = OperatorValueParser.parse(value)
 
       @records = @records
-                     .select("#{@resource.table_name}.*,
+        .select("#{@resource.table_name}.*,
                 COUNT(#{association.table_name}.id)
                 #{association.table_name}_has_many_count")
-                     .joins(ArelHelpers.join_association(@resource, association.name,
-                                                         Arel::Nodes::OuterJoin))
-                     .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
-                     .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
+        .joins(ArelHelpers.join_association(@resource, association.name,
+          Arel::Nodes::OuterJoin))
+        .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
+        .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
     end
 
     def belongs_to_association?(field)
