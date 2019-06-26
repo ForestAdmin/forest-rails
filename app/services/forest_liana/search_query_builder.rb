@@ -17,9 +17,8 @@ module ForestLiana
       @tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
-      @records = filter_param
       @records = has_many_filter
-      @records = belongs_to_filter
+      @records = belongs_to_and_params_filter
 
       if @search
         ForestLiana.schema_for_resource(@resource).fields.each do |field|
@@ -35,6 +34,11 @@ module ForestLiana
       end
 
       @records
+    end
+
+    def belongs_to_and_params_filter
+      conditions = filter_param + belongs_to_filter
+      @records.where(conditions.join(" #{@params[:filterType]} ".upcase))
     end
 
     def format_column_name(table_name, column_name)
@@ -151,8 +155,9 @@ module ForestLiana
     end
 
     def filter_param
+      conditions = []
+
       if @params[:filterType] && @params[:filter]
-        conditions = []
 
         @params[:filter].each do |field, values|
           # ActsAsTaggable
@@ -174,12 +179,9 @@ module ForestLiana
             end
           end
         end
-
-        operator = " #{@params[:filterType]} ".upcase
-        @records = @records.where(conditions.join(operator))
       end
 
-      @records
+      conditions
     end
 
     def association?(field)
@@ -263,17 +265,19 @@ module ForestLiana
     end
 
     def belongs_to_filter
+      conditions = []
+
       if @params[:filter]
         @params[:filter].each do |field, values|
           next unless belongs_to_association?(field)
 
           values.split(',').each do |value|
-            @records = belongs_to_subfield_filter(field, value)
+            conditions << OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
           end
         end
       end
 
-      @records
+      conditions
     end
 
     private
