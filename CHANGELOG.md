@@ -1,8 +1,8 @@
 # Change Log
 
 ## [Unreleased]
-### Fixed
-- Filters - Fix issue where 'or' filter is not handled on belongsTo/hasOne associations.
+### Added
+- Filters - Support 'OR' filters with conditions on references.
 
 ## RELEASE 3.0.7 - 2019-06-20
 ### Fixed
