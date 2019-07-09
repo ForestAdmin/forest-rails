@@ -259,11 +259,6 @@ module ForestLiana
       [:belongs_to, :has_one].include?(association.try(:macro))
     end
 
-    def belongs_to_subfield_filter(field, value)
-      condition = OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
-      @records.where(condition) if condition
-    end
-
     def belongs_to_filter
       conditions = []
 
