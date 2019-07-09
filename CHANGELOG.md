@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.1.0 - 2019-07-09
 ### Added
 - Filters - Support 'OR' filters with conditions on references.
 
