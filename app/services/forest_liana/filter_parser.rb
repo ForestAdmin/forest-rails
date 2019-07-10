@@ -117,7 +117,7 @@ module ForestLiana
       association = @resource.reflect_on_association(field.to_sym)
       return nil if association.blank?
 
-      @joins.push association.name
+      @joins << association.name unless @joins.contains association.name
 
       tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
