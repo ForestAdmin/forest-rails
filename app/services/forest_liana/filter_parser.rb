@@ -2,9 +2,10 @@ module ForestLiana
   class FilterParser
     AGGREGATOR_OPERATOR = %w(and or)
 
-    def initialize(filters, resource)
+    def initialize(filters, resource, timezone)
       @filters = JSON.parse(filters)
       @resource = resource
+      @operator_date_interval_parser = OperatorDateIntervalParser.new(timezone)
       @joins = []
     end
 
@@ -38,6 +39,12 @@ module ForestLiana
       operator = condition['operator']
       value = condition['value']
       field = condition['field']
+
+      if @operator_date_interval_parser.is_date_interval_operator(operator)
+        condition = @operator_date_interval_parser.get_interval_date_filter(operator, value)
+        return "#{parse_field_name(field)} #{condition}"
+      end
+
       ActiveRecord::Base.sanitize_sql([
         "#{parse_field_name(field)} #{parse_operator(operator)}?",
         parse_value(operator, value)
@@ -117,7 +124,7 @@ module ForestLiana
       association = @resource.reflect_on_association(field.to_sym)
       return nil if association.blank?
 
-      @joins << association.name unless @joins.contains association.name
+      @joins << association.name unless @joins.include? association.name
 
       tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)

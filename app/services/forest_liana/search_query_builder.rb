@@ -19,7 +19,10 @@ module ForestLiana
       @records = search_param
       @records = has_many_filter
       @records = belongs_to_and_params_filter
-      @records = FilterParser.new(@params[:filters], @resource).apply_filters if @params[:filters]
+
+      if @params[:filters]
+        @records = FilterParser.new(@params[:filters], @resource, @params[:timezone]).apply_filters
+      end
 
       if @search
         ForestLiana.schema_for_resource(@resource).fields.each do |field|
