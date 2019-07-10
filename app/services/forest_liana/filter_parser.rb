@@ -45,7 +45,9 @@ module ForestLiana
     end
 
     def parse_aggregator_operator(aggregator_operator)
-      raise 'NoMatchingOperatorError' unless AGGREGATOR_OPERATOR.include?(aggregator_operator)
+      unless AGGREGATOR_OPERATOR.include?(aggregator_operator)
+        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
+      end
 
       aggregator_operator.upcase
     end
@@ -71,7 +73,7 @@ module ForestLiana
       when 'blank'
         'IS NULL'
       else
-        raise 'NoMatchingOperatorError'
+        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
       end
     end
 
@@ -89,7 +91,7 @@ module ForestLiana
         "%#{value}"
       when 'present', 'blank'
       else
-        raise 'NoMatchingOperatorError'
+        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
       end
     end
 
