@@ -4,49 +4,21 @@ module ForestLiana
 
     def perform
       return if @params[:aggregate].blank?
-      valueCurrent = get_resource().eager_load(@includes)
-      valuePrevious = get_resource().eager_load(@includes)
-      filter_date_interval = false
+      resource = valueCurrent = get_resource().eager_load(@includes)
 
-      if @params[:filterType] && @params[:filters]
-        conditions = []
-        filter_operator = " #{@params[:filterType]} ".upcase
+      if @params[:filters]
+        filter_parser = FilterParser.new(@params[:filters], resource, @params[:timezone])
+        valueCurrent = filter_parser.apply_filters
+        raw_previous_interval = filter_parser.get_previous_interval_condition
 
-        @params[:filters].try(:each) do |filter|
-          operator, filter_value = OperatorValueParser.parse(filter[:value])
-          conditions << OperatorValueParser.get_condition(filter[:field],
-            operator, filter_value, @resource, @params[:timezone])
-        end
-
-        valueCurrent = valueCurrent.where(conditions.join(filter_operator))
-
-        # NOTICE: Search for previous interval value only if the filterType is
-        #         'AND', it would not be pertinent for a 'OR' filterType.
-        if @params[:filterType] == 'and'
-          conditions = []
-          @params[:filters].try(:each) do |filter|
-            operator, filter_value = OperatorValueParser.parse(filter[:value])
-            operator_date_interval_parser = OperatorDateIntervalParser
-              .new(filter_value, @params[:timezone])
-            if operator_date_interval_parser.has_previous_interval()
-              field_name = OperatorValueParser.get_field_name(filter[:field], @resource)
-              filter = operator_date_interval_parser
-                .get_interval_date_filter_for_previous_interval()
-              conditions << "#{field_name} #{filter}"
-              filter_date_interval = true
-            else
-              conditions << OperatorValueParser.get_condition(filter[:field],
-                operator, filter_value, @resource, @params[:timezone])
-            end
-          end
-
-          valuePrevious = valuePrevious.where(conditions.join(filter_operator))
+        if raw_previous_interval
+          valuePrevious = filter_parser.apply_filters_on_previous_interval(raw_previous_interval)
         end
       end
 
       @record = Model::Stat.new(value: {
         countCurrent: count(valueCurrent),
-        countPrevious: filter_date_interval ? count(valuePrevious) : nil
+        countPrevious: valuePrevious ? count(valuePrevious) : nil
       })
     end
 
@@ -62,8 +34,7 @@ module ForestLiana
         end
         value.send(@params[:aggregate].downcase, aggregate_field)
       else
-        value.send(@params[:aggregate].downcase, aggregate_field,
-                   distinct: uniq)
+        value.send(@params[:aggregate].downcase, aggregate_field, distinct: uniq)
       end
     end
 

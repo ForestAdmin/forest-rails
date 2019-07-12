@@ -150,5 +150,62 @@ module ForestLiana
         end
       end
     end
+
+    def get_previous_interval_condition
+      current_previous_interval = nil
+      # NOTICE: Leaf condition at root
+      unless @filters['aggregator']
+        return @filters if @operator_date_interval_parser.has_previous_interval(@filters['operator'])
+      end
+
+      if @filters['aggregator'] === 'and'
+        @filters['conditions'].each do |condition|
+          # NOTICE: Nested conditions
+          return nil if condition['aggregator']
+
+          if @operator_date_interval_parser.has_previous_interval(condition['operator'])
+            # NOTICE: There can't be two previous_interval.
+            return nil if current_previous_interval
+
+            current_previous_interval = condition
+          end
+        end
+      end
+
+      current_previous_interval
+    end
+
+    def apply_filters_on_previous_interval(previous_condition)
+      # Ressource should have already been joined
+      where = parse_aggregator_on_previous_interval(@filters, previous_condition)
+
+      @resource.where(where)
+    end
+
+    def parse_aggregator_on_previous_interval(node, previous_condition)
+      return parse_previous_interval_condition(node) unless node['aggregator']
+
+      conditions = []
+      node['conditions'].each do |condition|
+        if condition == previous_condition
+          conditions.push(parse_previous_interval_condition(condition))
+        else
+          conditions.push(parse_aggregator(condition))
+        end
+      end
+
+      operator = parse_aggregator_operator(node['aggregator'])
+
+      conditions.empty? ? nil : "(#{conditions.join(" #{operator} ")})"
+    end
+
+    def parse_previous_interval_condition(condition)
+      parsed_condition = @operator_date_interval_parser.get_interval_date_filter_for_previous_interval(
+        condition['operator'],
+        condition['value']
+      )
+
+      "#{parse_field_name(condition['field'])} #{parsed_condition}"
+    end
   end
 end
