@@ -7,20 +7,13 @@ module ForestLiana
         timezone_offset = @params[:timezone].to_i
         conditions = []
         filter_operator = ''
+        resource = get_resource().eager_load(@includes)
 
-        if @params[:filterType] && @params[:filters]
-          filter_operator = " #{@params[:filterType]} ".upcase
-
-          @params[:filters].try(:each) do |filter|
-            operator, filter_value = OperatorValueParser.parse(filter[:value])
-            conditions <<  OperatorValueParser.get_condition(filter[:field],
-              operator, filter_value, @resource, @params[:timezone])
-          end
+        if @params[:filters]
+          resource = FilterParser.new(@params[:filters], resource, @params[:timezone]).apply_filters
         end
 
-        result = get_resource()
-          .eager_load(@includes)
-          .where(conditions.join(filter_operator))
+        result = resource
           .group(group_by_field)
           .order(order)
           .send(@params[:aggregate].downcase, @params[:aggregate_field])

@@ -22,18 +22,10 @@ module ForestLiana
     def perform
       value = get_resource().eager_load(@includes)
 
-      if @params[:filterType] && @params[:filters]
-        conditions = []
-        filter_operator = " #{@params[:filterType]} ".upcase
-
-        @params[:filters].try(:each) do |filter|
-          operator, filter_value = OperatorValueParser.parse(filter[:value])
-          conditions << OperatorValueParser.get_condition(filter[:field],
-            operator, filter_value, @resource, @params[:timezone])
-        end
-
-        value = value.where(conditions.join(filter_operator))
+      if @params[:filters]
+        value = FilterParser.new(@params[:filters], value, @params[:timezone]).apply_filters
       end
+
 
       value = value.send(time_range, group_by_date_field, {
         time_zone: client_timezone,

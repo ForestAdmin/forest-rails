@@ -18,7 +18,6 @@ module ForestLiana
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
       @records = has_many_filter
-      @records = belongs_to_and_params_filter
 
       if @params[:filters]
         @records = FilterParser.new(@params[:filters], @resource, @params[:timezone]).apply_filters
@@ -38,11 +37,6 @@ module ForestLiana
       end
 
       @records
-    end
-
-    def belongs_to_and_params_filter
-      conditions = filter_param + belongs_to_filter
-      @records.where(conditions.join(" #{@params[:filterType]} ".upcase))
     end
 
     def format_column_name(table_name, column_name)
@@ -158,36 +152,6 @@ module ForestLiana
       "LOWER(#{column_name}) LIKE :search_value_for_string"
     end
 
-    def filter_param
-      conditions = []
-
-      if @params[:filterType] && @params[:filter]
-
-        @params[:filter].each do |field, values|
-          # ActsAsTaggable
-          if acts_as_taggable?(field)
-            tagged_records = @records.tagged_with(values.tr('*', ''))
-
-            if @params[:filterType] == 'and'
-              @records = tagged_records
-            elsif @params[:filterType] == 'or'
-              conditions << acts_as_taggable_query(tagged_records)
-            end
-          else
-            next if association?(field)
-
-            values.split(',').each do |value|
-              operator, value = OperatorValueParser.parse(value)
-              conditions << OperatorValueParser.get_condition(field, operator,
-                value, @resource, @params[:timezone])
-            end
-          end
-        end
-      end
-
-      conditions
-    end
-
     def association?(field)
       field = field.split(':').first if field.include?(':')
       @resource.reflect_on_association(field.to_sym).present?
@@ -255,28 +219,6 @@ module ForestLiana
           Arel::Nodes::OuterJoin))
         .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
         .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
-    end
-
-    def belongs_to_association?(field)
-      field = field.split(':').first if field.include?(':')
-      association = @resource.reflect_on_association(field.to_sym)
-      [:belongs_to, :has_one].include?(association.try(:macro))
-    end
-
-    def belongs_to_filter
-      conditions = []
-
-      if @params[:filter]
-        @params[:filter].each do |field, values|
-          next unless belongs_to_association?(field)
-
-          values.split(',').each do |value|
-            conditions << OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
-          end
-        end
-      end
-
-      conditions
     end
 
     private
