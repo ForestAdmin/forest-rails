@@ -17,7 +17,6 @@ module ForestLiana
       @tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
-      @records = has_many_filter
 
       if @params[:filters]
         @records = FilterParser.new(@params[:filters], @resource, @params[:timezone]).apply_filters
@@ -152,73 +151,9 @@ module ForestLiana
       "LOWER(#{column_name}) LIKE :search_value_for_string"
     end
 
-    def association?(field)
-      field = field.split(':').first if field.include?(':')
-      @resource.reflect_on_association(field.to_sym).present?
-    end
-
-    def has_many_association?(field)
-      field = field.split(':').first if field.include?(':')
-      association = @resource.reflect_on_association(field.to_sym)
-
-      [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
-    end
-
     def acts_as_taggable?(field)
       @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable) &&
         @resource.acts_as_taggable.include?(field)
-    end
-
-    def has_many_filter
-      if @params[:filter]
-        @params[:filter].each do |field, values|
-          next if !has_many_association?(field) || acts_as_taggable?(field)
-
-          values.split(',').each do |value|
-            if field.include?(':')
-              @records = has_many_subfield_filter(field, value)
-            else
-              @records = has_many_field_filter(field, value)
-            end
-          end
-        end
-      end
-
-      @records
-    end
-
-    def has_many_field_filter(field, value)
-      association = @resource.reflect_on_association(field.to_sym)
-      return if association.blank?
-
-      operator, value = OperatorValueParser.parse(value)
-
-      @records = @records
-        .select("#{@resource.table_name}.*,
-                COUNT(#{association.table_name}.id)
-                #{association.table_name}_has_many_count")
-        .joins(ArelHelpers.join_association(@resource, association.name,
-          Arel::Nodes::OuterJoin))
-        .group("#{@resource.table_name}.id")
-        .having("COUNT(#{association.table_name}) #{operator} #{value}")
-    end
-
-    def has_many_subfield_filter(field, value)
-      field, subfield = field.split(':')
-
-      association = @resource.reflect_on_association(field.to_sym)
-      return if association.blank?
-
-      operator, value = OperatorValueParser.parse(value)
-
-      @records = @records
-        .select("#{@resource.table_name}.*,
-                COUNT(#{association.table_name}.id)
-                #{association.table_name}_has_many_count")
-        .joins(ArelHelpers.join_association(@resource, association.name,
-          Arel::Nodes::OuterJoin))
-        .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
-        .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
     end
 
     private
