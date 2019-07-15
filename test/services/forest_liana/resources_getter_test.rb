@@ -61,8 +61,8 @@ module ForestLiana
       assert records.count == 10
       assert count = 30
       assert records.map(&:field) == ['Test 9', 'Test 8', 'Test 7', 'Test 6',
-                                     'Test 5', 'Test 4', 'Test 30', 'Test 3',
-                                     'Test 29', 'Test 28']
+                                      'Test 5', 'Test 4', 'Test 30', 'Test 3',
+                                      'Test 29', 'Test 28']
     end
 
     test 'Sort by a belongs_to association' do
@@ -101,11 +101,18 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
-        filter: {
-          'created_at' => '>2015-06-18 08:00:00',
-          'owner:name' => 'Arnaud Besnier'
-        },
-        filterType: 'and',
+        filters: {
+          aggregator: 'and',
+          conditions: [{
+            field: 'created_at',
+            operator: 'after',
+            value: '2015-06-18 08:00:00',
+          }, {
+            field: 'owner:name',
+            operator: 'equal',
+            value: 'Arnaud Besnier'
+          }]
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -123,10 +130,11 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
-        filter: {
-          'created_at' => '$3HoursBefore',
-        },
-        filterType: 'and',
+        filters: {
+          field: 'created_at',
+          operator: 'before_x_hours_ago',
+          value: 3
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -144,10 +152,11 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
-        filter: {
-          'created_at' => '$3HoursAfter',
-        },
-        filterType: 'and',
+        filters: {
+          field: 'created_at',
+          operator: 'after_x_hours_ago',
+          value: 3
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -163,7 +172,11 @@ module ForestLiana
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
         sort: '-name',
-        filter: { 'owner:name' => 'Arnaud Besnier' },
+        filters: {
+          field: 'owner:name',
+          operator: 'equal',
+          value: 'Arnaud Besnier'
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -179,8 +192,10 @@ module ForestLiana
     test 'Filter on an updated_at field of the main collection' do
       getter = ResourcesGetter.new(Owner, {
         page: { size: 10, number: 1 },
-        filter: { 'updated_at' => '$previousYear' },
-        filterType: 'and',
+        filters: {
+          field: 'updated_at',
+          operator: 'previous_year'
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -196,8 +211,10 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
-        filter: { 'owner:updated_at' => '$previousYear' },
-        filterType: 'and',
+        filters: {
+          field: 'owner:updated_at',
+          operator: 'previous_year'
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -213,9 +230,11 @@ module ForestLiana
       getter = ResourcesGetter.new(Tree, {
         fields: { 'Tree' => 'id' },
         page: { size: 10, number: 1 },
-        filter: {
-          'owner:updated_at' => 'Sat Jul 02 2016 11:52:00 GMT-0400 (EDT)',
-        },
+        filters: {
+          field: 'owner:updated_at',
+          operator: 'equal',
+          value: 'Sat Jul 02 2016 11:52:00 GMT-0400 (EDT)',
+        }.to_json,
         timezone: 'America/Nome'
       })
       getter.perform
@@ -230,10 +249,13 @@ module ForestLiana
       exception = assert_raises(ForestLiana::Errors::HTTP422Error) {
         ForestLiana::ResourcesGetter.new(Tree, {
           fields: { 'Tree' => 'id'},
-          filterType: 'and',
           searchExtended: '0',
           timezone: 'Europe/Paris',
-          filter: { 'leaf:id' => '1' },
+          filters: {
+            field: 'leaf:id',
+            operator: 'equal',
+            value: 1
+          }.to_json,
           collection: 'Tree'
         })
       }
@@ -244,10 +266,13 @@ module ForestLiana
       exception = assert_raises(ForestLiana::Errors::HTTP422Error) {
         ForestLiana::ResourcesGetter.new(Tree, {
           fields: { 'Tree' => 'id'},
-          filterType: 'and',
           searchExtended: '0',
           timezone: 'Europe/Paris',
-          filter: { 'content' => '*c*' },
+          filters: {
+            field: 'content',
+            operator: 'contains',
+            value: '*c*'
+          }.to_json,
           collection: 'Article'
         })
       }

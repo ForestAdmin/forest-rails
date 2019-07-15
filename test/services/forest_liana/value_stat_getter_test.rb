@@ -6,11 +6,11 @@ module ForestLiana
         collection: "boolean_field",
         timezone: "Europe/Paris",
         aggregate: "Count",
-        filterType: "and",
-        filters: [{
+        filters: {
           field: "field",
+          operator: 'equal',
           value: "true"
-        }]
+        }.to_json
       })
 
       stat.perform
@@ -23,11 +23,11 @@ module ForestLiana
         collection: "belongs_to_field",
         timezone: "Europe/Paris",
         aggregate: "Count",
-        filterType: "and",
-        filters: [{
+        filters: {
           field: "has_one_field:id",
-          value: "3"
-        }]
+          operator: 'equal',
+          value: 3
+        }.to_json
       })
 
       stat.perform
@@ -40,11 +40,11 @@ module ForestLiana
         collection: "belongs_to_field",
         timezone: "Europe/Paris",
         aggregate: "Count",
-        filterType: "and",
-        filters: [{
+        filters: {
           field: "has_one_field:checked",
+          operator: 'equal',
           value: "false"
-        }]
+        }.to_json
       })
 
       stat.perform
@@ -57,11 +57,11 @@ module ForestLiana
         collection: "belongs_to_field",
         timezone: "Europe/Paris",
         aggregate: "Count",
-        filterType: "and",
-        filters: [{
+        filters: {
           field: "has_one_field:status",
+          operator: 'equal',
           value: "pending"
-        }]
+        }.to_json
       })
 
       stat.perform

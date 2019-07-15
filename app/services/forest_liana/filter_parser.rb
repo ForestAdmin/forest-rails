@@ -45,10 +45,33 @@ module ForestLiana
         return "#{parse_field_name(field)} #{condition}"
       end
 
-      ActiveRecord::Base.sanitize_sql([
-        "#{parse_field_name(field)} #{parse_operator(operator)}?",
-        parse_value(operator, value)
-      ])
+      if is_belongs_to(field)
+        association = field.partition(':').first.to_sym
+        association_field = field.partition(':').last
+
+        unless @resource.reflect_on_association(association)
+          raise ForestLiana::Errors::HTTP422Error.new("Association '#{association}' not found")
+        end
+
+        current_resource = @resource.reflect_on_association(association).klass
+      else
+        current_resource = @resource
+      end
+
+      # NOTICE: Set the integer value instead of a string if "enum" type
+      # NOTICE: Rails 3 do not have a defined_enums method
+      if current_resource.respond_to?(:defined_enums) && current_resource.defined_enums.has_key?(association_field)
+        value = current_resource.defined_enums[association_field][value]
+      end
+
+      if Rails::VERSION::MAJOR >= 5
+        ActiveRecord::Base.sanitize_sql([
+          "#{parse_field_name(field)} #{parse_operator(operator)}?",
+          parse_value(operator, value)
+        ])
+      else
+        "#{parse_field_name(field)} #{parse_operator(operator)} #{ActiveRecord::Base.sanitize(parse_value(operator, value))}"
+      end
     end
 
     def parse_aggregator_operator(aggregator_operator)
@@ -105,12 +128,21 @@ module ForestLiana
     def parse_field_name(field)
       if is_belongs_to(field)
         association = get_association_name_for_condition(field)
+        current_resource = @resource.reflect_on_association(field.split(':').first.to_sym).klass
         quoted_table_name = ActiveRecord::Base.connection.quote_column_name(association)
         quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])
       else
         quoted_table_name = @resource.quoted_table_name
         quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field)
+        current_resource = @resource
       end
+
+      column_found = current_resource.columns.find { |column| column.name == field.split(':').last }
+
+      if column_found.nil?
+        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found")
+      end
+
       "#{quoted_table_name}.#{quoted_field_name}"
     end
 
