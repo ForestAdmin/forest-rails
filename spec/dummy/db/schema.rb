@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190226174951) do
+ActiveRecord::Schema.define(version: 20190716135241) do
 
   create_table "isle", force: :cascade do |t|
     t.string   "name"
@@ -27,6 +27,7 @@ ActiveRecord::Schema.define(version: 20190226174951) do
     t.integer  "island_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "age"
   end
 
   add_index "trees", ["cutter_id"], name: "index_trees_on_cutter_id"
@@ -37,6 +38,7 @@ ActiveRecord::Schema.define(version: 20190226174951) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "title"
   end
 
 end

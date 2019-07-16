@@ -55,6 +55,7 @@ module ForestLiana
 
         current_resource = @resource.reflect_on_association(association).klass
       else
+        association_field = field
         current_resource = @resource
       end
 
@@ -76,7 +77,7 @@ module ForestLiana
 
     def parse_aggregator_operator(aggregator_operator)
       unless AGGREGATOR_OPERATOR.include?(aggregator_operator)
-        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
+        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{aggregator_operator}'")
       end
 
       aggregator_operator.upcase
@@ -128,7 +129,8 @@ module ForestLiana
     def parse_field_name(field)
       if is_belongs_to(field)
         association = get_association_name_for_condition(field)
-        current_resource = @resource.reflect_on_association(field.split(':').first.to_sym).klass
+        current_resource = @resource.reflect_on_association(field.split(':').first.to_sym)&.klass
+        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") unless current_resource
         quoted_table_name = ActiveRecord::Base.connection.quote_column_name(association)
         quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])
       else

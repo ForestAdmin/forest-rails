@@ -26,7 +26,6 @@ module ForestLiana
         value = FilterParser.new(@params[:filters], value, @params[:timezone]).apply_filters
       end
 
-
       value = value.send(time_range, group_by_date_field, {
         time_zone: client_timezone,
         week_start: :mon
