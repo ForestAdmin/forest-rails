@@ -1,9 +1,5 @@
-require_relative 'json_printer'
-
 module ForestLiana
   class SchemaFileUpdater
-    include JsonPrinter
-
     # TODO: Remove nameOld attribute once the lianas versions older than 2.0.0 are minority.
     KEYS_COLLECTION = [
       'name',
@@ -130,12 +126,7 @@ module ForestLiana
 
     def perform
       File.open(@filename, 'w') do |file|
-        # NOTICE: Escape '\' characters to ensure the generation of valid JSON files. It fixes
-        #         potential issues if some fields have validations using complex regexp.
-        file.puts pretty_print({
-          collections: @collections,
-          meta: @meta
-        }).gsub(/[^\\](\\)[^\\"]/) { |x| x.gsub($1, "\\\\\\") }
+        file.puts JSON.pretty_generate(collections: @collections, meta: @meta)
       end
     end
   end
