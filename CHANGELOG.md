@@ -3,6 +3,8 @@
 ## [Unreleased]
 ### Changed
 - Technical - Makes the JWT lighter and consistent across lianas.
+- Filters - Improve filters genericity
+
 
 ## RELEASE 3.2.0 - 2019-07-22
 ### Added
