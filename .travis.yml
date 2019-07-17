@@ -3,7 +3,7 @@ language: ruby
 before_install:
   - gem update bundler
 rvm:
-  - 2.2.0
+  - 2.3.4
 script:
   - RAILS_ENV=test bundle exec rake test
   - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
