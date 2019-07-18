@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.1.1 - 2019-07-18
 ### Fixed
 - Fields - Detect properly `date` type columns to provide the right date picker experience in the UI.
 
