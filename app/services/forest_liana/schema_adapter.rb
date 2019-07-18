@@ -342,8 +342,10 @@ module ForestLiana
       case column.type
       when :boolean
         type = 'Boolean'
-      when :datetime, :date
+      when :datetime
         type = 'Date'
+      when :date
+        type = 'Dateonly'
       when :integer, :float, :decimal
         type = 'Number'
       when :json, :jsonb
