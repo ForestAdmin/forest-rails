@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 3.2.0 - 2019-07-22
 ### Added
 - Column Types - Support HSTORE column type.
 
