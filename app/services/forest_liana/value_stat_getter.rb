@@ -7,7 +7,7 @@ module ForestLiana
       resource = valueCurrent = get_resource().eager_load(@includes)
 
       if @params[:filters]
-        filter_parser = FilterParser.new(@params[:filters], resource, @params[:timezone])
+        filter_parser = FiltersParser.new(@params[:filters], resource, @params[:timezone])
         valueCurrent = filter_parser.apply_filters
         raw_previous_interval = filter_parser.get_previous_interval_condition
 

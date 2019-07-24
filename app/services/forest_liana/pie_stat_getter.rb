@@ -10,7 +10,7 @@ module ForestLiana
         resource = get_resource().eager_load(@includes)
 
         if @params[:filters]
-          resource = FilterParser.new(@params[:filters], resource, @params[:timezone]).apply_filters
+          resource = FiltersParser.new(@params[:filters], resource, @params[:timezone]).apply_filters
         end
 
         result = resource

@@ -3,7 +3,8 @@
 ## [Unreleased]
 ### Changed
 - Technical - Makes the JWT lighter and consistent across lianas.
-- Filters - Improve filters genericity
+- Filters - Improve filters genericity. 🛡
+- Technical - Upgrade Ruby version to 2.3.4 for the CI.
 
 
 ## RELEASE 3.2.0 - 2019-07-22

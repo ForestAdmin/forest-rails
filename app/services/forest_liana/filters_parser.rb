@@ -1,5 +1,5 @@
 module ForestLiana
-  class FilterParser
+  class FiltersParser
     AGGREGATOR_OPERATOR = %w(and or)
 
     def initialize(filters, resource, timezone)
@@ -77,7 +77,7 @@ module ForestLiana
 
     def parse_aggregator_operator(aggregator_operator)
       unless AGGREGATOR_OPERATOR.include?(aggregator_operator)
-        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{aggregator_operator}'")
+        raise_unknown_operator_error(aggregator_operator)
       end
 
       aggregator_operator.upcase
@@ -104,7 +104,7 @@ module ForestLiana
       when 'blank'
         'IS NULL'
       else
-        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
+        raise_unknown_operator_error(operator)
       end
     end
 
@@ -122,7 +122,7 @@ module ForestLiana
         "%#{value}"
       when 'present', 'blank'
       else
-        raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
+        raise_unknown_operator_error(operator)
       end
     end
 
@@ -240,6 +240,10 @@ module ForestLiana
       )
 
       "#{parse_field_name(condition['field'])} #{parsed_condition}"
+    end
+
+    def raise_unknown_operator_error(operator)
+      raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
     end
   end
 end

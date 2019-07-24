@@ -271,7 +271,7 @@ module ForestLiana
           filters: {
             field: 'content',
             operator: 'contains',
-            value: '*c*'
+            value: 'c'
           }.to_json,
           collection: 'Article'
         })

@@ -23,7 +23,7 @@ module ForestLiana
       value = get_resource().eager_load(@includes)
 
       if @params[:filters]
-        value = FilterParser.new(@params[:filters], value, @params[:timezone]).apply_filters
+        value = FiltersParser.new(@params[:filters], value, @params[:timezone]).apply_filters
       end
 
       value = value.send(time_range, group_by_date_field, {

@@ -1,5 +1,5 @@
 module ForestLiana
-  describe FilterParser do
+  describe FiltersParser do
     let(:timezone) { 'Europe/Paris' }
     let(:resource) { Tree }
     let(:filters) { {} }
@@ -42,32 +42,32 @@ module ForestLiana
         it { expect(resource.where(query).count).to eq 3 }
       end
 
-      context "simple_condition_1 'and' simple_condition_2" do
+      context "'name contains \"Tree\"' 'and' 'name ends_with \"3\"'" do
         let(:filters) { { 'aggregator' => 'and', 'conditions' => [simple_condition_1, simple_condition_2] } }
         it { expect(resource.where(query).count).to eq 1 }
       end
 
-      context "simple_condition_1 'and' simple_condition_3" do
+      context "'name contains \"Tree\"' 'and' 'age greater_than 2'" do
         let(:filters) { { 'aggregator' => 'and', 'conditions' => [simple_condition_1, simple_condition_3] } }
         it { expect(resource.where(query).count).to eq 2 }
       end
 
-      context "simple_condition_2 'and' simple_condition_3" do
+      context "'name ends_with \"3\"' 'and' 'age greater_than 2'" do
         let(:filters) { { 'aggregator' => 'and', 'conditions' => [simple_condition_2, simple_condition_3] } }
         it { expect(resource.where(query).count).to eq 1 }
       end
 
-      context "simple_condition_1 'or' simple_condition_2" do
+      context "'name contains \"Tree\"' 'or' 'name ends_with \"3\"'" do
         let(:filters) { { 'aggregator' => 'or', 'conditions' => [simple_condition_1, simple_condition_2] } }
         it { expect(resource.where(query).count).to eq 3 }
       end
 
-      context "simple_condition_1 'or' simple_condition_3" do
+      context "'name contains \"Tree\"' 'or' 'age greater_than 2'" do
         let(:filters) { { 'aggregator' => 'or', 'conditions' => [simple_condition_1, simple_condition_3] } }
         it { expect(resource.where(query).count).to eq 3 }
       end
 
-      context "simple_condition_2 'or' simple_condition_3" do
+      context "'name ends_with \"3\"' 'or' 'age greater_than 2'" do
         let(:filters) { { 'aggregator' => 'or', 'conditions' => [simple_condition_2, simple_condition_3] } }
         it { expect(resource.where(query).count).to eq 2 }
       end
