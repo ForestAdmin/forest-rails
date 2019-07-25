@@ -152,7 +152,7 @@ module ForestLiana
       column_found = current_resource.columns.find { |column| column.name == field.split(':').last }
 
       if column_found.nil?
-        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") if
+        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found")
       end
 
       "#{quoted_table_name}.#{quoted_field_name}"
