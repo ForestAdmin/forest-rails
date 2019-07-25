@@ -3,7 +3,12 @@ module ForestLiana
     AGGREGATOR_OPERATOR = %w(and or)
 
     def initialize(filters, resource, timezone)
-      @filters = JSON.parse(filters)
+      begin
+        @filters = JSON.parse('{ filters')
+      rescue JSON::ParserError => e
+        raise ForestLiana::Errors::HTTP422Error.new('Invalid filters JSON format')
+      end
+
       @resource = resource
       @operator_date_interval_parser = OperatorDateIntervalParser.new(timezone)
       @joins = []
@@ -23,6 +28,8 @@ module ForestLiana
     end
 
     def parse_aggregator(node)
+      raise_empty_condition_in_filter_error unless node
+
       return parse_condition(node) unless node['aggregator']
 
       conditions = []
@@ -36,6 +43,8 @@ module ForestLiana
     end
 
     def parse_condition(condition)
+      raise_empty_condition_in_filter_error unless condition
+
       operator = condition['operator']
       value = condition['value']
       field = condition['field']
@@ -128,9 +137,10 @@ module ForestLiana
 
     def parse_field_name(field)
       if is_belongs_to(field)
-        association = get_association_name_for_condition(field)
         current_resource = @resource.reflect_on_association(field.split(':').first.to_sym)&.klass
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") unless current_resource
+
+        association = get_association_name_for_condition(field)
         quoted_table_name = ActiveRecord::Base.connection.quote_column_name(association)
         quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])
       else
@@ -142,7 +152,7 @@ module ForestLiana
       column_found = current_resource.columns.find { |column| column.name == field.split(':').last }
 
       if column_found.nil?
-        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found")
+        raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") if
       end
 
       "#{quoted_table_name}.#{quoted_field_name}"
@@ -185,6 +195,11 @@ module ForestLiana
       end
     end
 
+    # NOTICE: Look for a previous interval condition matching the following:
+    #         - If the filter is a simple condition at the root the check is done right away.
+    #         - There can't be a previous interval condition if the aggregator is 'or' (no meaning).
+    #         - The condition's operator has to be elligible for a previous interval.
+    #         - There can't be two previous interval condition.
     def get_previous_interval_condition
       current_previous_interval = nil
       # NOTICE: Leaf condition at root
@@ -217,6 +232,8 @@ module ForestLiana
     end
 
     def parse_aggregator_on_previous_interval(node, previous_condition)
+      raise_empty_condition_in_filter_error unless node
+
       return parse_previous_interval_condition(node) unless node['aggregator']
 
       conditions = []
@@ -234,6 +251,8 @@ module ForestLiana
     end
 
     def parse_previous_interval_condition(condition)
+      raise_empty_condition_in_filter_error unless condition
+
       parsed_condition = @operator_date_interval_parser.get_interval_date_filter_for_previous_interval(
         condition['operator'],
         condition['value']
@@ -244,6 +263,10 @@ module ForestLiana
 
     def raise_unknown_operator_error(operator)
       raise ForestLiana::Errors::HTTP422Error.new("Unknown provided operator '#{operator}'")
+    end
+
+    def raise_empty_condition_in_filter_error
+      raise ForestLiana::Errors::HTTP422Error.new('Empty condition in filter')
     end
   end
 end
