@@ -27,6 +27,19 @@ module ForestLiana
       Island.destroy_all
     }
 
+    describe 'initialization' do
+      context 'badly formated filters' do
+        let(:filter_parser) { described_class.new('{ toto: 1', resource, timezone) }
+
+
+        it {
+          expect {
+            described_class.new('{ toto: 1', resource, timezone)
+          }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid filters JSON format')
+        }
+      end
+    end
+
     describe 'apply_filters' do
       context 'on valid filters' do
         let(:filters) { { aggregator: 'and', conditions: [simple_condition_1, simple_condition_2] } }

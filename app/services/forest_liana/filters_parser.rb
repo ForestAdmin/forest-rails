@@ -4,8 +4,8 @@ module ForestLiana
 
     def initialize(filters, resource, timezone)
       begin
-        @filters = JSON.parse('{ filters')
-      rescue JSON::ParserError => e
+        @filters = JSON.parse(filters)
+      rescue JSON::ParserError
         raise ForestLiana::Errors::HTTP422Error.new('Invalid filters JSON format')
       end
 
