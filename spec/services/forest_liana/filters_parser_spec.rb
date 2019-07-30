@@ -47,8 +47,8 @@ module ForestLiana
       end
     end
 
-    describe 'parse_aggregator' do
-      let(:query) { filter_parser.parse_aggregator(filters) }
+    describe 'parse_aggregation' do
+      let(:query) { filter_parser.parse_aggregation(filters) }
 
       context 'when no aggregator' do
         let(:filters) { simple_condition_1 }
@@ -123,16 +123,16 @@ module ForestLiana
       end
     end
 
-    describe 'parse_aggregator_operator' do
+    describe 'parse_aggregation_operator' do
       context 'on valid aggregator' do
-        it { expect(filter_parser.parse_aggregator_operator('and')).to eq 'AND' }
-        it { expect(filter_parser.parse_aggregator_operator('or')).to eq 'OR' }
+        it { expect(filter_parser.parse_aggregation_operator('and')).to eq 'AND' }
+        it { expect(filter_parser.parse_aggregation_operator('or')).to eq 'OR' }
       end
 
       context 'on unknown aggregator' do
         it {
           expect {
-            filter_parser.parse_aggregator_operator('sfr')
+            filter_parser.parse_aggregation_operator('sfr')
           }.to raise_error(ForestLiana::Errors::HTTP422Error, "Unknown provided operator 'sfr'")
         }
       end

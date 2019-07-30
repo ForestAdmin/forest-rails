@@ -17,7 +17,7 @@ module ForestLiana
     def apply_filters
       return @resource unless @filters
 
-      where = parse_aggregator(@filters)
+      where = parse_aggregation(@filters)
       return @resource unless where
 
       @joins.each do |join|
@@ -27,17 +27,17 @@ module ForestLiana
       @resource.where(where)
     end
 
-    def parse_aggregator(node)
-      raise_empty_condition_in_filter_error unless node
+    def parse_aggregation(node)
+      raise_empty_condition_in_filter_error if node.empty?
 
       return parse_condition(node) unless node['aggregator']
 
       conditions = []
       node['conditions'].each do |condition|
-        conditions.push(parse_aggregator(condition))
+        conditions.push(parse_aggregation(condition))
       end
 
-      operator = parse_aggregator_operator(node['aggregator'])
+      operator = parse_aggregation_operator(node['aggregator'])
 
       conditions.empty? ? nil : "(#{conditions.join(" #{operator} ")})"
     end
@@ -84,7 +84,7 @@ module ForestLiana
       end
     end
 
-    def parse_aggregator_operator(aggregator_operator)
+    def parse_aggregation_operator(aggregator_operator)
       unless AGGREGATOR_OPERATOR.include?(aggregator_operator)
         raise_unknown_operator_error(aggregator_operator)
       end
@@ -226,12 +226,12 @@ module ForestLiana
 
     def apply_filters_on_previous_interval(previous_condition)
       # Ressource should have already been joined
-      where = parse_aggregator_on_previous_interval(@filters, previous_condition)
+      where = parse_aggregation_on_previous_interval(@filters, previous_condition)
 
       @resource.where(where)
     end
 
-    def parse_aggregator_on_previous_interval(node, previous_condition)
+    def parse_aggregation_on_previous_interval(node, previous_condition)
       raise_empty_condition_in_filter_error unless node
 
       return parse_previous_interval_condition(node) unless node['aggregator']
@@ -241,11 +241,11 @@ module ForestLiana
         if condition == previous_condition
           conditions.push(parse_previous_interval_condition(condition))
         else
-          conditions.push(parse_aggregator(condition))
+          conditions.push(parse_aggregation(condition))
         end
       end
 
-      operator = parse_aggregator_operator(node['aggregator'])
+      operator = parse_aggregation_operator(node['aggregator'])
 
       conditions.empty? ? nil : "(#{conditions.join(" #{operator} ")})"
     end
