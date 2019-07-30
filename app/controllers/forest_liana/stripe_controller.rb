@@ -32,6 +32,7 @@ module ForestLiana
 
         render serializer: nil, json: {}
       rescue ::Stripe::InvalidRequestError => error
+        report_exception(error)
         render serializer: nil, json: { error: error.message }, status: 400
       end
     end

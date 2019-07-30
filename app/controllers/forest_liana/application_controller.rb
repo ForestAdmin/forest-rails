@@ -73,10 +73,12 @@ module ForestLiana
         else
           head :unauthorized
         end
-      rescue JWT::ExpiredSignature, JWT::VerificationError
+      rescue JWT::ExpiredSignature, JWT::VerificationError => error
+        report_exception(error)
         render json: { error: 'expired_token' }, status: :unauthorized,
           serializer: nil
-      rescue
+      rescue => error
+        report_exception(error)
         head :unauthorized
       end
     end
@@ -85,6 +87,7 @@ module ForestLiana
       begin
         params[:data][:attributes].values[0].to_hash.symbolize_keys
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
         {}
       end

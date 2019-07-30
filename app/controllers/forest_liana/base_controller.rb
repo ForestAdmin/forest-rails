@@ -6,6 +6,10 @@ module ForestLiana
 
     private
 
+    def report_exception(error)
+      ForestLiana.error_handler.call(error) if ForestLiana.error_handler
+    end
+
     def reject_unauthorized_ip
       begin
         ip = request.remote_ip
@@ -20,12 +24,14 @@ module ForestLiana
           end
         end
       rescue ForestLiana::Errors::ExpectedError => exception
+        report_exception(exception)
         error_data = JSONAPI::Serializer.serialize_errors([{
           status: exception.error_code,
           detail: exception.message
         }])
         render(serializer: nil, json: error_data, status: exception.status)
       rescue => exception
+        report_exception(exception)
         FOREST_LOGGER.error(exception)
         FOREST_LOGGER.error(exception.backtrace.join("\n"))
         render(serializer: nil, json: nil, status: :internal_server_error)

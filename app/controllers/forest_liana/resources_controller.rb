@@ -34,9 +34,11 @@ module ForestLiana
           format.csv { render_csv(getter, @resource) }
         end
       rescue ForestLiana::Errors::LiveQueryError => error
+        report_exception(error)
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
       rescue ForestLiana::Errors::ExpectedError => error
+        report_exception(error)
         error.display_error
         error_data = JSONAPI::Serializer.serialize_errors([{
           status: error.error_code,
@@ -44,6 +46,7 @@ module ForestLiana
         }])
         render(serializer: nil, json: error_data, status: error.status)
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -60,9 +63,11 @@ module ForestLiana
         render serializer: nil, json: { count: getter.records_count }
 
       rescue ForestLiana::Errors::LiveQueryError => error
+        report_exception(error)
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
       rescue ForestLiana::Errors::ExpectedError => error
+        report_exception(error)
         error.display_error
         error_data = JSONAPI::Serializer.serialize_errors([{
           status: error.error_code,
@@ -70,6 +75,7 @@ module ForestLiana
         }])
         render(serializer: nil, json: error_data, status: error.status)
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Records Index Count error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -85,6 +91,7 @@ module ForestLiana
 
         render serializer: nil, json: render_record_jsonapi(getter.record)
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -108,6 +115,7 @@ module ForestLiana
             creator.record.errors), status: 400
         end
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Record Create error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -131,6 +139,7 @@ module ForestLiana
             updater.record.errors), status: 400
         end
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Record Update error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -144,6 +153,7 @@ module ForestLiana
         @resource.destroy(params[:id]) if @resource.exists?(params[:id])
         head :no_content
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -160,6 +170,7 @@ module ForestLiana
           render serializer: nil, json: { status: 404 }, status: :not_found
         end
       rescue => error
+        report_exception(error)
         FOREST_LOGGER.error "Find Collection error: #{error}\n#{format_stacktrace(error)}"
         render serializer: nil, json: { status: 404 }, status: :not_found
       end

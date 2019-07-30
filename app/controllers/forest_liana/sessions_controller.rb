@@ -70,6 +70,7 @@ module ForestLiana
         ).perform
 
       rescue ForestLiana::Errors::ExpectedError => error
+        report_exception(error)
         error.display_error
         error_data = JSONAPI::Serializer.serialize_errors([{
           status: error.error_code,
@@ -77,6 +78,7 @@ module ForestLiana
         }])
         render(serializer: nil, json: error_data, status: error.status)
       rescue StandardError => error
+        report_exception(error)
         FOREST_LOGGER.error error
         FOREST_LOGGER.error error.backtrace.join("\n")
 
