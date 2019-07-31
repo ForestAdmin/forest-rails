@@ -82,20 +82,20 @@ module ForestLiana
         return "BETWEEN '#{to_client_timezone(Time.now.beginning_of_day)}' " +
           "AND '#{to_client_timezone(Time.now.end_of_day)}'"
       when OPERATOR_PREVIOUS_X_DAYS
-        ensure_integer(value)
+        ensure_integer_value(value)
         return "BETWEEN '" +
-          "#{to_client_timezone((Integer(value)).day.ago.beginning_of_day)}'" +
+          "#{to_client_timezone(Integer(value).day.ago.beginning_of_day)}'" +
           " AND '#{to_client_timezone(1.day.ago.end_of_day)}'"
       when OPERATOR_PREVIOUS_X_DAYS_TO_DATE
-        ensure_integer(value)
+        ensure_integer_value(value)
         return "BETWEEN '" +
           "#{to_client_timezone((Integer(value) - 1).day.ago.beginning_of_day)}'" +
           " AND '#{Time.now}'"
       when OPERATOR_BEFORE_X_HOURS_AGO
-        ensure_integer(value)
+        ensure_integer_value(value)
         return "< '#{to_client_timezone((Integer(value)).hour.ago)}'"
       when OPERATOR_AFTER_X_HOURS_AGO
-        ensure_integer(value)
+        ensure_integer_value(value)
         return "> '#{to_client_timezone((Integer(value)).hour.ago)}'"
       end
 
@@ -124,12 +124,12 @@ module ForestLiana
         return "BETWEEN '#{to_client_timezone(1.day.ago.beginning_of_day)}' AND " +
           "'#{to_client_timezone(1.day.ago.end_of_day)}'"
       when OPERATOR_PREVIOUS_X_DAYS
-        ensure_integer(value)
+        ensure_integer_value(value)
         return "BETWEEN '" +
           "#{to_client_timezone((Integer(value) * 2).day.ago.beginning_of_day)}'" +
           " AND '#{to_client_timezone((Integer(value) + 1).day.ago.end_of_day)}'"
       when OPERATOR_PREVIOUS_X_DAYS_TO_DATE
-        ensure_integer(value)
+        ensure_integer_value(value)
         return "BETWEEN '" +
           "#{to_client_timezone(((Integer(value) * 2) - 1).day.ago.beginning_of_day)}'" +
           " AND '#{to_client_timezone(Integer(value).day.ago)}'"
@@ -154,7 +154,7 @@ module ForestLiana
     end
 
     def ensure_integer_value(value)
-      unless value.is_a?(Integer)
+      unless /\A[-+]?\d+\z/.match(value)
         raise ForestLiana::Errors::HTTP422Error.new('\'value\' should be an Integer')
       end
     end

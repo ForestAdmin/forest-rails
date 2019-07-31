@@ -104,15 +104,15 @@ module ForestLiana
       when 'contains', 'starts_with', 'ends_with'
         'LIKE'
       when 'not_contains'
-        'NOT_LIKE'
+        'NOT LIKE'
       when 'not_equal'
         '!='
       when 'equal'
         '='
       when 'blank'
-        'IS NULL'
+        'IS'
       when 'present'
-        'IS NOT NULL'
+        'IS NOT'
       else
         raise_unknown_operator_error(operator)
       end
