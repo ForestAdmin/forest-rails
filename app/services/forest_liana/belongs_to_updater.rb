@@ -18,8 +18,10 @@ module ForestLiana
 
         @record.save
       rescue ActiveRecord::SerializationTypeMismatch => exception
+        ForestLiana.error_handler.call(exception)
         @errors = [{ detail: exception.message }]
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         @errors = [{ detail: exception.message }]
       end
     end

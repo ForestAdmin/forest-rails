@@ -16,6 +16,7 @@ module ForestLiana
           raise "Forest API returned an #{ForestLiana::Errors::HTTPErrorHelper.format(response)}"
         end
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         FOREST_LOGGER.error 'Cannot retrieve the permissions from the Forest server.'
         FOREST_LOGGER.error 'Which was caused by:'
         ForestLiana::Errors::ExceptionHelper.recursively_print(exception, margin: ' ', is_error: true)

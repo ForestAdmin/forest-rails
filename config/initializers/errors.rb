@@ -89,7 +89,8 @@ module ForestLiana
 
       def self.try_parse_json(data)
         data.to_json
-      rescue JSON::ParserError
+      rescue JSON::ParserError => exception
+        ForestLiana.error_handler.call(exception)
         return nil
       end
     end

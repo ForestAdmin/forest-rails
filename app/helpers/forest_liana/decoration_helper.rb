@@ -7,7 +7,8 @@ module ForestLiana
           match_fields[index] = { id: record['id'], search: [] } if match_fields[index].nil?
           match_fields[index][:search] << field_name
         end
-      rescue
+      rescue => exception
+        ForestLiana.error_handler.call(exception)
       end
     end
 

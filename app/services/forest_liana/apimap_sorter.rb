@@ -93,6 +93,7 @@ module ForestLiana
         @apimap['meta'] = reorder_keys_basic(@apimap['meta'])
         @apimap
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         FOREST_LOGGER.warn "An Apimap reordering issue occured: #{exception}"
         @apimap
       end

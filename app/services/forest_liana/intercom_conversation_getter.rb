@@ -11,9 +11,11 @@ module ForestLiana
     def perform
       begin
         @record = @intercom.conversations.find(id: @params[:conversation_id])
-      rescue Intercom::ResourceNotFound
+      rescue Intercom::ResourceNotFound => exception
+        ForestLiana.error_handler.call(exception)
         @record = nil
       rescue Intercom::UnexpectedError => exception
+        ForestLiana.error_handler.call(exception)
         FOREST_LOGGER.error "Cannot retrieve the Intercom conversation: #{exception.message}"
         @record = nil
       end

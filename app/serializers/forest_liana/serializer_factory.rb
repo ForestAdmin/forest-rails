@@ -123,7 +123,8 @@ module ForestLiana
                   ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
                 end
               end
-            rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError
+            rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError => exception
+              ForestLiana.error_handler.call(exception)
               puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
             end
           end
@@ -176,7 +177,8 @@ module ForestLiana
           serializer.attribute(attribute) do |x|
             begin
               object.send(attribute)
-            rescue
+            rescue => exception
+              ForestLiana.error_handler.call(exception)
               nil
             end
           end
@@ -193,7 +195,8 @@ module ForestLiana
               else
                 nil
               end
-            rescue
+            rescue => exception
+              ForestLiana.error_handler.call(exception)
               nil
             end
           end
@@ -205,7 +208,8 @@ module ForestLiana
             begin
               value = object.send(attr)
               value ? value.to_json : nil
-            rescue
+            rescue => exception
+              ForestLiana.error_handler.call(exception)
               nil
             end
           end
@@ -217,7 +221,8 @@ module ForestLiana
             serializer.attribute(key) do |x|
               begin
                 object.send(key).try(:url)
-              rescue
+              rescue => exception
+                ForestLiana.error_handler.call(exception)
                 nil
               end
             end
@@ -230,7 +235,8 @@ module ForestLiana
             serializer.attribute(key) do |x|
               begin
                 object.send(key)
-              rescue
+              rescue => exception
+                ForestLiana.error_handler.call(exception)
                 nil
               end
             end
@@ -245,7 +251,8 @@ module ForestLiana
             serializer.attribute(key) do |x|
               begin
                 object.send(key).map(&:name)
-              rescue
+              rescue => exception
+                ForestLiana.error_handler.call(exception)
                 nil
               end
             end
@@ -266,7 +273,8 @@ module ForestLiana
                 if [:has_one, :belongs_to].include?(a.macro)
                   begin
                     object.send(a.name)
-                  rescue ActiveRecord::RecordNotFound
+                  rescue ActiveRecord::RecordNotFound => exception
+                    ForestLiana.error_handler.call(exception)
                     nil
                   end
                 else
@@ -274,7 +282,8 @@ module ForestLiana
                 end
               }
             end
-          rescue NameError
+          rescue NameError => exception
+            ForestLiana.error_handler.call(exception)
             # NOTICE: Let this error silent, a bad association warning will be
             # displayed in the schema adapter.
           end
@@ -407,10 +416,11 @@ module ForestLiana
     def foreign_keys(active_record_class)
       begin
         SchemaUtils.associations(active_record_class).map(&:foreign_key)
-      rescue => err
+      rescue => exception
+        ForestLiana.error_handler.call(exception)
         # Association foreign_key triggers an error. Put the stacktrace and
         # returns no foreign keys.
-        puts err.backtrace
+        puts exception.backtrace
         []
       end
     end

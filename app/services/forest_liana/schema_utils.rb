@@ -99,7 +99,8 @@ module ForestLiana
 
           return inheritance_column.present?
         end
-      rescue NoMethodError
+      rescue NoMethodError => exception
+        ForestLiana.error_handler.call(exception)
         # NOTICE: ActiveRecord::Base throw the exception "undefined method
         # `abstract_class?' for Object:Class" when calling the existing method
         # "table_name".

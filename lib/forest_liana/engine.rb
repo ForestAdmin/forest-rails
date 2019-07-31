@@ -28,6 +28,7 @@ module ForestLiana
         end
         nil
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         exception
       end
     end
@@ -40,9 +41,10 @@ module ForestLiana
       database_available = true
       begin
         ActiveRecord::Base.connection_pool.with_connection { |connection| connection.active? }
-      rescue => error
+      rescue => exception
+        ForestLiana.error_handler.call(exception)
         database_available = false
-        FOREST_LOGGER.error "No Apimap sent to Forest servers, it seems that the database is not accessible:\n#{error}"
+        FOREST_LOGGER.error "No Apimap sent to Forest servers, it seems that the database is not accessible:\n#{exception}"
       end
       database_available
     end

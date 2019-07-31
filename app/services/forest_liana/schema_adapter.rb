@@ -257,10 +257,12 @@ module ForestLiana
           else
             collection.fields << get_schema_for_association(association)
           end
-        rescue NameError
+        rescue NameError => exception
+          ForestLiana.error_handler.call(exception)
           FOREST_LOGGER.warn "The association \"#{association.name.to_s}\" " \
             "does not seem to exist for model \"#{@model.name}\"."
         rescue => exception
+          ForestLiana.error_handler.call(exception)
           FOREST_LOGGER.error "An error occured trying to add " \
             "\"#{association.name.to_s}\" association:\n#{exception}"
         end

@@ -53,7 +53,8 @@ module ForestLiana
             content = JSON.parse(File.read(SCHEMA_FILENAME))
             @collections_sent = content['collections']
             @meta_sent = content['meta']
-          rescue JSON::JSONError
+          rescue JSON::JSONError => exception
+            ForestLiana.error_handler.call(exception)
             FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
             FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
           end
@@ -93,6 +94,7 @@ module ForestLiana
           end
         end
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         FOREST_LOGGER.error "Cannot fetch properly model #{model.name}:\n" \
           "#{exception}"
       end
@@ -289,9 +291,11 @@ module ForestLiana
                 "contact support@forestadmin.com for further investigations."
             end
           end
-        rescue Errno::ECONNREFUSED, SocketError
+        rescue Errno::ECONNREFUSED, SocketError => exception
+          ForestLiana.error_handler.call(exception)
           FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
-        rescue
+        rescue => exception
+          ForestLiana.error_handler.call(exception)
           FOREST_LOGGER.warn "Cannot send the apimap to Forest. Forest might " \
             "currently be in maintenance."
         end
@@ -634,7 +638,8 @@ module ForestLiana
         else
           connection.instance_values['config'][:adapter]
         end
-      rescue
+      rescue => exception
+        ForestLiana.error_handler.call(exception)
         'unknown'
       end
     end

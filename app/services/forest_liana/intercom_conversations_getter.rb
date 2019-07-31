@@ -28,9 +28,11 @@ module ForestLiana
           type: 'user',
           display_as: 'plaintext',
         ).entries
-      rescue Intercom::ResourceNotFound
+      rescue Intercom::ResourceNotFound => exception
+        ForestLiana.error_handler.call(exception)
         @records = []
       rescue Intercom::UnexpectedError => exception
+        ForestLiana.error_handler.call(exception)
         FOREST_LOGGER.error "Cannot retrieve the Intercom conversations: #{exception.message}"
         @records = []
       end

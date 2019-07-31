@@ -18,11 +18,14 @@ module ForestLiana
         end
         set_has_many_relationships
       rescue ActiveRecord::StatementInvalid => exception
+        ForestLiana.error_handler.call(exception)
         # NOTICE: SQL request cannot be executed properly
         @errors = [{ detail: exception.cause.error }]
       rescue ForestLiana::Errors::SerializeAttributeBadFormat => exception
+        ForestLiana.error_handler.call(exception)
         @errors = [{ detail: exception.message }]
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         @errors = [{ detail: exception.message }]
       end
     end

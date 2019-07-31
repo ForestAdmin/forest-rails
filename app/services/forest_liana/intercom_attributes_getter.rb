@@ -18,6 +18,7 @@ module ForestLiana
         @record = user
       rescue Intercom::ResourceNotFound
       rescue Intercom::UnexpectedError => exception
+        ForestLiana.error_handler.call(exception)
         FOREST_LOGGER.error "Cannot retrieve the Intercom attributes: #{exception.message}"
       end
     end

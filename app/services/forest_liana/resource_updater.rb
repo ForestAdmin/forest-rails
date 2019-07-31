@@ -19,11 +19,14 @@ module ForestLiana
           @record.update_attributes(resource_params, without_protection: true)
         end
       rescue ActiveRecord::StatementInvalid => exception
+        ForestLiana.error_handler.call(exception)
         # NOTICE: SQL request cannot be executed properly
         @errors = [{ detail: exception.cause.error }]
       rescue ForestLiana::Errors::SerializeAttributeBadFormat => exception
+        ForestLiana.error_handler.call(exception)
         @errors = [{ detail: exception.message }]
       rescue => exception
+        ForestLiana.error_handler.call(exception)
         @errors = [{ detail: exception.message }]
       end
     end

@@ -153,7 +153,8 @@ module ForestLiana
       begin
         Paperclip.io_adapters.handler_for(attr)
         true
-      rescue Paperclip::AdapterRegistry::NoHandlerError
+      rescue Paperclip::AdapterRegistry::NoHandlerError => exception
+        ForestLiana.error_handler.call(exception)
         false
       end
     end
