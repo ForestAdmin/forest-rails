@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- Functionality - Allow users to define their own error handling instrumentation for exceptions raised/rescued throughout the application.
+
 ## RELEASE 3.2.0 - 2019-07-22
 ### Added
 - Column Types - Support HSTORE column type.

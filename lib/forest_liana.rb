@@ -25,7 +25,11 @@ module ForestLiana
   mattr_accessor :user_class_name
   mattr_accessor :names_overriden
   mattr_accessor :meta
-  mattr_accessor :error_handler
+  mattr_accessor :error_handler do
+    # Defaults to an empty proc taking one argument.
+    # Override with a Proc/Lambda or a object that defines `call`
+    Proc.new { |exception| nil }
+  end
 
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
@@ -62,6 +66,3 @@ module ForestLiana
     self.name_for(model).classify
   end
 end
-
-# Define an empty error handler
-ForestLiana.error_handler = ->(error) { }
