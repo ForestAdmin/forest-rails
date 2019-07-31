@@ -31,7 +31,6 @@ module ForestLiana
       context 'badly formated filters' do
         let(:filter_parser) { described_class.new('{ toto: 1', resource, timezone) }
 
-
         it {
           expect {
             described_class.new('{ toto: 1', resource, timezone)

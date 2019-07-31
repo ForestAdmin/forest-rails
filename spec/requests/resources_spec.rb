@@ -72,7 +72,7 @@ describe 'Requesting Tree resources', :type => :request  do
     describe 'with a filter on an association that is not a displayed column' do
       params = {
         fields: { 'Tree' => 'id,name' },
-        filter: {
+        filters: {
           field: 'owner:id',
           operator: 'present'
         },

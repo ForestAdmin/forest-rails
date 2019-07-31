@@ -4,11 +4,11 @@ module ForestLiana
 
     def perform
       return if @params[:aggregate].blank?
-      resource = current_value = get_resource().eager_load(@includes)
+      resource = get_resource().eager_load(@includes)
 
       if @params[:filters]
         filter_parser = FiltersParser.new(@params[:filters], resource, @params[:timezone])
-        current_value = filter_parser.apply_filters
+        resource = filter_parser.apply_filters
         raw_previous_interval = filter_parser.get_previous_interval_condition
 
         if raw_previous_interval
@@ -17,7 +17,7 @@ module ForestLiana
       end
 
       @record = Model::Stat.new(value: {
-        countCurrent: count(current_value),
+        countCurrent: count(resource),
         countPrevious: previous_value ? count(previous_value) : nil
       })
     end

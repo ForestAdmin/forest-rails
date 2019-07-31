@@ -28,7 +28,7 @@ module ForestLiana
     end
 
     def parse_aggregation(node)
-      raise_empty_condition_in_filter_error if node.empty?
+      ensure_valid_aggregation(node)
 
       return parse_condition(node) unless node['aggregator']
 
@@ -43,13 +43,13 @@ module ForestLiana
     end
 
     def parse_condition(condition)
-      raise_empty_condition_in_filter_error unless condition
+      ensure_valid_condition(condition)
 
       operator = condition['operator']
       value = condition['value']
       field = condition['field']
 
-      if @operator_date_interval_parser.is_date_interval_operator(operator)
+      if @operator_date_interval_parser.is_date_operator?(operator)
         condition = @operator_date_interval_parser.get_interval_date_filter(operator, value)
         return "#{parse_field_name(field)} #{condition}"
       end
@@ -74,13 +74,14 @@ module ForestLiana
         value = current_resource.defined_enums[association_field][value]
       end
 
+      parsed_field = parse_field_name(field)
+      parsed_operator = parse_operator(operator)
+      parsed_value = parse_value(operator, value)
+
       if Rails::VERSION::MAJOR >= 5
-        ActiveRecord::Base.sanitize_sql([
-          "#{parse_field_name(field)} #{parse_operator(operator)}?",
-          parse_value(operator, value)
-        ])
+        ActiveRecord::Base.sanitize_sql(["#{parsed_field} #{parsed_operator} ?", parsed_value])
       else
-        "#{parse_field_name(field)} #{parse_operator(operator)} #{ActiveRecord::Base.sanitize(parse_value(operator, value))}"
+        "#{parsed_field} #{parsed_operator} #{ActiveRecord::Base.sanitize(parsed_value)}"
       end
     end
 
@@ -106,12 +107,12 @@ module ForestLiana
         'NOT_LIKE'
       when 'not_equal'
         '!='
-      when 'present'
-        'IS NOT NULL'
       when 'equal'
         '='
       when 'blank'
         'IS NULL'
+      when 'present'
+        'IS NOT NULL'
       else
         raise_unknown_operator_error(operator)
       end
@@ -119,10 +120,8 @@ module ForestLiana
 
     def parse_value(operator, value)
       case operator
-      when 'not'
+      when 'not', 'greater_than', 'less_than', 'not_equal', 'equal', 'before', 'after'
         value
-      when'greater_than', 'less_than', 'not_equal', 'equal', 'before', 'after'
-        "#{value}"
       when 'contains', 'not_contains'
         "%#{value}%"
       when 'starts_with'
@@ -204,7 +203,7 @@ module ForestLiana
       current_previous_interval = nil
       # NOTICE: Leaf condition at root
       unless @filters['aggregator']
-        return @filters if @operator_date_interval_parser.has_previous_interval(@filters['operator'])
+        return @filters if @operator_date_interval_parser.has_previous_interval?(@filters['operator'])
       end
 
       if @filters['aggregator'] === 'and'
@@ -212,7 +211,7 @@ module ForestLiana
           # NOTICE: Nested conditions
           return nil if condition['aggregator']
 
-          if @operator_date_interval_parser.has_previous_interval(condition['operator'])
+          if @operator_date_interval_parser.has_previous_interval?(condition['operator'])
             # NOTICE: There can't be two previous_interval.
             return nil if current_previous_interval
 
@@ -267,6 +266,19 @@ module ForestLiana
 
     def raise_empty_condition_in_filter_error
       raise ForestLiana::Errors::HTTP422Error.new('Empty condition in filter')
+    end
+
+    def ensure_valid_aggregation(node)
+      raise_empty_condition_in_filter_error if node.empty?
+      raise ForestLiana::Errors::HTTP422Error.new('Filters cannot be a raw value') unless node.is_a?(Hash)
+    end
+
+    def ensure_valid_condition(condition)
+      raise_empty_condition_in_filter_error if condition.empty?
+      raise ForestLiana::Errors::HTTP422Error.new('Condition cannot be a raw value') unless condition.is_a?(Hash)
+      unless condition['field'].is_a?(String) and condition['operator'].is_a?(String)
+        raise ForestLiana::Errors::HTTP422Error.new('Invalid condition format') unless condition.is_a?(Hash)
+      end
     end
   end
 end
