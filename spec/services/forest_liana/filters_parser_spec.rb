@@ -147,11 +147,11 @@ module ForestLiana
         it { expect(filter_parser.parse_operator 'contains').to eq 'LIKE' }
         it { expect(filter_parser.parse_operator 'starts_with').to eq 'LIKE' }
         it { expect(filter_parser.parse_operator 'ends_with').to eq 'LIKE' }
-        it { expect(filter_parser.parse_operator 'not_contains').to eq 'NOT_LIKE' }
+        it { expect(filter_parser.parse_operator 'not_contains').to eq 'NOT LIKE' }
         it { expect(filter_parser.parse_operator 'not_equal').to eq '!=' }
-        it { expect(filter_parser.parse_operator 'present').to eq 'IS NOT NULL' }
+        it { expect(filter_parser.parse_operator 'present').to eq 'IS NOT' }
         it { expect(filter_parser.parse_operator 'equal').to eq '=' }
-        it { expect(filter_parser.parse_operator 'blank').to eq 'IS NULL' }
+        it { expect(filter_parser.parse_operator 'blank').to eq 'IS' }
       end
 
       context 'on unknown operator' do
@@ -165,11 +165,12 @@ module ForestLiana
 
     describe 'parse_value' do
       context 'on valid operator' do
+        let(:now) { Time.now }
         it { expect(filter_parser.parse_value('not', true)).to eq true }
-        it { expect(filter_parser.parse_value('greater_than', 34)).to eq '34' }
-        it { expect(filter_parser.parse_value('after', Time.now)).to eq Time.now.to_s }
-        it { expect(filter_parser.parse_value('less_than', 45)).to eq '45' }
-        it { expect(filter_parser.parse_value('before', Time.now)).to eq Time.now.to_s }
+        it { expect(filter_parser.parse_value('greater_than', 34)).to eq 34 }
+        it { expect(filter_parser.parse_value('after', now)).to eq now }
+        it { expect(filter_parser.parse_value('less_than', 45)).to eq 45 }
+        it { expect(filter_parser.parse_value('before', now)).to eq now }
         it { expect(filter_parser.parse_value('contains', 'toto')).to eq '%toto%'}
         it { expect(filter_parser.parse_value('starts_with', 'a')).to eq 'a%'}
         it { expect(filter_parser.parse_value('ends_with', 'b')).to eq '%b' }
