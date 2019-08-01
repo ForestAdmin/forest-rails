@@ -154,7 +154,7 @@ module ForestLiana
     end
 
     def ensure_integer_value(value)
-      unless /\A[-+]?\d+\z/.match(value)
+      unless value.is_a?(Integer) || /\A[-+]?\d+\z/.match(value)
         raise ForestLiana::Errors::HTTP422Error.new('\'value\' should be an Integer')
       end
     end
