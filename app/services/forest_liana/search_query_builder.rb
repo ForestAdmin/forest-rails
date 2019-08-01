@@ -19,7 +19,7 @@ module ForestLiana
       @records = search_param
 
       if @params[:filters]
-        @records = FiltersParser.new(@params[:filters], @resource, @params[:timezone]).apply_filters
+        @records = FiltersParser.new(@params[:filters], @records, @params[:timezone]).apply_filters
       end
 
       if @search
