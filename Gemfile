@@ -18,7 +18,7 @@ end
 
 group :test do
   gem 'rake'
-  gem 'sqlite3'
+  gem 'sqlite3', '~> 1.3.6'
 end
 
 gem 'rails', '4.2.7.1'

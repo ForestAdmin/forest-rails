@@ -21,7 +21,11 @@ module ForestLiana
       return @resource unless where
 
       @joins.each do |join|
-        @resource = @resource.joins(ArelHelpers.join_association(@resource, join, Arel::Nodes::OuterJoin))
+        current_resource = @resource.reflect_on_association(join.name).klass
+        current_resource.include(ArelHelpers::Aliases)
+        current_resource.aliased_as(join.name) do |aliased_resource|
+          @resource = @resource.joins(ArelHelpers.join_association(@resource, join.name, Arel::Nodes::OuterJoin, aliases: [aliased_resource]))
+        end
       end
 
       @resource.where(where)
@@ -167,7 +171,7 @@ module ForestLiana
       association = @resource.reflect_on_association(field.to_sym)
       return nil if association.blank?
 
-      @joins << association.name unless @joins.include? association.name
+      @joins << association unless @joins.include? association
 
       tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
@@ -179,18 +183,7 @@ module ForestLiana
         #         are identical.
         association.table_name
       else
-        # NOTICE: When the the belongsTo association name and the referenced table name are not
-        #         identical. Format with the ActiveRecord query generator style.
-        relations_on_this_table = tables_associated_to_relations_name[association.table_name]
-        has_several_associations_to_the_table_and_is_not_first_one =
-          !relations_on_this_table.nil? && relations_on_this_table.size > 1 &&
-          relations_on_this_table.find_index(association.name) > 0
-
-        if has_several_associations_to_the_table_and_is_not_first_one
-          "#{association_name_pluralized}_#{@resource.table_name}"
-        else
-          association.table_name
-        end
+        association.name
       end
     end
 
@@ -269,15 +262,15 @@ module ForestLiana
     end
 
     def ensure_valid_aggregation(node)
-      raise_empty_condition_in_filter_error if node.empty?
       raise ForestLiana::Errors::HTTP422Error.new('Filters cannot be a raw value') unless node.is_a?(Hash)
+      raise_empty_condition_in_filter_error if node.empty?
     end
 
     def ensure_valid_condition(condition)
       raise_empty_condition_in_filter_error if condition.empty?
       raise ForestLiana::Errors::HTTP422Error.new('Condition cannot be a raw value') unless condition.is_a?(Hash)
       unless condition['field'].is_a?(String) and condition['operator'].is_a?(String)
-        raise ForestLiana::Errors::HTTP422Error.new('Invalid condition format') unless condition.is_a?(Hash)
+        raise ForestLiana::Errors::HTTP422Error.new('Invalid condition format')
       end
     end
   end

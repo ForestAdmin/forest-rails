@@ -8,16 +8,16 @@ module ForestLiana
     let(:simple_condition_2) { { 'field' => 'name', 'operator' => 'ends_with', 'value' => '3' } }
     let(:simple_condition_3) { { 'field' => 'age', 'operator' => 'greater_than', 'value' => 2 } }
     let(:belongs_to_condition) { { 'field' => 'trees:age', 'operator' => 'less_than', 'value' => 3 } }
-    let(:date_condition_1) { { 'field' => 'created_at', 'operator' => 'before', 'value' => Time.now - 2.hours } }
+    let(:date_condition_1) { { 'field' => 'created_at', 'operator' => 'before', 'value' => 2.hours.ago } }
     let(:date_condition_2) { { 'field' => 'created_at', 'operator' => 'today' } }
-    let(:date_condition_3) { { 'field' => 'created_at', 'operator' => 'previous_x_days', 'value' => 3 } }
+    let(:date_condition_3) { { 'field' => 'created_at', 'operator' => 'previous_x_days', 'value' => 2 } }
 
     before {
       island = Island.create!(name: "L'île de la muerta")
-      king = User.create!(title: :king)
+      king = User.create!(title: :king, name: 'Ben E.')
       villager = User.create!(title: :villager)
       Tree.create!(name: 'Tree n1', age: 1, island: island, owner: king)
-      Tree.create!(name: 'Tree n2', age: 3, island: island, created_at: Time.now - 1.day, owner: king)
+      Tree.create!(name: 'Tree n2', age: 3, island: island, created_at: 3.day.ago, owner: king)
       Tree.create!(name: 'Tree n3', age: 4, island: island, owner: king, cutter: villager)
     }
 
@@ -40,9 +40,198 @@ module ForestLiana
     end
 
     describe 'apply_filters' do
+      let(:parsed_filters) { filter_parser.apply_filters }
+
       context 'on valid filters' do
-        let(:filters) { { aggregator: 'and', conditions: [simple_condition_1, simple_condition_2] } }
-        it { expect(filter_parser.apply_filters.count).to eq 1 }
+        context 'single condtions' do
+          context 'not_equal' do
+            let(:filters) { { field: 'age', operator: 'not_equal', value: 4 } }
+            it { expect(parsed_filters.count).to eq 2 }
+          end
+
+          context 'equal' do
+            let(:filters) { { field: 'age', operator: 'equal', value: 4 } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'greater_than' do
+            let(:filters) { { field: 'age', operator: 'greater_than', value: 2 } }
+            it { expect(parsed_filters.count).to eq 2 }
+          end
+
+          context 'less_than' do
+            let(:filters) { { field: 'age', operator: 'less_than', value: 2 } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'after' do
+            let(:filters) { { field: 'created_at', operator: 'after', value: 1.day.ago } }
+            it { expect(parsed_filters.count).to eq 2 }
+          end
+
+          context 'before' do
+            let(:filters) { { field: 'created_at', operator: 'before', value: 1.day.ago } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'contains' do
+            let(:filters) { { field: 'name', operator: 'contains', value: 'ree' } }
+            it { expect(parsed_filters.count).to eq 3 }
+          end
+
+          context 'not_contains' do
+            let(:filters) { { field: 'name', operator: 'not_contains', value: ' ' } }
+            it { expect(parsed_filters.count).to eq 0 }
+          end
+
+          context 'starts_with' do
+            let(:filters) { { field: 'name', operator: 'starts_with', value: 'o' } }
+            it { expect(parsed_filters.count).to eq 0 }
+          end
+
+          context 'ends_with' do
+            let(:filters) { { field: 'name', operator: 'ends_with', value: '3' } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'present' do
+            let(:filters) { { field: 'cutter_id', operator: 'present', value: nil } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'blank' do
+            let(:filters) { { field: 'cutter_id', operator: 'blank', value: nil } }
+            it { expect(parsed_filters.count).to eq 2 }
+          end
+        end
+
+        context 'belongsTo conditions' do
+          context 'not_equal' do
+            let(:filters) { { field: 'cutter:title', operator: 'not_equal', value: 'king' } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'equal' do
+            let(:filters) { { field: 'cutter:title', operator: 'equal', value: 'king' } }
+            it { expect(parsed_filters.count).to eq 0 }
+          end
+
+          context 'contains' do
+            let(:filters) { { field: 'owner:title', operator: 'contains', value: 'in' } }
+            it { expect(parsed_filters.count).to eq 3 }
+          end
+
+          context 'not_contains' do
+            let(:filters) { { field: 'owner:title', operator: 'not_contains', value: 'g' } }
+            it { expect(parsed_filters.count).to eq 0 }
+          end
+
+          context 'starts_with' do
+            let(:filters) { { field: 'cutter:title', operator: 'starts_with', value: 'v' } }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+
+          context 'two belongsTo' do
+            context 'different fields' do
+              let(:filters) {
+                {
+                  aggregator: 'or', conditions: [
+                    { field: 'owner:name', operator: 'contains', value: 'E.' },
+                    { field: 'cutter:title', operator: 'starts_with', value: 'v' }
+                  ]
+                }
+              }
+              it { expect(parsed_filters.count).to eq 3 }
+            end
+
+            context 'same fields' do
+              let(:filters) {
+                {
+                  aggregator: 'and', conditions: [
+                    { field: 'owner:name', operator: 'contains', value: 'E.' },
+                    { field: 'owner:title', operator: 'starts_with', value: 'v' }
+                  ]
+                }
+              }
+              it { expect(parsed_filters.count).to eq 3 }
+            end
+          end
+        end
+
+        context 'and aggregator on simple conditions' do
+          let(:filters) { { aggregator: 'and', conditions: [simple_condition_1, simple_condition_2] } }
+          it { expect(parsed_filters.count).to eq 1 }
+        end
+
+
+        context 'complex conditions' do
+          context 'and aggregator on simple conditions' do
+            let(:filters) {
+              {
+                aggregator: 'or',
+                conditions: [
+                  { aggregator: 'and', conditions: [
+                    { aggregator: 'or', conditions: [date_condition_1, simple_condition_1] },
+                    simple_condition_2
+                  ] },
+                  { field: 'cutter:title', operator: 'starts_with', value: 'v' }
+                ]
+              }
+            }
+            it { expect(parsed_filters.count).to eq 1 }
+          end
+        end
+      end
+
+      context 'on invalid filters' do
+        context 'invalid condition format' do
+          let(:filters) { { toto: 'Why nut?' } }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid condition format')
+          }
+        end
+
+        context 'array as filter' do
+          let(:filters) { [] }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Filters cannot be a raw value')
+          }
+        end
+
+        context 'empty filter' do
+          let(:filters) { { } }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Empty condition in filter')
+          }
+        end
+
+        context 'raw value in conditions' do
+          let(:filters) { { aggregator: 'and', conditions: [4] } }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Filters cannot be a raw value')
+          }
+        end
+
+        context 'bad field type' do
+          let(:filters) { { field: 4, operator: 'oss 117', value: 'tuorp' } }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid condition format')
+          }
+        end
+
+        context 'bad operator type' do
+          let(:filters) { { field: 'magnetic', operator: true, value: 'tuorp' } }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid condition format')
+          }
+        end
+
+        context 'unexisting field' do
+          let(:filters) { { field: 'magnetic', operator: 'archer', value: 'tuorp' } }
+          it {
+            expect { parsed_filters }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Field \'magnetic\' not found')
+          }
+        end
       end
     end
 
@@ -277,9 +466,9 @@ module ForestLiana
     end
 
     describe 'apply_filters_on_previous_interval' do
-      let(:filters) { { 'aggregator' => 'and', 'conditions' => [date_condition_2, simple_condition_1] } }
+      let(:filters) { { 'aggregator' => 'and', 'conditions' => [date_condition_3, simple_condition_1] } }
 
-      it { expect(filter_parser.apply_filters_on_previous_interval(date_condition_2).count).to eq 1 }
+      it { expect(filter_parser.apply_filters_on_previous_interval(date_condition_3).count).to eq 1 }
     end
   end
 end
