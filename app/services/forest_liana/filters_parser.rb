@@ -173,18 +173,7 @@ module ForestLiana
 
       @joins << association unless @joins.include? association
 
-      tables_associated_to_relations_name =
-        ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
-      association_name = association.name.to_s
-      association_name_pluralized = association_name.pluralize
-
-      if [association_name, association_name_pluralized].include? association.table_name
-        # NOTICE: Default case. When the belongsTo association name and the referenced table name
-        #         are identical.
-        association.table_name
-      else
-        association.name
-      end
+      association.name
     end
 
     # NOTICE: Look for a previous interval condition matching the following:
