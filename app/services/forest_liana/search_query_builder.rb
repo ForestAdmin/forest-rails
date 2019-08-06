@@ -17,8 +17,10 @@ module ForestLiana
       @tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
-      @records = has_many_filter
-      @records = belongs_to_and_params_filter
+
+      if @params[:filters]
+        @records = FiltersParser.new(@params[:filters], @records, @params[:timezone]).apply_filters
+      end
 
       if @search
         ForestLiana.schema_for_resource(@resource).fields.each do |field|
@@ -34,11 +36,6 @@ module ForestLiana
       end
 
       @records
-    end
-
-    def belongs_to_and_params_filter
-      conditions = filter_param + belongs_to_filter
-      @records.where(conditions.join(" #{@params[:filterType]} ".upcase))
     end
 
     def format_column_name(table_name, column_name)
@@ -154,125 +151,9 @@ module ForestLiana
       "LOWER(#{column_name}) LIKE :search_value_for_string"
     end
 
-    def filter_param
-      conditions = []
-
-      if @params[:filterType] && @params[:filter]
-
-        @params[:filter].each do |field, values|
-          # ActsAsTaggable
-          if acts_as_taggable?(field)
-            tagged_records = @records.tagged_with(values.tr('*', ''))
-
-            if @params[:filterType] == 'and'
-              @records = tagged_records
-            elsif @params[:filterType] == 'or'
-              conditions << acts_as_taggable_query(tagged_records)
-            end
-          else
-            next if association?(field)
-
-            values.split(',').each do |value|
-              operator, value = OperatorValueParser.parse(value)
-              conditions << OperatorValueParser.get_condition(field, operator,
-                value, @resource, @params[:timezone])
-            end
-          end
-        end
-      end
-
-      conditions
-    end
-
-    def association?(field)
-      field = field.split(':').first if field.include?(':')
-      @resource.reflect_on_association(field.to_sym).present?
-    end
-
-    def has_many_association?(field)
-      field = field.split(':').first if field.include?(':')
-      association = @resource.reflect_on_association(field.to_sym)
-
-      [:has_many, :has_and_belongs_to_many].include?(association.try(:macro))
-    end
-
     def acts_as_taggable?(field)
       @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable) &&
         @resource.acts_as_taggable.include?(field)
-    end
-
-    def has_many_filter
-      if @params[:filter]
-        @params[:filter].each do |field, values|
-          next if !has_many_association?(field) || acts_as_taggable?(field)
-
-          values.split(',').each do |value|
-            if field.include?(':')
-              @records = has_many_subfield_filter(field, value)
-            else
-              @records = has_many_field_filter(field, value)
-            end
-          end
-        end
-      end
-
-      @records
-    end
-
-    def has_many_field_filter(field, value)
-      association = @resource.reflect_on_association(field.to_sym)
-      return if association.blank?
-
-      operator, value = OperatorValueParser.parse(value)
-
-      @records = @records
-        .select("#{@resource.table_name}.*,
-                COUNT(#{association.table_name}.id)
-                #{association.table_name}_has_many_count")
-        .joins(ArelHelpers.join_association(@resource, association.name,
-          Arel::Nodes::OuterJoin))
-        .group("#{@resource.table_name}.id")
-        .having("COUNT(#{association.table_name}) #{operator} #{value}")
-    end
-
-    def has_many_subfield_filter(field, value)
-      field, subfield = field.split(':')
-
-      association = @resource.reflect_on_association(field.to_sym)
-      return if association.blank?
-
-      operator, value = OperatorValueParser.parse(value)
-
-      @records = @records
-        .select("#{@resource.table_name}.*,
-                COUNT(#{association.table_name}.id)
-                #{association.table_name}_has_many_count")
-        .joins(ArelHelpers.join_association(@resource, association.name,
-          Arel::Nodes::OuterJoin))
-        .group("#{@resource.table_name}.id, #{association.table_name}.#{subfield}")
-        .having("#{association.table_name}.#{subfield} #{operator} '#{value}'")
-    end
-
-    def belongs_to_association?(field)
-      field = field.split(':').first if field.include?(':')
-      association = @resource.reflect_on_association(field.to_sym)
-      [:belongs_to, :has_one].include?(association.try(:macro))
-    end
-
-    def belongs_to_filter
-      conditions = []
-
-      if @params[:filter]
-        @params[:filter].each do |field, values|
-          next unless belongs_to_association?(field)
-
-          values.split(',').each do |value|
-            conditions << OperatorValueParser.get_has_one_condition(@resource, field, value, @params[:timezone])
-          end
-        end
-      end
-
-      conditions
     end
 
     private

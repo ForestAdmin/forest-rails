@@ -72,8 +72,10 @@ describe 'Requesting Tree resources', :type => :request  do
     describe 'with a filter on an association that is not a displayed column' do
       params = {
         fields: { 'Tree' => 'id,name' },
-        filterType: 'and',
-        filter: { 'owner:id' => '$present' },
+        filters: JSON.generate({
+          field: 'owner:id',
+          operator: 'present'
+        }),
         page: { 'number' => '1', 'size' => '10' },
         searchExtended: '0',
         sort: '-id',
