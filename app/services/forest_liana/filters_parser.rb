@@ -10,7 +10,7 @@ module ForestLiana
       end
 
       @resource = resource
-      @operator_date_interval_parser = OperatorDateIntervalParser.new(timezone)
+      @operator_date_parser = OperatorDateIntervalParser.new(timezone)
       @joins = []
     end
 
@@ -53,8 +53,8 @@ module ForestLiana
       value = condition['value']
       field = condition['field']
 
-      if @operator_date_interval_parser.is_date_operator?(operator)
-        condition = @operator_date_interval_parser.get_interval_date_filter(operator, value)
+      if @operator_date_parser.is_date_operator?(operator)
+        condition = @operator_date_parser.get_date_filter(operator, value)
         return "#{parse_field_name(field)} #{condition}"
       end
 
@@ -185,7 +185,7 @@ module ForestLiana
       current_previous_interval = nil
       # NOTICE: Leaf condition at root
       unless @filters['aggregator']
-        return @filters if @operator_date_interval_parser.has_previous_interval?(@filters['operator'])
+        return @filters if @operator_date_parser.has_previous_interval?(@filters['operator'])
       end
 
       if @filters['aggregator'] === 'and'
@@ -193,7 +193,7 @@ module ForestLiana
           # NOTICE: Nested conditions
           return nil if condition['aggregator']
 
-          if @operator_date_interval_parser.has_previous_interval?(condition['operator'])
+          if @operator_date_parser.has_previous_interval?(condition['operator'])
             # NOTICE: There can't be two previous_interval.
             return nil if current_previous_interval
 
@@ -234,7 +234,7 @@ module ForestLiana
     def parse_previous_interval_condition(condition)
       raise_empty_condition_in_filter_error unless condition
 
-      parsed_condition = @operator_date_interval_parser.get_interval_date_filter_for_previous_interval(
+      parsed_condition = @operator_date_parser.get_date_filter_for_previous_interval(
         condition['operator'],
         condition['value']
       )

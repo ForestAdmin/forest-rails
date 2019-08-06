@@ -170,10 +170,12 @@ module ForestLiana
               {
                 aggregator: 'or',
                 conditions: [
-                  { aggregator: 'and', conditions: [
-                    { aggregator: 'or', conditions: [date_condition_1, simple_condition_1] },
-                    simple_condition_2
-                  ] },
+                  {
+                    aggregator: 'and', conditions: [
+                      { aggregator: 'or', conditions: [date_condition_1, simple_condition_1] },
+                      simple_condition_2
+                    ]
+                  },
                   { field: 'cutter:title', operator: 'starts_with', value: 'v' }
                 ]
               }

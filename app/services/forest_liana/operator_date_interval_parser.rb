@@ -70,7 +70,7 @@ module ForestLiana
       date - @timezone_offset.hours
     end
 
-    def get_interval_date_filter(operator, value)
+    def get_date_filter(operator, value)
       return nil unless is_date_operator? operator
 
       case operator
@@ -116,7 +116,7 @@ module ForestLiana
       "BETWEEN '#{from}' AND '#{to}'"
     end
 
-    def get_interval_date_filter_for_previous_interval(operator, value)
+    def get_date_filter_for_previous_interval(operator, value)
       return nil unless has_previous_interval? operator
 
       case operator
