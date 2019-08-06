@@ -24,7 +24,7 @@ end
 gem 'rails', '4.2.7.1'
 gem 'jsonapi-serializers', '1.0.1'
 gem 'rack-cors'
-gem 'arel-helpers'
+gem 'arel-helpers', '2.10.0'
 gem 'groupdate'
 gem 'useragent'
 gem 'jwt'
