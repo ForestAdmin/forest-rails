@@ -6,7 +6,6 @@
 - Filters - Support complex/generic conditions chaining. 🛡
 - Technical - Upgrade Ruby version to 2.3.4 for the CI.
 
-
 ## RELEASE 3.2.0 - 2019-07-22
 ### Added
 - Column Types - Support HSTORE column type.
