@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.0.0-beta.0 - 2019-08-07
 ### Changed
 - Technical - Makes the JWT lighter and consistent across lianas.
 - Filters - Support complex/generic conditions chaining. 🛡
