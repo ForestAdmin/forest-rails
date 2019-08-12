@@ -141,6 +141,8 @@ Please ensure that the **tests** are passing before submitting any pull request:
 $ RAILS_ENV=test bundle exec rake --trace db:migrate test
 ```
 
-## Licence
+## Community
 
-[GPL v3](https://github.com/ForestAdmin/forest-rails/blob/master/LICENSE)
+👇 Join our Slack community of +1000 developers
+
+[![Slack Status](http://community.forestadmin.com/badge.svg)](https://community.forestadmin.com)
