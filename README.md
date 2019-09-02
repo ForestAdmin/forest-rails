@@ -21,7 +21,7 @@ This project has been designed with scalability in mind to fit requirements from
 
 ## Getting Started
 
-Install Forest Admin here: [https://docs.forestadmin.com/documentation/getting-started/installation](https://docs.forestadmin.com/documentation/getting-started/installation)
+⚠️ Installing Forest Admin within your Rails app is not recommended. We *strongly* recommend installing using Lumber: [https://docs.forestadmin.com/documentation/getting-started/installation](https://docs.forestadmin.com/documentation/getting-started/installation)
 
 ## Documentation
 [https://docs.forestadmin.com/documentation/](https://docs.forestadmin.com/documentation/)
