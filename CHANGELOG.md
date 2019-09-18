@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- Configuration - Add initialisation of configuration directories
+- Configurations - Users can specify the directory for Forest Smart Implementation.
 
 ### Changed
 - Readme - Add a community section.
