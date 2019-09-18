@@ -211,8 +211,7 @@ module ForestLiana
     end
 
     def require_lib_forest_liana
-      path = Rails.root.join('lib', 'forest_liana', '**', '*.rb')
-      Dir.glob(File.expand_path(path, __FILE__)).each do |file|
+      Dir.glob(ForestLiana.config_dir).each do |file|
         load file
       end
     end

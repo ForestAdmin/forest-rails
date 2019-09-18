@@ -37,8 +37,18 @@ module ForestLiana
   self.names_overriden = {}
   self.meta = {}
 
+  @config_dir = 'lib/forest_liana/**/*.rb'
+
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   self.names_old_overriden = {}
+
+  def self.config_dir=(config_dir)
+    @config_dir = config_dir
+  end
+
+  def self.config_dir
+    Rails.root.join(@config_dir)
+  end
 
   def self.schema_for_resource resource
     self.apimap.find do |collection|
