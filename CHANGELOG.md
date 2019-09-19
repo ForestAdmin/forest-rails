@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.0.0-beta.1 - 2019-09-19
 ### Added
 - Configurations - Users can specify the directory for Forest Smart Implementation.
 - DevOps - Automatically send the release note on Slack after a release.
