@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Configurations - Users can specify the directory for Forest Smart Implementation.
+- DevOps - Automatically send the release note on Slack after a release.
 
 ### Changed
 - Readme - Add a community section.

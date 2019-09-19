@@ -40,3 +40,4 @@ build/
 .rvmrc
 
 node_modules/
+.env
