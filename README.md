@@ -1,4 +1,6 @@
-# Forest Admin in Rails [![Build Status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
+# Forest Admin in Rails
+[![Gem](https://badge.fury.io/rb/forest_liana.svg)](https://badge.fury.io/rb/forest_liana)
+[![CI status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
 
 Forest Admin provides an off-the-shelf administration panel based on a highly-extensible API plugged into your application.
 
@@ -141,6 +143,8 @@ Please ensure that the **tests** are passing before submitting any pull request:
 $ RAILS_ENV=test bundle exec rake --trace db:migrate test
 ```
 
-## Licence
+## Community
 
-[GPL v3](https://github.com/ForestAdmin/forest-rails/blob/master/LICENSE)
+👇 Join our Slack community of +1000 developers
+
+[![Slack Status](http://community.forestadmin.com/badge.svg)](https://community.forestadmin.com)

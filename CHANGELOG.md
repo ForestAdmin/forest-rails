@@ -1,12 +1,28 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Configurations - Users can specify the directory for Forest Smart Implementation.
+- DevOps - Automatically send the release note on Slack after a release.
+
+### Changed
+- Readme - Add a community section.
+- Readme - Remove the Licence section as it is already accessible in the Github page header.
 
 ## RELEASE 4.0.0-beta.0 - 2019-08-07
 ### Changed
 - Technical - Makes the JWT lighter and consistent across lianas.
 - Filters - Support complex/generic conditions chaining. 🛡
 - Technical - Upgrade Ruby version to 2.3.4 for the CI.
+
+## RELEASE 3.3.0 - 2019-09-19
+### Added
+- Configurations - Users can specify the directory for Forest Smart Implementation.
+- DevOps - Automatically send the release note on Slack after a release.
+
+### Changed
+- Readme - Add a community section.
+- Readme - Remove the Licence section as it is already accessible in the Github page header.
 
 ## RELEASE 3.2.0 - 2019-07-22
 ### Added
@@ -82,7 +98,7 @@
 - Records Display - Ensure that the data is properly sent even if an attribute serialization happens for an unknown reason.
 
 ## RELEASE 3.0.0-beta.11 - 2019-02-27
-### Fixed
+### Fixed
 - Filters - Fix resources display if filtered with associations conditions with the related columns hidden in the list. 🛡
 
 ## RELEASE 3.0.0-beta.10 - 2019-02-26

@@ -1,13 +1,13 @@
 {
   "name": "forest-rails",
-  "version": "0.0.0",
+  "version": "3.3.0",
   "description": "The official Rails liana for Forest.",
-  "main": "gulpfile.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "node ./scripts/release.js"
   },
   "repository": {
     "type": "git",
@@ -20,9 +20,10 @@
   },
   "homepage": "https://github.com/ForestAdmin/forest-rails#readme",
   "devDependencies": {
-    "gulp": "3.9.1",
+    "@forestadmin/devops": "2.0.0",
+    "dotenv": "8.1.0",
     "moment": "^2.20.1",
     "semver": "5.3.0",
-    "simple-git": "1.65.0"
+    "simple-git": "1.78.0"
   }
 }
