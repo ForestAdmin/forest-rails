@@ -60,9 +60,12 @@ function build() {
         fs.writeFileSync('CHANGELOG.md', newChanges);
       })
       .add(['CHANGELOG.md', 'package.json'])
+      .then(() => { exec('bundle install'); })
+      .add('*')
       .commit(commitMessage)
       .push()
-      .exec(() => { console.log(`Commit Release on ${getBranchLabel(branchName)} done.`); });
+      .exec(() => { console.log(`Commit Release on ${getBranchLabel(branchName)} done.`); })
+      .then(() => { exec('gem build forest_liana.gemspec'); });
   };
 
   const addTagToGit = (tag, branchName) => simpleGit
