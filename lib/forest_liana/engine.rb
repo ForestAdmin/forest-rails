@@ -5,7 +5,7 @@ require 'net/http'
 require 'useragent'
 require 'jwt'
 require 'bcrypt'
-require_relative 'bootstraper'
+require_relative 'bootstrapper'
 require_relative 'collection'
 
 module ForestLiana
@@ -72,11 +72,11 @@ module ForestLiana
         # NOTICE: Do not run the code below on rails g forest_liana:install.
         if ForestLiana.env_secret || ForestLiana.secret_key
           unless rake?
-            bootstraper = Bootstraper.new
+            bootstrapper = Bootstrapper.new
             if ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
               FOREST_LOGGER.warn "DEPRECATION WARNING: FOREST_DEACTIVATE_AUTOMATIC_APIMAP option has been renamed. Please use FOREST_DISABLE_AUTO_SCHEMA_APPLY instead."
             end
-            bootstraper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY'] || Rails.env.test?
+            bootstrapper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY'] || Rails.env.test?
           end
         end
       end
