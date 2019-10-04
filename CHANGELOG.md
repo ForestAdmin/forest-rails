@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## RELEASE 4.0.0 - 2019-10-04
+
 ## RELEASE 4.0.0-beta.1 - 2019-09-19
 ### Added
 - Configurations - Users can specify the directory for Forest Smart Implementation.
