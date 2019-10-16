@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Technical - Fix a class name typo.
 
 ## RELEASE 4.0.0 - 2019-10-04
 
