@@ -2,7 +2,7 @@ require_relative 'schema_file_updater'
 require_relative 'version'
 
 module ForestLiana
-  class Bootstraper
+  class Bootstrapper
     SCHEMA_FILENAME = File.join(Dir.pwd, '.forestadmin-schema.json')
 
     def initialize
