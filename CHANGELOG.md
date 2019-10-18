@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.0.1 - 2019-10-18
 ### Fixed
 - Technical - Fix a class name typo.
 - Logs - Prevent "already initialized constant" warnings due to multiple serializer definition.
