@@ -76,11 +76,7 @@ module ForestLiana
     end
 
     def fetch_models
-      if Rails::VERSION::MAJOR > 5
-        ApplicationRecord.subclasses.each { |model| fetch_model(model) }
-      else
-        ActiveRecord::Base.subclasses.each { |model| fetch_model(model) }
-      end
+      ActiveRecord::Base.subclasses.each { |model| fetch_model(model) }
     end
 
     def fetch_model(model)
@@ -92,7 +88,6 @@ module ForestLiana
             model.descendants.each { |submodel_sti| fetch_model(submodel_sti) }
           end
 
-          model.connection
           if analyze_model?(model)
             ForestLiana.models << model
           end
