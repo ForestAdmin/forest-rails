@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.0.2 - 2019-10-18
 ### Fixed
 - Validation - Do not add non-generic validations to fields schema (for validations using `on:` option).
 
