@@ -414,7 +414,7 @@ module ForestLiana
       if @model._validators? && @model._validators[column.name.to_sym].size > 0
         @model._validators[column.name.to_sym].each do |validator|
           # NOTICE: Do not consider conditional validations
-          next if validator.options[:if] || validator.options[:unless]
+          next if validator.options[:if] || validator.options[:unless] || validator.options[:on]
 
           case validator
           when ActiveRecord::Validations::PresenceValidator
