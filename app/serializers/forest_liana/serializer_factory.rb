@@ -6,6 +6,8 @@ module ForestLiana
     def self.define_serializer(active_record_class, serializer)
       serializer_name = self.build_serializer_name(active_record_class)
 
+       return if ForestLiana::UserSpace.const_defined?(serializer_name)
+
       # NOTICE: Create the serializer in the UserSpace to avoid conflicts with
       # serializer created from integrations, actions, segments, etc.
       ForestLiana::UserSpace.const_set(serializer_name, serializer)
