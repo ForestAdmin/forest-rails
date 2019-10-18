@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Rails Versions - Support Rails 6 projects.
 
 ## RELEASE 4.0.2 - 2019-10-18
 ### Fixed
