@@ -57,7 +57,7 @@ module ForestLiana
         ActiveStorage::Attachment
       end
 
-      if Rails::VERSION::MAJOR > 5
+      if Rails::VERSION::MAJOR > 5 && defined?(Zeitwerk::Loader)
         Zeitwerk::Loader.eager_load_all
       else
         app.eager_load!
