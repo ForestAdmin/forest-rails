@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.1.1 - 2019-10-23
 ### Fixed
 - Records list - Fix records retrieval issues. [Regression introduced in 4.0.1]
 - Technical - Fix CI error.
