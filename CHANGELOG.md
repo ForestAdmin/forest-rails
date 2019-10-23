@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Records list - Fix records retrieval issues. [Regression introduced in 4.0.1]
+- Technical - Fix CI error.
 
 ## RELEASE 4.1.0 - 2019-10-21
 ### Added
