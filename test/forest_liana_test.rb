@@ -19,5 +19,7 @@ class ForestLianaTest < ActiveSupport::TestCase
       Rails.root.join('lib/custom/**/*.rb'),
       ForestLiana.config_dir
     )
+
+    ForestLiana.config_dir = 'lib/forest_liana/**/*.rb'
   end
 end
