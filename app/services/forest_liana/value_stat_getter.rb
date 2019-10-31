@@ -6,7 +6,7 @@ module ForestLiana
       return if @params[:aggregate].blank?
       resource = get_resource().eager_load(@includes)
 
-      if @params[:filters]
+      unless @params[:filters].blank?
         filter_parser = FiltersParser.new(@params[:filters], resource, @params[:timezone])
         resource = filter_parser.apply_filters
         raw_previous_interval = filter_parser.get_previous_interval_condition

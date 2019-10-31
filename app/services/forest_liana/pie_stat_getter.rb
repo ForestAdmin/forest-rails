@@ -7,7 +7,7 @@ module ForestLiana
         timezone_offset = @params[:timezone].to_i
         resource = get_resource().eager_load(@includes)
 
-        if @params[:filters]
+        unless @params[:filters].blank?
           resource = FiltersParser.new(@params[:filters], resource, @params[:timezone]).apply_filters
         end
 

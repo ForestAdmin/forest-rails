@@ -18,7 +18,7 @@ module ForestLiana
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
 
-      if @params[:filters]
+      unless @params[:filters].blank?
         @records = FiltersParser.new(@params[:filters], @records, @params[:timezone]).apply_filters
       end
 
