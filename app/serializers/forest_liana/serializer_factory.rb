@@ -6,7 +6,7 @@ module ForestLiana
     def self.define_serializer(active_record_class, serializer)
       serializer_name = self.build_serializer_name(active_record_class)
 
-      if ForestLiana::UserSpace.const_defined?(serializer_name)
+      if ForestLiana::UserSpace.const_defined?(serializer_name, false)
         ForestLiana::UserSpace.send(:remove_const, serializer_name)
       end
 
