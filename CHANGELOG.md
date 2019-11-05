@@ -4,6 +4,7 @@
 ### Fixed
 - Technical - Fix CI error.
 - Filters - Prevent a potential error if a client request resources with a blank filter query parameter.
+- Readme - Fix the build badge display.
 
 ## RELEASE 4.1.1 - 2019-10-23
 ### Fixed
