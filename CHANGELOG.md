@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.1.2 - 2019-11-15
 ### Fixed
 - Technical - Fix CI error.
 - Filters - Prevent a potential error if a client request resources with a blank filter query parameter.
