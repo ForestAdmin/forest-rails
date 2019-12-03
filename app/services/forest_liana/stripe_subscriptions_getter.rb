@@ -50,7 +50,7 @@ module ForestLiana
 
     def fetch_subscriptions(params)
       return if @params[:id] && params[:customer].blank?
-      ::Stripe::Subscription.all(params)
+      ::Stripe::Subscription.list(params)
     end
 
     def starting_after

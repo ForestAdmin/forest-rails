@@ -55,7 +55,7 @@ module ForestLiana
 
     def fetch_charges(params)
       return if @params[:id] && params[:customer].blank?
-      ::Stripe::Charge.all(params)
+      ::Stripe::Charge.list(params)
     end
 
     def starting_after

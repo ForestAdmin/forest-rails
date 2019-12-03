@@ -57,7 +57,7 @@ module ForestLiana
 
     def fetch_invoices(params)
       return if @params[:id] && params[:customer].blank?
-      ::Stripe::Invoice.all(params)
+      ::Stripe::Invoice.list(params)
     end
 
     def starting_after

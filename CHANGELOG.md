@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Stripe Integration - Remove usage of the deprecated `all` function from stripe gem.
 
 ## RELEASE 4.1.2 - 2019-11-15
 ### Fixed
