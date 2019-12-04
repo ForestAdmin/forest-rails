@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.1.3 - 2019-12-04
 ### Fixed
 - Stripe Integration - Fix Stripe collections display with latest Stripe gem versions.
 
