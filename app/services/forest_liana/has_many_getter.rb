@@ -19,16 +19,11 @@ module ForestLiana
     end
 
     def perform
-      @records = search_query
-      @records = sort_query
+      @records = @search_query_builder.perform(@records)
     end
 
     def count
       @records_count = @records.count
-    end
-
-    def search_query
-      @search_query_builder.perform(@records)
     end
 
     def query_for_batch
@@ -64,10 +59,6 @@ module ForestLiana
         .map { |name| name.to_sym }
     end
 
-    def association_table_name
-      model_association.try(:table_name)
-    end
-
     def model_association
       @resource.reflect_on_association(@params[:association_name].to_sym).klass
     end
@@ -101,23 +92,5 @@ module ForestLiana
     def pagination?
       @params[:page] && @params[:page][:number]
     end
-
-    def sort_query
-      if @params[:sort]
-        field = @params[:sort]
-        order = detect_sort_order(field)
-        field.slice!(0) if order == :desc
-
-        @records = @records
-          .order("#{association_table_name}.#{field} #{order.upcase}")
-      else
-        @records
-      end
-    end
-
-    def detect_sort_order(field)
-      return (if field[0] == '-' then :desc else :asc end)
-    end
-
   end
 end
