@@ -4,6 +4,7 @@
 ### Fixed
 - Technical - Fix CI build.
 - Has Many Relationships - Fix sorting on hasMany fields in related data.
+- Technical - Fix bundler version
 
 ## RELEASE 4.1.3 - 2019-12-04
 ### Fixed
