@@ -31,7 +31,7 @@ module ForestLiana
 
       assert records.count == 3
       assert count = 3
-      assert records.first.id == 1
+      assert records.first.id == 7
     end
 
     test 'HasMany Getter with sort parameter' do

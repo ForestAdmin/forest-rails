@@ -149,55 +149,52 @@ module ForestLiana
     def association_table_name
       SchemaUtils.one_associations(@records)
         .select { |association| SchemaUtils.model_included?(association.klass) }[0].table_name
+    end
+
+    def sort_query
+      column = nil
+      order = 'DESC'
+
+      if @params[:sort]
+        @params[:sort].split(',').each do |field|
+          order_detected = detect_sort_order(@params[:sort])
+          order = order_detected.upcase
+          field.slice!(0) if order_detected == :desc
+
+          field = detect_reference(field)
+          if field.index('.').nil?
+            column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, field)
+          else
+            column = field
+          end
+        end
+      elsif @resource.column_names.include?('created_at')
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
+      elsif @resource.column_names.include?('id')
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
       end
 
-      def sort_query
-        column = nil
-        order = 'DESC'
-  
-        if @params[:sort]
-          @params[:sort].split(',').each do |field|
-            order_detected = detect_sort_order(@params[:sort])
-            order = order_detected.upcase
-            field.slice!(0) if order_detected == :desc
-  
-            field = detect_reference(field)
-            if field.index('.').nil?
-              column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, field)
-            else
-              column = field
-            end
-          end
-        elsif @resource.column_names.include?('created_at')
-          column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
-        elsif @resource.column_names.include?('id')
-          column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
-        end
-  
-        if column
-          @records = @records.order(Arel.sql("#{column} #{order}"))
-        else
-          @records
-        end
+      if column
+        @records = @records.order(Arel.sql("#{column} #{order}"))
+      else
+        @records
       end
-  
-      def detect_reference(param)
-        ref, field = param.split('.')
-  
-        if ref && field
-          association = @resource.reflect_on_all_associations
-            .find {|a| a.name == ref.to_sym }
-  
-          ForestLiana::AdapterHelper
-          .format_column_name(association_table_name, field)
-        else
-          param
-        end
+    end
+
+    def detect_reference(param)
+      ref, field = param.split('.')
+
+      if ref && field
+        ForestLiana::AdapterHelper
+        .format_column_name(association_table_name, field)
+      else
+        param
       end
-  
-      def detect_sort_order(field)
-        return (if field[0] == '-' then :desc else :asc end)
-      end
+    end
+
+    def detect_sort_order(field)
+      return (if field[0] == '-' then :desc else :asc end)
+    end
 
     def association_search_condition table_name, column_name
       column_name = format_column_name(table_name, column_name)
