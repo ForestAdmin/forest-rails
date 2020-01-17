@@ -147,9 +147,10 @@ module ForestLiana
     end
 
     def association_table_name(name)
-      QueryHelper.get_tables_associated_to_relations_name(@records).find { |key, values|
-        values.include?(name)
-      }.first
+      QueryHelper.get_tables_associated_to_relations_name(@records).detect { |key, values| 
+        break key if Array(values).include?(name) 
+      }
+
     end
 
     def sort_query
