@@ -146,9 +146,10 @@ module ForestLiana
       @records
     end
 
-    def association_table_name
-      SchemaUtils.one_associations(@records)
-        .select { |association| SchemaUtils.model_included?(association.klass) }[0].table_name
+    def association_table_name(name)
+      QueryHelper.get_tables_associated_to_relations_name(@records).find { |key, values|
+        values.include?(name)
+      }.first
     end
 
     def sort_query
@@ -185,8 +186,13 @@ module ForestLiana
       ref, field = param.split('.')
 
       if ref && field
+        association = @resource.reflect_on_all_associations
+          .find {|a| a.name == ref.to_sym }
+
+        referenced_table = association ? association_table_name(association.name) : ref
+        
         ForestLiana::AdapterHelper
-        .format_column_name(association_table_name, field)
+          .format_column_name(referenced_table, field)
       else
         param
       end
