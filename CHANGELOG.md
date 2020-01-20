@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Technical - Fix bundler version
 
 ## RELEASE 4.1.3 - 2019-12-04
 ### Fixed
