@@ -3,8 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Technical - Fix CI build.
-- Has Many Relationships - Fix sorting on hasMany fields in related data.
-- Technical - Fix bundler version
+- Has Many Relationships - Fix sorting on belongsTo relationship columns in related data.
 
 ## RELEASE 4.1.3 - 2019-12-04
 ### Fixed
