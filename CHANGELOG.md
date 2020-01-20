@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Has Many Relationships - Enable sorting on belongsTo relationship columns in related data.
+
 ### Fixed
 - Technical - Fix CI build.
 

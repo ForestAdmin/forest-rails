@@ -34,7 +34,7 @@ module ForestLiana
           end
         end
       end
-
+      @records = sort_query
       @records
     end
 
@@ -144,6 +144,63 @@ module ForestLiana
       end
 
       @records
+    end
+
+    def association_table_name(name)
+      QueryHelper.get_tables_associated_to_relations_name(@records).detect { |key, values|
+        break key if Array(values).include?(name)
+      }
+
+    end
+
+    def sort_query
+      column = nil
+      order = 'DESC'
+
+      if @params[:sort]
+        @params[:sort].split(',').each do |field|
+          order_detected = detect_sort_order(@params[:sort])
+          order = order_detected.upcase
+          field.slice!(0) if order_detected == :desc
+
+          field = detect_reference(field)
+          if field.index('.').nil?
+            column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, field)
+          else
+            column = field
+          end
+        end
+      elsif @resource.column_names.include?('created_at')
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
+      elsif @resource.column_names.include?('id')
+        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
+      end
+
+      if column
+        @records = @records.order(Arel.sql("#{column} #{order}"))
+      else
+        @records
+      end
+    end
+
+    def detect_reference(param)
+      ref, field = param.split('.')
+
+      if ref && field
+        association = @resource.reflect_on_all_associations
+          .find {|a| a.name == ref.to_sym }
+
+        referenced_table = association ? association_table_name(association.name) : ref
+
+        ForestLiana::AdapterHelper
+          .format_column_name(referenced_table, field)
+      else
+        param
+      end
+    end
+
+    def detect_sort_order(field)
+      return (if field[0] == '-' then :desc else :asc end)
     end
 
     def association_search_condition table_name, column_name

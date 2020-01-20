@@ -21,7 +21,6 @@ module ForestLiana
 
     def perform
       @records = @records.eager_load(@includes)
-      @records_sorted = sort_query
     end
 
     def count
@@ -35,7 +34,7 @@ module ForestLiana
     end
 
     def records
-      @records_sorted.offset(offset).limit(limit).to_a
+      @records.offset(offset).limit(limit).to_a
     end
 
     def compute_includes
@@ -114,36 +113,6 @@ module ForestLiana
       @search_query_builder.perform(@records)
     end
 
-    def sort_query
-      column = nil
-      order = 'DESC'
-
-      if @params[:sort]
-        @params[:sort].split(',').each do |field|
-          order_detected = detect_sort_order(@params[:sort])
-          order = order_detected.upcase
-          field.slice!(0) if order_detected == :desc
-
-          field = detect_reference(field)
-          if field.index('.').nil?
-            column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, field)
-          else
-            column = field
-          end
-        end
-      elsif @resource.column_names.include?('created_at')
-        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
-      elsif @resource.column_names.include?('id')
-        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
-      end
-
-      if column
-        @records = @records.order(Arel.sql("#{column} #{order}"))
-      else
-        @records
-      end
-    end
-
     def prepare_query
       @records = get_resource
 
@@ -170,28 +139,6 @@ module ForestLiana
       end
 
       @records = search_query
-    end
-
-    def detect_sort_order(field)
-      return (if field[0] == '-' then :desc else :asc end)
-    end
-
-    def detect_reference(param)
-      ref, field = param.split('.')
-
-      if ref && field
-        association = @resource.reflect_on_all_associations
-          .find {|a| a.name == ref.to_sym }
-
-        if association
-          ForestLiana::AdapterHelper
-            .format_column_name(association.table_name, field)
-        else
-          param
-        end
-      else
-        param
-      end
     end
 
     def association?(field)
