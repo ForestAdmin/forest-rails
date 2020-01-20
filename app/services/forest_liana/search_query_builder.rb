@@ -147,8 +147,8 @@ module ForestLiana
     end
 
     def association_table_name(name)
-      QueryHelper.get_tables_associated_to_relations_name(@records).detect { |key, values| 
-        break key if Array(values).include?(name) 
+      QueryHelper.get_tables_associated_to_relations_name(@records).detect { |key, values|
+        break key if Array(values).include?(name)
       }
 
     end
@@ -191,7 +191,7 @@ module ForestLiana
           .find {|a| a.name == ref.to_sym }
 
         referenced_table = association ? association_table_name(association.name) : ref
-        
+
         ForestLiana::AdapterHelper
           .format_column_name(referenced_table, field)
       else
