@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 4.2.0 - 2020-01-22
 ### Added
 - Has Many Relationships - Enable sorting on belongsTo relationship columns in related data.
 
