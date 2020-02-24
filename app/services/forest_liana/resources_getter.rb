@@ -19,6 +19,27 @@ module ForestLiana
       prepare_query()
     end
 
+    def self.get_ids_from_request(params)
+      attributes = params.dig('data', 'attributes')
+      has_body_attributes = attributes === nil
+      is_select_all_records_query = has_body_attributes && attributes.all_records === true
+    
+    
+      # NOTICE: If it is not a "select all records" query and it receives a list of ID.
+      if (!is_select_all_records_query && attributes[:ids])
+        return attributes[:ids]
+      end
+    
+      collection_name = attributes[:collection_name]
+      model = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
+      resources_getter = ForestLiana::ResourcesGetter.new(model, attributes)
+      resources = Array.new
+      resources_getter.query_for_batch.find_in_batches() do |records|
+        resources += records.map { |record| record.id }
+      end
+      return resources
+    end
+
     def perform
       @records = @records.eager_load(@includes)
     end
