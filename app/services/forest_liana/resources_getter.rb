@@ -21,8 +21,8 @@ module ForestLiana
 
     def self.get_ids_from_request(params)
       attributes = params.dig('data', 'attributes')
-      has_body_attributes = attributes === nil
-      is_select_all_records_query = has_body_attributes && attributes.all_records === true
+      has_body_attributes = attributes != nil
+      is_select_all_records_query = has_body_attributes && attributes[:all_records] === true
     
     
       # NOTICE: If it is not a "select all records" query and it receives a list of ID.
