@@ -27,11 +27,30 @@ module ForestLiana
     
       # NOTICE: If it is not a "select all records" query and it receives a list of ID, return list of ID.
       return attributes[:ids] if (!is_select_all_records_query && attributes[:ids])
-    
-      collection_name = attributes[:collection_name]
-      model = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
-      resources_getter = ForestLiana::ResourcesGetter.new(model, attributes)
+
+      # NOTICE: If it is a "select all records" we have to perform query to build ID list.
       ids = Array.new
+
+      # NOTICE: Initialize actual resources getter (could either a HasManyGetter or a ResourcesGetter).
+      isRelatedData = attributes[:parent_collection_id] &&
+        attributes[:parent_collection_name] &&
+        attributes[:parent_association_name]
+      if (isRelatedData)
+        parent_collection_name = attributes[:parent_collection_name]
+        parent_model = ForestLiana::SchemaUtils.find_model_from_collection_name(parent_collection_name)
+        model = parent_model.reflect_on_association(attributes[:parent_association_name].try(:to_sym))
+        resources_getter = ForestLiana::HasManyGetter.new(parent_model, model, attributes.merge({ 
+          id: attributes[:parent_collection_id], 
+          association_name: attributes[:parent_association_name], 
+          collection: parent_collection_name
+        }))
+      else
+        collection_name = attributes[:collection_name]
+        model = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
+        resources_getter = ForestLiana::ResourcesGetter.new(model, attributes)
+      end
+
+      # NOTICE: build ID list.
       resources_getter.query_for_batch.find_in_batches() do |records|
         ids += records.map { |record| record.id }
       end
