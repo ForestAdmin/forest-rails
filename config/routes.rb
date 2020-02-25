@@ -53,6 +53,7 @@ ForestLiana::Engine.routes.draw do
   post ':collection', to: router
   put ':collection/:id', to: router
   delete ':collection/:id', to: router
+  delete ':collection', to: router
 
   # Smart Actions forms value
   post 'actions/:action_name/values' => 'actions#values'

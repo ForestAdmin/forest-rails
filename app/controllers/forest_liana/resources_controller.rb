@@ -141,7 +141,14 @@ module ForestLiana
         checker = ForestLiana::PermissionsChecker.new(@resource, 'delete', @rendering_id)
         return head :forbidden unless checker.is_authorized?
 
-        @resource.destroy(params[:id]) if @resource.exists?(params[:id])
+        # NOTICE: destroy one or many records.
+        if (params[:id] && params.dig('data', 'attributes') == nil)
+          @resource.destroy(params[:id]) if @resource.exists?(params[:id])
+        else 
+          ids = ForestLiana::ResourcesGetter.get_ids_from_request(params)
+          @resource.destroy(ids)
+        end
+        
         head :no_content
       rescue => error
         FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
