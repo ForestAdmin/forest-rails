@@ -30,6 +30,9 @@ module ForestLiana
       # NOTICE: If it is a "select all records" we have to perform query to build ID list.
       ids = Array.new
 
+      # NOTICE: Merging all_records_subset_query into attributes preserves filters in HasManyGetter and ResourcesGetter.
+      attributes = attributes.merge(attributes[:all_records_subset_query].dup.to_unsafe_h)
+
       # NOTICE: Initialize actual resources getter (could either a HasManyGetter or a ResourcesGetter).
       is_related_data = attributes[:parent_collection_id] &&
         attributes[:parent_collection_name] &&
