@@ -19,6 +19,51 @@ module ForestLiana
       prepare_query()
     end
 
+    def self.get_ids_from_request(params)
+      attributes = params.dig('data', 'attributes')
+      has_body_attributes = attributes != nil
+      is_select_all_records_query = has_body_attributes && attributes[:all_records] == true
+
+      # NOTICE: If it is not a "select all records" query and it receives a list of ID, return list of ID.
+      return attributes[:ids] if (!is_select_all_records_query && attributes[:ids])
+
+      # NOTICE: If it is a "select all records" we have to perform query to build ID list.
+      ids = Array.new
+
+      # NOTICE: Merging all_records_subset_query into attributes preserves filters in HasManyGetter and ResourcesGetter.
+      attributes = attributes.merge(attributes[:all_records_subset_query].dup.to_unsafe_h)
+
+      # NOTICE: Initialize actual resources getter (could either a HasManyGetter or a ResourcesGetter).
+      is_related_data = attributes[:parent_collection_id] &&
+        attributes[:parent_collection_name] &&
+        attributes[:parent_association_name]
+      if is_related_data
+        parent_collection_name = attributes[:parent_collection_name]
+        parent_model = ForestLiana::SchemaUtils.find_model_from_collection_name(parent_collection_name)
+        model = parent_model.reflect_on_association(attributes[:parent_association_name].try(:to_sym))
+        resources_getter = ForestLiana::HasManyGetter.new(parent_model, model, attributes.merge({
+          collection: parent_collection_name,
+          id: attributes[:parent_collection_id],
+          association_name: attributes[:parent_association_name],
+        }))
+      else
+        collection_name = attributes[:collection_name]
+        model = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
+        resources_getter = ForestLiana::ResourcesGetter.new(model, attributes)
+      end
+
+      # NOTICE: build IDs list.
+      resources_getter.query_for_batch.find_in_batches() do |records|
+        ids += records.map { |record| record.id }
+      end
+
+      # NOTICE: remove excluded IDs.
+      ids_excluded = (attributes[:all_records_ids_excluded]).map { |id_excluded| id_excluded.to_s }
+      return ids.select { |id| !ids_excluded.include? id.to_s } if (ids_excluded && ids_excluded.any?)
+
+      return ids
+    end
+
     def perform
       @records = @records.eager_load(@includes)
     end
