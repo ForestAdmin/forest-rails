@@ -19,7 +19,7 @@ module ForestLiana
     end
 
     def perform
-      @records = @search_query_builder.perform(@records)
+      @records
     end
 
     def count
@@ -64,10 +64,12 @@ module ForestLiana
     end
 
     def prepare_query
-      @records = get_resource()
-        .find(@params[:id])
-        .send(@params[:association_name])
-        .eager_load(@includes)
+      @records = @search_query_builder.perform(
+        get_resource()
+          .find(@params[:id])
+          .send(@params[:association_name])
+          .eager_load(@includes)
+      )
     end
 
     def offset
