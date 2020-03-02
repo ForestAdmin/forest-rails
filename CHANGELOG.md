@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Has Many Relationships - Fix records count, i.e consider filters when counting.
 
 ## RELEASE 4.2.0 - 2020-01-22
 ### Added

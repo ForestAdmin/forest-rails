@@ -23,7 +23,7 @@ module ForestLiana
     end
 
     def count
-      @records_count = @records.count
+      @records_count = @search_query_builder.perform(@records).count
     end
 
     def query_for_batch
