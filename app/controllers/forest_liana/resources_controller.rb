@@ -148,7 +148,7 @@ module ForestLiana
       internal_server_error
     end
 
-    def destroy_many
+    def destroy_bulk
       checker = ForestLiana::PermissionsChecker.new(@resource, 'delete', @rendering_id)
       return head :forbidden unless checker.is_authorized?
 

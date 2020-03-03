@@ -33,7 +33,7 @@ class ForestLiana::Router
           if params[:id]
             action = 'destroy'
           else
-            action = 'destroy_many'
+            action = 'destroy_bulk'
           end
         end
 

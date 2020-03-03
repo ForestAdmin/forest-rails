@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 ### Added
-- Resources getter - Add a get_ids_from_request method to get all models IDs given a query or an ID list.
+- Resources Getter - Add a get_ids_from_request method to get all models IDs given a query or an ID list.
 - Resource Deletion - Users can now bulk delete records.
 
 ### Fixed
