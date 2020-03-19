@@ -30,7 +30,11 @@ class ForestLiana::Router
         when 'POST'
           action = 'create'
         when 'DELETE'
-          action = 'destroy'
+          if params[:id]
+            action = 'destroy'
+          else
+            action = 'destroy_bulk'
+          end
         end
 
         controller.action(action.to_sym).call(env)
