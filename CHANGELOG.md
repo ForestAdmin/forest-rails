@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## RELEASE 5.0.0 - 2020-03-20
+
 ## RELEASE 5.0.0-beta.0 - 2020-03-03
 ### Added
 - Resources Getter - Add a get_ids_from_request method to get all models IDs given a query or an ID list.
