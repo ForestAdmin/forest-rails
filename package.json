@@ -14,7 +14,7 @@
     "url": "git+https://github.com/ForestAdmin/forest-rails.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/ForestAdmin/forest-rails/issues"
   },

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Technical - Fix the license type in the `package.json` file.
 
 ## RELEASE 5.0.0 - 2020-03-20
 
