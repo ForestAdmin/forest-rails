@@ -58,7 +58,7 @@ module ForestLiana
             FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
           end
         else
-          FOREST_LOGGER.error "The .forestadmin-schema.json file does not exists."
+          FOREST_LOGGER.error "The .forestadmin-schema.json file does not exist."
           FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
         end
       end

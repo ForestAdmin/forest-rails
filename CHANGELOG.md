@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Fixed
 - Technical - Fix the license type in the `package.json` file.
+- Wording - Fix a typo in the missing .forestadmin-schema.json file message.
 
 ## RELEASE 5.0.0 - 2020-03-20
 
