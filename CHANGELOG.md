@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Technical - Introduce conventional commits.
+
 ### Fixed
 - Technical - Fix the license type in the `package.json` file.
 - Wording - Fix a typo in the missing .forestadmin-schema.json file message.

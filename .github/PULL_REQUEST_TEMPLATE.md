@@ -1,6 +1,6 @@
 ## Pull Request checklist:
 
-- [ ] Write an explicit title for the Pull Request
+- [ ] Write an explicit title for the Pull Request, following [Conventional Commits specification](https://www.conventionalcommits.org)
 - [ ] Write changes made in the CHANGELOG.md
 - [ ] Create automatic tests
 - [ ] No automatic tests failures
