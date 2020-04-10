@@ -20,8 +20,11 @@
   },
   "homepage": "https://github.com/ForestAdmin/forest-rails#readme",
   "devDependencies": {
+    "@commitlint/cli": "8.3.5",
+    "@commitlint/config-conventional": "8.3.4",
     "@forestadmin/devops": "2.0.0",
     "dotenv": "8.1.0",
+    "husky": "4.2.5",
     "moment": "^2.20.1",
     "semver": "5.3.0",
     "simple-git": "1.78.0"
