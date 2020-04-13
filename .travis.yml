@@ -5,5 +5,6 @@ before_install:
 rvm:
   - 2.3.4
 script:
+  - commitlint-travis
   - RAILS_ENV=test bundle exec rake test
   - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc

@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - Technical - Introduce conventional commits.
+- Technical - Make the CI lint the commit messages.
 
 ### Fixed
 - Technical - Fix the license type in the `package.json` file.
