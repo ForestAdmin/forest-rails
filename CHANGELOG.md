@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - Technical - Introduce conventional commits.
+- Technical - Adapt release script to conventional commits.
 
 ### Fixed
 - Technical - Fix the license type in the `package.json` file.

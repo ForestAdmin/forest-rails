@@ -107,7 +107,7 @@ function build() {
   changes.splice(index, 0, `\n## RELEASE ${version} - ${today}`);
   const newChanges = changes.join('\n');
 
-  const commitMessage = `Release ${version}`;
+  const commitMessage = `chore(release): ${version}`;
   const tag = `v${version}`;
 
   return new Promise((resolve) => {
