@@ -16,11 +16,9 @@ module ForestLiana
     if Rails::VERSION::MAJOR < 4
       before_filter :authenticate_user_from_jwt
       before_filter :set_paper_trail_whodunnit if self.papertrail?
-      before_filter :check_permission_for_smart_route
     else
       before_action :authenticate_user_from_jwt
       before_action :set_paper_trail_whodunnit if self.papertrail?
-      before_action :check_permission_for_smart_route
     end
 
     if self.papertrail?
@@ -111,22 +109,20 @@ module ForestLiana
 
     def check_permission_for_smart_route
       begin
-        if request.post?
-          body = ActiveModelSerializers::Deserialization.jsonapi_parse(params)
-          if body.has_key?(:smart_action_id)
-            checker = ForestLiana::PermissionsChecker.new(
-              find_resource(body[:collection_name]),
-              'actions', @rendering_id,
-              get_smart_action_info_from_request(forest_user, body)
-            )
-            return head :forbidden unless checker.is_authorized?
-          else
-            render serializer: nil, json: { status: 403 }, status: :bad_request
-          end
+        body = ActiveModelSerializers::Deserialization.jsonapi_parse(params)
+        if body.has_key?(:smart_action_id)
+          checker = ForestLiana::PermissionsChecker.new(
+            find_resource(body[:collection_name]),
+            'actions', @rendering_id,
+            get_smart_action_info_from_request(forest_user, body)
+          )
+          return head :forbidden unless checker.is_authorized?
+        else
+          render serializer: nil, json: { status: 400 }, status: :bad_request
         end
       rescue => error
         FOREST_LOGGER.error "Smart Action execution error: #{error}"
-        render serializer: nil, json: { status: 403 }, status: :bad_request
+        render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end
 
@@ -279,8 +275,8 @@ module ForestLiana
 
     def get_smart_action_info_from_request(user, body) 
       {
-        "userId" => user['id'],
-        "actionId" => body[:smart_action_id],
+        "user_id" => user['id'],
+        "action_id" => body[:smart_action_id],
       }
     end
   end
