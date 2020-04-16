@@ -10,7 +10,7 @@ module ForestLiana
 
     def check_permission_for_smart_route
       begin
-        body = ActiveModelSerializers::Deserialization.jsonapi_parse(params)
+        body = params.require(:data).require(:attributes).permit!
         if body.has_key?(:smart_action_id)
           checker = ForestLiana::PermissionsChecker.new(
             find_resource(body[:collection_name]),
