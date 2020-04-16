@@ -30,15 +30,15 @@ module ForestLiana
 
     def smart_action_allowed?(smart_actions_permissions) 
       if !@smart_action_parameters||
-          !@smart_action_parameters['user_id'] ||
-          !@smart_action_parameters['action_id'] ||
+          !@smart_action_parameters[:user_id] ||
+          !@smart_action_parameters[:action_id] ||
           !smart_actions_permissions ||
-          !smart_actions_permissions[@smart_action_parameters['action_id']]
+          !smart_actions_permissions[@smart_action_parameters[:action_id]]
         return false
       end
 
-      @user_id = @smart_action_parameters['user_id']
-      @action_id = @smart_action_parameters['action_id']
+      @user_id = @smart_action_parameters[:user_id]
+      @action_id = @smart_action_parameters[:action_id]
       @smart_action_permissions = smart_actions_permissions[@action_id]
       @allowed = @smart_action_permissions['allowed']
       @users = @smart_action_permissions['users']
