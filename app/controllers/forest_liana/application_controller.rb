@@ -113,11 +113,13 @@ module ForestLiana
         if body.has_key?(:smart_action_id)
           checker = ForestLiana::PermissionsChecker.new(
             find_resource(body[:collection_name]),
-            'actions', @rendering_id,
+            'actions',
+            @rendering_id,
             get_smart_action_info_from_request(forest_user, body)
           )
           return head :forbidden unless checker.is_authorized?
         else
+          FOREST_LOGGER.error "Smart action execution error: Unable to retrieve the smart action id."
           render serializer: nil, json: { status: 400 }, status: :bad_request
         end
       rescue => error
