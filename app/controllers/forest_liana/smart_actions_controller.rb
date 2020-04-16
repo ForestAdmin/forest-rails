@@ -12,7 +12,7 @@ module ForestLiana
       begin
         params[:data][:attributes]
       rescue => error
-        FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
+        FOREST_LOGGER.error "Smart Action execution error: #{error}"
         {}
       end
     end
