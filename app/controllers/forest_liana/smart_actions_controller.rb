@@ -8,10 +8,20 @@ module ForestLiana
 
     private
 
+    def get_body_hash
+      begin
+        params[:data][:attributes]
+      rescue => error
+        FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
+        {}
+      end
+    end
+
     def check_permission_for_smart_route
       begin
-        body = params.require(:data).require(:attributes).permit!
-        if body.has_key?(:smart_action_id)
+        
+        body = get_body_hash
+        if !body.nil? && body.has_key?(:smart_action_id)
           checker = ForestLiana::PermissionsChecker.new(
             find_resource(body[:collection_name]),
             'actions',
