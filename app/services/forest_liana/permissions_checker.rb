@@ -3,10 +3,11 @@ module ForestLiana
     @@permissions_per_rendering = Hash.new
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id)
+    def initialize(resource, permission_name, rendering_id, smart_action_parameters = nil)
       @collection_name = ForestLiana.name_for(resource)
       @permission_name = permission_name
       @rendering_id = rendering_id
+      @smart_action_parameters = smart_action_parameters
     end
 
     def is_authorized?
@@ -27,11 +28,33 @@ module ForestLiana
         @@permissions_per_rendering[@rendering_id]['last_retrieve']
     end
 
+    def smart_action_allowed?(smart_actions_permissions) 
+      if !@smart_action_parameters||
+          !@smart_action_parameters[:user_id] ||
+          !@smart_action_parameters[:action_id] ||
+          !smart_actions_permissions ||
+          !smart_actions_permissions[@smart_action_parameters[:action_id]]
+        return false
+      end
+
+      @user_id = @smart_action_parameters[:user_id]
+      @action_id = @smart_action_parameters[:action_id]
+      @smart_action_permissions = smart_actions_permissions[@action_id]
+      @allowed = @smart_action_permissions['allowed']
+      @users = @smart_action_permissions['users']
+
+      return @allowed && (@users.nil?|| @users.include?(@user_id.to_i));
+    end
+
     def is_allowed?
       permissions = get_permissions
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
-        permissions[@collection_name]['collection'][@permission_name]
+        if @permission_name === 'actions'
+          return smart_action_allowed?(permissions[@collection_name]['actions'])
+        else
+          return permissions[@collection_name]['collection'][@permission_name]
+        end
       else
         false
       end

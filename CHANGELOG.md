@@ -1,6 +1,9 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Smart Action - Allow users to protect their smart-action APIs from unauthorized usage.
+
 ### Changed
 - Technical - Introduce conventional commits.
 - Technical - Adapt release script to conventional commits.
