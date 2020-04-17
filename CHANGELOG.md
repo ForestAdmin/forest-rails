@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 5.1.0 - 2020-04-17
 ### Added
 - Smart Action - Allow users to protect their smart-action APIs from unauthorized usage.
 
