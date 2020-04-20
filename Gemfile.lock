@@ -5,7 +5,7 @@ PATH
       arel-helpers
       base32
       bcrypt
-      groupdate
+      groupdate (= 2.5.2)
       httparty
       ipaddress
       jsonapi-serializers (>= 0.14.0)
@@ -159,7 +159,7 @@ DEPENDENCIES
   bcrypt
   byebug
   forest_liana!
-  groupdate
+  groupdate (= 2.5.2)
   httparty (= 0.13.7)
   ipaddress (= 0.8.3)
   jsonapi-serializers (= 1.0.1)

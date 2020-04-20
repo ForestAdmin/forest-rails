@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Technical - Force `groupdate` version to 2.5.2.
 
 ## RELEASE 5.1.0 - 2020-04-17
 ### Added
