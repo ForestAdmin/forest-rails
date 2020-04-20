@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 5.1.1 - 2020-04-20
 ### Fixed
 - Charts - Ensure that line charts are well displayed in projects having a `groupdate` dependency version 5.X.
 
