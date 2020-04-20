@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "jwt"
   s.add_runtime_dependency "rack-cors"
   s.add_runtime_dependency "arel-helpers"
-  s.add_runtime_dependency "groupdate"
+  s.add_runtime_dependency "groupdate", "2.5.2"
   s.add_runtime_dependency "useragent"
   s.add_runtime_dependency "bcrypt"
   s.add_runtime_dependency "rotp"
