@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Technical - Patch CI configuration warnings.
 
 ## RELEASE 5.1.1 - 2020-04-20
 ### Fixed
