@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - Technical - Patch CI configuration warnings.
+- Readme - Update the community badge.
 
 ## RELEASE 5.1.1 - 2020-04-20
 ### Fixed
