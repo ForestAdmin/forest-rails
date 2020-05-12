@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## RELEASE 5.1.2 - 2020-05-12
 ### Changed
 - Technical - Patch CI configuration warnings.
 - Readme - Update the community badge.
