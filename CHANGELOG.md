@@ -4,6 +4,8 @@
 ### Changed
 - Technical - Patch CI configuration warnings.
 - Readme - Update the community badge.
+- Readme - Fix interface screenshots display.
+- Readme - Update and re-position the "How it works" section.
 
 ## RELEASE 5.1.1 - 2020-04-20
 ### Fixed
