@@ -13,6 +13,10 @@ module ForestLiana
       begin
         if has_strong_parameter
           @record = @resource.create(resource_params)
+        elsif Rails::VERSION::MAJOR >= 5
+          @record = @resource.create(resource_params.to_unsafe_hash)
+        elsif Rails::VERSION::MAJOR == 4
+          @record = @resource.create(resource_params.to_hash)
         else
           @record = @resource.create(resource_params, without_protection: true)
         end
