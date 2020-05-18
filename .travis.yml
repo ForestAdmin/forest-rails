@@ -19,8 +19,8 @@ jobs:
         - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
     - stage: Build & Publish
       if: branch = master AND type != pull_request
-      script: skip
-      deploy: yarn && npx semantic-release
+      script: yarn && npx semantic-release
+      deploy:
         provider: rubygems
         api_key: $RUBYGEMS_TOKEN
         gem: forest_liana
