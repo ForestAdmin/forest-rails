@@ -3,9 +3,33 @@ language: ruby
 before_install:
   - gem install bundler -v '1.17.3'
 
-rvm:
-  - 2.3.4
+rvm: 2.3.4
 
-script:
-  - RAILS_ENV=test bundle exec rake test
-  - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
+stages:
+  - Lint commit messages
+  - Tests
+  - Build & Publish
+
+jobs:
+  include:
+    - stage: Lint commit messages
+      language: node_js
+      node_js: lts/*
+      before_install:
+        - nvm install lts/*
+        - npm install
+      script: commitlint-travis
+    - stage: Tests
+      script:
+        - RAILS_ENV=test bundle exec rake test
+        - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
+    - stage: Build & Publish
+      if: branch = master AND type != pull_request
+      script: yarn && npx semantic-release
+      deploy:
+        provider: rubygems
+        api_key: $RUBYGEMS_TOKEN
+        gem: forest_liana
+        gemspec: forest_liana.gemspec
+        on:
+          condition: [ -f ./.trigger-rubygem-release ]
