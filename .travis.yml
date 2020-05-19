@@ -1,21 +1,26 @@
 language: ruby
 
 before_install:
-  - gem install bundler:1.17.3
-  - nvm install lts/*
-  - npm install
+  - gem install bundler -v '1.17.3'
 
 rvm: 2.3.4
 
 stages:
-  - Lint & Tests
+  - Lint commit messages
+  - Tests
   - Build & Publish
 
 jobs:
   include:
-    - stage: Lint & Tests
+    - stage: Lint commit messages
+      language: node_js
+      node_js: lts/*
+      before_install:
+        - nvm install lts/*
+        - npm install
+      script: commitlint-travis
+    - stage: Tests
       script:
-        - commitlint-travis
         - RAILS_ENV=test bundle exec rake test
         - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
     - stage: Build & Publish
