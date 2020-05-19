@@ -1,10 +1,3 @@
-language: ruby
-
-before_install:
-  - gem install bundler -v '1.17.3'
-
-rvm: 2.3.4
-
 stages:
   - Lint commit messages
   - Tests
@@ -17,15 +10,23 @@ jobs:
       node_js: lts/*
       before_install:
         - nvm install lts/*
-        - npm install
+        - yarn
       script: commitlint-travis
     - stage: Tests
+      language: ruby
+      before_install: gem install bundler -v '1.17.3'
+      rvm: 2.3.4
       script:
         - RAILS_ENV=test bundle exec rake test
         - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
     - stage: Build & Publish
       if: branch = master AND type != pull_request
-      script: yarn && npx semantic-release
+      language: node_js
+      node_js: lts/*
+      before_install:
+        - nvm install lts/*
+        - yarn
+      script: npx semantic-release
       deploy:
         provider: rubygems
         api_key: $RUBYGEMS_TOKEN
