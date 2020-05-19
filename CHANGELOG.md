@@ -1,3 +1,10 @@
+## [5.1.3](https://github.com/ForestAdmin/forest-rails/compare/v5.1.2...v5.1.3) (2020-05-19)
+
+
+### Bug Fixes
+
+* **release:** fix the automatic release using the ci ([037c651](https://github.com/ForestAdmin/forest-rails/commit/037c6516fbdde7127b08d3ab602e06e30f96e5c0))
+
 ## RELEASE 5.1.2 - 2020-05-12
 ### Changed
 - Technical - Patch CI configuration warnings.
