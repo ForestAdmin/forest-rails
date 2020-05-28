@@ -21,10 +21,10 @@ module ForestLiana
       return tagged_scope_filters != nil if @scope_filters['conditions'].length == 1
 
       # NOTICE: If there is more than one condition, do a final validation on the condition filters
-      return tagged_scope_filters != nil
-        && tagged_scope_filters[:aggregator] == @scope_filters['aggregator']
-        && tagged_scope_filters[:conditions]
-        && tagged_scope_filters[:conditions].length == @scope_filters['conditions'].length
+      return tagged_scope_filters != nil &&
+        tagged_scope_filters[:aggregator] == @scope_filters['aggregator'] &&
+        tagged_scope_filters[:conditions] &&
+        tagged_scope_filters[:conditions].length == @scope_filters['conditions'].length
     end
 
     private
@@ -58,19 +58,19 @@ module ForestLiana
 
       # NOTICE: If there is only one condition filter left and it's current aggregator is
       #         an "and", this condition filter is the searched scope
-      if (filtered_conditions.length === 1
-        && filtered_conditions.first.is_a?(Hash)
-        && filtered_conditions.first.include?(:aggregator)
-        && node['aggregator'] == 'and')
+      if (filtered_conditions.length === 1 && 
+        filtered_conditions.first.is_a?(Hash) &&
+        filtered_conditions.first.include?(:aggregator) &&
+        node['aggregator'] == 'and')
         return filtered_conditions.first
       end
 
       # NOTICE: Otherwise, validate if the current node is the scope and return nil
       #         if it's not
-      return (filtered_conditions.length === @scope_filters['conditions'].length
-        && node['aggregator'] == @scope_filters['aggregator'])
-        ? { aggregator: node['aggregator'], conditions: filtered_conditions }
-        : nil
+      return (filtered_conditions.length === @scope_filters['conditions'].length && 
+        node['aggregator'] == @scope_filters['aggregator']) ?
+        { aggregator: node['aggregator'], conditions: filtered_conditions } :
+        nil
     end
 
     def is_scope_condition?(condition)
