@@ -1,8 +1,8 @@
 module ForestLiana
   class ScopeValidator
-    def initialize(scope_permissions, scope_values)
+    def initialize(scope_permissions, users_variable_values)
       @scope_filters = scope_permissions
-      @dynamic_scope_variables = scope_values
+      @users_variable_values = users_variable_values
     end
 
     def is_scope_in_request?(scope_request)
@@ -12,9 +12,19 @@ module ForestLiana
         raise ForestLiana::Errors::HTTP422Error.new('Invalid filters JSON format')
       end
       @computed_scope = compute_condition_filters_from_scope(scope_request[:user_id])
+
+      # NOTICE: Perfom a travel in the request condition filters tree to find the scope
       tagged_scope_filters = validate(filters)
+
+      # NOTICE: Permission system always send an aggregator even if there is only one condition
+      #         In that case, if the condition is valid, then request was not edited
       return tagged_scope_filters != nil if @scope_filters['conditions'].length == 1
-      return tagged_scope_filters != nil && tagged_scope_filters[:aggregator] == @scope_filters['aggregator'] && tagged_scope_filters[:conditions] && tagged_scope_filters[:conditions].length == @scope_filters['conditions'].length
+
+      # NOTICE: If there is more than one condition, do a final validation on the condition filters
+      return tagged_scope_filters != nil
+        && tagged_scope_filters[:aggregator] == @scope_filters['aggregator']
+        && tagged_scope_filters[:conditions]
+        && tagged_scope_filters[:conditions].length == @scope_filters['conditions'].length
     end
 
     private
@@ -22,8 +32,8 @@ module ForestLiana
     def compute_condition_filters_from_scope(user_id)
       computed_condition_filters = @scope_filters.clone
       computed_condition_filters['conditions'].each do |condition|
-        if condition.include?('value') && condition['value'].start_with?('$') && @dynamic_scope_variables.include?(user_id)
-          condition['value'] = @dynamic_scope_variables[user_id][condition['value']]
+        if condition.include?('value') && condition['value'].start_with?('$') && @users_variable_values.include?(user_id)
+          condition['value'] = @users_variable_values[user_id][condition['value']]
         end
       end
       return computed_condition_filters
@@ -36,20 +46,32 @@ module ForestLiana
 
     def search_scope_aggregation(node)
       ensure_valid_aggregation(node)
+
       return is_scope_condition?(node) unless node['aggregator']
+  
+      # NOTICE: Remove conditions that are not from the scope
       filtered_conditions = node['conditions'].map { |condition| 
         search_scope_aggregation(condition)
       }.select { |condition|
         condition
       }
 
-      if (filtered_conditions.length === 1 && filtered_conditions.first.is_a?(Hash) && filtered_conditions.first.include?(:aggregator) && node['aggregator'] == 'and')
+      # NOTICE: If there is only one condition filter left and it's current aggregator is
+      #         an "and", this condition filter is the searched scope
+      if (filtered_conditions.length === 1
+        && filtered_conditions.first.is_a?(Hash)
+        && filtered_conditions.first.include?(:aggregator)
+        && node['aggregator'] == 'and')
         return filtered_conditions.first
       end
 
-      return filtered_conditions.length === @scope_filters['conditions'].length && (node['aggregator'] == @scope_filters['aggregator']) ? { aggregator: node['aggregator'], conditions: filtered_conditions } : nil
+      # NOTICE: Otherwise, validate if the current node is the scope and return nil
+      #         if it's not
+      return (filtered_conditions.length === @scope_filters['conditions'].length
+        && node['aggregator'] == @scope_filters['aggregator'])
+        ? { aggregator: node['aggregator'], conditions: filtered_conditions }
+        : nil
     end
-
 
     def is_scope_condition?(condition)
       ensure_valid_condition(condition)

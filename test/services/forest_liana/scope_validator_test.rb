@@ -1,6 +1,6 @@
 module ForestLiana
   class ScopeValidatorTest < ActiveSupport::TestCase
-    test 'Validate scope when request contains aggregation and is valid' do
+    test 'Request with aggregated condition filters should be allowed if it matches the scope exactly' do
       allowed = ForestLiana::ScopeValidator.new({
           'aggregator' => 'and',
           'conditions' => [
@@ -21,7 +21,7 @@ module ForestLiana
       assert allowed == true
     end
 
-    test 'Validate scope when request contains simple condition and is valid' do
+    test 'Request with simple condition filter should be allowed if it matches the scope exactly' do
       allowed = ForestLiana::ScopeValidator.new({
           'aggregator' => 'and',
           'conditions' => [
@@ -37,7 +37,7 @@ module ForestLiana
       assert allowed == true
     end
 
-    test 'Validate scope when request contains simple condition with filters and is valid' do
+    test 'Request with multiples condition filters should be allowed if it contains the scope ' do
       allowed = ForestLiana::ScopeValidator.new({
           'aggregator' => 'and',
           'conditions' => [
@@ -57,7 +57,7 @@ module ForestLiana
       assert allowed == true
     end
 
-    test 'Validate scope when request contains condition with dynamic values and is valid' do
+    test 'Request with dynamic user values should be allowed if it matches the scope exactly' do
       allowed = ForestLiana::ScopeValidator.new({
           'aggregator' => 'and',
           'conditions' => [
@@ -74,7 +74,7 @@ module ForestLiana
       assert allowed == true
     end
 
-    test 'Validate scope when request contains multiples aggregation with dynamic values and is valid' do
+    test 'Request with multiples aggregation and dynamic values should be allowed if it contains the scope' do
       allowed = ForestLiana::ScopeValidator.new({
         'aggregator' => 'or',
         'conditions' => [
@@ -102,7 +102,7 @@ module ForestLiana
       assert allowed == true
     end
 
-    test 'Validate scope when request contains aggregation and is invalid' do
+    test 'Request that does not match the expect scope should not be allowed' do
       allowed = ForestLiana::ScopeValidator.new({
           'aggregator' => 'and',
           'conditions' => [
@@ -123,7 +123,7 @@ module ForestLiana
       assert allowed == false
     end
 
-    test 'Validate scope when request is missing some conditions' do
+    test 'Request that are missing part of the scope should not be allowed' do
       allowed = ForestLiana::ScopeValidator.new({
           'aggregator' => 'and',
           'conditions' => [
@@ -143,7 +143,7 @@ module ForestLiana
       assert allowed == false
     end
 
-    test 'Validate scope when request contains valid filters but is ignored by top aggregatpr' do
+    test 'Request that does not have a top aggregator being "and" should not be allowed' do
       allowed = ForestLiana::ScopeValidator.new({
         'aggregator' => 'and',
         'conditions' => [
