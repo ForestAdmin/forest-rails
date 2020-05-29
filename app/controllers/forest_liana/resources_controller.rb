@@ -245,6 +245,9 @@ module ForestLiana
       @collection ||= ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
     end
 
+    # NOTICE: Return a formatted object containing the request condition filters and 
+    #         the user id used by the scope validator class to validate if scope is 
+    #         in request
     def get_collection_list_permission_info(user, collection_list_request)
       {
         user_id: user['id'],

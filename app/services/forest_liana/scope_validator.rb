@@ -14,11 +14,11 @@ module ForestLiana
       @computed_scope = compute_condition_filters_from_scope(scope_request[:user_id])
 
       # NOTICE: Perfom a travel in the request condition filters tree to find the scope
-      tagged_scope_filters = validate(filters)
+      tagged_scope_filters = get_scope_found_in_request(filters)
 
       # NOTICE: Permission system always send an aggregator even if there is only one condition
       #         In that case, if the condition is valid, then request was not edited
-      return tagged_scope_filters != nil if @scope_filters['conditions'].length == 1
+      return !tagged_scope_filters.nil? if @scope_filters['conditions'].length == 1
 
       # NOTICE: If there is more than one condition, do a final validation on the condition filters
       return tagged_scope_filters != nil &&
@@ -39,7 +39,7 @@ module ForestLiana
       return computed_condition_filters
     end
 
-    def validate(filters)
+    def get_scope_found_in_request(filters)
       return nil unless filters
       return search_scope_aggregation(filters)
     end
@@ -56,9 +56,9 @@ module ForestLiana
         condition
       }
 
-      # NOTICE: If there is only one condition filter left and it's current aggregator is
+      # NOTICE: If there is only one condition filter left and its current aggregator is
       #         an "and", this condition filter is the searched scope
-      if (filtered_conditions.length === 1 && 
+      if (filtered_conditions.length == 1 && 
         filtered_conditions.first.is_a?(Hash) &&
         filtered_conditions.first.include?(:aggregator) &&
         node['aggregator'] == 'and')
@@ -67,7 +67,7 @@ module ForestLiana
 
       # NOTICE: Otherwise, validate if the current node is the scope and return nil
       #         if it's not
-      return (filtered_conditions.length === @scope_filters['conditions'].length && 
+      return (filtered_conditions.length == @scope_filters['conditions'].length && 
         node['aggregator'] == @scope_filters['aggregator']) ?
         { aggregator: node['aggregator'], conditions: filtered_conditions } :
         nil
