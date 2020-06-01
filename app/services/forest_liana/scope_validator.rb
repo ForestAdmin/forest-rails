@@ -32,7 +32,10 @@ module ForestLiana
     def compute_condition_filters_from_scope(user_id)
       computed_condition_filters = @scope_filters.clone
       computed_condition_filters['conditions'].each do |condition|
-        if condition.include?('value') && condition['value'].start_with?('$') && @users_variable_values.include?(user_id)
+        if condition.include?('value') && 
+          !condition['value'].nil? && 
+          condition['value'].start_with?('$') && 
+          @users_variable_values.include?(user_id)
           condition['value'] = @users_variable_values[user_id][condition['value']]
         end
       end
