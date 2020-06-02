@@ -3,11 +3,12 @@ module ForestLiana
     @@permissions_per_rendering = Hash.new
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, smart_action_parameters = nil)
+    def initialize(resource, permission_name, rendering_id, smart_action_parameters = nil, collection_list_parameters = nil)
       @collection_name = ForestLiana.name_for(resource)
       @permission_name = permission_name
       @rendering_id = rendering_id
       @smart_action_parameters = smart_action_parameters
+      @collection_list_parameters = collection_list_parameters
     end
 
     def is_authorized?
@@ -46,12 +47,23 @@ module ForestLiana
       return @allowed && (@users.nil?|| @users.include?(@user_id.to_i));
     end
 
+    def collection_list_allowed?(scope_permissions)
+      return ForestLiana::ScopeValidator.new(
+        scope_permissions['filter'],
+        scope_permissions['dynamicScopesValues']['users']
+      ).is_scope_in_request?(@collection_list_parameters)
+    end
+
     def is_allowed?
       permissions = get_permissions
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
         if @permission_name === 'actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
+        # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
+        #         dynamic user values definition, or null for collection that does not use scopes
+        elsif @permission_name === 'list' and permissions[@collection_name]['scope']
+          return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
           return permissions[@collection_name]['collection'][@permission_name]
         end

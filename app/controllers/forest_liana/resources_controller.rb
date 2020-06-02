@@ -22,7 +22,13 @@ module ForestLiana
           checker = ForestLiana::PermissionsChecker.new(@resource, 'searchToEdit', @rendering_id)
           return head :forbidden unless checker.is_authorized?
         else
-          checker = ForestLiana::PermissionsChecker.new(@resource, 'list', @rendering_id)
+          checker = ForestLiana::PermissionsChecker.new(
+            @resource,
+            'list',
+            @rendering_id,
+            nil,
+            get_collection_list_permission_info(forest_user, request)
+          )
           return head :forbidden unless checker.is_authorized?
         end
 
@@ -51,7 +57,13 @@ module ForestLiana
 
     def count
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'list', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(
+          @resource,
+          'list',
+          @rendering_id,
+          nil,
+          get_collection_list_permission_info(forest_user, request)
+        )
         return head :forbidden unless checker.is_authorized?
 
         getter = ForestLiana::ResourcesGetter.new(@resource, params)
@@ -231,6 +243,16 @@ module ForestLiana
     def get_collection
       collection_name = ForestLiana.name_for(@resource)
       @collection ||= ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+    end
+
+    # NOTICE: Return a formatted object containing the request condition filters and 
+    #         the user id used by the scope validator class to validate if scope is 
+    #         in request
+    def get_collection_list_permission_info(user, collection_list_request)
+      {
+        user_id: user['id'],
+        filters: collection_list_request[:filters],
+      }
     end
   end
 end
