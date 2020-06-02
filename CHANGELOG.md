@@ -1,3 +1,10 @@
+# [5.2.0](https://github.com/ForestAdmin/forest-rails/compare/v5.1.3...v5.2.0) (2020-06-02)
+
+
+### Features
+
+* **scope:** validate scope context on list/count request ([#361](https://github.com/ForestAdmin/forest-rails/issues/361)) ([df502e1](https://github.com/ForestAdmin/forest-rails/commit/df502e1f164985e86f8145b52a796948d3c483ad))
+
 ## [5.1.3](https://github.com/ForestAdmin/forest-rails/compare/v5.1.2...v5.1.3) (2020-05-19)
 
 
