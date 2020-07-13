@@ -1,3 +1,10 @@
+## [5.2.1](https://github.com/ForestAdmin/forest-rails/compare/v5.2.0...v5.2.1) (2020-07-13)
+
+
+### Bug Fixes
+
+* **vulnerabilities:** bump 2 dependencies of dependencies ([#368](https://github.com/ForestAdmin/forest-rails/issues/368)) ([7e63f70](https://github.com/ForestAdmin/forest-rails/commit/7e63f707266cc016b0ddab123336b1215635816d))
+
 # [5.2.0](https://github.com/ForestAdmin/forest-rails/compare/v5.1.3...v5.2.0) (2020-06-02)
 
 
