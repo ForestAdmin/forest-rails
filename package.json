@@ -28,5 +28,8 @@
     "husky": "4.2.5",
     "semantic-release": "17.0.7",
     "semantic-release-slack-bot": "1.6.2"
+  },
+  "resolutions": {
+    "**/lodash": "4.17.19"
   }
 }
