@@ -1,3 +1,10 @@
+## [5.2.2](https://github.com/ForestAdmin/forest-rails/compare/v5.2.1...v5.2.2) (2020-08-04)
+
+
+### Bug Fixes
+
+* **vulnerability:** patch a potential vulnerability updating lodash dependency ([#372](https://github.com/ForestAdmin/forest-rails/issues/372)) ([5bd2471](https://github.com/ForestAdmin/forest-rails/commit/5bd2471ef1fad8f6325816a5f1c682dbce9eee29))
+
 ## [5.2.1](https://github.com/ForestAdmin/forest-rails/compare/v5.2.0...v5.2.1) (2020-07-13)
 
 
