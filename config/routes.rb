@@ -4,6 +4,10 @@ ForestLiana::Engine.routes.draw do
   # Onboarding
   get '/' => 'apimaps#index'
 
+  # Authentication
+  post '' => 'authentication#start_authentication'
+  get '' => 'authentication#authentication_callback'
+
   # Session
   post 'sessions' => 'sessions#create_with_password'
   post 'sessions-google' => 'sessions#create_with_google'

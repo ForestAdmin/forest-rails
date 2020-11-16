@@ -28,10 +28,11 @@ module ForestLiana
     private
 
     def self.base_headers
-      {
+      base_headers = {
         'Content-Type' => 'application/json',
-        'forest-secret-key' => ForestLiana.env_secret,
       }
+      base_headers['forest-secret-key'] = ForestLiana.env_secret if ForestLiana.const_defined?(:env_secret)
+      return base_headers
     end
 
     def self.forest_api_url

@@ -6,11 +6,10 @@ module ForestLiana
       @auth_data = auth_data
       @two_factor_registration = two_factor_registration
 
-      @route = "/liana/v2/renderings/#{rendering_id}"
-      @route += use_google_authentication ? "/google-authorization" : "/authorization"
+      @route = "/liana/v2/renderings/#{rendering_id}/authorization"
     end
 
-    def perform
+    def authenticate
       begin
         if @use_google_authentication
           headers = { 'forest-token' => @auth_data[:forest_token] }

@@ -45,6 +45,12 @@ module ForestLiana
       end
     end
 
+    class HTTP500Error < ExpectedError
+      def initialize(message = "Internal Server Error")
+        super(500, :internal_server_error, message)
+      end
+    end
+
     class ExceptionHelper
       def self.recursively_print(error, margin: '', is_error: false)
         logger = is_error ?
