@@ -1,6 +1,8 @@
 module ForestLiana
   class PermissionsChecker
-    @@permissions_per_rendering = Hash.new
+    @@permissions_cached = Hash.new
+    @@permissions_last_fetch = nil
+    # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
     def initialize(resource, permission_name, rendering_id, smart_action_parameters = nil, collection_list_parameters = nil)
@@ -11,14 +13,10 @@ module ForestLiana
       @collection_list_parameters = collection_list_parameters
     end
 
-    # def is_authorized?
-    #   (is_permission_expired? || !is_allowed?) ? retrieve_permissions_and_check_allowed : true
-    # end
-
     def is_authorized?
       # User is still authorized if he already was and the permission has not expire
-      # if !is_permission_expired && is_allowed
-      return true unless is_permission_expired? || !is_allowed
+      # if !have_permissions_expired && is_allowed
+      return true unless have_permissions_expired? || !is_allowed
 
       fetch_permissions
       is_allowed
@@ -29,8 +27,18 @@ module ForestLiana
     def fetch_permissions
       p 'FETCHING'
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id)
-      permissions[:last_retrieve] = Time.now
-      @@permissions_per_rendering[@rendering_id] = permissions
+      @@permissions_last_fetch = Time.now
+      @@permissions_cached = permissions
+    end
+
+    def is_allowed
+      permissions = get_permissions
+      p permissions
+      p is_permissions_role_acl_activated
+      return is_allowed_deprecated(permissions) unless is_permissions_role_acl_activated
+
+      p 'NEW FORMAT'
+      # TODO: Handle new format
     end
 
     def is_allowed_deprecated(permissions)
@@ -58,38 +66,8 @@ module ForestLiana
       end
     end
 
-    def is_allowed
-      permissions = get_permissions
-      p permissions
-      p is_permissions_role_acl_activated
-      return is_allowed_deprecated(permissions) unless is_permissions_role_acl_activated
-
-      p 'NEW FORMAT'
-      # TODO: Handle new format
-    end
-
-
-
-
-
-
-
-
-
-
-
-
-
     def get_permissions
-      @@permissions_per_rendering &&
-        @@permissions_per_rendering[@rendering_id] &&
-        @@permissions_per_rendering[@rendering_id]['data']
-    end
-
-    def get_last_retrieve
-      @@permissions_per_rendering &&
-        @@permissions_per_rendering[@rendering_id] &&
-        @@permissions_per_rendering[@rendering_id]['last_retrieve']
+      @@permissions_cached && @@permissions_cached['data']
     end
 
     def smart_action_allowed?(smart_actions_permissions)
@@ -121,25 +99,20 @@ module ForestLiana
       (date1 - date2).to_i
     end
 
-    def is_permission_expired?
-      last_retrieve = get_last_retrieve
+    def have_permissions_expired?
+      return true if @@permissions_last_fetch.nil?
 
-      return true if last_retrieve.nil?
+      p '@@permissions_last_fetch'
+      p @@permissions_last_fetch
 
-      elapsed_seconds = date_difference_in_seconds(Time.now, last_retrieve)
+      elapsed_seconds = date_difference_in_seconds(Time.now, @@permissions_last_fetch)
+      p 'elapsed_seconds'
+      p elapsed_seconds
       elapsed_seconds >= @@expiration_in_seconds
     end
 
-    def retrieve_permissions_and_check_allowed
-      retrieve_permissions
-      is_allowed?
-    end
-
     def is_permissions_role_acl_activated
-      @@permissions_per_rendering &&
-        @@permissions_per_rendering[@rendering_id] &&
-        @@permissions_per_rendering[@rendering_id]['meta'] &&
-        @@permissions_per_rendering[@rendering_id]['meta']['rolesACLActivated']
+      @@permissions_cached && @@permissions_cached['meta'] && @@permissions_cached['meta']['rolesACLActivated']
     end
   end
 end
