@@ -19,7 +19,7 @@ module ForestLiana
 
     def check_permission_for_smart_route
       begin
-        
+
         smart_action_request = get_smart_action_request
         if !smart_action_request.nil? && smart_action_request.has_key?(:smart_action_id)
           checker = ForestLiana::PermissionsChecker.new(
