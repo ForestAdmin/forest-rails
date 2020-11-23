@@ -5,8 +5,8 @@ ForestLiana::Engine.routes.draw do
   get '/' => 'apimaps#index'
 
   # Authentication
-  post '' => 'authentication#start_authentication'
-  get '' => 'authentication#authentication_callback'
+  post 'authentication' => 'authentication#start_authentication'
+  get 'authentication/callback' => 'authentication#authentication_callback'
 
   # Session
   post 'sessions' => 'sessions#create_with_password'

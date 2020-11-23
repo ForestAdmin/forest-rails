@@ -1,69 +1,65 @@
 module ForestLiana
-  class AuthenticationService
+  class Authentication
     def initialize()
-      @oidc_client_manager_service = ForestLiana::oidc_client_manager_service.new()
-      @authorization_finder = ForestLiana::AuthorizationFinder.new()
-      @token_service = ForestLiana::TokenService.new()
+      @oidc_client_manager_service = ForestLiana::OidcClientManager.new()
+      @authorization_getter = ForestLiana::AuthorizationGetter.new()
+      @token_service = ForestLiana::Token.new()
     end
 
-    private
     def _parse_state(state)
       if !state
-        raise ForestLiana::Errors::HTTP400Error.new(INVALID_STATE_MISSING)
+        raise ForestLiana::Errors::HTTP500Error.new('INVALID_STATE_MISSING')
       end
 
-      rendering_id
+      rendering_id = nil
 
       begin
-        parsed_state = JSON.parse(state);
-        rendering_id = parsed_state.rendering_id;
+        parsed_state = JSON.parse(state.gsub("'",'"').gsub('=>',':'))
+        rendering_id = parsed_state["renderingId"].to_s
       rescue
-        raise ForestLiana::Errors::HTTP400Error.new(INVALID_STATE_FORMAT)
+        raise ForestLiana::Errors::HTTP500Error.new('INVALID_STATE_FORMAT')
       end
 
-      if !rendering_id
-        raise ForestLiana::Errors::HTTP400Error.new(INVALID_STATE_RENDERING_ID)
+      if rendering_id.nil?
+        raise ForestLiana::Errors::HTTP500Error.new('INVALID_STATE_RENDERING_ID')
       end
 
-      return rendering_id;
+      return rendering_id
     end
 
     def start_authentication(redirect_url, state)
       client = @oidc_client_manager_service.get_client_for_callback_url(redirect_url);
   
       # TODOIDC
-      authorizationUrl = client.authorizationUrl({
+      authorization_url = client.authorization_uri({
         scope: 'openid email profile',
-        state: JSON.stringify(state),
+        state: state.to_s,
       });
   
-      return { 'authorizationUrl' => authorizationUrl };
+      return { 'authorization_url' => authorization_url };
     
       
     end
 
-    def verify_code_and_generate_token(redirect_url, params, options) 
+    def verify_code_and_generate_token(redirect_url, params) 
       client = @oidc_client_manager_service.get_client_for_callback_url(redirect_url)
-
-      rendering_id = _parse_state(params.state)
+      rendering_id = _parse_state(params['state'])
+      client.authorization_code = params['code']
 
       # TODOIDC
-      token_set = client.callback(
-        redirect_url,
-        params,
-        { state: params.state },
-      );
+      OpenIDConnect.http_config do |config|
+        config.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      access_token_instance = client.access_token! 'none'
 
-      user = @authorization_finder.authenticate(
+      user = @authorization_getter.authenticate(
         rendering_id,
-        options.envSecret,
+        true,
+        { :forest_token => access_token_instance.instance_variable_get(:@access_token) },
         nil,
-        nil,
-        nil,
-        token_set.access_token,
       );
 
-      return @token_service.createToken(user, renderingId, options);
+      return @token_service.create_token(user, rendering_id)
     end
 
   end

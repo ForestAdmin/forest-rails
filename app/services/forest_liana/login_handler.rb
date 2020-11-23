@@ -93,7 +93,7 @@ module ForestLiana
     end
 
     def create_token(user, rendering_id)
-      ForestLiana::TokenService.new().create_token(user, rendering_id)
+      ForestLiana::Token.new().create_token(user, rendering_id)
     end
   end
 end
