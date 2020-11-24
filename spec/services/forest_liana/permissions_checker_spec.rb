@@ -54,6 +54,7 @@ module ForestLiana
           }
         }
       }
+      let(:collection_name) { 'all_rights_collection' }
 
       before do
         allow(ForestLiana).to receive(:name_for).and_return(collection_name)
@@ -65,8 +66,6 @@ module ForestLiana
           let(:checker_instance) { described_class.new(fake_ressource, 'export', default_rendering_id) }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -85,8 +84,6 @@ module ForestLiana
           let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id) }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -114,8 +111,6 @@ module ForestLiana
           }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -134,8 +129,6 @@ module ForestLiana
           let(:checker_instance) { described_class.new(fake_ressource, 'show', default_rendering_id) }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -154,8 +147,6 @@ module ForestLiana
           let(:checker_instance) { described_class.new(fake_ressource, 'create', default_rendering_id) }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -174,8 +165,6 @@ module ForestLiana
           let(:checker_instance) { described_class.new(fake_ressource, 'update', default_rendering_id) }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -194,8 +183,6 @@ module ForestLiana
           let(:checker_instance) { described_class.new(fake_ressource, 'delete', default_rendering_id) }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -222,8 +209,6 @@ module ForestLiana
           }
 
           describe 'when user has the required permission' do
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -239,8 +224,6 @@ module ForestLiana
 
           describe 'when user_id is missing from smart action parameters' do
             let(:smart_action_parameters) { { :action_id => "#{collection_name}-Test" } }
-            let(:collection_name) { 'all_rights_collection' }
-
             it 'user should NOT be authorized' do
               expect(checker_instance.is_authorized?).to be false
             end
@@ -248,7 +231,6 @@ module ForestLiana
 
           describe 'when action_id is missing from smart action parameters' do
             let(:smart_action_parameters) { { :user_id => "1" } }
-            let(:collection_name) { 'all_rights_collection' }
 
             it 'user should NOT be authorized' do
               expect(checker_instance.is_authorized?).to be false
@@ -257,7 +239,6 @@ module ForestLiana
 
           describe 'when the provided action is not part of the permissions' do
             let(:smart_action_parameters) { { :user_id => "1", :action_id => "#{collection_name}-Hide" } }
-            let(:collection_name) { 'all_rights_collection' }
 
             it 'user should NOT be authorized' do
               expect(checker_instance.is_authorized?).to be false
@@ -268,8 +249,6 @@ module ForestLiana
             describe 'when user id is NOT part of the authorized users' do
               let(:smart_action_parameters) { { :user_id => "2", :action_id => "#{collection_name}-TestRestricted" } }
 
-              let(:collection_name) { 'all_rights_collection' }
-
               it 'user should NOT be authorized' do
                 expect(checker_instance.is_authorized?).to be false
               end
@@ -277,7 +256,6 @@ module ForestLiana
 
             describe 'when user id is part of the authorized users' do
               let(:smart_action_parameters) { { :user_id => "1", :action_id => "#{collection_name}-TestRestricted" } }
-              let(:collection_name) { 'all_rights_collection' }
 
               it 'user should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
