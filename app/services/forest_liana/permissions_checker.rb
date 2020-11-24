@@ -25,7 +25,6 @@ module ForestLiana
     private
 
     def fetch_permissions
-      p 'FETCHING'
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id)
       @@permissions_last_fetch = Time.now
       @@permissions_cached = permissions
@@ -33,35 +32,25 @@ module ForestLiana
 
     def is_allowed
       permissions = get_permissions
-      p permissions
-      p is_permissions_role_acl_activated
-      return is_allowed_deprecated(permissions) unless is_permissions_role_acl_activated
+      return is_allowed_acl_disabled(permissions) unless is_permissions_role_acl_activated
 
       p 'NEW FORMAT'
       # TODO: Handle new format
     end
 
-    def is_allowed_deprecated(permissions)
-      p 'OLD FORMAT'
-      p permissions
-      p @collection_name
-      p @permission_name
+    def is_allowed_acl_disabled(permissions)
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
         if @permission_name === 'actions'
-          p 'smart actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
         # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
         #         dynamic user values definition, or null for collection that does not use scopes
         elsif @permission_name === 'list' and permissions[@collection_name]['scope']
-          p 'list with scope'
           return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
-          p 'list without scope'
           return permissions[@collection_name]['collection'][@permission_name]
         end
       else
-        p 'none'
         false
       end
     end
@@ -79,13 +68,13 @@ module ForestLiana
         return false
       end
 
-      @user_id = @smart_action_parameters[:user_id]
-      @action_id = @smart_action_parameters[:action_id]
-      @smart_action_permissions = smart_actions_permissions[@action_id]
-      @allowed = @smart_action_permissions['allowed']
-      @users = @smart_action_permissions['users']
+      user_id = @smart_action_parameters[:user_id]
+      action_id = @smart_action_parameters[:action_id]
+      smart_action_permissions = smart_actions_permissions[action_id]
+      allowed = smart_action_permissions['allowed']
+      users = smart_action_permissions['users']
 
-      return @allowed && (@users.nil?|| @users.include?(@user_id.to_i));
+      return allowed && (users.nil? || users.include?(user_id.to_i));
     end
 
     def collection_list_allowed?(scope_permissions)
@@ -102,12 +91,7 @@ module ForestLiana
     def have_permissions_expired?
       return true if @@permissions_last_fetch.nil?
 
-      p '@@permissions_last_fetch'
-      p @@permissions_last_fetch
-
       elapsed_seconds = date_difference_in_seconds(Time.now, @@permissions_last_fetch)
-      p 'elapsed_seconds'
-      p elapsed_seconds
       elapsed_seconds >= @@expiration_in_seconds
     end
 
