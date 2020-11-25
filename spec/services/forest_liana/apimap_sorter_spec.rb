@@ -75,7 +75,8 @@ module ForestLiana
                 type: 'File',
                 field: 'File'
               }],
-              http_method: nil
+              http_method: nil,
+              hooks: nil,
             }
           }, {
             attributes: {
@@ -95,7 +96,8 @@ module ForestLiana
               download: nil,
               endpoint: nil,
               redirect: nil,
-              'http_method': nil
+              'http_method': nil,
+              hooks: nil,
             }
           }]
         }
@@ -148,8 +150,8 @@ module ForestLiana
         end
 
         it 'should sort the included actions and segments objects attributes values' do
-          expect(apimap_sorted['included'][0]['attributes'].keys).to eq(['name', 'endpoint', 'http_method', 'redirect', 'download'])
-          expect(apimap_sorted['included'][1]['attributes'].keys).to eq(['name', 'http_method', 'fields'])
+          expect(apimap_sorted['included'][0]['attributes'].keys).to eq(['name', 'endpoint', 'http_method', 'redirect', 'download', 'hooks'])
+          expect(apimap_sorted['included'][1]['attributes'].keys).to eq(['name', 'http_method', 'fields', 'hooks'])
           expect(apimap_sorted['included'][2]['attributes'].keys).to eq(['name'])
           expect(apimap_sorted['included'][3]['attributes'].keys).to eq(['name'])
         end
