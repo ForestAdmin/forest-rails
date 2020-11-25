@@ -1,7 +1,6 @@
 module ForestLiana
   class PermissionsChecker
-    @@permissions_cached = Hash.new
-    @@permissions_last_fetch = nil
+    @@permissions_cached_per_rendering = Hash.new
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
@@ -16,6 +15,7 @@ module ForestLiana
     def is_authorized?
       # User is still authorized if he already was and the permission has not expire
       # if !have_permissions_expired && is_allowed
+      p 'is_auth'
       return true unless have_permissions_expired? || !is_allowed
 
       fetch_permissions
@@ -25,9 +25,11 @@ module ForestLiana
     private
 
     def fetch_permissions
+      p 'fetching'
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id)
-      @@permissions_last_fetch = Time.now
-      @@permissions_cached = permissions
+      permissions['last_fetch'] = Time.now
+      p permissions
+      @@permissions_cached_per_rendering[@rendering_id] = permissions
     end
 
     def is_allowed
@@ -56,7 +58,15 @@ module ForestLiana
     end
 
     def get_permissions
-      @@permissions_cached && @@permissions_cached['data']
+      @@permissions_cached_per_rendering &&
+        @@permissions_cached_per_rendering[@rendering_id] &&
+        @@permissions_cached_per_rendering[@rendering_id]['data']
+    end
+
+    def get_last_fetch
+      @@permissions_cached_per_rendering &&
+        @@permissions_cached_per_rendering[@rendering_id] &&
+        @@permissions_cached_per_rendering[@rendering_id]['last_fetch']
     end
 
     def smart_action_allowed?(smart_actions_permissions)
@@ -89,14 +99,24 @@ module ForestLiana
     end
 
     def have_permissions_expired?
-      return true if @@permissions_last_fetch.nil?
+      last_fetch = get_last_fetch
+      return true unless last_fetch
 
-      elapsed_seconds = date_difference_in_seconds(Time.now, @@permissions_last_fetch)
+      elapsed_seconds = date_difference_in_seconds(Time.now, last_fetch)
       elapsed_seconds >= @@expiration_in_seconds
     end
 
     def is_permissions_role_acl_activated
-      @@permissions_cached && @@permissions_cached['meta'] && @@permissions_cached['meta']['rolesACLActivated']
+      @@permissions_cached_per_rendering &&
+      @@permissions_cached_per_rendering[@rendering_id] &&
+      @@permissions_cached_per_rendering[@rendering_id]['meta'] &&
+      @@permissions_cached_per_rendering[@rendering_id]['meta']['rolesACLActivated']
+    end
+
+    # Used only for testing purpose
+    def self.empty_cache
+      @@permissions_cached_per_rendering = Hash.new
+      @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
     end
   end
 end
