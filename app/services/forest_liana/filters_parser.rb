@@ -83,14 +83,12 @@ module ForestLiana
       parsed_value = parse_value(operator, value)
       field_and_operator = "#{parsed_field} #{parsed_operator}"
 
-      if Rails::VERSION::MAJOR >= 5
-        if Rails::VERSION::MINOR >= 2
-          ActiveRecord::Base.sanitize_sql(["#{field_and_operator} ?", parsed_value])
-        else
-          "#{field_and_operator} #{ActiveRecord::Base.connection.quote(parsed_value)}"
-        end
-      else
+      if Rails::VERSION::MAJOR < 5
         "#{field_and_operator} #{ActiveRecord::Base.sanitize(parsed_value)}"
+      elsif Rails::VERSION::MAJOR == 5 && Rails::VERSION::MINOR == 1
+        "#{field_and_operator} #{ActiveRecord::Base.connection.quote(parsed_value)}"
+      else
+        ActiveRecord::Base.sanitize_sql(["#{field_and_operator} ?", parsed_value])
       end
     end
 
