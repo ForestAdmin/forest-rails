@@ -76,8 +76,8 @@ module ForestLiana
           end
 
           it 'should call the API twice' do
-            described_class.new(fake_ressource, 'export', default_rendering_id).is_authorized?
-            described_class.new(fake_ressource, 'export', default_rendering_id).is_authorized?
+            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id).is_authorized?
+            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id).is_authorized?
 
             expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
           end
@@ -85,8 +85,8 @@ module ForestLiana
 
         describe 'before expiration time' do
           it 'should call the API only once' do
-            described_class.new(fake_ressource, 'export', default_rendering_id).is_authorized?
-            described_class.new(fake_ressource, 'export', default_rendering_id).is_authorized?
+            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id).is_authorized?
+            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id).is_authorized?
 
             expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
           end
@@ -128,8 +128,8 @@ module ForestLiana
           api_permissions_rendering_2['data']['custom']['collection']['export'] = false
           api_permissions_rendering_2
         }
-        let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'export', 1).is_authorized? }
-        let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'export', 2).is_authorized? }
+        let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1).is_authorized? }
+        let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2).is_authorized? }
 
         it 'should return 2 different values' do
           expect(authorized_to_export_rendering_1).to eq true
@@ -153,7 +153,7 @@ module ForestLiana
 
       describe 'when permissions does NOT have rolesACLActivated' do
         describe 'export permission' do
-          let(:checker_instance) { described_class.new(fake_ressource, 'export', default_rendering_id) }
+          let(:checker_instance) { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id) }
 
           describe 'when user has the required permission' do
             it 'should be authorized' do
@@ -193,7 +193,7 @@ module ForestLiana
           let(:checker_instance) {
             described_class.new(
               fake_ressource,
-              'list',
+              'browseEnabled',
               default_rendering_id,
               nil,
               collection_list_parameters
@@ -216,7 +216,7 @@ module ForestLiana
         end
 
         describe 'show permission' do
-          let(:checker_instance) { described_class.new(fake_ressource, 'show', default_rendering_id) }
+          let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id) }
 
           describe 'when user has the required permission' do
             it 'should be authorized' do
@@ -234,7 +234,7 @@ module ForestLiana
         end
 
         describe 'create permission' do
-          let(:checker_instance) { described_class.new(fake_ressource, 'create', default_rendering_id) }
+          let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id) }
 
           describe 'when user has the required permission' do
             it 'should be authorized' do
@@ -252,7 +252,7 @@ module ForestLiana
         end
 
         describe 'update permission' do
-          let(:checker_instance) { described_class.new(fake_ressource, 'update', default_rendering_id) }
+          let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id) }
 
           describe 'when user has the required permission' do
             it 'should be authorized' do
@@ -270,7 +270,7 @@ module ForestLiana
         end
 
         describe 'delete permission' do
-          let(:checker_instance) { described_class.new(fake_ressource, 'delete', default_rendering_id) }
+          let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id) }
 
           describe 'when user has the required permission' do
             it 'should be authorized' do
