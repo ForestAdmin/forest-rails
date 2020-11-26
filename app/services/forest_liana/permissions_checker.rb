@@ -39,7 +39,6 @@ module ForestLiana
 
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
-        p 'ICXI'
         if @permission_name === 'actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
         # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and

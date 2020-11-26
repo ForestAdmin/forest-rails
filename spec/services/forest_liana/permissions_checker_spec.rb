@@ -4,6 +4,35 @@ module ForestLiana
       described_class.empty_cache
     end
 
+    let(:schema) {
+      [
+        ForestLiana::Model::Collection.new({
+          name: 'all_rights_collection',
+          fields: [],
+          actions: [
+            ForestLiana::Model::Action.new({
+              name: 'Test',
+              endpoint: 'forest/actions/Test',
+              http_method: 'POST'
+            }), ForestLiana::Model::Action.new({
+              name: 'TestRestricted',
+              endpoint: 'forest/actions/Test-restricted',
+              http_method: 'POST'
+            })
+          ]
+        }), ForestLiana::Model::Collection.new({
+          name: 'no_rights_collection',
+          fields: [],
+          actions: [
+            ForestLiana::Model::Action.new({
+              name: 'Test',
+              endpoint: 'forest/actions/Test',
+              http_method: 'POST'
+            })
+          ]
+        })
+      ]
+    }
     let(:default_api_permissions) {
       {
         "data" => {
@@ -18,11 +47,11 @@ module ForestLiana
               "searchToEdit" => true
             },
             "actions" => {
-              "all_rights_collection-Test" => {
+              "Test" => {
                 "allowed" => true,
                 "users" => nil
               },
-              "all_rights_collection-TestRestricted" => {
+              "TestRestricted" => {
                 "allowed" => true,
                 "users" => [1]
               }
@@ -40,7 +69,7 @@ module ForestLiana
               "searchToEdit" => false
             },
             "actions" => {
-              "no_rights_collection-Test" => {
+              "Test" => {
                 "allowed" => false,
                 "users" => nil
               }
@@ -53,6 +82,10 @@ module ForestLiana
         }
       }
     }
+
+    before do
+      allow(ForestLiana).to receive(:apimap).and_return(schema)
+    end
 
     describe 'handling cache' do
       let(:collection_name) { 'all_rights_collection' }
@@ -288,13 +321,13 @@ module ForestLiana
         end
 
         describe 'actions permission' do
-          let(:smart_action_parameters) { { :user_id => "1", :action_id => "#{collection_name}-Test" } }
+          let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'POST' } }
           let(:checker_instance) {
             described_class.new(
               fake_ressource,
               'actions',
               default_rendering_id,
-              smart_action_parameters
+              smart_action_request_info
             )
           }
 
@@ -312,23 +345,24 @@ module ForestLiana
             end
           end
 
-          describe 'when user_id is missing from smart action parameters' do
-            let(:smart_action_parameters) { { :action_id => "#{collection_name}-Test" } }
-            it 'user should NOT be authorized' do
-              expect(checker_instance.is_authorized?).to be false
-            end
-          end
-
-          describe 'when action_id is missing from smart action parameters' do
-            let(:smart_action_parameters) { { :user_id => "1" } }
+          describe 'when endpoint is missing from smart action parameters' do
+            let(:smart_action_request_info) { { http_method: 'POST' } }
 
             it 'user should NOT be authorized' do
               expect(checker_instance.is_authorized?).to be false
             end
           end
 
-          describe 'when the provided action is not part of the permissions' do
-            let(:smart_action_parameters) { { :user_id => "1", :action_id => "#{collection_name}-Hide" } }
+          describe 'when http_method is missing from smart action parameters' do
+            let(:smart_action_request_info) { { endpoint: 'forest/actions/Test' } }
+
+            it 'user should NOT be authorized' do
+              expect(checker_instance.is_authorized?).to be false
+            end
+          end
+
+          describe 'when the provided endpoint is not part of the schema' do
+            let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'DELETE' } }
 
             it 'user should NOT be authorized' do
               expect(checker_instance.is_authorized?).to be false
@@ -337,7 +371,8 @@ module ForestLiana
 
           describe 'when the action permissions contains a list of user ids' do
             describe 'when user id is NOT part of the authorized users' do
-              let(:smart_action_parameters) { { :user_id => "2", :action_id => "#{collection_name}-TestRestricted" } }
+              # TODO ADAPT
+              let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'POST' } }
 
               it 'user should NOT be authorized' do
                 expect(checker_instance.is_authorized?).to be false
@@ -345,7 +380,8 @@ module ForestLiana
             end
 
             describe 'when user id is part of the authorized users' do
-              let(:smart_action_parameters) { { :user_id => "1", :action_id => "#{collection_name}-TestRestricted" } }
+              # TODO ADAPT
+              let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'POST' } }
 
               it 'user should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
