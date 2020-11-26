@@ -16,17 +16,18 @@ module ForestLiana
     def index
       begin
         if request.format == 'csv'
-          checker = ForestLiana::PermissionsChecker.new(@resource, 'exportEnabled', @rendering_id)
+          checker = ForestLiana::PermissionsChecker.new(@resource, 'exportEnabled', @rendering_id, user_id: forest_user['id'])
           return head :forbidden unless checker.is_authorized?
         elsif params.has_key?(:searchToEdit)
           # TODO: What to do?
-          checker = ForestLiana::PermissionsChecker.new(@resource, 'searchToEdit', @rendering_id)
+          checker = ForestLiana::PermissionsChecker.new(@resource, 'searchToEdit', @rendering_id, user_id: forest_user['id'])
           return head :forbidden unless checker.is_authorized?
         else
           checker = ForestLiana::PermissionsChecker.new(
             @resource,
             'browseEnabled',
             @rendering_id,
+            user_id: forest_user['id'],
             collection_list_parameters: get_collection_list_permission_info(forest_user, request)
           )
           return head :forbidden unless checker.is_authorized?
@@ -61,6 +62,7 @@ module ForestLiana
           @resource,
           'browseEnabled',
           @rendering_id,
+          user_id: forest_user['id'],
           collection_list_parameters: get_collection_list_permission_info(forest_user, request)
         )
         return head :forbidden unless checker.is_authorized?
@@ -88,7 +90,7 @@ module ForestLiana
 
     def show
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'readEnabled', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'readEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
         getter = ForestLiana::ResourceGetter.new(@resource, params)
@@ -103,7 +105,7 @@ module ForestLiana
 
     def create
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'addEnabled', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'addEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
         creator = ForestLiana::ResourceCreator.new(@resource, params)
@@ -126,7 +128,7 @@ module ForestLiana
 
     def update
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'editEnabled', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'editEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
         updater = ForestLiana::ResourceUpdater.new(@resource, params)
@@ -148,7 +150,7 @@ module ForestLiana
     end
 
     def destroy
-      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id)
+      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user_id: forest_user['id'])
       return head :forbidden unless checker.is_authorized?
 
       @resource.destroy(params[:id]) if @resource.exists?(params[:id])
@@ -160,7 +162,7 @@ module ForestLiana
     end
 
     def destroy_bulk
-      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id)
+      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user_id: forest_user['id'])
       return head :forbidden unless checker.is_authorized?
 
       ids = ForestLiana::ResourcesGetter.get_ids_from_request(params)

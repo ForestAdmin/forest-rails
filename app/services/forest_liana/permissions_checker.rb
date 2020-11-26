@@ -4,9 +4,8 @@ module ForestLiana
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, smart_action_request_info: nil, collection_list_parameters: nil)
-      # TODO: pass as param
-      @user_id = 1
+    def initialize(resource, permission_name, rendering_id, user_id:, smart_action_request_info: nil, collection_list_parameters: nil)
+      @user_id = user_id
       @collection_name = ForestLiana.name_for(resource)
       @permission_name = permission_name
       @rendering_id = rendering_id
@@ -17,7 +16,6 @@ module ForestLiana
     def is_authorized?
       # User is still authorized if he already was and the permission has not expire
       # if !have_permissions_expired && is_allowed
-      p 'is_auth'
       return true unless have_permissions_expired? || !is_allowed
 
       fetch_permissions
@@ -27,10 +25,8 @@ module ForestLiana
     private
 
     def fetch_permissions
-      p 'fetching'
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id)
       permissions['last_fetch'] = Time.now
-      p permissions
       @@permissions_cached_per_rendering[@rendering_id] = permissions
     end
 
@@ -45,10 +41,11 @@ module ForestLiana
         #         dynamic user values definition, or null for collection that does not use scopes
         # TODO: Handle scopes
         elsif @permission_name === 'browseEnabled' and permissions[@collection_name]['scope']
+          # TODO: handle this
           return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
           formatted_permission_name = permissions_role_acl_activated? ? @permission_name : get_old_permission_name(@permission_name)
-          return permissions[@collection_name]['collection'][formatted_permission_name]
+          return is_user_allowed(permissions[@collection_name]['collection'][formatted_permission_name])
         end
       else
         false
@@ -101,9 +98,9 @@ module ForestLiana
     end
 
     # TODO: test IRL
-    def is_user_allowed(permission_value, user_id)
+    def is_user_allowed(permission_value)
       return permission_value if permission_value.in? [true, false]
-      permission_value.include?(user_id.to_i)
+      permission_value.include?(@user_id.to_i)
     end
 
     def smart_action_allowed?(smart_actions_permissions)
@@ -112,7 +109,7 @@ module ForestLiana
       return false unless smart_action_permissions
 
       if permissions_role_acl_activated?
-        is_user_allowed(smart_action_permissions['triggerEnabled'], @user_id)
+        is_user_allowed(smart_action_permissions['triggerEnabled'])
       else
         allowed = smart_action_permissions['allowed']
         users = smart_action_permissions['users']
