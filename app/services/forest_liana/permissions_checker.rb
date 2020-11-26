@@ -36,12 +36,7 @@ module ForestLiana
 
     def is_allowed
       permissions = get_permissions
-      return is_allowed_acl_disabled(permissions) unless permissions_role_acl_activated?
 
-      is_allowed_acl_enabled(permissions)
-    end
-
-    def is_allowed_acl_enabled(permissions)
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
         p 'ICXI'
@@ -50,28 +45,11 @@ module ForestLiana
         # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
         #         dynamic user values definition, or null for collection that does not use scopes
         # TODO: Handle scopes
-        elsif @permission_name === 'list' and permissions[@collection_name]['scope']
+        elsif @permission_name === 'browseEnabled' and permissions[@collection_name]['scope']
           return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
-          return permissions[@collection_name]['collection'][@permission_name]
-        end
-      else
-        false
-      end
-    end
-
-    def is_allowed_acl_disabled(permissions)
-      old_permission_name = get_old_permission_name(@permission_name)
-      if permissions && permissions[@collection_name] &&
-        permissions[@collection_name]['collection']
-        if old_permission_name === 'actions'
-          return smart_action_allowed?(permissions[@collection_name]['actions'])
-        # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
-        #         dynamic user values definition, or null for collection that does not use scopes
-        elsif old_permission_name === 'list' and permissions[@collection_name]['scope']
-          return collection_list_allowed?(permissions[@collection_name]['scope'])
-        else
-          return permissions[@collection_name]['collection'][old_permission_name]
+          formatted_permission_name = permissions_role_acl_activated? ? @permission_name : get_old_permission_name(@permission_name)
+          return permissions[@collection_name]['collection'][formatted_permission_name]
         end
       else
         false
