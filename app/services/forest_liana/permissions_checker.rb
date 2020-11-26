@@ -4,11 +4,13 @@ module ForestLiana
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, smart_action_parameters = nil, collection_list_parameters = nil)
+    def initialize(resource, permission_name, rendering_id, smart_action_request_info = nil, collection_list_parameters = nil)
+      # TODO: pass as param
+      @user_id = 1
       @collection_name = ForestLiana.name_for(resource)
       @permission_name = permission_name
       @rendering_id = rendering_id
-      @smart_action_parameters = smart_action_parameters
+      @smart_action_request_info = smart_action_request_info
       @collection_list_parameters = collection_list_parameters
     end
 
@@ -34,16 +36,15 @@ module ForestLiana
 
     def is_allowed
       permissions = get_permissions
-      return is_allowed_acl_disabled(permissions) unless is_permissions_role_acl_activated
+      return is_allowed_acl_disabled(permissions) unless permissions_role_acl_activated?
 
       is_allowed_acl_enabled(permissions)
-      p 'NEW FORMAT'
-      # TODO: Handle new format
     end
 
     def is_allowed_acl_enabled(permissions)
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
+        p 'ICXI'
         if @permission_name === 'actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
         # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
@@ -108,22 +109,39 @@ module ForestLiana
         @@permissions_cached_per_rendering[@rendering_id]['last_fetch']
     end
 
+    def get_smart_action_permissions(smart_actions_permissions)
+      endpoint = @smart_action_request_info[:endpoint]
+      http_method = @smart_action_request_info[:http_method]
+
+      return nil unless endpoint && http_method
+
+      schema_smart_action = ForestLiana::Utils::BetaSchemaUtils.find_action_from_endpoint(@collection_name, endpoint, http_method)
+
+      schema_smart_action &&
+        schema_smart_action.name &&
+        smart_actions_permissions &&
+        smart_actions_permissions[schema_smart_action.name]
+    end
+
+    # TODO: test IRL
+    def is_user_allowed(permission_value, user_id)
+      return permission_value if permission_value.in? [true, false]
+      permission_value.include?(user_id.to_i)
+    end
+
     def smart_action_allowed?(smart_actions_permissions)
-      if !@smart_action_parameters||
-          !@smart_action_parameters[:user_id] ||
-          !@smart_action_parameters[:action_id] ||
-          !smart_actions_permissions ||
-          !smart_actions_permissions[@smart_action_parameters[:action_id]]
-        return false
+      smart_action_permissions = get_smart_action_permissions(smart_actions_permissions)
+
+      return false unless smart_action_permissions
+
+      if permissions_role_acl_activated?
+        is_user_allowed(smart_action_permissions['triggerEnabled'], @user_id)
+      else
+        allowed = smart_action_permissions['allowed']
+        users = smart_action_permissions['users']
+
+        return allowed && (users.nil? || users.include?(@user_id.to_i));
       end
-
-      user_id = @smart_action_parameters[:user_id]
-      action_id = @smart_action_parameters[:action_id]
-      smart_action_permissions = smart_actions_permissions[action_id]
-      allowed = smart_action_permissions['allowed']
-      users = smart_action_permissions['users']
-
-      return allowed && (users.nil? || users.include?(user_id.to_i));
     end
 
     def collection_list_allowed?(scope_permissions)
@@ -145,7 +163,7 @@ module ForestLiana
       elapsed_seconds >= @@expiration_in_seconds
     end
 
-    def is_permissions_role_acl_activated
+    def permissions_role_acl_activated?
       @@permissions_cached_per_rendering &&
       @@permissions_cached_per_rendering[@rendering_id] &&
       @@permissions_cached_per_rendering[@rendering_id]['meta'] &&
