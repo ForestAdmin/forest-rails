@@ -27,8 +27,7 @@ module ForestLiana
             @resource,
             'browseEnabled',
             @rendering_id,
-            nil,
-            get_collection_list_permission_info(forest_user, request)
+            collection_list_parameters: get_collection_list_permission_info(forest_user, request)
           )
           return head :forbidden unless checker.is_authorized?
         end
@@ -62,8 +61,7 @@ module ForestLiana
           @resource,
           'browseEnabled',
           @rendering_id,
-          nil,
-          get_collection_list_permission_info(forest_user, request)
+          collection_list_parameters: get_collection_list_permission_info(forest_user, request)
         )
         return head :forbidden unless checker.is_authorized?
 

@@ -4,7 +4,7 @@ module ForestLiana
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, smart_action_request_info = nil, collection_list_parameters = nil)
+    def initialize(resource, permission_name, rendering_id, smart_action_request_info: nil, collection_list_parameters: nil)
       # TODO: pass as param
       @user_id = 1
       @collection_name = ForestLiana.name_for(resource)

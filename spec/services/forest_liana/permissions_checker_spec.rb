@@ -228,8 +228,7 @@ module ForestLiana
               fake_ressource,
               'browseEnabled',
               default_rendering_id,
-              nil,
-              collection_list_parameters
+              collection_list_parameters: collection_list_parameters
             )
           }
 
@@ -327,7 +326,7 @@ module ForestLiana
               fake_ressource,
               'actions',
               default_rendering_id,
-              smart_action_request_info
+              smart_action_request_info: smart_action_request_info
             )
           }
 
