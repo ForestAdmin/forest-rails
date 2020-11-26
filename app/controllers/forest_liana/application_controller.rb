@@ -97,20 +97,6 @@ module ForestLiana
       end
     end
 
-    def get_smart_action_load_ctx
-      begin
-        {:record => params[:recordIds][0], :fields => []}
-      rescue => error
-        FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
-        {}
-      end
-    end
-
-    def get_smart_action_change_ctx
-      # FIXME
-      params[:data][:attributes].values[0].to_hash.symbolize_keys
-    end
-
     def route_not_found
       head :not_found
     end

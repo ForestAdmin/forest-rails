@@ -66,17 +66,7 @@ class ForestLiana::Model::Action
     @base_url ||= nil
     @type ||= "bulk"
     @download ||= false
-
-    @hooks ||= nil
-
-    # @hooks = {'load' => -> (x){x * 2}, 'change' => {'city' => -> (x){x * 3}}}
-    # @hooks = !@hooks.nil? ? @hooks.symbolize_keys : nil
-    #
-    # unless @hooks.nil?
-    #   load = @hooks.key?(:load) && @hooks[:load].is_a?(Proc)
-    #   change = @hooks.key?(:change) && @hooks[:change].is_a?(Hash) ? @hooks[:change].keys : []
-    #   @hooks = {'load' => load, 'change' => change}
-    # end
+    @hooks = !@hooks.nil? ? @hooks.symbolize_keys : nil
   end
 
   def persisted?
