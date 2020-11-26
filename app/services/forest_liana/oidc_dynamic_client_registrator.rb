@@ -1,11 +1,8 @@
 require 'json'
 require 'json/jwt'
-require 'net/http/status'
 
 module ForestLiana
   class OidcDynamicClientRegistrator
-    STATUS_CODES = Net::HTTP::STATUS_CODES
-
     def self.is_standard_body_error(response)
       result = false
       begin
@@ -39,13 +36,13 @@ module ForestLiana
         end
 
         raise ForestLiana::Errors::HTTP500Error.new({
-          error: format('expected %i %s, got: %i %s', statusCode, STATUS_CODES[statusCode], response.code, STATUS_CODES[response.code]),
+          error: format('expected %i, got: %i', statusCode, response.code),
           }, response);
       end
 
       if (body && !response.body)
         raise ForestLiana::Errors::HTTP500Error.new({
-          error: format('expected %i %s with body but no body was returned', statusCode, STATUS_CODES[statusCode]),
+          error: format('expected %i with body but no body was returned', statusCode),
         }, response);
       end
 

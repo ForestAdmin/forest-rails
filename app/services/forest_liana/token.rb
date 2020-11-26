@@ -1,14 +1,14 @@
-EXPIRATION_IN_DAYS = Time.current + 14.days
+EXPIRATION_IN_SECONDS = 14.days
 
 module ForestLiana
   class Token
 
     def expiration_in_days()
-      return EXPIRATION_IN_DAYS
+      return Time.current + EXPIRATION_IN_SECONDS
     end
 
     def expiration_in_seconds()
-      return EXPIRATION_IN_DAYS.to_i * 24 * 3600
+      return Time.now.to_i + EXPIRATION_IN_SECONDS
     end
 
     def create_token(user, rendering_id)

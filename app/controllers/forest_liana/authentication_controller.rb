@@ -42,9 +42,9 @@ module ForestLiana
           get_callback_url(),
           { 'renderingId' => rendering_id },
         );
-        
+
         redirect_to(result['authorization_url'])
-      rescue => error
+      rescue
         render json: { errors: [{ status: 500, detail: error.message }] },
           status: :internal_server_error, serializer: nil
       end
@@ -69,11 +69,12 @@ module ForestLiana
             secure: true,
             expires: @token_service.expiration_in_days,
             samesite: 'none',
+            path: '/'
           },
         );
 
         response_body = {
-          tokenData: JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })
+          tokenData: JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
         }
 
         # The token is sent decoded, because we don't want to share the whole, signed token

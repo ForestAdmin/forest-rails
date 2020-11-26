@@ -85,7 +85,6 @@ module ForestLiana
         # NOTICE: Set a cookie to ensure secure authentication using export feature.
         # NOTICE: The token is empty at first authentication step if the 2FA option is active.
         if reponse_data[:token]
-          puts reponse_data
           response.set_cookie("forest_session_token", { value: reponse_data[:token], expires: (ForestLiana::Token.new().expiration_in_days) })
         end
 
