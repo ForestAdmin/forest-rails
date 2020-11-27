@@ -45,6 +45,10 @@ module ForestLiana
           return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
           formatted_permission_name = permissions_role_acl_activated? ? @permission_name : get_old_permission_name(@permission_name)
+          # when acl are disabled browseEnabled is replaced by list || searchToEdit permissions
+          if formatted_permission_name == 'browseEnabledAclDisabled'
+            return is_user_allowed(permissions[@collection_name]['collection']['list']) || is_user_allowed(permissions[@collection_name]['collection']['searchToEdit'])
+          end
           return is_user_allowed(permissions[@collection_name]['collection'][formatted_permission_name])
         end
       else
@@ -55,7 +59,7 @@ module ForestLiana
     def get_old_permission_name(permission_name)
       case permission_name
       when 'browseEnabled'
-        'list'
+        'browseEnabledAclDisabled'
       when 'readEnabled'
         'show'
       when 'editEnabled'

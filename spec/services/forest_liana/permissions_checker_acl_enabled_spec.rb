@@ -222,7 +222,7 @@ module ForestLiana
         describe 'with true/false permission values' do
           let(:collection_name) { 'all_rights_collection_boolean' }
 
-          describe 'export permission' do
+          describe 'exportEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -240,25 +240,7 @@ module ForestLiana
             end
           end
 
-          describe 'searchToEdit permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
-
-            describe 'when user has the required permission' do
-              it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
-              end
-            end
-
-            describe 'when user has not the required permission' do
-              let(:collection_name) { 'no_rights_collection_boolean' }
-
-              it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
-              end
-            end
-          end
-
-          describe 'list permission' do
+          describe 'browseEnbled permission' do
             let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
             let(:checker_instance) {
               described_class.new(
@@ -285,7 +267,7 @@ module ForestLiana
             end
           end
 
-          describe 'show permission' do
+          describe 'readEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -303,7 +285,7 @@ module ForestLiana
             end
           end
 
-          describe 'create permission' do
+          describe 'addEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -321,7 +303,7 @@ module ForestLiana
             end
           end
 
-          describe 'update permission' do
+          describe 'editEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -339,7 +321,7 @@ module ForestLiana
             end
           end
 
-          describe 'delete permission' do
+          describe 'deleteEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -430,25 +412,7 @@ module ForestLiana
             end
           end
 
-          describe 'searchToEdit permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
-
-            describe 'when user has the required permission' do
-              it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
-              end
-            end
-
-            describe 'when user has not the required permission' do
-              let(:collection_name) { 'no_rights_collection_user_list' }
-
-              it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
-              end
-            end
-          end
-
-          describe 'list permission' do
+          describe 'browseEnabled permission' do
             let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
             let(:checker_instance) {
               described_class.new(
@@ -475,7 +439,7 @@ module ForestLiana
             end
           end
 
-          describe 'show permission' do
+          describe 'readEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -493,7 +457,7 @@ module ForestLiana
             end
           end
 
-          describe 'create permission' do
+          describe 'addEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -511,7 +475,7 @@ module ForestLiana
             end
           end
 
-          describe 'update permission' do
+          describe 'editEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
@@ -529,7 +493,7 @@ module ForestLiana
             end
           end
 
-          describe 'delete permission' do
+          describe 'deleteEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
 
             describe 'when user has the required permission' do
