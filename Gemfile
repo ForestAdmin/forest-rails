@@ -14,6 +14,7 @@ gemspec
 group :development, :test do
   gem 'byebug'
   gem 'rspec-rails', '3.8.2'
+  gem 'rubocop', '~> 1.4', require: false
 end
 
 group :test do
@@ -22,15 +23,15 @@ group :test do
   gem 'simplecov', require: false
 end
 
-gem 'rails', '6.0.3.4'
-gem 'jsonapi-serializers', '1.0.1'
-gem 'rack-cors'
 gem 'arel-helpers', '2.11.0'
-gem 'groupdate', '2.5.2'
-gem 'useragent'
-gem 'jwt'
-gem 'bcrypt'
 gem 'base32', '0.3.4'
-gem 'rotp', '6.2.0'
+gem 'bcrypt'
+gem 'groupdate', '2.5.2'
 gem 'httparty', '0.18.1'
 gem 'ipaddress', '0.8.3'
+gem 'jsonapi-serializers', '1.0.1'
+gem 'jwt'
+gem 'rack-cors'
+gem 'rails', '6.0.3.4'
+gem 'rotp', '6.2.0'
+gem 'useragent'
