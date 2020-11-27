@@ -1,3 +1,5 @@
+require 'openid_connect'
+
 module ForestLiana
   class OidcClientManager
     def get_client_for_callback_url(callback_url)
