@@ -30,6 +30,9 @@ module ForestLiana
       rescue => exception
         exception
       end
+      nil
+    rescue StandardError => exception
+      exception
     end
 
     def rake?
