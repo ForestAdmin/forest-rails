@@ -97,10 +97,6 @@ module ForestLiana
       end
     end
 
-    def route_not_found
-      head :not_found
-    end
-
     def internal_server_error
       head :internal_server_error
     end

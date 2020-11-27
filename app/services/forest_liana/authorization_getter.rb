@@ -22,8 +22,8 @@ module ForestLiana
         response = ForestLiana::ForestApiRequester
           .get(route, query: query_parameters, headers: headers)
 
-        if response.is_a?(Net::HTTPOK)
-          body = JSON.parse(response.body)
+        if response.code == 200
+          body = JSON.parse(response.body, :symbolize_names => false)
           user = body['data']['attributes']
           user['id'] = body['data']['id']
           user

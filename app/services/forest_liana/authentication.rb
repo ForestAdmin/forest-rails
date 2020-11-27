@@ -8,7 +8,7 @@ module ForestLiana
 
     def _parse_state(state)
       if !state
-        raise ForestLiana::Errors::HTTP500Error.new('INVALID_STATE_MISSING')
+        raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_STATE_MISSING])
       end
 
       rendering_id = nil
@@ -17,20 +17,19 @@ module ForestLiana
         parsed_state = JSON.parse(state.gsub("'",'"').gsub('=>',':'))
         rendering_id = parsed_state["renderingId"].to_s
       rescue
-        raise ForestLiana::Errors::HTTP500Error.new('INVALID_STATE_FORMAT')
+        raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_STATE_FORMAT])
       end
 
       if rendering_id.nil?
-        raise ForestLiana::Errors::HTTP500Error.new('INVALID_STATE_RENDERING_ID')
+        raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_STATE_RENDERING_ID])
       end
 
       return rendering_id
     end
 
     def start_authentication(redirect_url, state)
-      client = @oidc_client_manager_service.get_client_for_callback_url(redirect_url);
-  
-      # TODOIDC
+      client = @oidc_client_manager_service.get_client_for_callback_url(redirect_url)
+
       authorization_url = client.authorization_uri({
         scope: 'openid email profile',
         state: state.to_s,
@@ -43,6 +42,7 @@ module ForestLiana
 
     def verify_code_and_generate_token(redirect_url, params) 
       client = @oidc_client_manager_service.get_client_for_callback_url(redirect_url)
+
       rendering_id = _parse_state(params['state'])
       client.authorization_code = params['code']
 
@@ -57,7 +57,7 @@ module ForestLiana
         true,
         { :forest_token => access_token_instance.instance_variable_get(:@access_token) },
         nil,
-      );
+      )
 
       return @token_service.create_token(user, rendering_id)
     end

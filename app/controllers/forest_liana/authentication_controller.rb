@@ -20,15 +20,14 @@ module ForestLiana
     end
 
     def get_and_check_rendering_id
-      if !params.has_key?(:renderingId)
-        
-        raise ForestLiana::Errors::HTTP500Error.new(MISSING_RENDERING_ID)
+      if !params.has_key?('renderingId')
+        raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:MISSING_RENDERING_ID])
       end
 
       rendering_id = params[:renderingId]
       
       if !(rendering_id.instance_of?(String) || rendering_id.instance_of?(Numeric)) || (rendering_id.instance_of?(Numeric) && rendering_id.nan?)
-        raise ForestLiana::Errors::HTTP500Error.new(INVALID_RENDERING_ID)
+        raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_RENDERING_ID])
       end
 
       return rendering_id.to_i
@@ -44,7 +43,7 @@ module ForestLiana
         );
 
         redirect_to(result['authorization_url'])
-      rescue
+      rescue => error
         render json: { errors: [{ status: 500, detail: error.message }] },
           status: :internal_server_error, serializer: nil
       end

@@ -35,15 +35,15 @@ module ForestLiana
           raise ForestLiana::Errors::HTTP500Error.new(response['body'], response)
         end
 
-        raise ForestLiana::Errors::HTTP500Error.new({
-          error: format('expected %i, got: %i', statusCode, response.code),
-          }, response);
+        raise ForestLiana::Errors::HTTP500Error.new(
+          ForestLiana::MESSAGES[:SERVER_TRANSACTION][:REGISTRATION_FAILED] + response.body
+        )
       end
 
       if (body && !response.body)
-        raise ForestLiana::Errors::HTTP500Error.new({
-          error: format('expected %i with body but no body was returned', statusCode),
-        }, response);
+        raise ForestLiana::Errors::HTTP500Error.new(
+          ForestLiana::MESSAGES[:SERVER_TRANSACTION][:REGISTRATION_FAILED] + response.body
+        )
       end
 
       return response.body;

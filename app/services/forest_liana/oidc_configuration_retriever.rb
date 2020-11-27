@@ -1,5 +1,3 @@
-require 'openid_connect'
-
 module ForestLiana
   class OidcConfigurationRetriever
     DEFAULT_EXPIRATION_IN_SECONDS = 30 * 60
@@ -9,7 +7,7 @@ module ForestLiana
       if response.is_a?(Net::HTTPOK)
         return JSON.parse(response.body)
       else
-        raise ForestLiana::Errors::HTTP500Error.new(API_UNREACHABLE)        
+        raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:OIDC_CONFIGURATION_RETRIEVAL_FAILED])        
       end
     end
 
@@ -31,7 +29,6 @@ module ForestLiana
           raise error
         end
       end
-  
       return @cached_well_known_configuration[:configuration];
     end
   

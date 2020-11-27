@@ -25,7 +25,7 @@ module ForestLiana
         )
 
         return client;
-      rescue
+      rescue => error
         Rails.cache.delete(callback_url)
         raise error
       end

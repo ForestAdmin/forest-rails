@@ -1,5 +1,4 @@
 require 'forest_liana/engine'
-require 'openid_connect'
 
 module Forest
 end
