@@ -24,7 +24,7 @@ module ForestLiana
     end
 
     def get_smart_action_change_ctx(fields)
-      fields = fields.reduce({}) {|p, c| p.update(c[:field] => c)}
+      fields = fields.reduce({}) {|p, c| p.update(c[:field] => c.permit!.to_h)}
       begin
         {:record => params[:recordIds][0], :fields => fields}
       rescue => error
@@ -46,7 +46,10 @@ module ForestLiana
       if result.nil? || !result.is_a?(Hash)
         return render status: 500, json: { error: 'Error in smart action load hook: load hook must return an object' }
       end
-      # TODO: check if same data structure
+      is_same_data_structure = ForestLiana::IsSameDataStructureHelper::Analyser.new(context[:fields], result, 1)
+      unless is_same_data_structure.perform
+        return render status: 500, json: { error: 'Error in smart action load hook: fields must be unchanged (no addition nor deletion allowed)' }
+      end
 
       # Apply result on fields (transform the object back to an array), preserve order.
       fields = action.fields.map { |field| result[field[:field]] }
@@ -68,10 +71,13 @@ module ForestLiana
       if result.nil? || !result.is_a?(Hash)
         return render status: 500, json: { error: 'Error in smart action change hook: load hook must return an object' }
       end
-      # TODO: check if same data structure
+      is_same_data_structure = ForestLiana::IsSameDataStructureHelper::Analyser.new(context[:fields], result, 1)
+      unless is_same_data_structure.perform
+        return render status: 500, json: { error: 'Error in smart action change hook: fields must be unchanged (no addition nor deletion allowed)' }
+      end
 
       # Apply result on fields (transform the object back to an array), preserve order.
-      fields = action.fields.map { |field| result[field[:field]] }
+      fields = action.fields.map {|f| result[f[:field]]}
 
       render serializer: nil, json: { fields: fields}, status: :ok
     end
