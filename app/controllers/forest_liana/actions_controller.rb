@@ -66,10 +66,20 @@ module ForestLiana
 
         handle_result(result, formatted_fields, action)
       end
+<<<<<<< HEAD
     end
 
     def change
       action = get_action(params[:collectionName])
+=======
+      is_same_data_structure = ForestLiana::IsSameDataStructureHelper::Analyser.new(context[:fields], result, 1)
+      unless is_same_data_structure.perform
+        return render status: 500, json: { error: 'Error in smart action change hook: fields must be unchanged (no addition nor deletion allowed)' }
+      end
+
+      # Apply result on fields (transform the object back to an array), preserve order.
+      fields = action.fields.map {|f| result[f[:field]]}
+>>>>>>> chore: add missing check about data structure
 
       if !action
         render status: 500, json: {error: 'Error in smart action change hook: cannot retrieve action from collection'}
