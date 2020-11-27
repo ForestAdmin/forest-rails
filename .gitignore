@@ -40,3 +40,6 @@ build/
 .rvmrc
 
 node_modules/
+
+# IDE
+/.idea/
