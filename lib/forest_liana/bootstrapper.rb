@@ -175,7 +175,6 @@ module ForestLiana
     def setup_forest_liana_meta
       ForestLiana.meta = {
         database_type: database_type,
-        framework_version: Gem.loaded_specs["rails"].version.version,
         liana: 'forest-rails',
         liana_version: ForestLiana::VERSION,
         orm_version: Gem.loaded_specs["activerecord"].version.version
