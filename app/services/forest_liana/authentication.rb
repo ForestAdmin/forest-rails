@@ -33,9 +33,9 @@ module ForestLiana
       authorization_url = client.authorization_uri({
         scope: 'openid email profile',
         state: state.to_s,
-      });
+      })
   
-      return { 'authorization_url' => authorization_url };
+      return { 'authorization_url' => authorization_url }
     
       
     end

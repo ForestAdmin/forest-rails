@@ -29,7 +29,7 @@ module ForestLiana
           raise error
         end
       end
-      return @cached_well_known_configuration[:configuration];
+      return @cached_well_known_configuration[:configuration]
     end
   
     def self.clear_cache()

@@ -23,7 +23,7 @@ module ForestLiana
         {}
       end
 
-      return result;
+      return result
     end
 
     def self.process_response(response, expected = {})
@@ -46,7 +46,7 @@ module ForestLiana
         )
       end
 
-      return response.body;
+      return response.body
     end
 
     def self.authorization_header_value(token, tokenType = 'Bearer')

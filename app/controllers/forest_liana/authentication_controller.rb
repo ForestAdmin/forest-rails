@@ -42,7 +42,7 @@ module ForestLiana
         result = @authentication_service.start_authentication(
           get_callback_url(),
           { 'renderingId' => rendering_id },
-        );
+        )
 
         redirect_to(result['authorization_url'])
       rescue => error
@@ -72,7 +72,7 @@ module ForestLiana
             samesite: 'none',
             path: '/'
           },
-        );
+        )
 
         response_body = {
           tokenData: JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]

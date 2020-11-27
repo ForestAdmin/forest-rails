@@ -52,7 +52,7 @@ class ForestLiana::SchemaSerializer
           @included << format_child_content('segments', segment_id, segment)
         end
       else
-        collection_serialized[:attributes][attribute.to_sym] = value;
+        collection_serialized[:attributes][attribute.to_sym] = value
       end
     end
 
@@ -75,7 +75,7 @@ class ForestLiana::SchemaSerializer
     }
 
     object.each do |attribute, value|
-      child_serialized[:attributes][attribute.to_sym] = value;
+      child_serialized[:attributes][attribute.to_sym] = value
     end
 
     child_serialized

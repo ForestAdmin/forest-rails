@@ -621,7 +621,7 @@ module ForestLiana
     end
 
     def forest_url
-      ENV['FOREST_URL'] || 'https://api.forestadmin.com';
+      ENV['FOREST_URL'] || 'https://api.forestadmin.com'
     end
 
     def database_type

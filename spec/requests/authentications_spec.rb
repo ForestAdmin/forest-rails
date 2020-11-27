@@ -76,7 +76,7 @@ describe "Authentications", type: :request do
         "team" => 1,
       }
 
-      expect(decoded).to include(expected_token_data);
+      expect(decoded).to include(expectedTokenData)
       expect(JSON.parse(response.body, :symbolize_names => true)).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
       expect(response).to have_http_status(200)
     end

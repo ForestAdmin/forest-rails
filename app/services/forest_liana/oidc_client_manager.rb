@@ -26,7 +26,7 @@ module ForestLiana
           token_endpoint: '/oidc/token',
         )
 
-        return client;
+        return client
       rescue => error
         Rails.cache.delete(callback_url)
         raise error
