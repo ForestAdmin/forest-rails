@@ -561,6 +561,25 @@ module ForestLiana
               end
             end
           end
+
+          # searchToEdit permission checker should not be called anymore once rolesAcl activated
+          describe 'searchToEdit permission' do
+            let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
+
+            describe 'when user has all permissions' do
+              it 'should not be authorized' do
+                expect(checker_instance.is_authorized?).to be false
+              end
+            end
+
+            describe 'when user has no permissions' do
+              let(:collection_name) { 'no_rights_collection_user_list' }
+
+              it 'should NOT be authorized' do
+                expect(checker_instance.is_authorized?).to be false
+              end
+            end
+          end
         end
       end
     end

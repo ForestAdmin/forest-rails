@@ -18,6 +18,10 @@ module ForestLiana
         if request.format == 'csv'
           checker = ForestLiana::PermissionsChecker.new(@resource, 'exportEnabled', @rendering_id, user_id: forest_user['id'])
           return head :forbidden unless checker.is_authorized?
+        ## Once rolesACL are activated this parameter should never be passed again
+        elsif params.has_key?(:searchToEdit)
+          checker = ForestLiana::PermissionsChecker.new(@resource, 'searchToEdit', @rendering_id, user_id: forest_user['id'])
+          return head :forbidden unless checker.is_authorized?
         else
           checker = ForestLiana::PermissionsChecker.new(
             @resource,
