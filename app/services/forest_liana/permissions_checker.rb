@@ -1,6 +1,7 @@
 module ForestLiana
   class PermissionsChecker
-    @@permissions_cached_per_rendering = Hash.new
+    @@permissions_cached = Hash.new
+    @@roles_acl_activated = false
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
@@ -26,12 +27,17 @@ module ForestLiana
 
     def fetch_permissions
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id)
+      @@roles_acl_activated = permissions['meta']['rolesACLActivated']
       permissions['last_fetch'] = Time.now
-      @@permissions_cached_per_rendering[@rendering_id] = permissions
+      if @@roles_acl_activated
+        @@permissions_cached = permissions
+      else
+        @@permissions_cached[@rendering_id] = permissions
+      end
     end
 
     def is_allowed
-      permissions = get_permissions
+      permissions = get_permissions_content
 
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
@@ -44,7 +50,7 @@ module ForestLiana
           # TODO: handle this
           return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
-          formatted_permission_name = permissions_role_acl_activated? ? @permission_name : get_old_permission_name(@permission_name)
+          formatted_permission_name = @@roles_acl_activated ? @permission_name : get_old_permission_name(@permission_name)
           return is_user_allowed(permissions[@collection_name]['collection'][formatted_permission_name])
         end
       else
@@ -71,16 +77,19 @@ module ForestLiana
       end
     end
 
+    # When acl disabled permissions are stored and retrieved by rendering
     def get_permissions
-      @@permissions_cached_per_rendering &&
-        @@permissions_cached_per_rendering[@rendering_id] &&
-        @@permissions_cached_per_rendering[@rendering_id]['data']
+      @@roles_acl_activated ? @@permissions_cached : @@permissions_cached[@rendering_id]
+    end
+
+    def get_permissions_content
+      permissions = get_permissions
+      permissions && permissions['data']
     end
 
     def get_last_fetch
-      @@permissions_cached_per_rendering &&
-        @@permissions_cached_per_rendering[@rendering_id] &&
-        @@permissions_cached_per_rendering[@rendering_id]['last_fetch']
+      permissions = get_permissions
+      permissions && permissions['last_fetch']
     end
 
     def get_smart_action_permissions(smart_actions_permissions)
@@ -109,7 +118,7 @@ module ForestLiana
 
       return false unless smart_action_permissions
 
-      if permissions_role_acl_activated?
+      if @@roles_acl_activated
         is_user_allowed(smart_action_permissions['triggerEnabled'])
       else
         allowed = smart_action_permissions['allowed']
@@ -138,16 +147,10 @@ module ForestLiana
       elapsed_seconds >= @@expiration_in_seconds
     end
 
-    def permissions_role_acl_activated?
-      @@permissions_cached_per_rendering &&
-      @@permissions_cached_per_rendering[@rendering_id] &&
-      @@permissions_cached_per_rendering[@rendering_id]['meta'] &&
-      @@permissions_cached_per_rendering[@rendering_id]['meta']['rolesACLActivated']
-    end
-
     # Used only for testing purpose
     def self.empty_cache
-      @@permissions_cached_per_rendering = Hash.new
+      @@permissions_cached = Hash.new
+      @@roles_acl_activated = false
       @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
     end
   end

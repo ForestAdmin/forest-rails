@@ -173,7 +173,7 @@ module ForestLiana
             "data" => {
               "custom" => {
                 "collection" => {
-                  "browseEnabled" => true,
+                  "browseEnabled" => false,
                   "readEnabled" => true,
                   "editEnabled" => true,
                   "addEnabled" => true,
@@ -191,18 +191,43 @@ module ForestLiana
         let(:api_permissions_rendering_2) {
           api_permissions_rendering_2 = api_permissions_rendering_1.deep_dup
           api_permissions_rendering_2['data']['custom']['collection']['exportEnabled'] = false
+          api_permissions_rendering_2['data']['custom']['collection']['browseEnabled'] = true
           api_permissions_rendering_2
         }
-        let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
-        let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
 
-        it 'should return the same value' do
-          expect(authorized_to_export_rendering_1).to eq true
-          expect(authorized_to_export_rendering_2).to eq true
+        describe 'when the first call is authorized' do
+          let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
+          let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
+
+          # Even if the value are different, the permissions are cross rendering thus another call
+          # to the api wont be made until the permission expires
+          it 'should return the same value' do
+            expect(authorized_to_export_rendering_1).to eq true
+            expect(authorized_to_export_rendering_2).to eq true
+          end
+
+          it 'should call the API only once' do
+            authorized_to_export_rendering_1
+            authorized_to_export_rendering_2
+            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
+          end
         end
 
-        it 'should call the API only once' do
-          expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
+        # If not authorized the cached version is not used
+        describe 'when the first call is not authorized' do
+          let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'browseEnabled', 1, user_id: user_id).is_authorized? }
+          let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'browseEnabled', 2, user_id: user_id).is_authorized? }
+
+          it 'should return different value' do
+            expect(authorized_to_export_rendering_1).to eq false
+            expect(authorized_to_export_rendering_2).to eq true
+          end
+
+          it 'should call the API twice' do
+            authorized_to_export_rendering_1
+            authorized_to_export_rendering_2
+            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
+          end
         end
       end
     end
