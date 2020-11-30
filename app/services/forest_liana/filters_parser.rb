@@ -85,6 +85,7 @@ module ForestLiana
 
       if Rails::VERSION::MAJOR < 5
         "#{field_and_operator} #{ActiveRecord::Base.sanitize(parsed_value)}"
+      # NOTICE: sanitize method as been removed in Rails 5.1 and sanitize_sql introduced in Rails 5.2.
       elsif Rails::VERSION::MAJOR == 5 && Rails::VERSION::MINOR == 1
         "#{field_and_operator} #{ActiveRecord::Base.connection.quote(parsed_value)}"
       else
