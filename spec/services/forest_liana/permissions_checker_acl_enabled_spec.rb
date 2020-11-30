@@ -592,7 +592,7 @@ module ForestLiana
             let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
 
             describe 'when user has all permissions' do
-              it 'should not be authorized' do
+              it 'should NOT be authorized' do
                 expect(checker_instance.is_authorized?).to be false
               end
             end

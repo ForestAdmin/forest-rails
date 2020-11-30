@@ -31,6 +31,10 @@ module ForestLiana
               http_method: 'POST'
             })
           ]
+        }), ForestLiana::Model::Collection.new({
+          name: 'custom',
+          fields: [],
+          actions: []
         })
       ]
     }
@@ -205,55 +209,122 @@ module ForestLiana
         end
 
         describe 'browseEnabled permission' do
-          let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
-          let(:checker_instance) {
-            described_class.new(
-              fake_ressource,
-              'browseEnabled',
-              default_rendering_id,
-              user_id: user_id,
-              collection_list_parameters: collection_list_parameters
-            )
+          let(:collection_name) { 'custom' }
+          let(:checker_instance) { described_class.new(fake_ressource, 'browseEnabled', default_rendering_id, user_id: user_id) }
+          let(:default_api_permissions) {
+            {
+              "data" => {
+                "custom" => {
+                  "collection" => collection_permissions,
+                  "actions" => { },
+                  "scope" => nil
+                },
+              },
+              "meta" => {
+                "rolesACLActivated" => false
+              }
+            }
           }
 
-          describe 'when user has the required permission' do
+          describe 'when user has list permission' do
+            let(:collection_permissions) {
+              {
+                "list" => true,
+                "show" => false,
+                "create" => false,
+                "update" => false,
+                "delete" => false,
+                "export" => false,
+                "searchToEdit" => false
+              }
+            }
+
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
           end
 
-          describe 'when user has not the required permission' do
-            let(:collection_name) { 'no_rights_collection' }
+          describe 'when user has searchToEdit permission' do
+            let(:collection_permissions) {
+              {
+                "list" => false,
+                "show" => false,
+                "create" => false,
+                "update" => false,
+                "delete" => false,
+                "export" => false,
+                "searchToEdit" => true
+              }
+            }
 
-            it 'should NOT be authorized' do
-              expect(checker_instance.is_authorized?).to be false
-            end
-          end
-        end
-
-        describe 'searchToEdit permission' do
-          let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
-          let(:checker_instance) {
-            described_class.new(
-              fake_ressource,
-              'searchToEdit',
-              default_rendering_id,
-              user_id: user_id,
-              collection_list_parameters: collection_list_parameters
-            )
-          }
-
-          describe 'when user has the required permission' do
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
           end
 
-          describe 'when user has not the required permission' do
-            let(:collection_name) { 'no_rights_collection' }
+          describe 'when user has not the list nor the searchToEdit permission' do
+            let(:collection_permissions) {
+              {
+                "list" => false,
+                "show" => false,
+                "create" => false,
+                "update" => false,
+                "delete" => false,
+                "export" => false,
+                "searchToEdit" => false
+              }
+            }
 
-            it 'should NOT be authorized' do
+            it 'should be NOT authorized' do
               expect(checker_instance.is_authorized?).to be false
+            end
+          end
+
+          describe 'when providing collection_list_parameters' do
+            let(:collection_permissions) {
+              {
+                "list" => true,
+                "show" => false,
+                "create" => false,
+                "update" => false,
+                "delete" => false,
+                "export" => false,
+                "searchToEdit" => false
+              }
+            }
+            let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
+            let(:checker_instance) {
+              described_class.new(
+                fake_ressource,
+                'browseEnabled',
+                default_rendering_id,
+                user_id: user_id,
+                collection_list_parameters: collection_list_parameters
+              )
+            }
+
+            describe 'when user has the required permission' do
+              it 'should be authorized' do
+                expect(checker_instance.is_authorized?).to be true
+              end
+            end
+
+            describe 'when user has not the required permission' do
+              let(:collection_permissions) {
+                {
+                  "list" => false,
+                  "show" => false,
+                  "create" => false,
+                  "update" => false,
+                  "delete" => false,
+                  "export" => false,
+                  "searchToEdit" => false
+                }
+              }
+
+              it 'should NOT be authorized' do
+                expect(checker_instance.is_authorized?).to be false
+              end
             end
           end
         end
