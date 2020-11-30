@@ -10,13 +10,13 @@ module ForestLiana
       let(:rendering_id) { 34 }
       let(:liana_permissions_url) { 'https://api.forestadmin.com/liana/v3/permissions' }
       let(:liana_permissions_api_call_response) { instance_double(HTTParty::Response) }
-      let(:expected_query_parameters) {
+      let(:expected_request_parameters) {
         {
           :headers => {
             "Content-Type" => "application/json",
             "forest-secret-key" => "env_secret_test"
           },
-          :query => { "renderingId" => rendering_id }
+          :query => expected_query_parameters
         }
       }
 
@@ -31,13 +31,30 @@ module ForestLiana
         let(:liana_permissions_api_call_response_content_body) { '{"test": true}' }
         let(:expected_parsed_result) { { "test" => true } }
 
-        it 'should call the API with correct URL' do
-          described_class.get_permissions_for_rendering(rendering_id)
-          expect(HTTParty).to have_received(:get).with(liana_permissions_url, expected_query_parameters)
+        describe 'when NOT calling for rendering specific only' do
+          let(:expected_query_parameters) { { "renderingId" => rendering_id } }
+
+          it 'should call the API with correct URL' do
+            described_class.get_permissions_for_rendering(rendering_id)
+            expect(HTTParty).to have_received(:get).with(liana_permissions_url, expected_request_parameters)
+          end
+
+          it 'should return the expected JSON body' do
+            expect(described_class.get_permissions_for_rendering(rendering_id)).to eq expected_parsed_result
+          end
         end
 
-        it 'should return the expected JSON body' do
-          expect(described_class.get_permissions_for_rendering(rendering_id)).to eq expected_parsed_result
+        describe 'when calling for rendering specific only' do
+          let(:expected_query_parameters) { { "renderingId" => rendering_id, 'renderingSpecificOnly' => true } }
+
+          it 'should call the API with correct URL and parameters' do
+            described_class.get_permissions_for_rendering(rendering_id, rendering_specific_only: true)
+            expect(HTTParty).to have_received(:get).with(liana_permissions_url, expected_request_parameters)
+          end
+
+          it 'should return the expected JSON body' do
+            expect(described_class.get_permissions_for_rendering(rendering_id, rendering_specific_only: true)).to eq expected_parsed_result
+          end
         end
       end
 
