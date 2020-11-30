@@ -32,8 +32,32 @@ module ForestLiana
       if @@roles_acl_activated
         @@permissions_cached = permissions
       else
+        permissions['data'] = convert_permissions_to_new_format(permissions['data'])
         @@permissions_cached[@rendering_id] = permissions
       end
+    end
+
+
+    def convert_permissions_to_new_format(permissions)
+      permissions.keys.each { |collection_name|
+        permissions[collection_name]['collection'] = convert_collection_permissions_to_new_format(permissions[collection_name]['collection'])
+      }
+      permissions
+    end
+
+    def convert_collection_permissions_to_new_format(collection_permissions)
+      {
+        'browseEnabled' => collection_permissions['list'] || collection_permissions['searchToEdit'],
+        'readEnabled' => collection_permissions['show'],
+        'addEnabled' => collection_permissions['create'],
+        'editEnabled' => collection_permissions['update'],
+        'deleteEnabled' => collection_permissions['delete'],
+        'exportEnabled' => collection_permissions['export'],
+        # TODO?
+        'actions' => collection_permissions['actions'],
+        # TODO?
+        'scope' => collection_permissions['scope']
+      }
     end
 
     def is_allowed
@@ -50,34 +74,10 @@ module ForestLiana
           # TODO: handle this
           return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
-          formatted_permission_name = @@roles_acl_activated ? @permission_name : get_old_permission_name(@permission_name)
-          # when acl are disabled browseEnabled is replaced by list || searchToEdit permissions
-          if formatted_permission_name == 'browseEnabledRolesAclDisabled'
-            return is_user_allowed(permissions[@collection_name]['collection']['list']) || is_user_allowed(permissions[@collection_name]['collection']['searchToEdit'])
-          end
-          return is_user_allowed(permissions[@collection_name]['collection'][formatted_permission_name])
+          return is_user_allowed(permissions[@collection_name]['collection'][@permission_name])
         end
       else
         false
-      end
-    end
-
-    def get_old_permission_name(permission_name)
-      case permission_name
-      when 'browseEnabled'
-        'browseEnabledRolesAclDisabled'
-      when 'readEnabled'
-        'show'
-      when 'editEnabled'
-        'update'
-      when 'addEnabled'
-        'create'
-      when 'deleteEnabled'
-        'delete'
-      when 'exportEnabled'
-        'export'
-      else
-        permission_name
       end
     end
 
