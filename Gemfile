@@ -33,3 +33,4 @@ gem 'base32', '0.3.2'
 gem 'rotp', '3.1'
 gem 'httparty', '0.13.7'
 gem 'ipaddress', '0.8.3'
+gem 'simplecov', require: false, group: :test
