@@ -130,12 +130,12 @@ module ForestLiana
       let(:fake_ressource) { nil }
       let(:default_rendering_id) { 1 }
 
-      describe 'when calling twice the same permissions' do
+      context 'when calling twice the same permissions' do
         before do
           allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(default_api_permissions)
         end
 
-        describe 'after expiration time' do
+        context 'after expiration time' do
           before do
             allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
             # Needed to enforce ENV stub
@@ -150,7 +150,7 @@ module ForestLiana
           end
         end
 
-        describe 'before expiration time' do
+        context 'before expiration time' do
           it 'should call the API only once' do
             described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
             described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
@@ -160,7 +160,7 @@ module ForestLiana
         end
       end
 
-      describe 'with permissions coming from 2 different renderings' do
+      context 'with permissions coming from 2 different renderings' do
         before do
           allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering)
           allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(1).and_return(api_permissions_rendering_1)
@@ -195,7 +195,7 @@ module ForestLiana
           api_permissions_rendering_2
         }
 
-        describe 'when the first call is authorized' do
+        context 'when the first call is authorized' do
           let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
           let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
 
@@ -214,7 +214,7 @@ module ForestLiana
         end
 
         # If not authorized the cached version is not used
-        describe 'when the first call is not authorized' do
+        context 'when the first call is not authorized' do
           let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'browseEnabled', 1, user_id: user_id).is_authorized? }
           let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'browseEnabled', 2, user_id: user_id).is_authorized? }
 
@@ -243,20 +243,20 @@ module ForestLiana
         allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(api_permissions)
       end
 
-      describe 'when permissions have rolesACLActivated' do
-        describe 'with true/false permission values' do
+      context 'when permissions have rolesACLActivated' do
+        context 'with true/false permission values' do
           let(:collection_name) { 'all_rights_collection_boolean' }
 
           describe 'exportEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -277,13 +277,13 @@ module ForestLiana
               )
             }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -295,13 +295,13 @@ module ForestLiana
           describe 'readEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -313,13 +313,13 @@ module ForestLiana
           describe 'addEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -331,13 +331,13 @@ module ForestLiana
           describe 'editEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -349,13 +349,13 @@ module ForestLiana
           describe 'deleteEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -376,13 +376,13 @@ module ForestLiana
               )
             }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
@@ -390,7 +390,7 @@ module ForestLiana
               end
             end
 
-            describe 'when endpoint is missing from smart action parameters' do
+            context 'when endpoint is missing from smart action parameters' do
               let(:smart_action_request_info) { { http_method: 'POST' } }
 
               it 'user should NOT be authorized' do
@@ -398,7 +398,7 @@ module ForestLiana
               end
             end
 
-            describe 'when http_method is missing from smart action parameters' do
+            context 'when http_method is missing from smart action parameters' do
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test' } }
 
               it 'user should NOT be authorized' do
@@ -406,7 +406,7 @@ module ForestLiana
               end
             end
 
-            describe 'when the provided endpoint is not part of the schema' do
+            context 'when the provided endpoint is not part of the schema' do
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'DELETE' } }
 
               it 'user should NOT be authorized' do
@@ -416,19 +416,19 @@ module ForestLiana
           end
         end
 
-        describe 'with userId list permission values' do
+        context 'with userId list permission values' do
           let(:collection_name) { 'all_rights_collection_user_list' }
 
           describe 'exportEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -449,13 +449,13 @@ module ForestLiana
               )
             }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -467,13 +467,13 @@ module ForestLiana
           describe 'readEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -485,13 +485,13 @@ module ForestLiana
           describe 'addEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -503,13 +503,13 @@ module ForestLiana
           describe 'editEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -521,13 +521,13 @@ module ForestLiana
           describe 'deleteEnabled permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -548,13 +548,13 @@ module ForestLiana
               )
             }
 
-            describe 'when user has the required permission' do
+            context 'when user has the required permission' do
               it 'should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
             end
 
-            describe 'when user has not the required permission' do
+            context 'when user has not the required permission' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
@@ -562,7 +562,7 @@ module ForestLiana
               end
             end
 
-            describe 'when endpoint is missing from smart action parameters' do
+            context 'when endpoint is missing from smart action parameters' do
               let(:smart_action_request_info) { { http_method: 'POST' } }
 
               it 'user should NOT be authorized' do
@@ -570,7 +570,7 @@ module ForestLiana
               end
             end
 
-            describe 'when http_method is missing from smart action parameters' do
+            context 'when http_method is missing from smart action parameters' do
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test' } }
 
               it 'user should NOT be authorized' do
@@ -578,7 +578,7 @@ module ForestLiana
               end
             end
 
-            describe 'when the provided endpoint is not part of the schema' do
+            context 'when the provided endpoint is not part of the schema' do
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'DELETE' } }
 
               it 'user should NOT be authorized' do
@@ -591,13 +591,13 @@ module ForestLiana
           describe 'searchToEdit permission' do
             let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
 
-            describe 'when user has all permissions' do
+            context 'when user has all permissions' do
               it 'should NOT be authorized' do
                 expect(checker_instance.is_authorized?).to be false
               end
             end
 
-            describe 'when user has no permissions' do
+            context 'when user has no permissions' do
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
