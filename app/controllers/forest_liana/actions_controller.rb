@@ -18,15 +18,22 @@ module ForestLiana
         nil
       end
     end
+    
+    def get_record
+      model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
+      redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]})
+      redord_getter.perform
+      redord_getter.record
+    end
 
     def get_smart_action_load_ctx(fields)
       fields = fields.reduce({}) {|p, c| p.update(c[:field] => c.merge!(value: nil))}
-      {:record => params[:recordIds][0], :fields => fields}
+      {:record => get_record, :fields => fields}
     end
 
     def get_smart_action_change_ctx(fields)
       fields = fields.reduce({}) {|p, c| p.update(c[:field] => c.permit!.to_h)}
-      {:record => params[:recordIds][0], :fields => fields}
+      {:record => get_record, :fields => fields}
     end
 
     def handle_result(result, formatted_fields, action)
