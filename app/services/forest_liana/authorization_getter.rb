@@ -1,8 +1,5 @@
 module ForestLiana
   class AuthorizationGetter
-    def initialize
-    end
-
     def authenticate(rendering_id, use_google_authentication, auth_data, two_factor_registration)
       begin
         route = "/liana/v2/renderings/#{rendering_id.to_s}/authorization"

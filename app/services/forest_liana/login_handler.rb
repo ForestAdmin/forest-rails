@@ -19,12 +19,12 @@ module ForestLiana
     end
 
     def perform
-      user = ForestLiana::AuthorizationGetter.new(
+      user = ForestLiana::AuthorizationGetter.new().authenticate(
         @rendering_id,
         @use_google_authentication,
         @auth_data,
         @two_factor_registration
-      ).authenticate
+      )
 
       if user['two_factor_authentication_enabled']
         if !@two_factor_token.nil?

@@ -53,8 +53,8 @@ module ForestLiana
       return "#{tokenType} #{token}"
     end
 
-    def self.register(metadata, options = {})
-      initial_access_token = options['initial_access_token']
+    def self.register(metadata)
+      initial_access_token = ForestLiana.env_secret
 
       response = ForestLiana::ForestApiRequester.post(
         metadata[:registration_endpoint],

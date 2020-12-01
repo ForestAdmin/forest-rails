@@ -45,15 +45,13 @@ RSpec.describe "Authentications", type: :request do
   end
 
   describe "GET /authentication/callback" do
-
     before() do 
-      performResponse = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3]}}}'
-
+      response = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3]}}}'
       allow(ForestLiana::ForestApiRequester).to receive(:get).with(
         "/liana/v2/renderings/42/authorization", { :headers => { "forest-token" => "THE-ACCESS-TOKEN" }, :query=> {} }
-        ).and_return(
-          instance_double(HTTParty::Response, :body => performResponse, :code => 200)
-        )
+      ).and_return(
+        instance_double(HTTParty::Response, :body => response, :code => 200)
+      )
 
       get ForestLiana::Engine.routes.url_helpers.authentication_callback_path + "?code=THE-CODE&state=#{URI.escape('{"renderingId":42}', Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))}"
     end
@@ -63,7 +61,6 @@ RSpec.describe "Authentications", type: :request do
     end
 
     it "should return a valid authentication token" do
-
       sessionCookie = response.headers['set-cookie']
       expect(sessionCookie).to match(/^forest_session_token=[^;]+; path=\/; expires=[^;]+; secure; HttpOnly$/)
 
