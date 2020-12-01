@@ -20,6 +20,7 @@ group :test do
   gem 'rake'
   gem 'sqlite3', '1.3.13'
   gem 'simplecov', require: false
+  gem 'codecov', require: false
 end
 
 gem 'rails', '4.2.7.1'
