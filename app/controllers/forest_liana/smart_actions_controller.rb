@@ -26,7 +26,7 @@ module ForestLiana
             find_resource(smart_action_request[:collection_name]),
             'actions',
             @rendering_id,
-            user_id: user['id'],
+            user_id: forest_user['id'],
             smart_action_request_info: get_smart_action_request_info
           )
           return head :forbidden unless checker.is_authorized?

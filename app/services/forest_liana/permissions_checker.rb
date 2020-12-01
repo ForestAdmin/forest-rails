@@ -32,32 +32,9 @@ module ForestLiana
       if @@roles_acl_activated
         @@permissions_cached = permissions
       else
-        permissions['data'] = convert_permissions_to_new_format(permissions['data'])
+        permissions['data'] = ForestLiana::PermissionsFormatter.convert_to_new_format(permissions['data'])
         @@permissions_cached[@rendering_id] = permissions
       end
-    end
-
-
-    def convert_permissions_to_new_format(permissions)
-      permissions.keys.each { |collection_name|
-        permissions[collection_name]['collection'] = convert_collection_permissions_to_new_format(permissions[collection_name]['collection'])
-      }
-      permissions
-    end
-
-    def convert_collection_permissions_to_new_format(collection_permissions)
-      {
-        'browseEnabled' => collection_permissions['list'] || collection_permissions['searchToEdit'],
-        'readEnabled' => collection_permissions['show'],
-        'addEnabled' => collection_permissions['create'],
-        'editEnabled' => collection_permissions['update'],
-        'deleteEnabled' => collection_permissions['delete'],
-        'exportEnabled' => collection_permissions['export'],
-        # TODO?
-        'actions' => collection_permissions['actions'],
-        # TODO?
-        'scope' => collection_permissions['scope']
-      }
     end
 
     def is_allowed
@@ -122,14 +99,7 @@ module ForestLiana
 
       return false unless smart_action_permissions
 
-      if @@roles_acl_activated
-        is_user_allowed(smart_action_permissions['triggerEnabled'])
-      else
-        allowed = smart_action_permissions['allowed']
-        users = smart_action_permissions['users']
-
-        return allowed && (users.nil? || users.include?(@user_id.to_i));
-      end
+      is_user_allowed(smart_action_permissions['triggerEnabled'])
     end
 
     def collection_list_allowed?(scope_permissions)
