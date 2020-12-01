@@ -19,6 +19,7 @@ end
 group :test do
   gem 'rake'
   gem 'sqlite3', '1.3.13'
+  gem 'simplecov', require: false
 end
 
 gem 'rails', '4.2.7.1'
@@ -33,4 +34,3 @@ gem 'base32', '0.3.2'
 gem 'rotp', '3.1'
 gem 'httparty', '0.13.7'
 gem 'ipaddress', '0.8.3'
-gem 'simplecov', require: false, group: :test
