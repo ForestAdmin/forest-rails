@@ -4,6 +4,11 @@ describe 'Requesting Actions routes', :type => :request  do
   before(:each) do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
+    Island.create(name: 'Corsica')
+  end
+
+  after(:each) do
+    Island.destroy_all
   end
 
   describe 'call /values' do
