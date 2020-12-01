@@ -7,6 +7,7 @@ ForestLiana::Engine.routes.draw do
   # Authentication
   post 'authentication' => 'authentication#start_authentication'
   get 'authentication/callback' => 'authentication#authentication_callback'
+  post 'authentication/logout' => 'authentication#logout'
 
   # Session
   post 'sessions' => 'sessions#create_with_password'

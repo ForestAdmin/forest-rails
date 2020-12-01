@@ -35,13 +35,13 @@ RSpec.describe "Authentications", type: :request do
     end
 
     it "should return a valid authentication token" do
-      responseBody = JSON.parse(response.body, :symbolize_names => true)
-      expect(responseBody).to have_key(:token)
+      response_body = JSON.parse(response.body, :symbolize_names => true)
+      expect(response_body).to have_key(:token)
 
-      token = responseBody[:token]
+      token = response_body[:token]
       decoded = JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
 
-      expectedTokenData = {
+      expected_token_data = {
         "id" => '654',
         "email" => 'user@email.com',
         "first_name" => 'FirstName',
@@ -49,7 +49,7 @@ RSpec.describe "Authentications", type: :request do
         "rendering_id" => "42",
         "team" => 'Operations'
       }
-      expect(decoded).to include(expectedTokenData);
+      expect(decoded).to include(expected_token_data);
     end
   end
 end

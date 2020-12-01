@@ -2,6 +2,7 @@ EXPIRATION_IN_SECONDS = 14.days
 
 module ForestLiana
   class Token
+    REGEX_COOKIE_SESSION_TOKEN = /forest_session_token=([^;]*)/;
 
     def expiration_in_days()
       return Time.current + EXPIRATION_IN_SECONDS

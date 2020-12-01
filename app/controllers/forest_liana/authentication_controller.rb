@@ -5,9 +5,11 @@ module ForestLiana
   class AuthenticationController < ForestLiana::BaseController
     START_AUTHENTICATION_ROUTE = 'authentication'
     CALLBACK_AUTHENTICATION_ROUTE = 'authentication/callback'
+    LOGOUT_ROUTE = 'authentication/logout';
     PUBLIC_ROUTES = [
       "/#{START_AUTHENTICATION_ROUTE}",
       "/#{CALLBACK_AUTHENTICATION_ROUTE}",
+      "/#{LOGOUT_ROUTE}",
     ]
 
     def initialize
@@ -87,6 +89,20 @@ module ForestLiana
         render json: { errors: [{ status: 500, detail: error.message }] },
           status: :internal_server_error, serializer: nil
       end
+    end
+
+    def logout
+      if cookies.has_key?(:forest_session_token)
+        forest_session_token = cookies[:forest_session_token]
+        
+        if forest_session_token
+          forest_session_token = JSON.parse(forest_session_token.gsub(':','"').gsub('=>','":'), :symbolize_names => true)
+          forest_session_token[:expires] = Time.at(0)
+          response.set_cookie("forest_session_token", forest_session_token)
+        end
+      end
+
+      render json: {}, status: 204
     end
 
   end
