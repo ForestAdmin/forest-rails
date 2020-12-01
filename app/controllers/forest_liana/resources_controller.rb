@@ -16,18 +16,15 @@ module ForestLiana
     def index
       begin
         if request.format == 'csv'
-          checker = ForestLiana::PermissionsChecker.new(@resource, 'export', @rendering_id)
-          return head :forbidden unless checker.is_authorized?
-        elsif params.has_key?(:searchToEdit)
-          checker = ForestLiana::PermissionsChecker.new(@resource, 'searchToEdit', @rendering_id)
+          checker = ForestLiana::PermissionsChecker.new(@resource, 'exportEnabled', @rendering_id, user_id: forest_user['id'])
           return head :forbidden unless checker.is_authorized?
         else
           checker = ForestLiana::PermissionsChecker.new(
             @resource,
-            'list',
+            'browseEnabled',
             @rendering_id,
-            nil,
-            get_collection_list_permission_info(forest_user, request)
+            user_id: forest_user['id'],
+            collection_list_parameters: get_collection_list_permission_info(forest_user, request)
           )
           return head :forbidden unless checker.is_authorized?
         end
@@ -59,10 +56,10 @@ module ForestLiana
       begin
         checker = ForestLiana::PermissionsChecker.new(
           @resource,
-          'list',
+          'browseEnabled',
           @rendering_id,
-          nil,
-          get_collection_list_permission_info(forest_user, request)
+          user_id: forest_user['id'],
+          collection_list_parameters: get_collection_list_permission_info(forest_user, request)
         )
         return head :forbidden unless checker.is_authorized?
 
@@ -89,7 +86,7 @@ module ForestLiana
 
     def show
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'show', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'readEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
         getter = ForestLiana::ResourceGetter.new(@resource, params)
@@ -104,7 +101,7 @@ module ForestLiana
 
     def create
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'create', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'addEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
         creator = ForestLiana::ResourceCreator.new(@resource, params)
@@ -127,7 +124,7 @@ module ForestLiana
 
     def update
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'update', @rendering_id)
+        checker = ForestLiana::PermissionsChecker.new(@resource, 'editEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
         updater = ForestLiana::ResourceUpdater.new(@resource, params)
@@ -149,7 +146,7 @@ module ForestLiana
     end
 
     def destroy
-      checker = ForestLiana::PermissionsChecker.new(@resource, 'delete', @rendering_id)
+      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user_id: forest_user['id'])
       return head :forbidden unless checker.is_authorized?
 
       @resource.destroy(params[:id]) if @resource.exists?(params[:id])
@@ -161,7 +158,7 @@ module ForestLiana
     end
 
     def destroy_bulk
-      checker = ForestLiana::PermissionsChecker.new(@resource, 'delete', @rendering_id)
+      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user_id: forest_user['id'])
       return head :forbidden unless checker.is_authorized?
 
       ids = ForestLiana::ResourcesGetter.get_ids_from_request(params)
@@ -245,8 +242,8 @@ module ForestLiana
       @collection ||= ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
     end
 
-    # NOTICE: Return a formatted object containing the request condition filters and 
-    #         the user id used by the scope validator class to validate if scope is 
+    # NOTICE: Return a formatted object containing the request condition filters and
+    #         the user id used by the scope validator class to validate if scope is
     #         in request
     def get_collection_list_permission_info(user, collection_list_request)
       {
