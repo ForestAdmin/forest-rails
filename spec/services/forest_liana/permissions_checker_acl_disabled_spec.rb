@@ -19,6 +19,8 @@ module ForestLiana
               name: 'TestRestricted',
               endpoint: 'forest/actions/TestRestricted',
               http_method: 'POST'
+            }), ForestLiana::Model::Action.new({
+              name: 'Test Default Values',
             })
           ]
         }), ForestLiana::Model::Collection.new({
@@ -59,7 +61,11 @@ module ForestLiana
               "TestRestricted" => {
                 "allowed" => true,
                 "users" => [1]
-              }
+              },
+              "Test Default Values" => {
+                "allowed" => true,
+                "users" => nil
+              },
             },
             "scope" => nil
           },
@@ -414,6 +420,7 @@ module ForestLiana
           }
 
           describe 'when user has the required permission' do
+
             it 'should be authorized' do
               expect(checker_instance.is_authorized?).to be true
             end
@@ -467,6 +474,14 @@ module ForestLiana
               it 'user should be authorized' do
                 expect(checker_instance.is_authorized?).to be true
               end
+            end
+          end
+
+          describe 'when the action has been created with default http endpoint and method in the schema' do
+            let(:smart_action_request_info) { { endpoint: 'forest/actions/test-default-values', http_method: 'POST' } }
+
+            it 'user should be authorized' do
+              expect(checker_instance.is_authorized?).to be true
             end
           end
         end
