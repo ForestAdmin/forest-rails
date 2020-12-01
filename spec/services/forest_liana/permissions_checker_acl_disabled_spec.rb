@@ -146,12 +146,6 @@ module ForestLiana
       end
 
       context 'with permissions coming from 2 different renderings' do
-        before do
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering)
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(1).and_return(api_permissions_rendering_1)
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(2).and_return(api_permissions_rendering_2)
-        end
-
         let(:collection_name) { 'custom' }
         let(:api_permissions_rendering_1) {
           {
@@ -182,6 +176,12 @@ module ForestLiana
         }
         let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
         let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
+
+        before do
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering)
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(1).and_return(api_permissions_rendering_1)
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(2).and_return(api_permissions_rendering_2)
+        end
 
         it 'should return 2 different values' do
           expect(authorized_to_export_rendering_1).to eq true
