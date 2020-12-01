@@ -16,6 +16,10 @@ module ForestLiana
               endpoint: 'forest/actions/Test',
               http_method: 'POST'
             }), ForestLiana::Model::Action.new({
+              name: 'TestPut',
+              endpoint: 'forest/actions/Test',
+              http_method: 'PUT'
+            }), ForestLiana::Model::Action.new({
               name: 'TestRestricted',
               endpoint: 'forest/actions/TestRestricted',
               http_method: 'POST'
@@ -56,6 +60,10 @@ module ForestLiana
             "actions" => {
               "Test" => {
                 "allowed" => true,
+                "users" => nil
+              },
+              "TestPut" => {
+                "allowed" => false,
                 "users" => nil
               },
               "TestRestricted" => {
@@ -482,6 +490,14 @@ module ForestLiana
 
             it 'user should be authorized' do
               expect(checker_instance.is_authorized?).to be true
+            end
+          end
+
+          describe 'when the action has the same enpoint as an other' do
+            let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'PUT' } }
+
+            it 'user should NOT be authorized' do
+              expect(checker_instance.is_authorized?).to be false
             end
           end
         end
