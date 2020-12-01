@@ -248,11 +248,11 @@ module ForestLiana
           let(:collection_name) { 'all_rights_collection_boolean' }
 
           describe 'exportEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -260,14 +260,14 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'browseEnbled permission' do
             let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
-            let(:checker_instance) {
+            subject {
               described_class.new(
                 fake_ressource,
                 'browseEnabled',
@@ -279,7 +279,7 @@ module ForestLiana
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -287,17 +287,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'readEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -305,17 +305,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'addEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -323,17 +323,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'editEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -341,17 +341,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'deleteEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -359,14 +359,14 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'actions permission' do
             let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'POST' } }
-            let(:checker_instance) {
+            subject {
               described_class.new(
                 fake_ressource,
                 'actions',
@@ -378,7 +378,7 @@ module ForestLiana
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -386,7 +386,7 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_boolean' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -394,7 +394,7 @@ module ForestLiana
               let(:smart_action_request_info) { { http_method: 'POST' } }
 
               it 'user should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -402,7 +402,7 @@ module ForestLiana
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test' } }
 
               it 'user should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -410,7 +410,7 @@ module ForestLiana
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'DELETE' } }
 
               it 'user should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
@@ -420,11 +420,11 @@ module ForestLiana
           let(:collection_name) { 'all_rights_collection_user_list' }
 
           describe 'exportEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -432,14 +432,14 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'browseEnabled permission' do
             let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
-            let(:checker_instance) {
+            subject {
               described_class.new(
                 fake_ressource,
                 'browseEnabled',
@@ -451,7 +451,7 @@ module ForestLiana
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -459,17 +459,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'readEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -477,17 +477,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'addEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -495,17 +495,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'editEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -513,17 +513,17 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'deleteEnabled permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -531,14 +531,14 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           describe 'actions permission' do
             let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'POST' } }
-            let(:checker_instance) {
+            subject {
               described_class.new(
                 fake_ressource,
                 'actions',
@@ -550,7 +550,7 @@ module ForestLiana
 
             context 'when user has the required permission' do
               it 'should be authorized' do
-                expect(checker_instance.is_authorized?).to be true
+                expect(subject.is_authorized?).to be true
               end
             end
 
@@ -558,7 +558,7 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -566,7 +566,7 @@ module ForestLiana
               let(:smart_action_request_info) { { http_method: 'POST' } }
 
               it 'user should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -574,7 +574,7 @@ module ForestLiana
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test' } }
 
               it 'user should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -582,18 +582,18 @@ module ForestLiana
               let(:smart_action_request_info) { { endpoint: 'forest/actions/Test', http_method: 'DELETE' } }
 
               it 'user should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
 
           # searchToEdit permission checker should not be called anymore once rolesAcl activated
           describe 'searchToEdit permission' do
-            let(:checker_instance) { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
 
             context 'when user has all permissions' do
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
 
@@ -601,7 +601,7 @@ module ForestLiana
               let(:collection_name) { 'no_rights_collection_user_list' }
 
               it 'should NOT be authorized' do
-                expect(checker_instance.is_authorized?).to be false
+                expect(subject.is_authorized?).to be false
               end
             end
           end
