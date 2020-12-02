@@ -1,3 +1,10 @@
+## [5.2.3](https://github.com/ForestAdmin/forest-rails/compare/v5.2.2...v5.2.3) (2020-12-02)
+
+
+### Bug Fixes
+
+* **filter:** fix filtering with projects on Rails 5.1 ([#381](https://github.com/ForestAdmin/forest-rails/issues/381)) ([4f86990](https://github.com/ForestAdmin/forest-rails/commit/4f8699006a2836b8baa631d38d0e3532ec6ea198))
+
 ## [5.2.2](https://github.com/ForestAdmin/forest-rails/compare/v5.2.1...v5.2.2) (2020-08-04)
 
 
