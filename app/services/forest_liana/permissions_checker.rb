@@ -44,13 +44,13 @@ module ForestLiana
         permissions[@collection_name]['collection']
         if @permission_name === 'actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
-        # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
-        #         dynamic user values definition, or null for collection that does not use scopes
-        # TODO: Handle scopes
-        elsif @permission_name === 'browseEnabled' and permissions[@collection_name]['scope']
-          # TODO: handle this
-          return collection_list_allowed?(permissions[@collection_name]['scope'])
         else
+          if @permission_name === 'browseEnabled' and permissions[@collection_name]['scope']
+            # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
+            #         dynamic user values definition, or null for collection that does not use scopes
+            # TODO: Handle scopes
+            return false unless collection_list_allowed?(permissions[@collection_name]['scope'])
+          end
           return is_user_allowed(permissions[@collection_name]['collection'][@permission_name])
         end
       else
@@ -87,7 +87,6 @@ module ForestLiana
         smart_actions_permissions[schema_smart_action.name]
     end
 
-    # TODO: test IRL
     def is_user_allowed(permission_value)
       return false if permission_value.nil?
       return permission_value if permission_value.in? [true, false]

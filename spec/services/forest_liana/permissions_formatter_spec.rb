@@ -3,13 +3,13 @@ module ForestLiana
     describe '#convert_to_new_format' do
       let(:old_format_collection_permissions) {
         {
-          'list'=>false,
+          'list'=>true,
           'show'=>false,
-          'create'=>false,
+          'create'=>true,
           'update'=>false,
-          'delete'=>false,
+          'delete'=>true,
           'export'=>false,
-          'searchToEdit'=>true
+          'searchToEdit'=>false
         }
       }
       let(:old_format_action_permissions) { { 'allowed' => true, 'users' => nil } }
@@ -34,15 +34,102 @@ module ForestLiana
           {
             'browseEnabled'=>true,
             'readEnabled'=>false,
-            'addEnabled'=>false,
+            'addEnabled'=>true,
             'editEnabled'=>false,
-            'deleteEnabled'=>false,
+            'deleteEnabled'=>true,
             'exportEnabled'=>false
           }
         }
 
         it 'should convert the old format to the new one' do
           expect(subject).to eq expected_new_collection_permissions_format
+        end
+
+        describe 'with searchToEdit true and list false' do
+          let(:old_format_collection_permissions) {
+            {
+              'list'=>false,
+              'show'=>false,
+              'create'=>false,
+              'update'=>false,
+              'delete'=>false,
+              'export'=>false,
+              'searchToEdit'=>true
+            }
+          }
+
+          let(:expected_new_collection_permissions_format) {
+            {
+              'browseEnabled'=>true,
+              'readEnabled'=>false,
+              'addEnabled'=>false,
+              'editEnabled'=>false,
+              'deleteEnabled'=>false,
+              'exportEnabled'=>false
+            }
+          }
+
+          it 'should convert the old format to the new one with browseEnabled at true' do
+            expect(subject).to eq expected_new_collection_permissions_format
+          end
+        end
+
+        describe 'with searchToEdit false and list true' do
+          let(:old_format_collection_permissions) {
+            {
+              'list'=>true,
+              'show'=>false,
+              'create'=>false,
+              'update'=>false,
+              'delete'=>false,
+              'export'=>false,
+              'searchToEdit'=>false
+            }
+          }
+
+          let(:expected_new_collection_permissions_format) {
+            {
+              'browseEnabled'=>true,
+              'readEnabled'=>false,
+              'addEnabled'=>false,
+              'editEnabled'=>false,
+              'deleteEnabled'=>false,
+              'exportEnabled'=>false
+            }
+          }
+
+          it 'should convert the old format to the new one with browseEnabled at true' do
+            expect(subject).to eq expected_new_collection_permissions_format
+          end
+        end
+
+        describe 'with searchToEdit false and list false' do
+          let(:old_format_collection_permissions) {
+            {
+              'list'=>false,
+              'show'=>false,
+              'create'=>false,
+              'update'=>false,
+              'delete'=>false,
+              'export'=>false,
+              'searchToEdit'=>false
+            }
+          }
+
+          let(:expected_new_collection_permissions_format) {
+            {
+              'browseEnabled'=>false,
+              'readEnabled'=>false,
+              'addEnabled'=>false,
+              'editEnabled'=>false,
+              'deleteEnabled'=>false,
+              'exportEnabled'=>false
+            }
+          }
+
+          it 'should convert the old format to the new one with browseEnabled at false' do
+            expect(subject).to eq expected_new_collection_permissions_format
+          end
         end
       end
 
