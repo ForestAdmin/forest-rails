@@ -4,8 +4,8 @@ module ForestLiana
   class Token
     REGEX_COOKIE_SESSION_TOKEN = /forest_session_token=([^;]*)/;
 
-    def expiration_in_days()
-      return Time.current + EXPIRATION_IN_SECONDS
+    def expiration_in_days
+      Time.current + EXPIRATION_IN_SECONDS
     end
 
     def expiration_in_seconds()

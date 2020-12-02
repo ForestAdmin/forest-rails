@@ -4,7 +4,7 @@ module ForestLiana
       begin
         route = "/liana/v2/renderings/#{rendering_id.to_s}/authorization"
 
-        if !use_google_authentication.nil?
+        unless use_google_authentication.nil?
           headers = { 'forest-token' => auth_data[:forest_token] }
         elsif !auth_data[:email].nil?
           headers = { 'email' => auth_data[:email], 'password' => auth_data[:password] }
@@ -12,7 +12,7 @@ module ForestLiana
 
         query_parameters = {}
 
-        if !two_factor_registration.nil?
+        unless two_factor_registration.nil?
           query_parameters['two-factor-registration'] = true
         end
 
@@ -25,7 +25,7 @@ module ForestLiana
           user['id'] = body['data']['id']
           user
         else
-          if !use_google_authentication.nil?
+          unless use_google_authentication.nil?
             raise "Cannot authorize the user using this google account. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
           else
             raise "Cannot authorize the user using this email/password. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"

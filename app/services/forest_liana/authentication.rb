@@ -7,7 +7,7 @@ module ForestLiana
     end
 
     def _parse_state(state)
-      if !state
+      unless state
         raise ForestLiana::Errors::HTTP500Error.new(ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_STATE_MISSING])
       end
 

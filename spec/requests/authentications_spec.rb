@@ -2,8 +2,8 @@ require 'rails_helper'
 require 'openid_connect'
 require 'json'
 
-RSpec.describe "Authentications", type: :request do
-  before() do
+describe "Authentications", type: :request do
+  before do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
@@ -21,7 +21,7 @@ RSpec.describe "Authentications", type: :request do
     }
   end
 
-  after() do
+  after do
     Rails.cache.delete(URI.join(ForestLiana.application_url, ForestLiana::Engine.routes.url_helpers.authentication_callback_path).to_s)
   end
 
