@@ -39,7 +39,7 @@ module ForestLiana
       'text input': 'text editor',
     }
 
-    def set_field_widget(field)
+    def self.set_field_widget(field)
       field[:widgetEdit] = nil
       if field[:widget] && !field[:widgetEdit]
         if v1_to_v2_edit_widgets_mapping[field[:widget]]

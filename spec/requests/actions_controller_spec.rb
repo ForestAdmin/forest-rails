@@ -114,7 +114,10 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
         expect(response.status).to eq(200)
-        expect(JSON.parse(response.body)).to eq({'fields' => [updated_foo.merge({:value => 'baz'}).stringify_keys]})
+        expected = updated_foo.merge({:value => 'baz'})
+        expected[:widgetEdit] = nil
+        expected.delete(:widget)
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected.stringify_keys]})
       end
 
       it 'should respond 500 with bad params' do
