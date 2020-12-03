@@ -50,75 +50,80 @@ module ForestLiana
         })
       ]
     }
+    let(:scope_permissions) { nil }
     let(:default_api_permissions) {
       {
         "data" => {
-          "all_rights_collection_boolean" => {
-            "collection" => {
-              "browseEnabled" => true,
-              "readEnabled" => true,
-              "editEnabled" => true,
-              "addEnabled" => true,
-              "deleteEnabled" => true,
-              "exportEnabled" => true
-            },
-            "actions" => {
-              "Test" => {
-                "triggerEnabled" => true
+          'collections' => {
+            "all_rights_collection_boolean" => {
+              "collection" => {
+                "browseEnabled" => true,
+                "readEnabled" => true,
+                "editEnabled" => true,
+                "addEnabled" => true,
+                "deleteEnabled" => true,
+                "exportEnabled" => true
               },
-            }
-          },
-          "all_rights_collection_user_list" => {
-            "collection" => {
-              "browseEnabled" => [1],
-              "readEnabled" => [1],
-              "editEnabled" => [1],
-              "addEnabled" => [1],
-              "deleteEnabled" => [1],
-              "exportEnabled" => [1]
+              "actions" => {
+                "Test" => {
+                  "triggerEnabled" => true
+                },
+              }
             },
-            "actions" => {
-              "Test" => {
-                "triggerEnabled" => [1]
+            "all_rights_collection_user_list" => {
+              "collection" => {
+                "browseEnabled" => [1],
+                "readEnabled" => [1],
+                "editEnabled" => [1],
+                "addEnabled" => [1],
+                "deleteEnabled" => [1],
+                "exportEnabled" => [1]
               },
-            }
-          },
-          "no_rights_collection_boolean" => {
-            "collection" => {
-              "browseEnabled" => false,
-              "readEnabled" => false,
-              "editEnabled" => false,
-              "addEnabled" => false,
-              "deleteEnabled" => false,
-              "exportEnabled" => false
+              "actions" => {
+                "Test" => {
+                  "triggerEnabled" => [1]
+                },
+              }
             },
-            "actions" => {
-              "Test" => {
-                "triggerEnabled" => false
+            "no_rights_collection_boolean" => {
+              "collection" => {
+                "browseEnabled" => false,
+                "readEnabled" => false,
+                "editEnabled" => false,
+                "addEnabled" => false,
+                "deleteEnabled" => false,
+                "exportEnabled" => false
               },
-            }
-          },
-          "no_rights_collection_user_list" => {
-            "collection" => {
-              "browseEnabled" => [],
-              "readEnabled" => [],
-              "editEnabled" => [],
-              "addEnabled" => [],
-              "deleteEnabled" => [],
-              "exportEnabled" => []
+              "actions" => {
+                "Test" => {
+                  "triggerEnabled" => false
+                },
+              }
             },
-            "actions" => {
-              "Test" => {
-                "triggerEnabled" => []
+            "no_rights_collection_user_list" => {
+              "collection" => {
+                "browseEnabled" => [],
+                "readEnabled" => [],
+                "editEnabled" => [],
+                "addEnabled" => [],
+                "deleteEnabled" => [],
+                "exportEnabled" => []
               },
-            }
+              "actions" => {
+                "Test" => {
+                  "triggerEnabled" => []
+                },
+              }
+            },
           },
+          'renderings' => scope_permissions
         },
         "meta" => {
           "rolesACLActivated" => true
         }
       }
     }
+    let(:default_rendering_id) { 1 }
 
     before do
       allow(ForestLiana).to receive(:apimap).and_return(schema)
@@ -171,17 +176,20 @@ module ForestLiana
         let(:api_permissions_rendering_1) {
           {
             "data" => {
-              "custom" => {
-                "collection" => {
-                  "browseEnabled" => false,
-                  "readEnabled" => true,
-                  "editEnabled" => true,
-                  "addEnabled" => true,
-                  "deleteEnabled" => true,
-                  "exportEnabled" => true
+              'collections' => {
+                "custom" => {
+                  "collection" => {
+                    "browseEnabled" => false,
+                    "readEnabled" => true,
+                    "editEnabled" => true,
+                    "addEnabled" => true,
+                    "deleteEnabled" => true,
+                    "exportEnabled" => true
+                  },
+                  "actions" => { }
                 },
-                "actions" => { }
               },
+              'renderings' => { }
             },
             "meta" => {
               "rolesACLActivated" => true
@@ -190,8 +198,8 @@ module ForestLiana
         }
         let(:api_permissions_rendering_2) {
           api_permissions_rendering_2 = api_permissions_rendering_1.deep_dup
-          api_permissions_rendering_2['data']['custom']['collection']['exportEnabled'] = false
-          api_permissions_rendering_2['data']['custom']['collection']['browseEnabled'] = true
+          api_permissions_rendering_2['data']['collections']['custom']['collection']['exportEnabled'] = false
+          api_permissions_rendering_2['data']['collections']['custom']['collection']['browseEnabled'] = true
           api_permissions_rendering_2
         }
 
@@ -288,6 +296,64 @@ module ForestLiana
 
               it 'should NOT be authorized' do
                 expect(subject.is_authorized?).to be false
+              end
+            end
+
+            context 'when scopes are defined' do
+              let(:default_rendering_id) { 1 }
+              let(:scope_permissions) {
+                {
+                  default_rendering_id => {
+                    collection_name => {
+                      'scope' => {
+                        'dynamicScopesValues' => {},
+                        'filter' => { 'aggregator' => 'and', 'conditions' => [condition] }
+                      }
+                    }
+                  }
+                }
+              }
+              let(:collection_list_parameters) { { :user_id => "1", :filters => JSON.generate(condition) } }
+
+              context 'when scopes are passing validation' do
+                context 'when scope value is a string' do
+                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
+
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+                end
+
+                context 'when scope value is a boolean' do
+                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => 'true' } }
+
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+                end
+              end
+
+              context 'when scopes are NOT passing validation' do
+                let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
+                let(:other_condition) {
+                  {
+                    aggregator: 'and',
+                    conditions: [
+                      { field: 'name', value: 'john', operator: 'equal' },
+                      { field: 'price', value: '2500', operator: 'equal' }
+                    ]
+                  }
+                }
+                let(:collection_list_parameters) {
+                  {
+                    :user_id => "1",
+                    :filters => JSON.generate(other_condition)
+                  }
+                }
+
+                it 'should return false' do
+                  expect(subject.is_authorized?).to be false
+                end
               end
             end
           end
