@@ -5,6 +5,7 @@ module ForestLiana
     def self.get(route, query: nil, headers: {})
       begin
         HTTParty.get("#{forest_api_url}#{route}", {
+          :verify => false,
           headers: base_headers.merge(headers),
           query: query,
         }).response
@@ -15,7 +16,14 @@ module ForestLiana
 
     def self.post(route, body: nil, query: nil, headers: {})
       begin
-        HTTParty.post("#{forest_api_url}#{route}", {
+        if route.start_with?('https://')
+          post_route = route
+        else
+          post_route = "#{forest_api_url}#{route}"
+        end
+
+        HTTParty.post(post_route, {
+          :verify => false,
           headers: base_headers.merge(headers),
           query: query,
           body: body.to_json,
@@ -28,10 +36,11 @@ module ForestLiana
     private
 
     def self.base_headers
-      {
+      base_headers = {
         'Content-Type' => 'application/json',
-        'forest-secret-key' => ForestLiana.env_secret,
       }
+      base_headers['forest-secret-key'] = ForestLiana.env_secret if !ForestLiana.env_secret.nil?
+      return base_headers
     end
 
     def self.forest_api_url

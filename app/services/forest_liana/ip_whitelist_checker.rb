@@ -58,7 +58,7 @@ module ForestLiana
       ip_range_maximum = (IPAddress rule['ip_maximum']).to_i
       ip_value = (IPAddress ip).to_i
 
-      return ip_value >= ip_range_minimum && ip_value <= ip_range_maximum;
+      return ip_value >= ip_range_minimum && ip_value <= ip_range_maximum
     end
 
     def self.is_ip_match_subnet(ip, subnet)
