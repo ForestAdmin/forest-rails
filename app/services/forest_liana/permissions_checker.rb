@@ -32,14 +32,15 @@ module ForestLiana
       permissions['last_fetch'] = Time.now
       if @@roles_acl_activated
         @@permissions_cached = permissions
-        permissions['data']['renderings'].keys.each { |rendering_id|
-          @@scopes_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
-          @@scopes_cached[rendering_id]['last_fetch'] = Time.now
-        } if permissions['data']['renderings']
       else
-        permissions['data'] = ForestLiana::PermissionsFormatter.convert_to_new_format(permissions['data'])
+        permissions['data'] = ForestLiana::PermissionsFormatter.convert_to_new_format(permissions['data'], @rendering_id)
         @@permissions_cached[@rendering_id] = permissions
       end
+      # fill scopes cache
+      permissions['data']['renderings'].keys.each { |rendering_id|
+        @@scopes_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
+        @@scopes_cached[rendering_id]['last_fetch'] = Time.now
+      } if permissions['data']['renderings']
     end
 
     def is_allowed
@@ -50,15 +51,10 @@ module ForestLiana
         if @permission_name === 'actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
         else
-          # if @permission_name === 'browseEnabled' and permissions[@collection_name]['scope']
           scope_permissions = get_scope_in_permissions
-          p 'ICI'
-          p @@scopes_cached
-          p scope_permissions
           if @permission_name === 'browseEnabled' and scope_permissions
             # NOTICE: current_scope will either contains conditions filter and
             #         dynamic user values definition, or null for collection that does not use scopes
-            p 'THERE GOOD'
             return false unless are_scopes_valid?(scope_permissions)
           end
           return is_user_allowed(permissions[@collection_name]['collection'][@permission_name])

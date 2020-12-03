@@ -127,6 +127,8 @@ module ForestLiana
             described_class.empty_cache
           end
 
+          # TODO Fix this test: get_permissions_for_rendering stub give a different result on the second call (even when cloning its returned value)
+          # Only works when cloning inside fetch_permissions
           it 'should call the API twice' do
             described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
             described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
