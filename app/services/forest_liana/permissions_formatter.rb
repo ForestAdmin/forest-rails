@@ -8,8 +8,7 @@ module ForestLiana
           permissions_new_format[collection_name] = Hash.new
           permissions_new_format[collection_name]['collection'] = convert_collection_permissions_to_new_format(permissions[collection_name]['collection'])
           permissions_new_format[collection_name]['actions'] = convert_actions_permissions_to_new_format(permissions[collection_name]['actions'])
-          # TODO?
-          # 'scope' => collection_permissions['scope']
+          permissions_new_format[collection_name]['scope'] = permissions[collection_name]['scope']
         }
 
         permissions_new_format

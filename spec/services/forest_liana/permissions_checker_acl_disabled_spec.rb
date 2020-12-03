@@ -191,7 +191,7 @@ module ForestLiana
     end
 
     describe '#is_authorized?' do
-      # Resource is only used to retrieve the collection name as it's stub it does not
+      # Resource is only used to retrieve the collection name as it's stubbed it does not
       # need to be defined
       let(:fake_ressource) { nil }
       let(:default_rendering_id) { nil }
@@ -225,13 +225,14 @@ module ForestLiana
         describe 'browseEnabled permission' do
           let(:collection_name) { 'custom' }
           subject { described_class.new(fake_ressource, 'browseEnabled', default_rendering_id, user_id: user_id) }
+          let(:scope_permissions) { nil }
           let(:default_api_permissions) {
             {
               "data" => {
                 "custom" => {
                   "collection" => collection_permissions,
                   "actions" => { },
-                  "scope" => nil
+                  "scope" => scope_permissions
                 },
               },
               "meta" => {
@@ -307,6 +308,7 @@ module ForestLiana
               }
             }
             let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
+
             subject {
               described_class.new(
                 fake_ressource,
@@ -338,6 +340,53 @@ module ForestLiana
 
               it 'should NOT be authorized' do
                 expect(subject.is_authorized?).to be false
+              end
+            end
+
+            context 'when scopes are defined' do
+              let(:scope_permissions) { { 'dynamicScopesValues' => {}, 'filter' => { 'aggregator' => 'and', 'conditions' => [condition] } }}
+              let(:collection_list_parameters) { { :user_id => "1", :filters => JSON.generate(condition) } }
+
+              context 'when scopes are passing validation' do
+                context 'when scope value is a string' do
+                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
+
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+                end
+
+                context 'when scope value is a boolean' do
+                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => 'true' } }
+
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+                end
+              end
+
+              context 'when scopes are NOT passing validation' do
+                let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
+                let(:other_condition) {
+                  {
+                    aggregator: 'and',
+                    conditions: [
+                      { field: 'name', value: 'john', operator: 'equal' },
+                      { field: 'price', value: '2500', operator: 'equal' }
+                    ]
+                  }
+                }
+                let(:collection_list_parameters) {
+                  {
+                    :user_id => "1",
+                    :filters => JSON.generate(other_condition)
+                  }
+                }
+
+
+                it 'should return false' do
+                  expect(subject.is_authorized?).to be false
+                end
               end
             end
           end

@@ -49,7 +49,7 @@ module ForestLiana
             # NOTICE: Permissions[@collection_name]['scope'] will either contains conditions filter and
             #         dynamic user values definition, or null for collection that does not use scopes
             # TODO: Handle scopes
-            return false unless collection_list_allowed?(permissions[@collection_name]['scope'])
+            return false unless are_scopes_valid?(permissions[@collection_name]['scope'])
           end
           return is_user_allowed(permissions[@collection_name]['collection'][@permission_name])
         end
@@ -101,7 +101,7 @@ module ForestLiana
       is_user_allowed(smart_action_permissions['triggerEnabled'])
     end
 
-    def collection_list_allowed?(scope_permissions)
+    def are_scopes_valid?(scope_permissions)
       return ForestLiana::ScopeValidator.new(
         scope_permissions['filter'],
         scope_permissions['dynamicScopesValues']['users']
