@@ -17,9 +17,10 @@ module ForestLiana
       rendering_id = parse_state(params['state'])
       client.authorization_code = params['code']
 
-      # TODOIDC
-      OpenIDConnect.http_config do |config|
-        config.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      if Rails.env.development? || Rails.env.test?
+        OpenIDConnect.http_config do |config|
+          config.ssl_config.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
       end
       access_token_instance = client.access_token! 'none'
 
