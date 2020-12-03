@@ -20,7 +20,7 @@ jobs:
         - RAILS_ENV=test bundle exec rake test
         - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
     - stage: Build & Publish
-      if: branch = master AND type != pull_request
+      if: branch IN ("master", "beta") AND type != pull_request
       language: node_js
       node_js: lts/*
       before_install:
@@ -33,4 +33,5 @@ jobs:
         gem: forest_liana
         gemspec: forest_liana.gemspec
         on:
+          all_branches: true
           condition: [ -f ./.trigger-rubygem-release ]
