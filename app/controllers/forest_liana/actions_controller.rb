@@ -36,8 +36,9 @@ module ForestLiana
 
     def get_smart_action_change_ctx(fields)
       fields = fields.reduce({}) do |p, c|
-        ForestLiana::WidgetsHelper.set_field_widget(c)
-        p.update(c[:field] => c.permit!.to_h)
+        field = c.permit!.to_h
+        ForestLiana::WidgetsHelper.set_field_widget(field)
+        p.update(c[:field] => field)
       end
       {:record => get_record, :fields => fields}
     end
