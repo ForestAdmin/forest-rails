@@ -42,8 +42,8 @@ module ForestLiana
     def self.set_field_widget(field)
       field[:widgetEdit] = nil
       if field[:widget] && !field[:widgetEdit]
-        if @v1_to_v2_edit_widgets_mapping[field[:widget]]
-          field[:widgetEdit] = {name: @v1_to_v2_edit_widgets_mapping[field[:widget]], parameters: {}}
+        if @v1_to_v2_edit_widgets_mapping[field[:widget].to_sym]
+          field[:widgetEdit] = {name: @v1_to_v2_edit_widgets_mapping[field[:widget].to_sym], parameters: {}}
         elsif @widget_edit_list.include?(field[:widget])
           field[:widgetEdit] = {name: field[:widget], parameters: {}}
         end
