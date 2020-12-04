@@ -3,7 +3,7 @@ require 'set'
 module ForestLiana
   module WidgetsHelper
 
-    widget_edit_list = [
+    @widget_edit_list = [
       'address editor',
       'belongsto typeahead',
       'belongsto dropdown',
@@ -27,7 +27,7 @@ module ForestLiana
       'time input',
     ]
 
-    v1_to_v2_edit_widgets_mapping = {
+    @v1_to_v2_edit_widgets_mapping = {
       address: 'address editor',
       'belongsto select': 'belongsto dropdown',
       'color picker': 'color editor',
@@ -42,9 +42,9 @@ module ForestLiana
     def self.set_field_widget(field)
       field[:widgetEdit] = nil
       if field[:widget] && !field[:widgetEdit]
-        if v1_to_v2_edit_widgets_mapping[field[:widget]]
-          field[:widgetEdit] = {name: v1_to_v2_edit_widgets_mapping[field[:widget]], parameters: {}}
-        elsif widget_edit_list.include?(field[:widget])
+        if @v1_to_v2_edit_widgets_mapping[field[:widget]]
+          field[:widgetEdit] = {name: @v1_to_v2_edit_widgets_mapping[field[:widget]], parameters: {}}
+        elsif @widget_edit_list.include?(field[:widget])
           field[:widgetEdit] = {name: field[:widget], parameters: {}}
         end
       end
