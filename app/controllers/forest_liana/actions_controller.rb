@@ -36,7 +36,7 @@ module ForestLiana
 
     def get_smart_action_change_ctx(fields)
       fields = fields.reduce({}) do |p, c|
-        field = c.permit!.to_h
+        field = c.permit!.to_h.symbolize_keys
         ForestLiana::WidgetsHelper.set_field_widget(field)
         p.update(c[:field] => field)
       end
