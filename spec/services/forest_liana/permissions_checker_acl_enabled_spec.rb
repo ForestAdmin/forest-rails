@@ -135,51 +135,124 @@ module ForestLiana
       let(:fake_ressource) { nil }
       let(:default_rendering_id) { 1 }
 
-      context 'when calling twice the same permissions' do
-        before do
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(default_api_permissions)
-        end
-
-        context 'after expiration time' do
+      context 'collections cache' do
+        context 'when calling twice the same permissions' do
           before do
-            allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
-            # Needed to enforce ENV stub
-            described_class.empty_cache
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(default_api_permissions)
           end
 
-          it 'should call the API twice' do
-            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
-            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+          context 'after expiration time' do
+            before do
+              allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+              # Needed to enforce ENV stub
+              described_class.empty_cache
+            end
 
-            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
+            it 'should call the API twice' do
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
+            end
+          end
+
+          context 'before expiration time' do
+            it 'should call the API only once' do
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
+            end
           end
         end
 
-        context 'before expiration time' do
-          it 'should call the API only once' do
-            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
-            described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+        context 'with permissions coming from 2 different renderings' do
+          before do
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering)
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(1).and_return(api_permissions_rendering_1)
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(2).and_return(api_permissions_rendering_2)
+          end
 
-            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
+          let(:collection_name) { 'custom' }
+          let(:scope_permissions) { { default_rendering_id => { 'custom' => nil }, 2 => { 'custom' => nil } } }
+          let(:api_permissions_rendering_1) {
+            {
+              "data" => {
+                'collections' => {
+                  "custom" => {
+                    "collection" => {
+                      "browseEnabled" => false,
+                      "readEnabled" => true,
+                      "editEnabled" => true,
+                      "addEnabled" => true,
+                      "deleteEnabled" => true,
+                      "exportEnabled" => true
+                    },
+                    "actions" => { }
+                  },
+                },
+                'renderings' => scope_permissions
+              },
+              "meta" => {
+                "rolesACLActivated" => true
+              }
+            }
+          }
+          let(:api_permissions_rendering_2) {
+            api_permissions_rendering_2 = api_permissions_rendering_1.deep_dup
+            api_permissions_rendering_2['data']['collections']['custom']['collection']['exportEnabled'] = false
+            api_permissions_rendering_2['data']['collections']['custom']['collection']['browseEnabled'] = true
+            api_permissions_rendering_2
+          }
+
+          context 'when the first call is authorized' do
+            let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
+            let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
+
+            # Even if the value are different, the permissions are cross rendering thus another call
+            # to the api wont be made until the permission expires
+            it 'should return the same value' do
+              expect(authorized_to_export_rendering_1).to eq true
+              expect(authorized_to_export_rendering_2).to eq true
+            end
+
+            it 'should call the API only once' do
+              authorized_to_export_rendering_1
+              authorized_to_export_rendering_2
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
+            end
+          end
+
+          # If not authorized the cached version is not used
+          context 'when the first call is not authorized' do
+            let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'browseEnabled', 1, user_id: user_id).is_authorized? }
+            let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'browseEnabled', 2, user_id: user_id).is_authorized? }
+
+            it 'should return different value' do
+              expect(authorized_to_export_rendering_1).to eq false
+              expect(authorized_to_export_rendering_2).to eq true
+            end
+
+            it 'should call the API twice' do
+              authorized_to_export_rendering_1
+              authorized_to_export_rendering_2
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
+            end
           end
         end
       end
 
-      context 'with permissions coming from 2 different renderings' do
-        before do
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering)
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(1).and_return(api_permissions_rendering_1)
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(2).and_return(api_permissions_rendering_2)
-        end
-
+      context 'scopes cache' do
+        let(:rendering_id) { 1 }
         let(:collection_name) { 'custom' }
-        let(:api_permissions_rendering_1) {
+        let(:scope_permissions) { { rendering_id => { 'custom' => nil } } }
+        let(:api_permissions) {
           {
             "data" => {
               'collections' => {
                 "custom" => {
                   "collection" => {
-                    "browseEnabled" => false,
+                    "browseEnabled" => true,
                     "readEnabled" => true,
                     "editEnabled" => true,
                     "addEnabled" => true,
@@ -189,52 +262,132 @@ module ForestLiana
                   "actions" => { }
                 },
               },
-              'renderings' => { }
+              'renderings' => scope_permissions
             },
             "meta" => {
               "rolesACLActivated" => true
             }
           }
         }
-        let(:api_permissions_rendering_2) {
-          api_permissions_rendering_2 = api_permissions_rendering_1.deep_dup
-          api_permissions_rendering_2['data']['collections']['custom']['collection']['exportEnabled'] = false
-          api_permissions_rendering_2['data']['collections']['custom']['collection']['browseEnabled'] = true
-          api_permissions_rendering_2
+        let(:api_permissions_scope_only) {
+          {
+            "data" => {
+              'collections' => { },
+              'renderings' => scope_permissions
+            },
+            "meta" => {
+              "rolesACLActivated" => true
+            }
+          }
         }
 
-        context 'when the first call is authorized' do
-          let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
-          let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
+        before do
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id).and_return(api_permissions)
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+        end
 
-          # Even if the value are different, the permissions are cross rendering thus another call
-          # to the api wont be made until the permission expires
-          it 'should return the same value' do
-            expect(authorized_to_export_rendering_1).to eq true
-            expect(authorized_to_export_rendering_2).to eq true
+        context 'when checking once for authorization' do
+          context 'when checking browseEnabled' do
+            context 'when expiration value is set to its default' do
+              it 'should not call the API to refresh the scopes cache' do
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+                expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+              end
+            end
+
+            context 'when expiration value is set in the past' do
+              before do
+                allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+                # Needed to enforce ENV stub
+                described_class.empty_cache
+              end
+
+              it 'should call the API to refresh the scopes cache' do
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).once
+              end
+            end
           end
 
-          it 'should call the API only once' do
-            authorized_to_export_rendering_1
-            authorized_to_export_rendering_2
-            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
+          # Only browse permission requires scopes
+          context 'when checking exportEnabled' do
+            context 'when expiration value is set in the past' do
+              before do
+                allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+                # Needed to enforce ENV stub
+                described_class.empty_cache
+              end
+            end
+
+            it 'should NOT call the API to refresh the scopes cache' do
+              described_class.new(fake_ressource, 'exportEnabled', rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+              expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+            end
           end
         end
 
-        # If not authorized the cached version is not used
-        context 'when the first call is not authorized' do
-          let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'browseEnabled', 1, user_id: user_id).is_authorized? }
-          let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'browseEnabled', 2, user_id: user_id).is_authorized? }
+        context 'when checking twice for authorization' do
+          context 'on the same rendering' do
+            context 'when scopes permission has NOT expired' do
+              it 'should NOT call the API to refresh the scopes permissions' do
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
-          it 'should return different value' do
-            expect(authorized_to_export_rendering_1).to eq false
-            expect(authorized_to_export_rendering_2).to eq true
+                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+                expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+              end
+            end
+
+            context 'when scopes permission has expired' do
+              before do
+                allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+                # Needed to enforce ENV stub
+                described_class.empty_cache
+              end
+
+              it 'should call the API to refresh the scopes permissions' do
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).twice
+                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).twice
+              end
+            end
           end
 
-          it 'should call the API twice' do
-            authorized_to_export_rendering_1
-            authorized_to_export_rendering_2
-            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
+          context 'on two different renderings' do
+            let(:other_rendering_id) { 2 }
+            let(:api_permissions_scope_only) {
+              {
+                "data" => {
+                  'collections' => { },
+                  'renderings' => {
+                    '2' => { 'custom' => nil }
+                  }
+                },
+                "meta" => {
+                  "rolesACLActivated" => true
+                }
+              }
+            }
+
+            before do
+              allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+            end
+
+            it 'should call the API to refresh the scopes permissions' do
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'browseEnabled', other_rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).once
+            end
           end
         end
       end

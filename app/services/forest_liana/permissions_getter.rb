@@ -6,26 +6,30 @@ module ForestLiana
       end
 
       # Permission format example:
-      # {model_name} => {
-      #   collection => {
-      #     browseEnabled => true,
-      #     readEnabled => true,
-      #     editEnabled => true,
-      #     addEnabled => true,
-      #     deleteEnabled => true,
-      #     exportEnabled => true,
-      #   },
-      #   actions => {
-      #     {action_name} => {
-      #       triggerEnabled => true,
+      # collections => {
+      #   {model_name} => {
+      #     collection => {
+      #       browseEnabled => true,
+      #       readEnabled => true,
+      #       editEnabled => true,
+      #       addEnabled => true,
+      #       deleteEnabled => true,
+      #       exportEnabled => true,
+      #     },
+      #     actions => {
+      #       {action_name} => {
+      #         triggerEnabled => true,
+      #       },
       #     },
       #   },
       # },
-      # {rendering_id} => {
-      #     {collection_id} => {
-      #       scope => {
-      #         dynamicScopesValues => {},
-      #         filter => {}
+      # rederings => {
+      #   {rendering_id} => {
+      #       {collection_id} => {
+      #         scope => {
+      #           dynamicScopesValues => {},
+      #           filter => {}
+      #         }
       #       }
       #     }
       #   }
