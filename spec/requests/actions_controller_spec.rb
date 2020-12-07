@@ -109,7 +109,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
     describe 'call /change' do
       updated_foo = foo.clone.merge({:previousValue => nil, :value => 'bar'})
-      params = {recordIds: [1], fields: [updated_foo], collectionName: 'Island'}
+      params = {recordIds: [1], fields: [updated_foo], collectionName: 'Island', changedField: 'foo'}
 
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'

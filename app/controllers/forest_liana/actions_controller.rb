@@ -86,8 +86,7 @@ module ForestLiana
         formatted_fields = context[:fields].clone # clone for following test on is_same_data_structure
 
         # Call the user-defined change hook.
-        field_name = params[:fields].select { |field| field[:value] != field[:previousValue] }[0][:field]
-        result = action.hooks[:change][field_name].(context)
+        result = action.hooks[:change][params[:changedField]].(context)
 
         handle_result(result, formatted_fields, action)
       end
