@@ -5,7 +5,7 @@ module ForestLiana
     def self.get(route, query: nil, headers: {})
       begin
         HTTParty.get("#{forest_api_url}#{route}", {
-          :verify => false,
+          :verify => Rails.env.production?,
           headers: base_headers.merge(headers),
           query: query,
         }).response
@@ -23,7 +23,7 @@ module ForestLiana
         end
 
         HTTParty.post(post_route, {
-          :verify => false,
+          :verify => Rails.env.production?,
           headers: base_headers.merge(headers),
           query: query,
           body: body.to_json,
