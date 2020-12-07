@@ -1,3 +1,10 @@
+## [5.3.2](https://github.com/ForestAdmin/forest-rails/compare/v5.3.1...v5.3.2) (2020-12-07)
+
+
+### Bug Fixes
+
+* **smart-actions:** use changedField instead of comparing values to trigger the correct change hook ([#396](https://github.com/ForestAdmin/forest-rails/issues/396)) ([d65c065](https://github.com/ForestAdmin/forest-rails/commit/d65c065319f9ab83d909214a2a71923467a78a0d))
+
 ## [5.3.1](https://github.com/ForestAdmin/forest-rails/compare/v5.3.0...v5.3.1) (2020-12-07)
 
 
