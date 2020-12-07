@@ -114,7 +114,9 @@ module ForestLiana
 
       context 'when calling twice the same permissions' do
         before do
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(default_api_permissions)
+          # clones is called to duplicate the returned value and not use to same (which results in an error
+          # as the permissions is edited through the formatter)
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering) { default_api_permissions.clone }
         end
 
         context 'after expiration time' do
@@ -124,8 +126,6 @@ module ForestLiana
             described_class.empty_cache
           end
 
-          # TODO Fix this test: get_permissions_for_rendering stub give a different result on the second call (even when cloning its returned value)
-          # Only works when cloning inside fetch_permissions
           it 'should call the API twice' do
             described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
             described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
@@ -230,7 +230,9 @@ module ForestLiana
       }
 
       before do
-        allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id).and_return(api_permissions)
+        # clones is called to duplicate the returned value and not use to same (which results in an error
+        # as the permissions is edited through the formatter)
+        allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id) { api_permissions.clone }
         allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
       end
 
@@ -299,7 +301,6 @@ module ForestLiana
               described_class.empty_cache
             end
 
-            # TODO: Fix that weird issue
             it 'should call the API to refresh the scopes permissions' do
               described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
               described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
