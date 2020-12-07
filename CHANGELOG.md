@@ -1,3 +1,10 @@
+## [5.3.1](https://github.com/ForestAdmin/forest-rails/compare/v5.3.0...v5.3.1) (2020-12-07)
+
+
+### Bug Fixes
+
+* **smart-actions:** transform legacy widgets in hooks ([#395](https://github.com/ForestAdmin/forest-rails/issues/395)) ([0183d08](https://github.com/ForestAdmin/forest-rails/commit/0183d0883c85fa2569cba70d268747536770a612))
+
 # [5.3.0](https://github.com/ForestAdmin/forest-rails/compare/v5.2.3...v5.3.0) (2020-12-07)
 
 
