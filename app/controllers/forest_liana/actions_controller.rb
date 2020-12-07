@@ -27,12 +27,19 @@ module ForestLiana
     end
 
     def get_smart_action_load_ctx(fields)
-      fields = fields.reduce({}) {|p, c| p.update(c[:field] => c.merge!(value: nil))}
+      fields = fields.reduce({}) do |p, c|
+        ForestLiana::WidgetsHelper.set_field_widget(c)
+        p.update(c[:field] => c.merge!(value: nil))
+      end
       {:record => get_record, :fields => fields}
     end
 
     def get_smart_action_change_ctx(fields)
-      fields = fields.reduce({}) {|p, c| p.update(c[:field] => c.permit!.to_h)}
+      fields = fields.reduce({}) do |p, c|
+        field = c.permit!.to_h.symbolize_keys
+        ForestLiana::WidgetsHelper.set_field_widget(field)
+        p.update(c[:field] => field)
+      end
       {:record => get_record, :fields => fields}
     end
 
