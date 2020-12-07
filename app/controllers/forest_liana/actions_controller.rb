@@ -46,7 +46,14 @@ module ForestLiana
       end
 
       # Apply result on fields (transform the object back to an array), preserve order.
-      fields = action.fields.map { |field| result[field[:field]] }
+      fields = action.fields.map do |field|
+        f = result[field[:field]]
+        # Reset `value` when not present in `enums` (which means `enums` has changed).
+        if f[:enums].is_a?(Array) && !f[:enums].include?(f[:value])
+          f[:value] = nil
+        end
+        f
+      end
 
       render serializer: nil, json: { fields: fields}, status: :ok
     end
