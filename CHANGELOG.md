@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/ForestAdmin/forest-rails/compare/v5.2.3...v5.3.0) (2020-12-07)
+
+
+### Features
+
+* handle hooks ([#382](https://github.com/ForestAdmin/forest-rails/issues/382)) ([8dd0e35](https://github.com/ForestAdmin/forest-rails/commit/8dd0e356be27b33379b2aaa0376deb3a76123300))
+
 ## [5.2.3](https://github.com/ForestAdmin/forest-rails/compare/v5.2.2...v5.2.3) (2020-12-02)
 
 
