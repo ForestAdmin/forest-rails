@@ -12,11 +12,11 @@ module ForestLiana
       @collection = get_collection(@collection_name)
       @fields_to_serialize = get_fields_to_serialize
       @field_names_requested = field_names_requested
-      get_segment()
-      compute_includes()
+      get_segment
+      compute_includes
       @search_query_builder = SearchQueryBuilder.new(@params, @includes, @collection)
 
-      prepare_query()
+      prepare_query
     end
 
     def self.get_ids_from_request(params)
