@@ -10,7 +10,7 @@ module ForestLiana
           query: query,
         }).response
       rescue
-        raise 'Cannot reach Forest API, it seems to be down right now.'
+        raise "Cannot reach Forest API at #{forest_api_url}#{route}, it seems to be down right now."
       end
     end
 
@@ -29,7 +29,7 @@ module ForestLiana
           body: body.to_json,
         }).response
       rescue
-        raise 'Cannot reach Forest API, it seems to be down right now.'
+        raise "Cannot reach Forest API at #{post_route}, it seems to be down right now."
       end
     end
 
