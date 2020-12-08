@@ -18,6 +18,8 @@ module ForestLiana
   
     def get_callback_url
         URI.join(ForestLiana.application_url, "/forest/#{CALLBACK_AUTHENTICATION_ROUTE}").to_s
+    rescue => error
+      raise "application_url is not valid or not defined" if error.is_a?(ArgumentError)
     end
 
     def get_and_check_rendering_id
@@ -37,9 +39,10 @@ module ForestLiana
     def start_authentication 
       begin
         rendering_id = get_and_check_rendering_id()
+        callback_url = get_callback_url()
 
         result = @authentication_service.start_authentication(
-          get_callback_url(),
+          callback_url,
           { 'renderingId' => rendering_id },
         )
 
@@ -52,8 +55,10 @@ module ForestLiana
 
     def authentication_callback
       begin
+        callback_url = get_callback_url()
+
         token = @authentication_service.verify_code_and_generate_token(
-          get_callback_url(),
+          callback_url,
           params,
         )
     
