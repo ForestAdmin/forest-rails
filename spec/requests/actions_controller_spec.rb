@@ -134,7 +134,7 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
         expect(response.status).to eq(200)
-        expected = updated_foo.merge({:value => 'baz'})
+        expected = updated_foo.clone.merge({:value => 'baz'})
         expected[:widgetEdit] = nil
         expected.delete(:widget)
         expect(JSON.parse(response.body)).to eq({'fields' => [expected.stringify_keys]})
@@ -160,8 +160,13 @@ describe 'Requesting Actions routes', :type => :request  do
         p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
         post '/forest/actions/enums_action/hooks/change', JSON.dump(p), 'CONTENT_TYPE' => 'application/json'
         expect(response.status).to eq(200)
-        expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil}).stringify_keys
-        expect(JSON.parse(response.body)).to eq({'fields' => [updated_foo.stringify_keys, expected_enum]})
+
+        expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil, :widgetEdit => nil})
+        expected_enum.delete(:widget)
+        expected_foo = updated_foo.clone.merge({ :widgetEdit => nil})
+        expected_foo.delete(:widget)
+
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys]})
       end
 
     end
