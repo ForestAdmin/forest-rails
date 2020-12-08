@@ -30,6 +30,12 @@ describe 'Requesting Actions routes', :type => :request  do
         description: nil,
         widget: nil,
     }
+    enum = {
+        field: 'enum',
+        type: 'Enum',
+        enums: %w[a b c],
+    }
+
     action_definition = {
         name: 'my_action',
         fields: [foo],
@@ -76,11 +82,25 @@ describe 'Requesting Actions routes', :type => :request  do
             }
         }
     }
+    enums_action_definition = {
+      name: 'enums_action',
+      fields: [foo, enum],
+      hooks: {
+        :change => {
+          'foo' => -> (context) {
+            fields = context[:fields]
+            fields['enum'][:enums] = %w[c d e]
+            return fields
+          }
+        }
+      }
+    }
     action = ForestLiana::Model::Action.new(action_definition)
     fail_action = ForestLiana::Model::Action.new(fail_action_definition)
     cheat_action = ForestLiana::Model::Action.new(cheat_action_definition)
+    enums_action = ForestLiana::Model::Action.new(enums_action_definition)
     island = ForestLiana.apimap.find {|collection| collection.name.to_s == ForestLiana.name_for(Island)}
-    island.actions = [action, fail_action, cheat_action]
+    island.actions = [action, fail_action, cheat_action, enums_action]
 
     describe 'call /load' do
       params = {recordIds: [1], collectionName: 'Island'}
@@ -134,6 +154,16 @@ describe 'Requesting Actions routes', :type => :request  do
         post '/forest/actions/cheat_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
         expect(response.status).to eq(500)
       end
+
+      it 'should reset value when enums has changed' do
+        updated_enum = enum.clone.merge({:previousValue => nil, :value => 'a'}) # set value to a
+        p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
+        post '/forest/actions/enums_action/hooks/change', JSON.dump(p), 'CONTENT_TYPE' => 'application/json'
+        expect(response.status).to eq(200)
+        expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil}).stringify_keys
+        expect(JSON.parse(response.body)).to eq({'fields' => [updated_foo.stringify_keys, expected_enum]})
+      end
+
     end
   end
 end
