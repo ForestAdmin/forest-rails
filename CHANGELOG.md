@@ -1,3 +1,11 @@
+## [5.3.3](https://github.com/ForestAdmin/forest-rails/compare/v5.3.2...v5.3.3) (2020-12-08)
+
+
+### Bug Fixes
+
+* fix test after enums ([#398](https://github.com/ForestAdmin/forest-rails/issues/398)) ([7b37350](https://github.com/ForestAdmin/forest-rails/commit/7b37350fc2b6244c3180cb953c2954d5b6927739))
+* **smart-actions:** reset value when not present in enums in hook response ([#397](https://github.com/ForestAdmin/forest-rails/issues/397)) ([a1ddac1](https://github.com/ForestAdmin/forest-rails/commit/a1ddac1c0d474e11b43e0f489dcc5ea70cd940b8))
+
 ## [5.3.2](https://github.com/ForestAdmin/forest-rails/compare/v5.3.1...v5.3.2) (2020-12-07)
 
 
