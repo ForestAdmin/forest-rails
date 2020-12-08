@@ -152,7 +152,7 @@ describe 'Requesting Actions routes', :type => :request  do
         expect(response.status).to eq(500)
       end
 
-      it 'should respond 200' do
+      it 'should reset value when enums has changed' do
         updated_enum = enum.clone.merge({:previousValue => nil, :value => 'a'}) # set value to a
         p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
         post '/forest/actions/enums_action/hooks/change', JSON.dump(p), 'CONTENT_TYPE' => 'application/json'
