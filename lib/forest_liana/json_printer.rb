@@ -20,7 +20,7 @@ module ForestLiana
             result << ", "
           end
 
-          result << pretty_print(item, is_primary_value ? "#{indentation}  " : indentation);
+          result << pretty_print(item, is_primary_value ? "#{indentation}  " : indentation)
         end
 
         result << "\n#{indentation}" if is_primary_value && !is_small

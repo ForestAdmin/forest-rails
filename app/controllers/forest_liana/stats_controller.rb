@@ -6,11 +6,11 @@ module ForestLiana
       before_action :find_resource, except: [:get_with_live_query]
     end
 
-    CHART_TYPE_VALUE = 'Value';
-    CHART_TYPE_PIE = 'Pie';
-    CHART_TYPE_LINE = 'Line';
-    CHART_TYPE_LEADERBOARD = 'Leaderboard';
-    CHART_TYPE_OBJECTIVE = 'Objective';
+    CHART_TYPE_VALUE = 'Value'
+    CHART_TYPE_PIE = 'Pie'
+    CHART_TYPE_LINE = 'Line'
+    CHART_TYPE_LEADERBOARD = 'Leaderboard'
+    CHART_TYPE_OBJECTIVE = 'Objective'
 
     def get
       case params[:type]
