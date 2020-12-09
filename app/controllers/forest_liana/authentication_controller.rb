@@ -62,10 +62,6 @@ module ForestLiana
           params,
         )
     
-        # Cookies with secure=true & sameSite:'none' will only work
-        # on localhost or https
-        # These are the only 2 supported situations for agents, that's
-        # why the token is not returned inside the body
         response.set_cookie(
           'forest_session_token',
           {
@@ -96,17 +92,30 @@ module ForestLiana
     end
 
     def logout
-      if cookies.has_key?(:forest_session_token)
-        forest_session_token = cookies[:forest_session_token]
-        
-        if forest_session_token
-          forest_session_token = JSON.parse(forest_session_token.gsub(':','"').gsub('=>','":'), :symbolize_names => true)
-          forest_session_token[:expires] = Time.at(0)
-          response.set_cookie("forest_session_token", forest_session_token)
+      begin
+        if cookies.has_key?(:forest_session_token)
+          forest_session_token = cookies[:forest_session_token]
+          
+          if forest_session_token
+            response.set_cookie(
+              'forest_session_token',
+              {
+                value: forest_session_token,
+                httponly: true,
+                secure: true,
+                expires: Time.at(0),
+                samesite: 'none',
+                path: '/'
+              },
+            )
+          end
         end
-      end
 
-      render json: {}, status: 204
+        render json: {}, status: 204
+      rescue => error
+        render json: { errors: [{ status: 500, detail: error.message }] },
+        status: :internal_server_error, serializer: nil
+      end
     end
 
   end
