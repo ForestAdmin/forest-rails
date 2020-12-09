@@ -1,3 +1,16 @@
+# [6.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v5.2.3...v6.0.0-beta.1) (2020-12-09)
+
+
+### Features
+
+* **auth:** authenticate using oidc ([#383](https://github.com/ForestAdmin/forest-rails/issues/383)) ([b535ab4](https://github.com/ForestAdmin/forest-rails/commit/b535ab4e7e7e371c93d01bdb41c6006bd9acc7cd))
+
+
+### BREAKING CHANGES
+
+* **auth:** New authentication system.
+The application_url must be set in the ForestLiana initializer, adding a regex CORS rule for null origin is required.
+
 ## [5.2.3](https://github.com/ForestAdmin/forest-rails/compare/v5.2.2...v5.2.3) (2020-12-02)
 
 
