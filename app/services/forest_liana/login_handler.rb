@@ -19,12 +19,12 @@ module ForestLiana
     end
 
     def perform
-      user = ForestLiana::AuthorizationGetter.authenticate(
+      user = ForestLiana::AuthorizationGetter.new(
         @rendering_id,
         @use_google_authentication,
         @auth_data,
         @two_factor_registration
-      )
+      ).perform
 
       if user['two_factor_authentication_enabled']
         if !@two_factor_token.nil?
@@ -93,7 +93,15 @@ module ForestLiana
     end
 
     def create_token(user, rendering_id)
-      ForestLiana::Token.create_token(user, rendering_id)
+      JWT.encode({
+        id: user['id'],
+        email: user['email'],
+        first_name: user['first_name'],
+        last_name: user['last_name'],
+        team: user['teams'][0],
+        rendering_id: rendering_id,
+        exp: Time.now.to_i + 2.weeks.to_i
+      }, ForestLiana.auth_secret, 'HS256')
     end
   end
 end

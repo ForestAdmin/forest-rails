@@ -4,10 +4,6 @@ module ForestLiana
     wrap_parameters false
     before_action :reject_unauthorized_ip
 
-    def route_not_found
-      head :not_found
-    end
-
     private
 
     def reject_unauthorized_ip
