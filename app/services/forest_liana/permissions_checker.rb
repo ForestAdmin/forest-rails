@@ -83,7 +83,7 @@ module ForestLiana
       elapsed_seconds >= @@expiration_in_seconds
     end
 
-    # This will happen only on ACLActivated (as scope cache will always be up to date on disabled)
+    # This will happen only on rolesACLActivated (as scope cache will always be up to date on disabled)
     def refresh_scope_cache
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id, rendering_specific_only: true)
       add_scopes_to_cache(permissions)
