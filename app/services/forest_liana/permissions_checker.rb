@@ -44,7 +44,7 @@ module ForestLiana
       @allowed = @smart_action_permissions['allowed']
       @users = @smart_action_permissions['users']
 
-      return @allowed && (@users.nil?|| @users.include?(@user_id.to_i));
+      return @allowed && (@users.nil?|| @users.include?(@user_id.to_i))
     end
 
     def collection_list_allowed?(scope_permissions)

@@ -2,11 +2,11 @@ module ForestLiana
   class QueryStatGetter
     attr_accessor :record
 
-    CHART_TYPE_VALUE = 'Value';
-    CHART_TYPE_PIE = 'Pie';
-    CHART_TYPE_LINE = 'Line';
-    CHART_TYPE_LEADERBOARD = 'Leaderboard';
-    CHART_TYPE_OBJECTIVE = 'Objective';
+    CHART_TYPE_VALUE = 'Value'
+    CHART_TYPE_PIE = 'Pie'
+    CHART_TYPE_LINE = 'Line'
+    CHART_TYPE_LEADERBOARD = 'Leaderboard'
+    CHART_TYPE_OBJECTIVE = 'Objective'
 
     def initialize(params)
       @params = params

@@ -29,4 +29,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "base32"
   s.add_runtime_dependency "httparty"
   s.add_runtime_dependency "ipaddress"
+  s.add_runtime_dependency "json"
+  s.add_runtime_dependency "json-jwt"
+  s.add_runtime_dependency "openid_connect"
 end
