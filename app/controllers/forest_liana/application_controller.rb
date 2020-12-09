@@ -3,6 +3,8 @@ require 'csv'
 
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
+    REGEX_COOKIE_SESSION_TOKEN = /forest_session_token=([^;]*)/;
+
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
     end
@@ -62,7 +64,7 @@ module ForestLiana
             token = request.headers['Authorization'].split.second
           # NOTICE: Necessary for downloads authentication.
           elsif request.headers['cookie']
-            match = ForestLiana::Token::REGEX_COOKIE_SESSION_TOKEN.match(request.headers['cookie'])
+            match = REGEX_COOKIE_SESSION_TOKEN.match(request.headers['cookie'])
             token = match[1] if match && match[1]
           end
 
@@ -93,6 +95,10 @@ module ForestLiana
         FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
         {}
       end
+    end
+
+    def route_not_found
+      head :not_found
     end
 
     def internal_server_error

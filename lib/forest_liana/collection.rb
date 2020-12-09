@@ -148,7 +148,7 @@ module ForestLiana::Collection
       # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
       model = ForestLiana.models.find { |collection| collection.try(:table_name) == collection_name.to_s }
       if model
-        collection_name_new = ForestLiana.name_for(model)
+        collection_name_new = ForestLiana.name_for(model);
         FOREST_LOGGER.warn "DEPRECATION WARNING: Collection names are now based on the models " \
           "names. Please rename the collection '#{collection_name.to_s}' of your Forest " \
           "customisation in '#{collection_name_new}'."
@@ -158,7 +158,7 @@ module ForestLiana::Collection
       # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
       model = ForestLiana.names_old_overriden.invert[collection_name.to_s]
       if model
-        collection_name_new = ForestLiana.name_for(model)
+        collection_name_new = ForestLiana.name_for(model);
         FOREST_LOGGER.warn "DEPRECATION WARNING: Collection names are now based on the models " \
           "names. Please rename the collection '#{collection_name.to_s}' of your Forest " \
           "customisation in '#{collection_name_new}'."
