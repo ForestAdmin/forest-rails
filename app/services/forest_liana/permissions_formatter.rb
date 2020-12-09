@@ -8,12 +8,12 @@ module ForestLiana
         permissions_new_format['renderings'] = Hash.new
         permissions_new_format['renderings'][rendering_id] = Hash.new
         permissions.keys.each { |collection_name|
-          permissions_new_format['collections'][collection_name] = Hash.new
-          permissions_new_format['collections'][collection_name]['collection'] = convert_collection_permissions_to_new_format(permissions[collection_name]['collection'])
-          permissions_new_format['collections'][collection_name]['actions'] = convert_actions_permissions_to_new_format(permissions[collection_name]['actions'])
+          permissions_new_format['collections'][collection_name] = {
+            'collection' => convert_collection_permissions_to_new_format(permissions[collection_name]['collection']),
+            'actions' => convert_actions_permissions_to_new_format(permissions[collection_name]['actions'])
+          }
 
-          permissions_new_format['renderings'][rendering_id][collection_name] = Hash.new
-          permissions_new_format['renderings'][rendering_id][collection_name]['scope'] = permissions[collection_name]['scope']
+          permissions_new_format['renderings'][rendering_id][collection_name] = { 'scope' => permissions[collection_name]['scope'] }
         }
 
         permissions_new_format
