@@ -103,6 +103,7 @@ module ForestLiana
     }
 
     before do
+      allow(ForestLiana).to receive(:name_for).and_return(collection_name)
       allow(ForestLiana).to receive(:apimap).and_return(schema)
     end
 
@@ -111,13 +112,11 @@ module ForestLiana
       let(:fake_ressource) { nil }
       let(:default_rendering_id) { 1 }
 
-      before do
-        allow(ForestLiana).to receive(:name_for).and_return(collection_name)
-      end
-
       context 'when calling twice the same permissions' do
         before do
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(default_api_permissions)
+          # clones is called to duplicate the returned value and not use to same (which results in an error
+          # as the permissions is edited through the formatter)
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering) { default_api_permissions.clone }
         end
 
         context 'after expiration time' do
@@ -190,8 +189,165 @@ module ForestLiana
       end
     end
 
+
+    context 'scopes cache' do
+      let(:fake_ressource) { nil }
+      let(:rendering_id) { 1 }
+      let(:collection_name) { 'custom' }
+      let(:scope_permissions) { { rendering_id => { 'custom' => nil } } }
+      let(:api_permissions) {
+        {
+          "data" => {
+            "custom" => {
+              "collection" => {
+                "list" => true,
+                "show" => true,
+                "create" => true,
+                "update" => true,
+                "delete" => true,
+                "export" => true,
+                "searchToEdit" => true
+              },
+              "actions" => { },
+              "scope" => nil
+            },
+          },
+          "meta" => {
+            "rolesACLActivated" => false
+          }
+        }
+      }
+      let(:api_permissions_scope_only) {
+        {
+          "data" => {
+            'collections' => { },
+            'renderings' => scope_permissions
+          },
+          "meta" => {
+            "rolesACLActivated" => false
+          }
+        }
+      }
+
+      before do
+        # clones is called to duplicate the returned value and not use to same (which results in an error
+        # as the permissions is edited through the formatter)
+        allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id) { api_permissions.clone }
+        allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+      end
+
+      context 'when checking once for authorization' do
+        context 'when checking browseEnabled' do
+          context 'when expiration value is set to its default' do
+            it 'should not call the API to refresh the scopes cache' do
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+              expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+            end
+          end
+
+          context 'when expiration value is set in the past' do
+            before do
+              allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+              # Needed to enforce ENV stub
+              described_class.empty_cache
+            end
+
+            it 'should call the API to refresh the scopes cache' do
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).once
+            end
+          end
+        end
+
+        # Only browse permission requires scopes
+        context 'when checking exportEnabled' do
+          context 'when expiration value is set in the past' do
+            before do
+              allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+              # Needed to enforce ENV stub
+              described_class.empty_cache
+            end
+          end
+
+          it 'should NOT call the API to refresh the scopes cache' do
+            described_class.new(fake_ressource, 'exportEnabled', rendering_id, user_id: user_id).is_authorized?
+
+            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+            expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+          end
+        end
+      end
+
+      context 'when checking twice for authorization' do
+        context 'on the same rendering' do
+          context 'when scopes permission has NOT expired' do
+            it 'should NOT call the API to refresh the scopes permissions' do
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+              expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+            end
+          end
+
+          context 'when scopes permission has expired' do
+            before do
+              allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
+              # Needed to enforce ENV stub
+              described_class.empty_cache
+            end
+
+            it 'should call the API to refresh the scopes permissions' do
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).twice
+              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).twice
+            end
+          end
+        end
+
+        context 'on two different renderings' do
+          let(:other_rendering_id) { 2 }
+          let(:api_permissions_scope_only) {
+            {
+              "data" => {
+                'collections' => { },
+                'renderings' => {
+                  '2' => { 'custom' => nil }
+                }
+              },
+              "meta" => {
+                "rolesACLActivated" => false
+              }
+            }
+          }
+          let(:api_permissions_copy) { api_permissions.clone }
+
+          before do
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id).and_return(api_permissions_copy)
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+          end
+
+          it 'should not call the API to refresh the scopes permissions' do
+            described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+            described_class.new(fake_ressource, 'browseEnabled', other_rendering_id, user_id: user_id).is_authorized?
+
+            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
+            expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(other_rendering_id).once
+            expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
+            expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true)
+          end
+        end
+      end
+    end
+
     describe '#is_authorized?' do
-      # Resource is only used to retrieve the collection name as it's stub it does not
+      # Resource is only used to retrieve the collection name as it's stubbed it does not
       # need to be defined
       let(:fake_ressource) { nil }
       let(:default_rendering_id) { nil }
@@ -199,7 +355,6 @@ module ForestLiana
       let(:collection_name) { 'all_rights_collection' }
 
       before do
-        allow(ForestLiana).to receive(:name_for).and_return(collection_name)
         allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(api_permissions)
       end
 
@@ -225,13 +380,14 @@ module ForestLiana
         describe 'browseEnabled permission' do
           let(:collection_name) { 'custom' }
           subject { described_class.new(fake_ressource, 'browseEnabled', default_rendering_id, user_id: user_id) }
+          let(:scope_permissions) { nil }
           let(:default_api_permissions) {
             {
               "data" => {
                 "custom" => {
                   "collection" => collection_permissions,
                   "actions" => { },
-                  "scope" => nil
+                  "scope" => scope_permissions
                 },
               },
               "meta" => {
@@ -307,6 +463,7 @@ module ForestLiana
               }
             }
             let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
+
             subject {
               described_class.new(
                 fake_ressource,
@@ -338,6 +495,53 @@ module ForestLiana
 
               it 'should NOT be authorized' do
                 expect(subject.is_authorized?).to be false
+              end
+            end
+
+            context 'when scopes are defined' do
+              let(:scope_permissions) { { 'dynamicScopesValues' => {}, 'filter' => { 'aggregator' => 'and', 'conditions' => [condition] } }}
+              let(:collection_list_parameters) { { :user_id => "1", :filters => JSON.generate(condition) } }
+
+              context 'when scopes are passing validation' do
+                context 'when scope value is a string' do
+                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
+
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+                end
+
+                context 'when scope value is a boolean' do
+                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => 'true' } }
+
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+                end
+              end
+
+              context 'when scopes are NOT passing validation' do
+                let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
+                let(:other_condition) {
+                  {
+                    aggregator: 'and',
+                    conditions: [
+                      { field: 'name', value: 'john', operator: 'equal' },
+                      { field: 'price', value: '2500', operator: 'equal' }
+                    ]
+                  }
+                }
+                let(:collection_list_parameters) {
+                  {
+                    :user_id => "1",
+                    :filters => JSON.generate(other_condition)
+                  }
+                }
+
+
+                it 'should return false' do
+                  expect(subject.is_authorized?).to be false
+                end
               end
             end
           end

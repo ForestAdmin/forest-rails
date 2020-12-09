@@ -5,9 +5,42 @@ module ForestLiana
         '/liana/v3/permissions'
       end
 
-      def get_permissions_for_rendering(rendering_id)
+      # Permission format example:
+      # collections => {
+      #   {model_name} => {
+      #     collection => {
+      #       browseEnabled => true,
+      #       readEnabled => true,
+      #       editEnabled => true,
+      #       addEnabled => true,
+      #       deleteEnabled => true,
+      #       exportEnabled => true,
+      #     },
+      #     actions => {
+      #       {action_name} => {
+      #         triggerEnabled => true,
+      #       },
+      #     },
+      #   },
+      # },
+      # rederings => {
+      #   {rendering_id} => {
+      #       {collection_id} => {
+      #         scope => {
+      #           dynamicScopesValues => {},
+      #           filter => {}
+      #         }
+      #       }
+      #     }
+      #   }
+      # }
+      # With `rendering_specific_only` this returns only the permissions related data specific to the provided rendering
+      # For now this only includes scopes
+      def get_permissions_for_rendering(rendering_id, rendering_specific_only: false)
         begin
           query_parameters = { 'renderingId' => rendering_id }
+          query_parameters['renderingSpecificOnly'] = rendering_specific_only if rendering_specific_only
+
           api_route = get_permissions_api_route
           response = ForestLiana::ForestApiRequester.get(api_route, query: query_parameters)
 
