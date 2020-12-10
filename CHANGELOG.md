@@ -1,3 +1,10 @@
+# [5.4.0](https://github.com/ForestAdmin/forest-rails/compare/v5.3.3...v5.4.0) (2020-12-10)
+
+
+### Features
+
+* **role:** add support for new roles ACL permissions ([#391](https://github.com/ForestAdmin/forest-rails/issues/391)) ([ae3539e](https://github.com/ForestAdmin/forest-rails/commit/ae3539e59c49b525078639a6d316ae2b5598ed75))
+
 ## [5.3.3](https://github.com/ForestAdmin/forest-rails/compare/v5.3.2...v5.3.3) (2020-12-08)
 
 
