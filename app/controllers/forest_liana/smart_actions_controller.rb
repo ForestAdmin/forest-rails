@@ -19,14 +19,15 @@ module ForestLiana
 
     def check_permission_for_smart_route
       begin
-        
+
         smart_action_request = get_smart_action_request
         if !smart_action_request.nil? && smart_action_request.has_key?(:smart_action_id)
           checker = ForestLiana::PermissionsChecker.new(
             find_resource(smart_action_request[:collection_name]),
             'actions',
             @rendering_id,
-            get_smart_action_permission_info(forest_user, smart_action_request)
+            user_id: forest_user['id'],
+            smart_action_request_info: get_smart_action_request_info
           )
           return head :forbidden unless checker.is_authorized?
         else
@@ -54,10 +55,14 @@ module ForestLiana
       end
     end
 
-    def get_smart_action_permission_info(user, smart_action_request)
+    # smart action permissions are retrieved from the action's endpoint and http_method
+    def get_smart_action_request_info
+      endpoint = request.fullpath
+      # Trim starting '/'
+      endpoint[0] = '' if endpoint[0] == '/'
       {
-        user_id: user['id'],
-        action_id: smart_action_request[:smart_action_id],
+        endpoint: endpoint,
+        http_method: request.request_method
       }
     end
   end
