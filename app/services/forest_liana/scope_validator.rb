@@ -32,9 +32,10 @@ module ForestLiana
     def compute_condition_filters_from_scope(user_id)
       computed_condition_filters = @scope_filters.clone
       computed_condition_filters['conditions'].each do |condition|
-        if condition.include?('value') && 
-          !condition['value'].nil? && 
-          condition['value'].start_with?('$') && 
+        if condition.include?('value') &&
+          !condition['value'].nil? &&
+          condition['value'].instance_of?(String) &&
+          condition['value'].start_with?('$') &&
           @users_variable_values.include?(user_id)
           condition['value'] = @users_variable_values[user_id][condition['value']]
         end
@@ -51,9 +52,9 @@ module ForestLiana
       ensure_valid_aggregation(node)
 
       return is_scope_condition?(node) unless node['aggregator']
-  
+
       # NOTICE: Remove conditions that are not from the scope
-      filtered_conditions = node['conditions'].map { |condition| 
+      filtered_conditions = node['conditions'].map { |condition|
         search_scope_aggregation(condition)
       }.select { |condition|
         condition
@@ -61,7 +62,7 @@ module ForestLiana
 
       # NOTICE: If there is only one condition filter left and its current aggregator is
       #         an "and", this condition filter is the searched scope
-      if (filtered_conditions.length == 1 && 
+      if (filtered_conditions.length == 1 &&
         filtered_conditions.first.is_a?(Hash) &&
         filtered_conditions.first.include?(:aggregator) &&
         node['aggregator'] == 'and')
@@ -70,7 +71,7 @@ module ForestLiana
 
       # NOTICE: Otherwise, validate if the current node is the scope and return nil
       #         if it's not
-      return (filtered_conditions.length == @scope_filters['conditions'].length && 
+      return (filtered_conditions.length == @scope_filters['conditions'].length &&
         node['aggregator'] == @scope_filters['aggregator']) ?
         { aggregator: node['aggregator'], conditions: filtered_conditions } :
         nil

@@ -25,14 +25,12 @@ describe "Authentications", type: :request do
     Rails.cache.delete(URI.join(ForestLiana.application_url, ForestLiana::Engine.routes.url_helpers.authentication_callback_path).to_s)
   end
 
-  headers = {
-    'Accept' => 'application/json',
-    'Content-Type' => 'application/json',
-  }
-
   describe "POST /authentication" do
     before() do 
-      post ForestLiana::Engine.routes.url_helpers.authentication_path, { :renderingId => 42 }, :headers => headers
+      post ForestLiana::Engine.routes.url_helpers.authentication_path, params: '{"renderingId":"42"}', headers: {
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/json',
+      }
     end
 
     it "should respond with a 302 code" do
@@ -53,7 +51,7 @@ describe "Authentications", type: :request do
         instance_double(HTTParty::Response, :body => response, :code => 200)
       )
 
-      get ForestLiana::Engine.routes.url_helpers.authentication_callback_path + "?code=THE-CODE&state=#{URI.escape('{"renderingId":42}', Regexp.new("[^#{URI::PATTERN::UNRESERVED}]"))}"
+      get ForestLiana::Engine.routes.url_helpers.authentication_callback_path + "?code=THE-CODE&state=#{CGI::escape('{"renderingId":42}')}"
     end
 
     it "should respond with a 200 code" do
@@ -91,7 +89,7 @@ describe "Authentications", type: :request do
         secure: true,
         httponly: true
       }
-      post ForestLiana::Engine.routes.url_helpers.authentication_logout_path, { :renderingId => 42 }, :headers => headers
+      post ForestLiana::Engine.routes.url_helpers.authentication_logout_path, params: { :renderingId => 42 }, :headers => headers
       cookies.delete('forest_session_token')
     end
 
@@ -101,7 +99,7 @@ describe "Authentications", type: :request do
 
     it "should invalidate token from browser" do
       invalidated_session_cookie = response.headers['set-cookie']
-      expect(invalidated_session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=Thu, 01 Jan 1970 00:00:00 -0000; secure; HttpOnly$/)
+      expect(invalidated_session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; HttpOnly$/)
     end
   end
 end

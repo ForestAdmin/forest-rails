@@ -46,12 +46,12 @@ describe 'Requesting Tree resources', :type => :request  do
       }
 
       it 'should respond 200' do
-        get '/forest/Tree', params, headers
+        get '/forest/Tree', params: params, headers: headers
         expect(response.status).to eq(200)
       end
 
       it 'should respond the tree data' do
-        get '/forest/Tree', params, headers
+        get '/forest/Tree', params: params, headers: headers
         expect(JSON.parse(response.body)).to eq({
           "data" => [{
             "type" => "Tree",
@@ -83,12 +83,12 @@ describe 'Requesting Tree resources', :type => :request  do
       }
 
       it 'should respond 200' do
-        get '/forest/Tree', params, headers
+        get '/forest/Tree', params: params, headers: headers
         expect(response.status).to eq(200)
       end
 
       it 'should respond the tree data' do
-        get '/forest/Tree', params, headers
+        get '/forest/Tree', params: params, headers: headers
         expect(JSON.parse(response.body)).to eq({
           "data" => [{
             "type" => "Tree",
