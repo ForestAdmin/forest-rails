@@ -1,3 +1,19 @@
+# [6.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0-beta.2...v6.0.0-beta.3) (2020-12-14)
+
+
+### Bug Fixes
+
+* fix test after enums ([#398](https://github.com/ForestAdmin/forest-rails/issues/398)) ([7b37350](https://github.com/ForestAdmin/forest-rails/commit/7b37350fc2b6244c3180cb953c2954d5b6927739))
+* **smart-actions:** reset value when not present in enums in hook response ([#397](https://github.com/ForestAdmin/forest-rails/issues/397)) ([a1ddac1](https://github.com/ForestAdmin/forest-rails/commit/a1ddac1c0d474e11b43e0f489dcc5ea70cd940b8))
+* **smart-actions:** transform legacy widgets in hooks ([#395](https://github.com/ForestAdmin/forest-rails/issues/395)) ([0183d08](https://github.com/ForestAdmin/forest-rails/commit/0183d0883c85fa2569cba70d268747536770a612))
+* **smart-actions:** use changedField instead of comparing values to trigger the correct change hook ([#396](https://github.com/ForestAdmin/forest-rails/issues/396)) ([d65c065](https://github.com/ForestAdmin/forest-rails/commit/d65c065319f9ab83d909214a2a71923467a78a0d))
+
+
+### Features
+
+* **role:** add support for new roles ACL permissions ([#391](https://github.com/ForestAdmin/forest-rails/issues/391)) ([ae3539e](https://github.com/ForestAdmin/forest-rails/commit/ae3539e59c49b525078639a6d316ae2b5598ed75))
+* handle hooks ([#382](https://github.com/ForestAdmin/forest-rails/issues/382)) ([8dd0e35](https://github.com/ForestAdmin/forest-rails/commit/8dd0e356be27b33379b2aaa0376deb3a76123300))
+
 # [6.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0-beta.1...v6.0.0-beta.2) (2020-12-09)
 
 
