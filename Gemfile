@@ -18,20 +18,21 @@ end
 
 group :test do
   gem 'rake'
-  gem 'sqlite3', '1.3.13'
+  gem 'sqlite3', '~> 1.4'
+  gem 'simplecov', require: false
 end
 
-gem 'rails', '4.2.7.1'
+gem 'rails', '6.0.3.4'
 gem 'jsonapi-serializers', '1.0.1'
 gem 'rack-cors'
-gem 'arel-helpers', '2.10.0'
+gem 'arel-helpers', '2.11.0'
 gem 'groupdate', '2.5.2'
 gem 'useragent'
 gem 'jwt'
 gem 'bcrypt'
-gem 'base32', '0.3.2'
-gem 'rotp', '3.1'
-gem 'httparty', '0.13.7'
+gem 'base32', '0.3.4'
+gem 'rotp', '6.2.0'
+gem 'httparty', '0.18.1'
 gem 'ipaddress', '0.8.3'
 gem 'openid_connect', '1.2.0'
 gem 'json'

@@ -38,6 +38,14 @@ module ForestLiana
 
     private
 
+    def get_collection(collection_name)
+      ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+    end
+
+    def get_action(collection, action_name)
+      collection.actions.find {|action| action.name == action_name}
+    end
+
     def generate_apimap
       create_apimap
       require_lib_forest_liana
@@ -45,6 +53,17 @@ module ForestLiana
 
       if Rails.env.development?
         @collections_sent = ForestLiana.apimap.as_json
+
+        @collections_sent.each do |collection|
+          collection['actions'].each do |action|
+            c = get_collection(collection['name'])
+            a = get_action(c, action['name'])
+            load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
+            change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
+            action['hooks'] = {:load => load, :change => change}
+          end
+        end
+
         @meta_sent = ForestLiana.meta
         SchemaFileUpdater.new(SCHEMA_FILENAME, @collections_sent, @meta_sent).perform()
       else

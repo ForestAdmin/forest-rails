@@ -50,6 +50,7 @@ module ForestLiana
       'redirect',
       'download',
       'fields',
+      'hooks',
     ]
     KEYS_ACTION_FIELD = [
       'field',

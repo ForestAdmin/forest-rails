@@ -14,11 +14,18 @@ jobs:
       script: commitlint-travis
     - stage: Tests
       language: ruby
-      before_install: gem install bundler -v '1.17.3'
-      rvm: 2.3.4
+      before_install: gem install bundler -v '2.1.4'
+      rvm: 2.7.2
       script:
         - RAILS_ENV=test bundle exec rake test
         - RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
+      # NOTICE: Handles code coverage reporting to Code Climate
+      before_install:
+        - gem install bundler -v '1.17.3'
+        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        - chmod +x ./cc-test-reporter
+      after_script:
+        - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
     - stage: Build & Publish
       if: branch IN ("master", "beta") AND type != pull_request
       language: node_js

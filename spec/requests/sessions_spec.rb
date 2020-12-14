@@ -20,14 +20,12 @@ RSpec.describe "Authentications", type: :request do
     Rails.cache.delete(URI.join(ForestLiana.application_url, ForestLiana::Engine.routes.url_helpers.authentication_callback_path).to_s)
   end
 
-  headers = {
-    'Accept' => 'application/json',
-    'Content-Type' => 'application/json',
-  }
-
   describe "POST /forest/sessions-google" do
     before() do 
-      post ForestLiana::Engine.routes.url_helpers.sessions_google_path, { :renderingId => 42, :forestToken => "google-access-token" }, :headers => headers
+      post ForestLiana::Engine.routes.url_helpers.sessions_google_path, params: '{ "renderingId": "42", "forestToken": "google-access-token" }', headers: {
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json',
+    }
     end
 
     it "should respond with a 200 code" do

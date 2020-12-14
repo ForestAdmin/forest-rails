@@ -1,6 +1,8 @@
+
 # Forest Admin in Rails
 [![Gem](https://badge.fury.io/rb/forest_liana.svg)](https://badge.fury.io/rb/forest_liana)
-[![CI status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=devel)](https://travis-ci.org/ForestAdmin/forest-rails)
+[![CI status](https://travis-ci.org/ForestAdmin/forest-rails.svg?branch=master)](https://travis-ci.org/ForestAdmin/forest-rails)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/959c02b420b455eac51f/test_coverage)](https://codeclimate.com/github/ForestAdmin/forest-rails/test_coverage)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Forest Admin provides an off-the-shelf administration panel based on a highly-extensible API plugged into your application.
