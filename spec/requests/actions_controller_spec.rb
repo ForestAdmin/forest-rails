@@ -106,23 +106,23 @@ describe 'Requesting Actions routes', :type => :request  do
       params = {recordIds: [1], collectionName: 'Island'}
 
       it 'should respond 200' do
-        post '/forest/actions/my_action/hooks/load', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).stringify_keys]})
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/load', {}
+        post '/forest/actions/my_action/hooks/load', params: {}
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result type' do
-        post '/forest/actions/fail_action/hooks/load', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result data structure' do
-        post '/forest/actions/cheat_action/hooks/load', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
       end
     end
@@ -132,7 +132,7 @@ describe 'Requesting Actions routes', :type => :request  do
       params = {recordIds: [1], fields: [updated_foo], collectionName: 'Island', changedField: 'foo'}
 
       it 'should respond 200' do
-        post '/forest/actions/my_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/my_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
         expected = updated_foo.clone.merge({:value => 'baz'})
         expected[:widgetEdit] = nil
@@ -141,24 +141,24 @@ describe 'Requesting Actions routes', :type => :request  do
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/change', {}
+        post '/forest/actions/my_action/hooks/change', params: {}
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result type' do
-        post '/forest/actions/fail_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/fail_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result data structure' do
-        post '/forest/actions/cheat_action/hooks/change', JSON.dump(params), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/cheat_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
       end
 
       it 'should reset value when enums has changed' do
         updated_enum = enum.clone.merge({:previousValue => nil, :value => 'a'}) # set value to a
         p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
-        post '/forest/actions/enums_action/hooks/change', JSON.dump(p), 'CONTENT_TYPE' => 'application/json'
+        post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 
         expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil, :widgetEdit => nil})

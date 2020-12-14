@@ -1,4 +1,4 @@
-class CreateBelongsToField < ActiveRecord::Migration
+class CreateBelongsToField < ActiveRecord::Migration[4.2]
   def change
     create_table :belongs_to_fields do |t|
       t.references :has_one_field, index: true
