@@ -16,6 +16,7 @@ module ForestLiana
 
   mattr_accessor :env_secret
   mattr_accessor :auth_secret
+  mattr_accessor :forest_client_id
   mattr_accessor :application_url
   mattr_accessor :integrations
   mattr_accessor :apimap

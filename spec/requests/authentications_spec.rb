@@ -39,7 +39,7 @@ describe "Authentications", type: :request do
 
     it "should return a valid authentication url" do
       body = JSON.parse(response.body, :symbolize_names => true)
-      expect(body[:authorization_url]).to eq('https://api.forestadmin.com/oidc/auth?client_id=random_id&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fforest%2Fauthentication%2Fcallback&response_type=code&scope=openid%20email%20profile&state=%7B%22renderingId%22%3D%3E42%7D')
+      expect(body[:authorizationUrl]).to eq('https://api.forestadmin.com/oidc/auth?client_id=random_id&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fforest%2Fauthentication%2Fcallback&response_type=code&scope=openid%20email%20profile&state=%7B%22renderingId%22%3D%3E42%7D')
     end
   end
 
