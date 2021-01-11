@@ -8,11 +8,15 @@ module ForestLiana
         if client_data.nil?
           configuration = ForestLiana::OidcConfigurationRetriever.retrieve()
 
-          client_credentials = ForestLiana::OidcDynamicClientRegistrator.register({
-            token_endpoint_auth_method: 'none',
-            redirect_uris: [callback_url],
-            registration_endpoint: configuration['registration_endpoint']
-          })
+          if ForestLiana.forest_client_id.nil?
+            client_credentials = ForestLiana::OidcDynamicClientRegistrator.register({
+              token_endpoint_auth_method: 'none',
+              redirect_uris: [callback_url],
+              registration_endpoint: configuration['registration_endpoint']
+            })
+          else
+            client_credentials['client_id'] = ForestLiana.forest_client_id
+          end
 
           client_data = { :client_id => client_credentials['client_id'], :issuer => configuration['issuer'] }
           Rails.cache.write(callback_url, client_data)

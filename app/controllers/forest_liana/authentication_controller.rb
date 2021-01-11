@@ -46,7 +46,7 @@ module ForestLiana
           { 'renderingId' => rendering_id },
         )
 
-        redirect_to(result['authorization_url'])
+        render json: result, status: 200
       rescue => error
         render json: { errors: [{ status: 500, detail: error.message }] },
           status: :internal_server_error, serializer: nil
