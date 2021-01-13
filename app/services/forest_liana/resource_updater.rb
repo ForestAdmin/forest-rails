@@ -14,9 +14,9 @@ module ForestLiana
         @record = @resource.find(@params[:id])
 
         if has_strong_parameter
-          @record.update_attributes(resource_params)
+          @record.update(resource_params)
         else
-          @record.update_attributes(resource_params, without_protection: true)
+          @record.update(resource_params, without_protection: true)
         end
       rescue ActiveRecord::StatementInvalid => exception
         # NOTICE: SQL request cannot be executed properly
