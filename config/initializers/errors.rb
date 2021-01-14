@@ -46,6 +46,12 @@ module ForestLiana
       end
     end
 
+    class NotImplementedMethodError < ExpectedError
+      def initialize(message = "Method not implemented")
+        super(501, :internal_server_error, message, 'MethodNotImplementedError')
+      end
+    end
+
     class InconsistentSecretAndRenderingError < ExpectedError
       def initialize(message=ForestLiana::MESSAGES[:SERVER_TRANSACTION][:SECRET_AND_RENDERINGID_INCONSISTENT])
         super(500, :internal_server_error, message, 'InconsistentSecretAndRenderingError')
