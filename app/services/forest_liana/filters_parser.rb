@@ -47,20 +47,39 @@ module ForestLiana
     end
 
     def parse_condition(condition)
+      where = parse_condition_without_smart_field(condition)
+
+      if SchemaUtils.is_smart_field(@resource, field)
+        schema = ForestLiana.schema_for_resource(@resource)
+        field_schema = schema.fields.find do |field|
+          field.try(:name) == field_name
+        end
+
+        unless field_schema.try(:[], :filter)
+          raise ForestLiana::Errors::ExpectedError.new(500, "Server Error", "method filter on smart field '#{field_name}' not found")
+        end
+
+        return field_schema[:search].call(condition, where)
+      end
+
+      where
+    end
+
+    def parse_condition_without_smart_field(condition)
       ensure_valid_condition(condition)
 
       operator = condition['operator']
       value = condition['value']
-      field = condition['field']
+      field_name = condition['field']
 
       if @operator_date_parser.is_date_operator?(operator)
         condition = @operator_date_parser.get_date_filter(operator, value)
-        return "#{parse_field_name(field)} #{condition}"
+        return "#{parse_field_name(field_name)} #{condition}"
       end
 
-      if is_belongs_to(field)
-        association = field.partition(':').first.to_sym
-        association_field = field.partition(':').last
+      if is_belongs_to(field_name)
+        association = field_name.partition(':').first.to_sym
+        association_field = field_name.partition(':').last
 
         unless @resource.reflect_on_association(association)
           raise ForestLiana::Errors::HTTP422Error.new("Association '#{association}' not found")
@@ -68,7 +87,7 @@ module ForestLiana
 
         current_resource = @resource.reflect_on_association(association).klass
       else
-        association_field = field
+        association_field = field_name
         current_resource = @resource
       end
 
@@ -78,7 +97,7 @@ module ForestLiana
         value = current_resource.defined_enums[association_field][value]
       end
 
-      parsed_field = parse_field_name(field)
+      parsed_field = parse_field_name(field_name)
       parsed_operator = parse_operator(operator)
       parsed_value = parse_value(operator, value)
       field_and_operator = "#{parsed_field} #{parsed_operator}"
@@ -167,6 +186,9 @@ module ForestLiana
 
     def is_belongs_to(field)
       field.include?(':')
+    end
+
+    def is_smart_field(field)
     end
 
     def get_association_name_for_condition(field)

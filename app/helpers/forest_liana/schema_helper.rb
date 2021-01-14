@@ -4,5 +4,11 @@ module ForestLiana
       collection_name = ForestLiana.name_for(active_record_class)
       ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
     end
+
+    def self.is_smart_field?(model, field_name)
+      collection = SchemaHelper.find_collection_from_model(model)
+      field_found = collection.fields.find { |collection_field| field.name.to_s == field_name }
+      field_found && field_found[:is_virtual]
+    end
   end
 end
