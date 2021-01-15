@@ -49,17 +49,19 @@ module ForestLiana
     def parse_condition(condition)
       where = parse_condition_without_smart_field(condition)
 
-      if SchemaUtils.is_smart_field(@resource, field)
+      field_name = condition['field']
+
+      if ForestLiana::SchemaHelper.is_smart_field?(@resource, field_name)
         schema = ForestLiana.schema_for_resource(@resource)
         field_schema = schema.fields.find do |field|
           field.try(:name) == field_name
         end
 
         unless field_schema.try(:[], :filter)
-          raise ForestLiana::Errors::ExpectedError.new(500, "Server Error", "method filter on smart field '#{field_name}' not found")
+          raise ForestLiana::Errors::HTTPError.new(501, "Not Implemented", "method filter on smart field '#{field_name}' not found")
         end
 
-        return field_schema[:search].call(condition, where)
+        return field_schema[:filter].call(condition, where)
       end
 
       where
@@ -186,9 +188,6 @@ module ForestLiana
 
     def is_belongs_to(field)
       field.include?(':')
-    end
-
-    def is_smart_field(field)
     end
 
     def get_association_name_for_condition(field)

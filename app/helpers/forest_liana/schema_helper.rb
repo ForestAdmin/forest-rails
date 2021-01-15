@@ -6,8 +6,8 @@ module ForestLiana
     end
 
     def self.is_smart_field?(model, field_name)
-      collection = SchemaHelper.find_collection_from_model(model)
-      field_found = collection.fields.find { |collection_field| field.name.to_s == field_name }
+      collection = self.find_collection_from_model(model)
+      field_found = collection.fields.find { |collection_field| field[:field] == field_name } unless collection
       field_found && field_found[:is_virtual]
     end
   end
