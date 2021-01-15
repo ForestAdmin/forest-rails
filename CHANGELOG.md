@@ -1,3 +1,10 @@
+# [6.0.0-beta.4](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0-beta.3...v6.0.0-beta.4) (2021-01-15)
+
+
+### Bug Fixes
+
+* **auth:** support multi-instances and remove auth's redirection ([#407](https://github.com/ForestAdmin/forest-rails/issues/407)) ([8fcf9d4](https://github.com/ForestAdmin/forest-rails/commit/8fcf9d4ba0f41b8c98451a3d15d31c73ab4fd162))
+
 # [6.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0-beta.2...v6.0.0-beta.3) (2020-12-14)
 
 
