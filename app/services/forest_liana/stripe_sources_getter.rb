@@ -32,7 +32,7 @@ module ForestLiana
 
     def fetch_bank_accounts(customer, params)
       begin
-        @cards = ::Stripe::Customer.retrieve(customer).sources.list(params)
+        @cards = ::Stripe::Customer.retrieve({ id: customer, expand: ['sources'] }).sources.list(params)
         if @cards.blank?
           @records = []
           return
