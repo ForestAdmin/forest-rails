@@ -55,10 +55,18 @@ module ForestLiana
       # Apply result on fields (transform the object back to an array), preserve order.
       fields = action.fields.map do |field|
         updated_field = result[field[:field]]
-        # Reset `value` when not present in `enums` (which means `enums` has changed).
-        if updated_field[:enums].is_a?(Array) && !updated_field[:enums].include?(updated_field[:value])
-          updated_field[:value] = nil
+
+        if updated_field[:enums].is_a?(Array)
+          # `Value` can be an array if the type of fields is `[x]`
+          if updated_field[:type].is_a?(Array) && updated_field[:value].is_a?(Array) && !(updated_field[:value] - updated_field[:enums]).empty?
+            updated_field[:value] = nil
+          end
+
+          if !updated_field[:type].is_a?(Array) && !updated_field[:enums].include?(updated_field[:value])
+            updated_field[:value] = nil
+          end
         end
+
         updated_field
       end
 
