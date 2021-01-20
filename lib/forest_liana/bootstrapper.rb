@@ -436,7 +436,6 @@ module ForestLiana
           { field: :attempt_count, type: 'Number', is_filterable: false },
           { field: :attempted, type: 'Boolean', is_filterable: false },
           { field: :currency, type: 'String', is_filterable: false },
-          { field: :date, type: 'Date', is_filterable: false },
           { field: :due_date, type: 'Date', is_filterable: false },
           { field: :period_start, type: 'Date', is_filterable: false },
           { field: :period_end, type: 'Date', is_filterable: false },

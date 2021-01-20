@@ -9,7 +9,6 @@ module ForestLiana
     attribute :attempt_count
     attribute :attempted
     attribute :currency
-    attribute :date
     attribute :due_date
     attribute :paid
     attribute :period_end
