@@ -89,7 +89,7 @@ describe 'Requesting Actions routes', :type => :request  do
     }
     enums_action_definition = {
       name: 'enums_action',
-      fields: [foo, enum, multiple_enum],
+      fields: [foo, enum],
       hooks: {
         :change => {
           'foo' => -> (context) {
@@ -103,7 +103,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
     multiple_enums_action_definition = {
         name: 'multiple_enums_action',
-        fields: [foo, enum, multiple_enum],
+        fields: [foo, multiple_enum],
         hooks: {
             :change => {
                 'foo' => -> (context) {
@@ -178,7 +178,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
       it 'should reset value when enums has changed' do
         updated_enum = enum.clone.merge({:previousValue => nil, :value => 'a'}) # set value to a
-        p = {recordIds: [1], fields: [updated_foo, updated_enum, multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
         post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 
@@ -186,42 +186,36 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_enum.delete(:widget)
         expected_foo = updated_foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
-        expected_multiple_enum = multiple_enum.clone.merge({ :widgetEdit => nil})
-        expected_multiple_enum.delete(:widget)
 
-        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys, expected_multiple_enum.stringify_keys]})
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys]})
       end
 
       it 'should not reset value when every enum values are in the enums definition' do
         updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[c]})
-        p = {recordIds: [1], fields: [foo, enum, updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        p = {recordIds: [1], fields: [foo, updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
         post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 
         expected_multiple_enum = updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => %w[c]})
         expected_multiple_enum.delete(:widget)
-        expected_enum = enum.clone.merge({ :widgetEdit => nil, :value => nil})
-        expected_enum.delete(:widget)
         expected_foo = foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
 
-        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys, expected_multiple_enum.stringify_keys]})
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
       end
 
       it 'should reset value when one of the enum values is not in the enums definition' do
         wrongly_updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[a b]})
-        p = {recordIds: [1], fields: [foo, enum, wrongly_updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        p = {recordIds: [1], fields: [foo, wrongly_updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
         post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 
         expected_multiple_enum = wrongly_updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => nil })
         expected_multiple_enum.delete(:widget)
-        expected_enum = enum.clone.merge({ :widgetEdit => nil, :value => nil})
-        expected_enum.delete(:widget)
         expected_foo = foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
 
-        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys, expected_multiple_enum.stringify_keys]})
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
       end
     end
   end
