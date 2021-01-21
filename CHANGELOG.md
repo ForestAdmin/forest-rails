@@ -1,3 +1,10 @@
+## [5.4.1](https://github.com/ForestAdmin/forest-rails/compare/v5.4.0...v5.4.1) (2021-01-21)
+
+
+### Bug Fixes
+
+* **smart-action-hook:** value injected to an enum field of type is now correctly handled ([#414](https://github.com/ForestAdmin/forest-rails/issues/414)) ([ef90105](https://github.com/ForestAdmin/forest-rails/commit/ef90105659f57c4c8531b0c4d576f345bc976b33))
+
 # [5.4.0](https://github.com/ForestAdmin/forest-rails/compare/v5.3.3...v5.4.0) (2020-12-10)
 
 
