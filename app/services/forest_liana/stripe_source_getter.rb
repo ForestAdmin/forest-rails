@@ -12,7 +12,7 @@ module ForestLiana
       customer = resource[field]
 
       @record = ::Stripe::Customer
-        .retrieve(customer)
+        .retrieve({ id: customer, expand: ['sources'] })
         .sources.retrieve(@params[:objectId])
 
       query = {}

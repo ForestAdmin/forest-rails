@@ -32,7 +32,7 @@ module ForestLiana
         end
 
         @records = @invoices.data.map do |d|
-          d.date = Time.at(d.date).to_datetime
+          d.date = Time.at(d.created).to_datetime
           d.period_start = Time.at(d.period_start).to_datetime
           d.period_end = Time.at(d.period_end).to_datetime
           d.subtotal /= 100.00
