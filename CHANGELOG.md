@@ -1,3 +1,10 @@
+## [5.4.2](https://github.com/ForestAdmin/forest-rails/compare/v5.4.1...v5.4.2) (2021-01-27)
+
+
+### Bug Fixes
+
+* **stripe:** fix serialization issues on invoices ([#412](https://github.com/ForestAdmin/forest-rails/issues/412)) ([d9595bf](https://github.com/ForestAdmin/forest-rails/commit/d9595bfc79a46a9471f87154a023e35c4fd7d423))
+
 ## [5.4.1](https://github.com/ForestAdmin/forest-rails/compare/v5.4.0...v5.4.1) (2021-01-21)
 
 
