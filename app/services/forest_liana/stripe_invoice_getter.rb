@@ -11,7 +11,7 @@ module ForestLiana
       query = {}
       @record = ::Stripe::Invoice.retrieve(@params[:invoice_id])
 
-      @record.date = Time.at(@record.date).to_datetime
+      @record.due_date = Time.at(@record.due_date).to_datetime unless @record.due_date.nil?
       @record.period_start = Time.at(@record.period_start).to_datetime
       @record.period_end = Time.at(@record.period_end).to_datetime
       @record.subtotal /= 100.00

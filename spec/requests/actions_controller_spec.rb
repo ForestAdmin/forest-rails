@@ -35,6 +35,11 @@ describe 'Requesting Actions routes', :type => :request  do
         type: 'Enum',
         enums: %w[a b c],
     }
+    multiple_enum = {
+        field: 'multipleEnum',
+        type: ['Enum'],
+        enums: %w[a b c],
+    }
 
     action_definition = {
         name: 'my_action',
@@ -95,12 +100,28 @@ describe 'Requesting Actions routes', :type => :request  do
         }
       }
     }
+
+    multiple_enums_action_definition = {
+        name: 'multiple_enums_action',
+        fields: [foo, multiple_enum],
+        hooks: {
+            :change => {
+                'foo' => -> (context) {
+                  fields = context[:fields]
+                  fields['multipleEnum'][:enums] = %w[c d z]
+                  return fields
+                }
+            }
+        }
+    }
+
     action = ForestLiana::Model::Action.new(action_definition)
     fail_action = ForestLiana::Model::Action.new(fail_action_definition)
     cheat_action = ForestLiana::Model::Action.new(cheat_action_definition)
     enums_action = ForestLiana::Model::Action.new(enums_action_definition)
+    multiple_enums_action = ForestLiana::Model::Action.new(multiple_enums_action_definition)
     island = ForestLiana.apimap.find {|collection| collection.name.to_s == ForestLiana.name_for(Island)}
-    island.actions = [action, fail_action, cheat_action, enums_action]
+    island.actions = [action, fail_action, cheat_action, enums_action, multiple_enums_action]
 
     describe 'call /load' do
       params = {recordIds: [1], collectionName: 'Island'}
@@ -169,6 +190,33 @@ describe 'Requesting Actions routes', :type => :request  do
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys]})
       end
 
+      it 'should not reset value when every enum values are in the enums definition' do
+        updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[c]})
+        p = {recordIds: [1], fields: [foo, updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        expect(response.status).to eq(200)
+
+        expected_multiple_enum = updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => %w[c]})
+        expected_multiple_enum.delete(:widget)
+        expected_foo = foo.clone.merge({ :widgetEdit => nil})
+        expected_foo.delete(:widget)
+
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
+      end
+
+      it 'should reset value when one of the enum values is not in the enums definition' do
+        wrongly_updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[a b]})
+        p = {recordIds: [1], fields: [foo, wrongly_updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        expect(response.status).to eq(200)
+
+        expected_multiple_enum = wrongly_updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => nil })
+        expected_multiple_enum.delete(:widget)
+        expected_foo = foo.clone.merge({ :widgetEdit => nil})
+        expected_foo.delete(:widget)
+
+        expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
+      end
     end
   end
 end

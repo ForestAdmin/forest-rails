@@ -106,7 +106,7 @@ module ForestLiana
           conditions: [{
             field: 'created_at',
             operator: 'after',
-            value: '2015-06-18 08:00:00',
+            value: "#{Time.now.year - 5}-06-18 08:00:00",
           }, {
             field: 'owner:name',
             operator: 'equal',
