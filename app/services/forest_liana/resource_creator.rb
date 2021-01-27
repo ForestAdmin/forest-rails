@@ -53,7 +53,7 @@ module ForestLiana
     end
 
     def has_strong_parameter
-      Rails::VERSION::MAJOR > 5 || @resource.instance_method(:update_attributes!).arity == 1
+      Rails::VERSION::MAJOR > 5 || @resource.instance_method(:update!).arity == 1
     end
   end
 end
