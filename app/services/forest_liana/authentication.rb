@@ -26,9 +26,7 @@ module ForestLiana
 
       user = ForestLiana::AuthorizationGetter.authenticate(
         rendering_id,
-        true,
         { :forest_token => access_token_instance.instance_variable_get(:@access_token) },
-        nil,
       )
 
       return ForestLiana::Token.create_token(user, rendering_id)

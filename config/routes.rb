@@ -9,10 +9,6 @@ ForestLiana::Engine.routes.draw do
   get 'authentication/callback' => 'authentication#authentication_callback'
   post 'authentication/logout' => 'authentication#logout'
 
-  # Session
-  post 'sessions' => 'sessions#create_with_password'
-  post 'sessions-google' => 'sessions#create_with_google'
-
   # Associations
   get ':collection/:id/relationships/:association_name' => 'associations#index'
   get ':collection/:id/relationships/:association_name/count' => 'associations#count'

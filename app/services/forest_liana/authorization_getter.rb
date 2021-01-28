@@ -1,20 +1,10 @@
 module ForestLiana
   class AuthorizationGetter
-    def self.authenticate(rendering_id, use_google_authentication, auth_data, two_factor_registration)
+    def self.authenticate(rendering_id, auth_data)
       begin
         route = "/liana/v2/renderings/#{rendering_id.to_s}/authorization"
-
-        if !use_google_authentication.nil?
-          headers = { 'forest-token' => auth_data[:forest_token] }
-        elsif !auth_data[:email].nil?
-          headers = { 'email' => auth_data[:email], 'password' => auth_data[:password] }
-        end
-
+        headers = { 'forest-token' => auth_data[:forest_token] }
         query_parameters = {}
-
-        unless two_factor_registration.nil?
-          query_parameters['two-factor-registration'] = true
-        end
 
         response = ForestLiana::ForestApiRequester
           .get(route, query: query_parameters, headers: headers)
@@ -25,11 +15,7 @@ module ForestLiana
           user['id'] = body['data']['id']
           user
         else
-          unless use_google_authentication.nil?
-            raise "Cannot authorize the user using this google account. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
-          else
-            raise "Cannot authorize the user using this email/password. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
-          end
+            raise "Cannot authorize the user using this forest account. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
         end
       rescue
         raise ForestLiana::Errors::HTTP401Error

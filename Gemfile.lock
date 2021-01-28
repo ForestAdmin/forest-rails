@@ -1,9 +1,8 @@
 PATH
   remote: .
   specs:
-    forest_liana (6.0.0-beta.4)
+    forest_liana (6.0.0.pre.beta.4)
       arel-helpers
-      base32
       bcrypt
       groupdate (= 2.5.2)
       httparty
@@ -15,7 +14,6 @@ PATH
       openid_connect
       rack-cors
       rails (>= 4.0)
-      rotp
       useragent
 
 GEM
@@ -80,7 +78,6 @@ GEM
     arel-helpers (2.11.0)
       activerecord (>= 3.1.0, < 7)
     attr_required (1.0.1)
-    base32 (0.3.4)
     bcrypt (3.1.16)
     bindata (2.4.8)
     builder (3.2.4)
@@ -177,7 +174,6 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.20.3, < 2.0)
     rake (13.0.1)
-    rotp (6.2.0)
     rspec-core (3.8.2)
       rspec-support (~> 3.8.0)
     rspec-expectations (3.8.6)
@@ -237,7 +233,6 @@ PLATFORMS
 
 DEPENDENCIES
   arel-helpers (= 2.11.0)
-  base32 (= 0.3.4)
   bcrypt
   byebug
   forest_liana!
@@ -252,7 +247,6 @@ DEPENDENCIES
   rack-cors
   rails (= 6.0.3.4)
   rake
-  rotp (= 6.2.0)
   rspec-rails (= 3.8.2)
   simplecov
   sqlite3 (~> 1.4)
