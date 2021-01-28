@@ -1,3 +1,10 @@
+## [5.4.3](https://github.com/ForestAdmin/forest-rails/compare/v5.4.2...v5.4.3) (2021-01-28)
+
+
+### Bug Fixes
+
+* use update instead of update_attribute to ensure rails 6.1 compatibility ([#417](https://github.com/ForestAdmin/forest-rails/issues/417)) ([41f9afb](https://github.com/ForestAdmin/forest-rails/commit/41f9afb8b2e45b2c26147f5f7bfe1941a38b3fd7))
+
 ## [5.4.2](https://github.com/ForestAdmin/forest-rails/compare/v5.4.1...v5.4.2) (2021-01-27)
 
 
