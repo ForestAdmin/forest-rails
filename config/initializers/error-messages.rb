@@ -15,6 +15,9 @@ module ForestLiana
       INVALID_RENDERING_ID: "The parameter renderingId is not valid",
       REGISTRATION_FAILED: "The registration to the authentication API failed, response: ",
       OIDC_CONFIGURATION_RETRIEVAL_FAILED: "Failed to retrieve the provider's configuration.",
+      names: {
+        TWO_FACTOR_AUTHENTICATION_REQUIRED: 'TwoFactorAuthenticationRequiredForbiddenError',
+      }
     }
   }
 end
