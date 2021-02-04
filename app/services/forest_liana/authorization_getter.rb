@@ -1,23 +1,12 @@
 module ForestLiana
   class AuthorizationGetter
-    def self.authenticate(rendering_id, use_google_authentication, auth_data, two_factor_registration)
+    def self.authenticate(rendering_id, auth_data)
       begin
         route = "/liana/v2/renderings/#{rendering_id.to_s}/authorization"
-
-        if !use_google_authentication.nil?
-          headers = { 'forest-token' => auth_data[:forest_token] }
-        elsif !auth_data[:email].nil?
-          headers = { 'email' => auth_data[:email], 'password' => auth_data[:password] }
-        end
-
-        query_parameters = {}
-
-        unless two_factor_registration.nil?
-          query_parameters['two-factor-registration'] = true
-        end
+        headers = { 'forest-token' => auth_data[:forest_token] }
 
         response = ForestLiana::ForestApiRequester
-          .get(route, query: query_parameters, headers: headers)
+          .get(route, query: {}, headers: headers)
 
         if response.code.to_i == 200
           body = JSON.parse(response.body, :symbolize_names => false)
@@ -25,15 +14,28 @@ module ForestLiana
           user['id'] = body['data']['id']
           user
         else
-          unless use_google_authentication.nil?
-            raise "Cannot authorize the user using this google account. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
-          else
-            raise "Cannot authorize the user using this email/password. Forest API returned an #{Errors::HTTPErrorHelper.format(response)}"
-          end
+          raise generate_authentication_error response
         end
-      rescue
-        raise ForestLiana::Errors::HTTP401Error
       end
+    end
+
+    private
+    def self.generate_authentication_error(error)
+      case error[:message]
+      when ForestLiana::MESSAGES[:SERVER_TRANSACTION][:SECRET_AND_RENDERINGID_INCONSISTENT]
+        return ForestLiana::Errors::InconsistentSecretAndRenderingError.new()
+      when ForestLiana::MESSAGES[:SERVER_TRANSACTION][:SECRET_NOT_FOUND]
+        return ForestLiana::Errors::SecretNotFoundError.new()
+      else
+      end
+
+      serverError = error[:jse_cause][:response][:body][:errors][0] || nil
+
+      if !serverError.nil? && serverError[:name] == ForestLiana::MESSAGES[:SERVER_TRANSACTION][:names][:TWO_FACTOR_AUTHENTICATION_REQUIRED]
+        return ForestLiana::Errors::TwoFactorAuthenticationRequiredError.new()
+      end
+
+      return StandardError.new(error)
     end
   end
 end
