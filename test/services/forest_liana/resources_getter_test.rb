@@ -119,6 +119,8 @@ module ForestLiana
       records = getter.records
       count = getter.count
 
+      print 'records.count'
+      print records.count
       assert records.count == 1
       assert count = 1
       assert records.first.id == 4
