@@ -31,7 +31,7 @@ This project has been designed with scalability in mind to fit requirements from
 ## How it works
 
 <p align="center" style="margin: 60px 0">
-  <img width="100%" src="https://www.forestadmin.com/public/img/illustrations-dev/schema-1.png" alt="Howitworks">
+  <img width="100%" src="https://www.forestadmin.com/public/img/rails/schemas/schema-1.png" alt="Howitworks">
 </p>
 
 Forest Admin consists of two components:

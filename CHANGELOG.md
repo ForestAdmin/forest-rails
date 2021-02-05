@@ -1,3 +1,24 @@
+## [5.4.3](https://github.com/ForestAdmin/forest-rails/compare/v5.4.2...v5.4.3) (2021-01-28)
+
+
+### Bug Fixes
+
+* use update instead of update_attribute to ensure rails 6.1 compatibility ([#417](https://github.com/ForestAdmin/forest-rails/issues/417)) ([41f9afb](https://github.com/ForestAdmin/forest-rails/commit/41f9afb8b2e45b2c26147f5f7bfe1941a38b3fd7))
+
+## [5.4.2](https://github.com/ForestAdmin/forest-rails/compare/v5.4.1...v5.4.2) (2021-01-27)
+
+
+### Bug Fixes
+
+* **stripe:** fix serialization issues on invoices ([#412](https://github.com/ForestAdmin/forest-rails/issues/412)) ([d9595bf](https://github.com/ForestAdmin/forest-rails/commit/d9595bfc79a46a9471f87154a023e35c4fd7d423))
+
+## [5.4.1](https://github.com/ForestAdmin/forest-rails/compare/v5.4.0...v5.4.1) (2021-01-21)
+
+
+### Bug Fixes
+
+* **smart-action-hook:** value injected to an enum field of type is now correctly handled ([#414](https://github.com/ForestAdmin/forest-rails/issues/414)) ([ef90105](https://github.com/ForestAdmin/forest-rails/commit/ef90105659f57c4c8531b0c4d576f345bc976b33))
+
 # [6.0.0-beta.4](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0-beta.3...v6.0.0-beta.4) (2021-01-15)
 
 
