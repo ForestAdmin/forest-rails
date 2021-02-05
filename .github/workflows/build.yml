@@ -82,6 +82,7 @@ jobs:
         uses: cycjimmy/semantic-release-action@v2
         id: semantic
         env:
+          GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           GIT_AUTHOR_EMAIL: ${{ secrets.GIT_AUTHOR_EMAIL }}
           GIT_AUTHOR_NAME: ${{ secrets.GIT_AUTHOR_NAME }}
