@@ -3,20 +3,20 @@ module ForestLiana
     include JSONAPI::Serializer
 
     attribute :amount_due
+    attribute :amount_paid
+    attribute :amount_remaining
+    attribute :application_fee_amount
     attribute :attempt_count
     attribute :attempted
-    attribute :closed
     attribute :currency
-    attribute :date
-    attribute :forgiven
+    attribute :due_date
     attribute :paid
     attribute :period_end
     attribute :period_start
+    attribute :status
     attribute :subtotal
     attribute :total
-    attribute :application_fee
     attribute :tax
-    attribute :tax_percent
 
     has_one :customer
 

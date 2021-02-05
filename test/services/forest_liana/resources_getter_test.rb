@@ -106,7 +106,7 @@ module ForestLiana
           conditions: [{
             field: 'created_at',
             operator: 'after',
-            value: '2015-06-18 08:00:00',
+            value: "#{Time.now.year - 5}-06-18 08:00:00",
           }, {
             field: 'owner:name',
             operator: 'equal',
@@ -119,8 +119,8 @@ module ForestLiana
       records = getter.records
       count = getter.count
 
-      assert records.count == 2
-      assert count = 2
+      assert records.count == 1
+      assert count = 1
       assert records.first.id == 4
       assert records.first.name == 'Oak'
       assert records.first.owner.name == 'Arnaud Besnier'
