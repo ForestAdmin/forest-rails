@@ -56,6 +56,7 @@ jobs:
         run: |
           bundle config path vendor/bundle
           gem install bundler -v '1.17.3'
+          bundle install
       - name: Test
         timeout-minutes: 30
         run: |
