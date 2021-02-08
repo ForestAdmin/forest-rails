@@ -55,10 +55,11 @@ jobs:
         uses: paambaati/codeclimate-action@v2.7.4
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          RAILS_ENV: test
         with:
           coverageCommand: |
-            RAILS_ENV=test bundle exec rake test
-            RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
+            bundle exec rake test
+            bundle exec rake db:migrate && bundle exec rspec --color --format doc
 
   deploy:
     name: Release
