@@ -52,12 +52,15 @@ jobs:
           gem install bundler -v '1.17.3'
           bundle install
       - name: Test
+        env:
+          RAILS_ENV: test
+        run: |
+          bundle exec rake test
+          bundle exec rake db:migrate && bundle exec rspec --color --format doc
+      - name: Send coverage
         uses: paambaati/codeclimate-action@v2.7.4
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-          RAILS_ENV: test
-        with:
-          coverageCommand: bundle exec rake test && bundle exec rake db:migrate && bundle exec rspec doc
 
   deploy:
     name: Release
