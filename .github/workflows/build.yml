@@ -57,7 +57,7 @@ jobs:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
           RAILS_ENV: test
         with:
-          coverageCommand: bundle exec rake test && bundle exec rake db:migrate && bundle exec rspec --color --format doc
+          coverageCommand: bundle exec rake test && bundle exec rake db:migrate && bundle exec rspec --format doc
 
   deploy:
     name: Release
