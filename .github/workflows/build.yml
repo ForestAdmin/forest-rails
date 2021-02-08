@@ -63,7 +63,7 @@ jobs:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
           coverageLocations: |
-            ${{github.workspace}}/coverage/index.html:html
+            ${{github.workspace}}/coverage/.resultset.json:simplecov
 
 
   deploy:
