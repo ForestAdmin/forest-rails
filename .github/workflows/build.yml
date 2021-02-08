@@ -59,7 +59,8 @@ jobs:
         with:
           coverageCommand: |
             bundle exec rake test
-            bundle exec rake db:migrate && bundle exec rspec --color --format doc
+            bundle exec rake db:migrate
+            bundle exec rspec --color --format doc
 
   deploy:
     name: Release
