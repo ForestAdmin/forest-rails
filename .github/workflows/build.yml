@@ -6,12 +6,6 @@ on:
       - master
   pull_request:
 
-env:
-  SERVER_HOST: http://localhost:3001
-  WEBSOCKET_ENDPOINT: ws://localhost:3001/subscriptions
-  DEFAULT_DOMAIN: localhost:4200
-  BROCCOLI_PERSISTENT_FILTER_CACHE_ROOT: ./broccoli-tmp
-
 jobs:
   lint:
     name: Linting
