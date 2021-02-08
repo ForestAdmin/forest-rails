@@ -58,10 +58,13 @@ jobs:
           gem install bundler -v '1.17.3'
           bundle install
       - name: Test
-        timeout-minutes: 30
-        run: |
-          RAILS_ENV=test bundle exec rake test
-          RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
+        uses: paambaati/codeclimate-action@v2.7.4
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: |
+            RAILS_ENV=test bundle exec rake test
+            RAILS_ENV=test bundle exec rake db:migrate && bundle exec rspec --color --format doc
 
   deploy:
     name: Release
