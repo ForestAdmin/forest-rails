@@ -61,6 +61,10 @@ jobs:
         uses: paambaati/codeclimate-action@v2.7.4
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageLocations: |
+            ${{github.workspace}}/coverage/index.html:html
+
 
   deploy:
     name: Release
