@@ -17,6 +17,7 @@ module.exports = {
       },
     ],
     '@semantic-release/github',
+    'semantic-release-rubygem',
     [
       'semantic-release-slack-bot',
       {

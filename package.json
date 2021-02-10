@@ -27,6 +27,7 @@
     "@semantic-release/git": "9.0.0",
     "husky": "4.2.5",
     "semantic-release": "17.3.0",
+    "semantic-release-rubygem": "1.2.0",
     "semantic-release-slack-bot": "1.6.2"
   }
 }
