@@ -1,3 +1,10 @@
+## [5.4.4](https://github.com/ForestAdmin/forest-rails/compare/v5.4.3...v5.4.4) (2021-02-19)
+
+
+### Bug Fixes
+
+* display a warning on missing association ([#426](https://github.com/ForestAdmin/forest-rails/issues/426)) ([a4974a3](https://github.com/ForestAdmin/forest-rails/commit/a4974a33968eb3ec6574bf9fb0a0e59ca9b86b78))
+
 ## [5.4.3](https://github.com/ForestAdmin/forest-rails/compare/v5.4.2...v5.4.3) (2021-01-28)
 
 
