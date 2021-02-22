@@ -21,12 +21,12 @@
   "devDependencies": {
     "@commitlint/cli": "11.0.0",
     "@commitlint/config-conventional": "11.0.0",
-    "@commitlint/travis-cli": "11.0.0",
     "@semantic-release/changelog": "5.0.1",
     "@semantic-release/exec": "5.0.0",
     "@semantic-release/git": "9.0.0",
     "husky": "4.2.5",
     "semantic-release": "17.3.0",
+    "semantic-release-rubygem": "1.2.0",
     "semantic-release-slack-bot": "1.6.2"
   }
 }

@@ -1,3 +1,10 @@
+## [5.4.4](https://github.com/ForestAdmin/forest-rails/compare/v5.4.3...v5.4.4) (2021-02-19)
+
+
+### Bug Fixes
+
+* display a warning on missing association ([#426](https://github.com/ForestAdmin/forest-rails/issues/426)) ([a4974a3](https://github.com/ForestAdmin/forest-rails/commit/a4974a33968eb3ec6574bf9fb0a0e59ca9b86b78))
+
 ## [5.4.3](https://github.com/ForestAdmin/forest-rails/compare/v5.4.2...v5.4.3) (2021-01-28)
 
 
@@ -42,6 +49,13 @@
 * **role:** add support for new roles ACL permissions ([#391](https://github.com/ForestAdmin/forest-rails/issues/391)) ([ae3539e](https://github.com/ForestAdmin/forest-rails/commit/ae3539e59c49b525078639a6d316ae2b5598ed75))
 * handle hooks ([#382](https://github.com/ForestAdmin/forest-rails/issues/382)) ([8dd0e35](https://github.com/ForestAdmin/forest-rails/commit/8dd0e356be27b33379b2aaa0376deb3a76123300))
 
+# [5.4.0](https://github.com/ForestAdmin/forest-rails/compare/v5.3.3...v5.4.0) (2020-12-10)
+
+
+### Features
+
+* **role:** add support for new roles ACL permissions ([#391](https://github.com/ForestAdmin/forest-rails/issues/391)) ([ae3539e](https://github.com/ForestAdmin/forest-rails/commit/ae3539e59c49b525078639a6d316ae2b5598ed75))
+
 # [6.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0-beta.1...v6.0.0-beta.2) (2020-12-09)
 
 
@@ -73,13 +87,6 @@
 
 * **auth:** New authentication system.
 The application_url must be set in the ForestLiana initializer, adding a regex CORS rule for null origin is required.
-
-# [5.4.0](https://github.com/ForestAdmin/forest-rails/compare/v5.3.3...v5.4.0) (2020-12-10)
-
-
-### Features
-
-* **role:** add support for new roles ACL permissions ([#391](https://github.com/ForestAdmin/forest-rails/issues/391)) ([ae3539e](https://github.com/ForestAdmin/forest-rails/commit/ae3539e59c49b525078639a6d316ae2b5598ed75))
 
 ## [5.3.3](https://github.com/ForestAdmin/forest-rails/compare/v5.3.2...v5.3.3) (2020-12-08)
 
