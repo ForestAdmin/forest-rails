@@ -16,7 +16,8 @@ module ForestLiana
             "Content-Type" => "application/json",
             "forest-secret-key" => "env_secret_test"
           },
-          :query => expected_query_parameters
+          :query => expected_query_parameters,
+          :verify => false
         }
       }
 

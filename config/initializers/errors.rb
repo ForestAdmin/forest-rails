@@ -14,12 +14,13 @@ module ForestLiana
     end
 
     class ExpectedError < StandardError
-      attr_reader :error_code, :status, :message
+      attr_reader :error_code, :status, :message, :name
 
-      def initialize(error_code, status, message)
+      def initialize(error_code, status, message, name = nil)
         @error_code = error_code
         @status = status
         @message = message
+        @name = name
       end
 
       def display_error
@@ -42,6 +43,24 @@ module ForestLiana
     class HTTP422Error < ExpectedError
       def initialize(message = "Unprocessable Entity")
         super(422, :unprocessable_entity, message)
+      end
+    end
+
+    class InconsistentSecretAndRenderingError < ExpectedError
+      def initialize(message=ForestLiana::MESSAGES[:SERVER_TRANSACTION][:SECRET_AND_RENDERINGID_INCONSISTENT])
+        super(500, :internal_server_error, message, 'InconsistentSecretAndRenderingError')
+      end
+    end
+
+    class SecretNotFoundError < ExpectedError
+      def initialize(message=ForestLiana::MESSAGES[:SERVER_TRANSACTION][:SECRET_NOT_FOUND])
+        super(500, :internal_server_error, message, 'SecretNotFoundError')
+      end
+    end
+
+    class TwoFactorAuthenticationRequiredError < ExpectedError
+      def initialize(message='Two factor authentication required')
+        super(403, :forbidden, message, 'TwoFactorAuthenticationRequiredError')
       end
     end
 

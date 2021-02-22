@@ -12,18 +12,6 @@ module ForestLiana
         controller: 'forest_liana/apimaps', action: 'index'
       })
 
-      # Session
-      assert_routing({
-        method: 'post', path: 'sessions'
-      }, {
-        controller: 'forest_liana/sessions', action: 'create_with_password'
-      })
-      assert_routing({
-        method: 'post', path: 'sessions-google'
-      }, {
-        controller: 'forest_liana/sessions', action: 'create_with_google'
-      })
-
       # Associations
       assert_routing({
         method: 'get', path: ':collection/:id/relationships/:association_name'

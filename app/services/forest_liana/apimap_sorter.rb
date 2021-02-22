@@ -61,7 +61,7 @@ module ForestLiana
     def perform
       begin
         @apimap = reorder_keys_basic(@apimap)
-        sort_array_of_objects(@apimap['data']);
+        sort_array_of_objects(@apimap['data'])
         @apimap['data'].map! do |collection|
           collection = reorder_keys_child(collection)
           collection['attributes'] = reorder_collection_attributes(collection['attributes'])

@@ -48,7 +48,6 @@ module ForestLiana
 
     def is_allowed
       permissions = get_permissions_content
-
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
         if @permission_name === 'actions'

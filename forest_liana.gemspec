@@ -25,8 +25,9 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "groupdate", "2.5.2"
   s.add_runtime_dependency "useragent"
   s.add_runtime_dependency "bcrypt"
-  s.add_runtime_dependency "rotp"
-  s.add_runtime_dependency "base32"
   s.add_runtime_dependency "httparty"
   s.add_runtime_dependency "ipaddress"
+  s.add_runtime_dependency "json"
+  s.add_runtime_dependency "json-jwt"
+  s.add_runtime_dependency "openid_connect"
 end
