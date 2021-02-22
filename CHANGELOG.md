@@ -1,3 +1,26 @@
+# [6.0.0](https://github.com/ForestAdmin/forest-rails/compare/v5.4.4...v6.0.0) (2021-02-22)
+
+
+### Bug Fixes
+
+* **auth:** support multi-instances and remove auth's redirection ([#407](https://github.com/ForestAdmin/forest-rails/issues/407)) ([8fcf9d4](https://github.com/ForestAdmin/forest-rails/commit/8fcf9d4ba0f41b8c98451a3d15d31c73ab4fd162))
+* **gemfile:** gemfile.lock forest_liana version mismatch ([#401](https://github.com/ForestAdmin/forest-rails/issues/401)) ([60ceaf1](https://github.com/ForestAdmin/forest-rails/commit/60ceaf195371c56ee327cffbd40e8b85bf42ea3a))
+
+
+### Features
+
+* **auth:** authenticate using oidc ([#383](https://github.com/ForestAdmin/forest-rails/issues/383)) ([b535ab4](https://github.com/ForestAdmin/forest-rails/commit/b535ab4e7e7e371c93d01bdb41c6006bd9acc7cd))
+* **auth:** authenticate using oidc ([#400](https://github.com/ForestAdmin/forest-rails/issues/400)) ([4898b73](https://github.com/ForestAdmin/forest-rails/commit/4898b73bc70bf3a4828d7cdf63cd642add10b643))
+
+
+### BREAKING CHANGES
+
+* **auth:** Introduces a new authentication system.
+- The application_url property is required to initialize ForestLiana,
+- CORS rules must be adapted (to allow null origins).
+* **auth:** New authentication system.
+The application_url must be set in the ForestLiana initializer, adding a regex CORS rule for null origin is required.
+
 ## [5.4.4](https://github.com/ForestAdmin/forest-rails/compare/v5.4.3...v5.4.4) (2021-02-19)
 
 
