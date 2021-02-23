@@ -18,7 +18,7 @@ module ForestLiana
         ForestLiana.auth_secret = ForestLiana.auth_key
       end
 
-      unless Rails.application.config.action_controller.perform_caching
+      unless Rails.application.config.action_controller.perform_caching || Rails.env.test?
         FOREST_LOGGER.error "You need to enable caching on your environment to use Forest.\n" \
           "For a development environment, run: `rails dev:cache`"
         exit(false)
