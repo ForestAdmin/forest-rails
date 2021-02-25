@@ -18,11 +18,11 @@ module ForestLiana
         ForestLiana.auth_secret = ForestLiana.auth_key
       end
 
-      unless Rails.application.config.action_controller.perform_caching || Rails.env.test?
+      unless Rails.application.config.action_controller.perform_caching || Rails.env.test? || ForestLiana.forest_client_id
         FOREST_LOGGER.error "You need to enable caching on your environment to use Forest.\n" \
           "For a development environment, run: `rails dev:cache`\n" \
           "Or setup a static forest_client_id by following this part of the documentation:\n" \
-          "https://docs.forestadmin.com/documentation/how-tos/maintain/upgrade-notes-rails/upgrade-to-v6#multiple-instances-of-your-agent"
+          "https://docs.forestadmin.com/documentation/how-tos/maintain/upgrade-notes-rails/upgrade-to-v6#setup-a-static-clientid"
         exit(false)
       end
 
