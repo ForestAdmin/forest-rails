@@ -23,7 +23,6 @@ module ForestLiana
           "For a development environment, run: `rails dev:cache`\n" \
           "Or setup a static forest_client_id by following this part of the documentation:\n" \
           "https://docs.forestadmin.com/documentation/how-tos/maintain/upgrade-notes-rails/upgrade-to-v6#setup-a-static-clientid"
-        exit(false)
       end
 
       fetch_models
