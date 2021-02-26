@@ -86,7 +86,7 @@ module ForestLiana
         render json: response_body, status: 200
 
       rescue => error
-        render json: { errors: [{ status: error.error_code || 500, detail: error.message }] },
+        render json: { errors: [{ status: error.try(:error_code) || 500, detail: error.message }] },
           status: error.status || :internal_server_error, serializer: nil
       end
     end

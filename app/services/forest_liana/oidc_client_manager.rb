@@ -15,7 +15,7 @@ module ForestLiana
               registration_endpoint: configuration['registration_endpoint']
             })
           else
-            client_credentials['client_id'] = ForestLiana.forest_client_id
+            client_credentials = { 'client_id' => ForestLiana.forest_client_id }
           end
 
           client_data = { :client_id => client_credentials['client_id'], :issuer => configuration['issuer'] }
