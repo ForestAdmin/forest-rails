@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0...v6.0.1) (2021-02-26)
+
+
+### Bug Fixes
+
+* **authentication:** add missing environment variable generation and check if caching is enabled (#epz6k0) ([#431](https://github.com/ForestAdmin/forest-rails/issues/431)) ([3fb83d1](https://github.com/ForestAdmin/forest-rails/commit/3fb83d17e2cfa8aa6148f90eba1f62748e938135)), closes [#epz6k0](https://github.com/ForestAdmin/forest-rails/issues/epz6k0)
+
 # [6.0.0](https://github.com/ForestAdmin/forest-rails/compare/v5.4.4...v6.0.0) (2021-02-22)
 
 
