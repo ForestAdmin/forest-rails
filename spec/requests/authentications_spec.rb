@@ -61,7 +61,7 @@ describe "Authentications", type: :request do
 
     it "should return a valid authentication token" do
       session_cookie = response.headers['set-cookie']
-      expect(session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=[^;]+; secure; HttpOnly$/)
+      expect(session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=[^;]+; secure; HttpOnly; SameSite=None$/)
 
       token = session_cookie.match(/^forest_session_token=([^;]+);/)[1]
       decoded = JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]

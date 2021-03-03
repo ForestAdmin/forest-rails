@@ -104,7 +104,7 @@ module ForestLiana
                 httponly: true,
                 secure: true,
                 expires: Time.at(0),
-                samesite: 'none',
+                same_site: :None,
                 path: '/'
               },
             )
