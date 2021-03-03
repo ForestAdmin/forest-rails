@@ -100,7 +100,7 @@ describe "Authentications", type: :request do
 
     it "should invalidate token from browser" do
       invalidated_session_cookie = response.headers['set-cookie']
-      expect(invalidated_session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; HttpOnly$/)
+      expect(invalidated_session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; HttpOnly; SameSite=None$/)
     end
   end
 end
