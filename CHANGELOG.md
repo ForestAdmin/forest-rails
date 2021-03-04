@@ -1,3 +1,10 @@
+## [6.0.3](https://github.com/ForestAdmin/forest-rails/compare/v6.0.2...v6.0.3) (2021-03-04)
+
+
+### Bug Fixes
+
+* **authentication:** safari cannot login on remote lianas because of third party cookies ([#435](https://github.com/ForestAdmin/forest-rails/issues/435)) ([033661f](https://github.com/ForestAdmin/forest-rails/commit/033661fc930b34da852e7a7720e621a8ebc9a9d8))
+
 ## [6.0.2](https://github.com/ForestAdmin/forest-rails/compare/v6.0.1...v6.0.2) (2021-03-04)
 
 
