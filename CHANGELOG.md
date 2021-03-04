@@ -1,3 +1,10 @@
+## [6.0.2](https://github.com/ForestAdmin/forest-rails/compare/v6.0.1...v6.0.2) (2021-03-04)
+
+
+### Bug Fixes
+
+* **authentication:** properly setup the session cookie to restore authentication on remote environments ([#433](https://github.com/ForestAdmin/forest-rails/issues/433)) ([556c56d](https://github.com/ForestAdmin/forest-rails/commit/556c56d37d0334464cb44c67ab91a21e191aa3a5))
+
 ## [6.0.1](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0...v6.0.1) (2021-02-26)
 
 
