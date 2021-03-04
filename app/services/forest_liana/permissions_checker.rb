@@ -6,13 +6,18 @@ module ForestLiana
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, user_id:, smart_action_request_info: nil, collection_list_parameters: nil)
+    def initialize(resource, permission_name, rendering_id, user_id:, smart_action_request_info: nil, collection_list_parameters: nil, live_query_request_info: nil)
+      
+      if resource
+        @collection_name = ForestLiana.name_for(resource)
+      end
+
       @user_id = user_id
-      @collection_name = ForestLiana.name_for(resource)
       @permission_name = permission_name
       @rendering_id = rendering_id
       @smart_action_request_info = smart_action_request_info
       @collection_list_parameters = collection_list_parameters
+      @live_query_request_info = live_query_request_info
     end
 
     def is_authorized?
@@ -48,6 +53,11 @@ module ForestLiana
 
     def is_allowed
       permissions = get_permissions_content
+      # NOTICE: check liveQueries permissions, look for live_query_request_info matching an existing live query 
+      if permissions && @permission_name === 'liveQueries'
+        return live_query_allowed?(permissions['liveQueries'])
+      end
+
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
         if @permission_name === 'actions'
@@ -136,6 +146,11 @@ module ForestLiana
         scope_permissions['filter'],
         scope_permissions['dynamicScopesValues']['users']
       ).is_scope_in_request?(@collection_list_parameters)
+    end
+
+    def live_query_allowed?(live_queries_permissions)
+      return false unless live_queries_permissions
+      return live_queries_permissions.include? @live_query_request_info
     end
 
     def date_difference_in_seconds(date1, date2)

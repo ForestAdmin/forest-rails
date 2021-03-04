@@ -2,8 +2,10 @@ module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: [:get_with_live_query]
+      before_filter :check_permission_for_live_query, except: [:get]
     else
       before_action :find_resource, except: [:get_with_live_query]
+      before_action :check_permission_for_live_query, except: [:get]
     end
 
     CHART_TYPE_VALUE = 'Value'
@@ -62,6 +64,32 @@ module ForestLiana
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
         render json: {status: 404}, status: :not_found, serializer: nil
+      end
+    end
+
+    def get_live_query_request_info
+      params['query'].strip
+    end
+
+    def check_permission_for_live_query
+      begin
+        if params.has_key?(:query)
+          checker = ForestLiana::PermissionsChecker.new(
+            nil,
+            'liveQueries',
+            @rendering_id,
+            user_id: forest_user['id'],
+            live_query_request_info: get_live_query_request_info
+          )
+
+          return head :forbidden unless checker.is_authorized?
+        else
+          FOREST_LOGGER.error 'Live Query execution error: Unable to retrieve the live query.'
+          render serializer: nil, json: { status: 400 }, status: :bad_request
+        end
+      rescue => error
+        FOREST_LOGGER.error "Live Query execution error: #{error}"
+        render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end
   end
