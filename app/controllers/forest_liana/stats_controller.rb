@@ -68,7 +68,7 @@ module ForestLiana
     end
 
     def get_live_query_request_info
-      params['query'].strip
+      params['query']
     end
 
     def check_permission_for_live_query

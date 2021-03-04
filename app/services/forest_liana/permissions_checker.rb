@@ -6,15 +6,13 @@ module ForestLiana
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, user_id:, smart_action_request_info: nil, collection_list_parameters: nil, live_query_request_info: nil)
+    def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, live_query_request_info: nil)
       
-      if resource
-        @collection_name = ForestLiana.name_for(resource)
-      end
-
-      @user_id = user_id
+      @collection_name = resource ? ForestLiana.name_for(resource) : nil
       @permission_name = permission_name
       @rendering_id = rendering_id
+
+      @user_id = user_id
       @smart_action_request_info = smart_action_request_info
       @collection_list_parameters = collection_list_parameters
       @live_query_request_info = live_query_request_info
@@ -53,9 +51,10 @@ module ForestLiana
 
     def is_allowed
       permissions = get_permissions_content
-      # NOTICE: check liveQueries permissions, look for live_query_request_info matching an existing live query 
-      if permissions && @permission_name === 'liveQueries'
-        return live_query_allowed?(permissions['liveQueries'])
+
+      # NOTICE: check liveQueries permissions
+      if @permission_name === 'liveQueries'
+        return live_query_allowed?
       end
 
       if permissions && permissions[@collection_name] &&
@@ -108,6 +107,12 @@ module ForestLiana
       permissions && permissions['data'] && permissions['data']['collections']
     end
 
+    def get_live_query_permissions_content
+      permissions = get_permissions
+      permissions && permissions['liveQueries']
+    end
+    
+
     def get_last_fetch
       permissions = get_permissions
       permissions && permissions['last_fetch']
@@ -148,8 +153,10 @@ module ForestLiana
       ).is_scope_in_request?(@collection_list_parameters)
     end
 
-    def live_query_allowed?(live_queries_permissions)
+    def live_query_allowed?
+      live_queries_permissions = get_live_query_permissions_content
       return false unless live_queries_permissions
+      # NOTICE: @live_query_request_info matching an existing live query 
       return live_queries_permissions.include? @live_query_request_info
     end
 
