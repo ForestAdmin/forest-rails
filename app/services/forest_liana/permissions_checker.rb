@@ -8,7 +8,7 @@ module ForestLiana
 
     def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, live_query_request_info: nil)
       
-      @collection_name = resource ? ForestLiana.name_for(resource) : nil
+      @collection_name = resource.present? ? ForestLiana.name_for(resource) : nil
       @permission_name = permission_name
       @rendering_id = rendering_id
 
