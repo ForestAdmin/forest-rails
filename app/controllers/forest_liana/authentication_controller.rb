@@ -61,27 +61,11 @@ module ForestLiana
           callback_url,
           params,
         )
-    
-        response.set_cookie(
-          'forest_session_token',
-          {
-            value: token,
-            httponly: true,
-            secure: true,
-            expires: ForestLiana::Token.expiration_in_days,
-            same_site: :None,
-            path: '/'
-          },
-        )
 
         response_body = {
+          token: token,
           tokenData: JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
         }
-
-        # The token is sent decoded, because we don't want to share the whole, signed token
-        # that is used to authenticate people
-        # but the token itself contains interesting values, such as its expiration date
-        response_body[:token] = token if !ForestLiana.application_url.start_with?('https://')
 
         render json: response_body, status: 200
 
