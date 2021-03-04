@@ -62,7 +62,7 @@ describe "Authentications", type: :request do
     it "should return a valid authentication token" do
       body = JSON.parse(response.body, :symbolize_names => true);
 
-      token = body.token
+      token = body[:token]
       decoded = JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
 
       expected_token_data = {
