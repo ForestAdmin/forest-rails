@@ -61,7 +61,7 @@ module ForestLiana
     describe '#is_authorized?' do
       # Resource is only used to retrieve the collection name as it's stub it does not
       # need to be defined
-      let(:fake_ressource) { collection_name }
+      let(:fake_ressource) { nil }
       let(:default_rendering_id) { nil }
       let(:api_permissions) { default_api_permissions }
 
@@ -77,12 +77,15 @@ module ForestLiana
             expect(subject.is_authorized?).to be true
           end
         end
+
         context 'does not contains the query' do
           subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, live_query_request_info: 'SELECT * FROM products WHERE category = Gifts OR 1=1-- AND released = 1') }
           it 'should NOT be authorized' do
             expect(subject.is_authorized?).to be false
           end
         end
+
       end
+    end
   end
 end
