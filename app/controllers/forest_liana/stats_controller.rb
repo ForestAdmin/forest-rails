@@ -73,20 +73,15 @@ module ForestLiana
 
     def check_permission_for_live_query
       begin
-        if params.has_key?(:query)
-          checker = ForestLiana::PermissionsChecker.new(
-            nil,
-            'liveQueries',
-            @rendering_id,
-            user_id: forest_user['id'],
-            live_query_request_info: get_live_query_request_info
-          )
+        checker = ForestLiana::PermissionsChecker.new(
+          nil,
+          'liveQueries',
+          @rendering_id,
+          user_id: forest_user['id'],
+          live_query_request_info: get_live_query_request_info
+        )
 
-          return head :forbidden unless checker.is_authorized?
-        else
-          FOREST_LOGGER.error 'Live Query execution error: Unable to retrieve the live query.'
-          render serializer: nil, json: { status: 400 }, status: :bad_request
-        end
+        return head :forbidden unless checker.is_authorized?
       rescue => error
         FOREST_LOGGER.error "Live Query execution error: #{error}"
         render serializer: nil, json: { status: 400 }, status: :bad_request
