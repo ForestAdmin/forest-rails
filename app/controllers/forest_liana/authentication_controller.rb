@@ -17,7 +17,7 @@ module ForestLiana
     end
   
     def get_callback_url
-        URI.join(ForestLiana.application_url, "/forest/#{CALLBACK_AUTHENTICATION_ROUTE}").to_s
+      File.join(ForestLiana.application_url, "/forest/#{CALLBACK_AUTHENTICATION_ROUTE}").to_s
     rescue => error
       raise "application_url is not valid or not defined" if error.is_a?(ArgumentError)
     end
@@ -70,8 +70,8 @@ module ForestLiana
         render json: response_body, status: 200
 
       rescue => error
-        render json: { errors: [{ status: error.try(:error_code) || 500, detail: error.message }] },
-          status: error.status || :internal_server_error, serializer: nil
+        render json: { errors: [{ status: error.try(:error_code) || 500, detail: error.try(:message) }] },
+          status: error.try(:status) || :internal_server_error, serializer: nil
       end
     end
 
