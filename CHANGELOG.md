@@ -1,3 +1,10 @@
+## [6.0.4](https://github.com/ForestAdmin/forest-rails/compare/v6.0.3...v6.0.4) (2021-03-09)
+
+
+### Bug Fixes
+
+* **authentication:** authentication error when the agent uses a prefix path in its url (#fb79c7) ([#436](https://github.com/ForestAdmin/forest-rails/issues/436)) ([0c6d46a](https://github.com/ForestAdmin/forest-rails/commit/0c6d46ae6817d14042320e5b4a38aaa2a2487d71)), closes [#fb79c7](https://github.com/ForestAdmin/forest-rails/issues/fb79c7)
+
 ## [6.0.3](https://github.com/ForestAdmin/forest-rails/compare/v6.0.2...v6.0.3) (2021-03-04)
 
 
