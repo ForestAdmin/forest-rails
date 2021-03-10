@@ -46,10 +46,12 @@ module ForestLiana
         "meta" => {
           "rolesACLActivated" => true
         },
-        "liveQueries" => [
+        "stats" => {
+          "queries" => [
           'SELECT COUNT(*) AS value FROM products;',
           'SELECT COUNT(*) AS value FROM sometings;'
-        ]
+          ]
+        },
       }
     }
     let(:default_rendering_id) { 1 }
@@ -71,7 +73,7 @@ module ForestLiana
 
       context 'when permissions liveQueries array' do
         context 'contains the query' do
-          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, live_query_request_info: 'SELECT COUNT(*) AS value FROM sometings;') }
+          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, query_request_info: 'SELECT COUNT(*) AS value FROM sometings;') }
 
           it 'should be authorized' do
             expect(subject.is_authorized?).to be true
@@ -79,7 +81,7 @@ module ForestLiana
         end
 
         context 'does not contains the query' do
-          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, live_query_request_info: 'SELECT * FROM products WHERE category = Gifts OR 1=1-- AND released = 1') }
+          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, query_request_info: 'SELECT * FROM products WHERE category = Gifts OR 1=1-- AND released = 1') }
           it 'should NOT be authorized' do
             expect(subject.is_authorized?).to be false
           end

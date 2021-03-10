@@ -2,9 +2,11 @@ module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: [:get_with_live_query]
+      before_filter :check_permission_for_stat_parameters, except: [:get_with_live_query]
       before_filter :check_permission_for_live_query, except: [:get]
     else
       before_action :find_resource, except: [:get_with_live_query]
+      before_action :check_permission_for_stat_parameters, except: [:get_with_live_query]
       before_action :check_permission_for_live_query, except: [:get]
     end
 
@@ -78,12 +80,40 @@ module ForestLiana
           'liveQueries',
           @rendering_id,
           user_id: forest_user['id'],
-          live_query_request_info: get_live_query_request_info
+          query_request_info: get_live_query_request_info
         )
 
         return head :forbidden unless checker.is_authorized?
       rescue => error
         FOREST_LOGGER.error "Live Query execution error: #{error}"
+        render serializer: nil, json: { status: 400 }, status: :bad_request
+      end
+    end
+
+    def get_stat_parameter_request_info
+      parameters = Rails::VERSION::MAJOR < 5 ? params.dup : params.permit(params.keys).to_h;
+
+      # Notice: Removes useless properties
+      parameters.delete('timezone');
+      parameters.delete('controller');
+      parameters.delete('action');
+
+      return parameters;
+    end
+
+    def check_permission_for_stat_parameters
+      begin
+        checker = ForestLiana::PermissionsChecker.new(
+          nil,
+          'statWithParameters',
+          @rendering_id,
+          user_id: forest_user['id'],
+          query_request_info: get_stat_parameter_request_info
+        )
+
+        return head :forbidden unless checker.is_authorized?
+      rescue => error
+        FOREST_LOGGER.error "Stat with Parameters execution error: #{error}"
         render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end

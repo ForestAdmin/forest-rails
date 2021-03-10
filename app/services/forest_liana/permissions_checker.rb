@@ -6,7 +6,7 @@ module ForestLiana
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, live_query_request_info: nil)
+    def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, query_request_info: nil)
       
       @collection_name = resource.present? ? ForestLiana.name_for(resource) : nil
       @permission_name = permission_name
@@ -15,7 +15,7 @@ module ForestLiana
       @user_id = user_id
       @smart_action_request_info = smart_action_request_info
       @collection_list_parameters = collection_list_parameters
-      @live_query_request_info = live_query_request_info
+      @query_request_info = query_request_info
     end
 
     def is_authorized?
@@ -55,7 +55,11 @@ module ForestLiana
       # NOTICE: check liveQueries permissions
       if @permission_name === 'liveQueries'
         return live_query_allowed?
+      elsif @permission_name === 'statWithParameters'
+        return stat_with_parameters_allowed?
       end
+
+      
 
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
@@ -109,9 +113,13 @@ module ForestLiana
 
     def get_live_query_permissions_content
       permissions = get_permissions
-      permissions && permissions['liveQueries']
+      permissions && permissions['stats'] && permissions['stats']['queries']
     end
     
+    def get_stat_with_parameters_content(statPermissionType)
+      permissions = get_permissions
+      permissions && permissions['stats'] && permissions['stats'][statPermissionType]
+    end
 
     def get_last_fetch
       permissions = get_permissions
@@ -155,9 +163,28 @@ module ForestLiana
 
     def live_query_allowed?
       live_queries_permissions = get_live_query_permissions_content
+
       return false unless live_queries_permissions
-      # NOTICE: @live_query_request_info matching an existing live query 
-      return live_queries_permissions.include? @live_query_request_info
+
+      # NOTICE: @query_request_info matching an existing live query 
+      return live_queries_permissions.include? @query_request_info
+    end
+
+    def stat_with_parameters_allowed?
+      permissionType = @query_request_info['type'].downcase + 's'
+      pool_permissions = get_stat_with_parameters_content(permissionType)
+
+      return false unless pool_permissions
+
+      # NOTICE: equivalent to Object.values in js
+      array_query_request_info = @query_request_info.values
+
+      # NOTICE: pool_permissions contains the @query_request_info
+      #   we use the intersection between statPermission and @query_request_info
+      return pool_permissions.any? {
+        |statPermission|
+          (array_query_request_info & statPermission.values) == array_query_request_info;
+      }
     end
 
     def date_difference_in_seconds(date1, date2)
