@@ -50,7 +50,14 @@ module ForestLiana
           "queries" => [
           'SELECT COUNT(*) AS value FROM products;',
           'SELECT COUNT(*) AS value FROM sometings;'
-          ]
+          ],
+          "values" => [
+            {
+              "type" => "Value",
+              "collection" => "Product",
+              "aggregate" => "Count"
+            }
+          ],
         },
       }
     }
@@ -71,8 +78,13 @@ module ForestLiana
         allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).and_return(api_permissions)
       end
 
-      context 'when permissions liveQueries array' do
+      context 'when permissions liveQueries' do
         context 'contains the query' do
+          request_info = {
+            "type" => "Value",
+            "collection" => "Product",
+            "aggregate" => "Count"
+          };
           subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, query_request_info: 'SELECT COUNT(*) AS value FROM sometings;') }
 
           it 'should be authorized' do
@@ -86,7 +98,33 @@ module ForestLiana
             expect(subject.is_authorized?).to be false
           end
         end
+      end
 
+      context 'when permissions statWithParameters' do
+        context 'contains the stat with the same parameters' do
+          request_info = {
+            "type" => "Value",
+            "collection" => "Product",
+            "aggregate" => "Count"
+          };
+          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user_id: user_id, query_request_info: request_info) }
+
+          it 'should be authorized' do
+            expect(subject.is_authorized?).to be true
+          end
+        end
+
+        context 'does not contains the stat with the same parameters' do
+          other_request_info = {
+            "type" => "Leaderboard",
+            "collection" => "Product",
+            "aggregate" => "Sum"
+          };
+          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user_id: user_id, query_request_info: other_request_info) }
+          it 'should NOT be authorized' do
+            expect(subject.is_authorized?).to be false
+          end
+        end
       end
     end
   end
