@@ -2,12 +2,12 @@ module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: [:get_with_live_query]
-      before_filter :check_permission_for_stat_parameters, except: [:get_with_live_query]
-      before_filter :check_permission_for_live_query, except: [:get]
+      before_filter :check_permission('statWithParameters'), except: [:get_with_live_query]
+      before_filter :check_permission('liveQueries'), except: [:get]
     else
       before_action :find_resource, except: [:get_with_live_query]
-      before_action :check_permission_for_stat_parameters, except: [:get_with_live_query]
-      before_action :check_permission_for_live_query, except: [:get]
+      before_action :check_permission('statWithParameters'), except: [:get_with_live_query]
+      before_action :check_permission('liveQueries'), except: [:get]
     end
 
     CHART_TYPE_VALUE = 'Value'
@@ -73,23 +73,6 @@ module ForestLiana
       params['query']
     end
 
-    def check_permission_for_live_query
-      begin
-        checker = ForestLiana::PermissionsChecker.new(
-          nil,
-          'liveQueries',
-          @rendering_id,
-          user_id: forest_user['id'],
-          query_request_info: get_live_query_request_info
-        )
-
-        return head :forbidden unless checker.is_authorized?
-      rescue => error
-        FOREST_LOGGER.error "Live Query execution error: #{error}"
-        render serializer: nil, json: { status: 400 }, status: :bad_request
-      end
-    end
-
     def get_stat_parameter_request_info
       parameters = Rails::VERSION::MAJOR < 5 ? params.dup : params.permit(params.keys).to_h;
 
@@ -101,19 +84,20 @@ module ForestLiana
       return parameters;
     end
 
-    def check_permission_for_stat_parameters
+    def check_permission(permission_name)
       begin
         checker = ForestLiana::PermissionsChecker.new(
           nil,
-          'statWithParameters',
+          permission_name,
           @rendering_id,
           user_id: forest_user['id'],
-          query_request_info: get_stat_parameter_request_info
+          query_request_info: permission_name == 'liveQueries'
+            ? get_live_query_request_info : get_stat_parameter_request_info
         )
 
         return head :forbidden unless checker.is_authorized?
       rescue => error
-        FOREST_LOGGER.error "Stat with Parameters execution error: #{error}"
+        FOREST_LOGGER.error "Stats execution error: #{error}"
         render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end
