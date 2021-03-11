@@ -1,13 +1,21 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
-      before_filter :find_resource, except: [:get_with_live_query]
-      before_filter only: [:get] { check_permission('statWithParameters') }
-      before_filter only: [:get_with_live_query] { check_permission('liveQueries') }
+      before_filter only: [:get] do
+        find_resource()
+        check_permission('statWithParameters')
+      end
+      before_filter only: [:get_with_live_query] do
+        check_permission('liveQueries')
+      end
     else
-      before_action :find_resource, except: [:get_with_live_query]
-      before_action only: [:get] { check_permission('statWithParameters') }
-      before_action only: [:get_with_live_query] { check_permission('liveQueries') }
+      before_action only: [:get] do
+        find_resource()
+        check_permission('statWithParameters')
+      end
+      before_action only: [:get_with_live_query] do
+        check_permission('liveQueries')
+      end
     end
 
     CHART_TYPE_VALUE = 'Value'
