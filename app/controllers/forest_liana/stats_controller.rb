@@ -94,13 +94,13 @@ module ForestLiana
 
     def check_permission(permission_name)
       begin
+        query_request = permission_name == 'liveQueries' ? get_live_query_request_info : get_stat_parameter_request_info;
         checker = ForestLiana::PermissionsChecker.new(
           nil,
           permission_name,
           @rendering_id,
           user_id: forest_user['id'],
-          query_request_info: permission_name == 'liveQueries'
-            ? get_live_query_request_info : get_stat_parameter_request_info
+          query_request_info: query_request
         )
 
         return head :forbidden unless checker.is_authorized?
