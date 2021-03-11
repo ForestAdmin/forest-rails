@@ -1,3 +1,10 @@
+## [6.0.5](https://github.com/ForestAdmin/forest-rails/compare/v6.0.4...v6.0.5) (2021-03-11)
+
+
+### Bug Fixes
+
+* **serurity:** decrease token expiration time to 1 hour ([c7a13c9](https://github.com/ForestAdmin/forest-rails/commit/c7a13c99ec3000aec5e081ffc271a4f169373b8e))
+
 ## [6.0.4](https://github.com/ForestAdmin/forest-rails/compare/v6.0.3...v6.0.4) (2021-03-09)
 
 
