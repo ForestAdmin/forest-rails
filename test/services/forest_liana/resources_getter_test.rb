@@ -119,13 +119,32 @@ module ForestLiana
       records = getter.records
       count = getter.count
 
-      print 'records.count'
-      print records.count
       assert records.count == 1
       assert count = 1
       assert records.first.id == 4
       assert records.first.name == 'Oak'
       assert records.first.owner.name == 'Arnaud Besnier'
+    end
+
+    test 'Filter on a smart field' do
+      getter = ResourcesGetter.new(Owner, {
+        fields: { 'Owner' => 'id' },
+        page: { size: 10, number: 1 },
+        filters: {
+          field: 'cap_name',
+          operator: 'is',
+          value: 'SANDRO MUNDA',
+        }.to_json,
+        timezone: 'America/Nome'
+      })
+      getter.perform
+      records = getter.records
+      count = getter.count
+
+      assert records.count == 1
+      assert count = 1
+      assert records.first.id == 1
+      assert records.first.name == 'Sandro Munda'
     end
 
     test 'Filter before x hours' do
