@@ -1,3 +1,10 @@
+# [6.1.0](https://github.com/ForestAdmin/forest-rails/compare/v6.0.5...v6.1.0) (2021-03-15)
+
+
+### Features
+
+* **security:** authorised only allowed stats queries using permissions ([#434](https://github.com/ForestAdmin/forest-rails/issues/434)) ([2014ab5](https://github.com/ForestAdmin/forest-rails/commit/2014ab5e4ef9365928f2a461ea19487c80558982))
+
 ## [6.0.5](https://github.com/ForestAdmin/forest-rails/compare/v6.0.4...v6.0.5) (2021-03-11)
 
 
