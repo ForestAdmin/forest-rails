@@ -176,8 +176,8 @@ module ForestLiana
 
       return false unless pool_permissions
 
-      # NOTICE: equivalent to Object.values in js
-      array_query_request_info = @query_request_info.values
+      # NOTICE: equivalent to Object.values in js & removes nil values
+      array_query_request_info = @query_request_info.values.filter_map{ |x| x unless x.nil? }
 
       # NOTICE: pool_permissions contains the @query_request_info
       #   we use the intersection between statPermission and @query_request_info
