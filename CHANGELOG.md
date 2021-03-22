@@ -1,3 +1,10 @@
+## [6.1.1](https://github.com/ForestAdmin/forest-rails/compare/v6.1.0...v6.1.1) (2021-03-22)
+
+
+### Bug Fixes
+
+* forest stats api 403 forbidden at chart creation ([#438](https://github.com/ForestAdmin/forest-rails/issues/438)) ([974a485](https://github.com/ForestAdmin/forest-rails/commit/974a485614221e7d460a9b23a97a5a7ab5f84f90))
+
 # [6.1.0](https://github.com/ForestAdmin/forest-rails/compare/v6.0.5...v6.1.0) (2021-03-15)
 
 
