@@ -1,12 +1,12 @@
-class Forest::Owner
+class Forest::User
   include ForestLiana::Collection
 
   p 'TEHRE'
-  collection :Owner
+  collection :User
 
   filter_cap_name = lambda do |condition, where|
     capitalize_name = condition['field'].capitalize
-    "name IS #{capitalize_name}"
+    "title IS #{capitalize_name}"
   end
 
   field :cap_name, type: 'String', filter: filter_cap_name do
