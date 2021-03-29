@@ -7,7 +7,7 @@ module ForestLiana
     let(:fields) { }
     let(:filters) { }
 
-    let(:getter) { ResourcesGetter.new(resource, {
+    let(:getter) { described_class.new(resource, {
       page: { size: pageSize, number: pageNumber },
       sort: sort,
       fields: fields,
