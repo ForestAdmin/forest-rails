@@ -10,13 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_16_135241) do
+ActiveRecord::Schema.define(version: 2021_03_26_140855) do
 
   create_table "isle", force: :cascade do |t|
     t.string "name"
     t.binary "map"
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "locations", force: :cascade do |t|
+    t.string "coordinates"
+    t.integer "island_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["island_id"], name: "index_locations_on_island_id"
+  end
+
+  create_table "references", force: :cascade do |t|
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "trees", force: :cascade do |t|
