@@ -15,10 +15,10 @@ module ForestLiana
     })}
 
     before(:each) do
-      users = Array['Michel', 'Robert', 'Vince', 'Sandro', 'Olesya', 'Romain', 'Valentin', 'Jason', 'Arnaud', 'Jeff', 'Steve', 'Marc', 'Xavier', 'Paul', 'Mickael', 'Mike', 'Maxime', 'Gertrude', 'Monique', 'Mia', 'Rachid', 'Edouard', 'Sacha', 'Caro', 'Amand', 'Nathan', 'Noémie', 'Robin', 'Gaelle', 'Isabelle']
+      users = ['Michel', 'Robert', 'Vince', 'Sandro', 'Olesya', 'Romain', 'Valentin', 'Jason', 'Arnaud', 'Jeff', 'Steve', 'Marc', 'Xavier', 'Paul', 'Mickael', 'Mike', 'Maxime', 'Gertrude', 'Monique', 'Mia', 'Rachid', 'Edouard', 'Sacha', 'Caro', 'Amand', 'Nathan', 'Noémie', 'Robin', 'Gaelle', 'Isabelle']
       .map { |name| User.create(name: name) }
 
-      islands = Array[
+      islands = [
         { :name => 'Skull', :updated_at => Time.now - 1.years },
         { :name => 'Muerta', :updated_at => Time.now - 5.years },
         { :name => 'Treasure', :updated_at => Time.now },
@@ -26,7 +26,7 @@ module ForestLiana
         { :name => 'Lille', :updated_at => Time.now - 1.years }
       ].map { |island| Island.create(name: island[:name], updated_at: island[:updated_at]) }
 
-      trees = Array[
+      trees = [
         { :name => 'Lemon Tree', :created_at => Time.now - 7.years, :island => islands[0], :owner => users[0], :cutter => users[0] },
         { :name => 'Ginger Tree', :created_at => Time.now - 7.years, :island => islands[0], :owner => users[1], :cutter => users[0] },
         { :name => 'Apple Tree', :created_at => Time.now - 5.years, :island => islands[1], :owner => users[2], :cutter => users[0] },
@@ -34,7 +34,7 @@ module ForestLiana
         { :name => 'Choco Tree', :created_at => Time.now, :island => islands[3], :owner => users[4], :cutter => users[1] }
       ].map { |tree| Tree.create(name: tree[:name], created_at: tree[:created_at], island: tree[:island], owner: tree[:owner], cutter: tree[:cutter]) }
 
-      locations = Array[
+      locations = [
         { :coordinates => '12345', :island => islands[0] },
         { :coordinates => '54321', :island => islands[1] },
         { :coordinates => '43215', :island => islands[2] },
