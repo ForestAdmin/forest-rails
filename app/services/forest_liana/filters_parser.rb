@@ -47,30 +47,56 @@ module ForestLiana
     end
 
     def parse_condition(condition)
-      ensure_valid_condition(condition)
+      where = parse_condition_without_smart_field(condition)
 
-      operator = condition['operator']
-      value = condition['value']
-      field = condition['field']
+      field_name = condition['field']
 
-      if @operator_date_parser.is_date_operator?(operator)
-        condition = @operator_date_parser.get_date_filter(operator, value)
-        return "#{parse_field_name(field)} #{condition}"
+      if ForestLiana::SchemaHelper.is_smart_field?(@resource, field_name)
+        schema = ForestLiana.schema_for_resource(@resource)
+        field_schema = schema.fields.find do |field|
+          field[:field].to_s == field_name
+        end
+
+        unless field_schema.try(:[], :filter)
+          raise ForestLiana::Errors::NotImplementedMethodError.new("method filter on smart field '#{field_name}' not found")
+        end
+
+        return field_schema[:filter].call(condition, where)
       end
 
-      if is_belongs_to(field)
-        association = field.partition(':').first.to_sym
-        association_field = field.partition(':').last
+      where
+    end
+
+    def get_association_field_and_resource(field_name)
+      if is_belongs_to(field_name)
+        association = field_name.partition(':').first.to_sym
+        association_field = field_name.partition(':').last
 
         unless @resource.reflect_on_association(association)
           raise ForestLiana::Errors::HTTP422Error.new("Association '#{association}' not found")
         end
 
         current_resource = @resource.reflect_on_association(association).klass
+
+        return association_field, current_resource
       else
-        association_field = field
-        current_resource = @resource
+        return field_name, @resource
       end
+    end
+
+    def parse_condition_without_smart_field(condition)
+      ensure_valid_condition(condition)
+
+      operator = condition['operator']
+      value = condition['value']
+      field_name = condition['field']
+
+      if @operator_date_parser.is_date_operator?(operator)
+        condition = @operator_date_parser.get_date_filter(operator, value)
+        return "#{parse_field_name(field_name)} #{condition}"
+      end
+
+      association_field, current_resource = get_association_field_and_resource(field_name)
 
       # NOTICE: Set the integer value instead of a string if "enum" type
       # NOTICE: Rails 3 do not have a defined_enums method
@@ -78,7 +104,7 @@ module ForestLiana
         value = current_resource.defined_enums[association_field][value]
       end
 
-      parsed_field = parse_field_name(field)
+      parsed_field = parse_field_name(field_name)
       parsed_operator = parse_operator(operator)
       parsed_value = parse_value(operator, value)
       field_and_operator = "#{parsed_field} #{parsed_operator}"
@@ -149,16 +175,16 @@ module ForestLiana
 
         association = get_association_name_for_condition(field)
         quoted_table_name = ActiveRecord::Base.connection.quote_column_name(association)
-        quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field.split(':')[1])
+        field_name = field.split(':')[1]
       else
         quoted_table_name = @resource.quoted_table_name
-        quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field)
         current_resource = @resource
+        field_name = field
       end
+      quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field_name)
 
       column_found = current_resource.columns.find { |column| column.name == field.split(':').last }
-
-      if column_found.nil?
+      if column_found.nil? && !ForestLiana::SchemaHelper.is_smart_field?(current_resource, field_name)
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found")
       end
 
