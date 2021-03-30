@@ -1,3 +1,10 @@
+# [6.2.0](https://github.com/ForestAdmin/forest-rails/compare/v6.1.1...v6.2.0) (2021-03-30)
+
+
+### Features
+
+* **filter:** add the possibility to filter on a smart field ([#410](https://github.com/ForestAdmin/forest-rails/issues/410)) ([00728be](https://github.com/ForestAdmin/forest-rails/commit/00728bedb5296ed2226c6eb94a6b4cb71758138c))
+
 ## [6.1.1](https://github.com/ForestAdmin/forest-rails/compare/v6.1.0...v6.1.1) (2021-03-22)
 
 
