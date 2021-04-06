@@ -1,3 +1,10 @@
+## [6.2.1](https://github.com/ForestAdmin/forest-rails/compare/v6.2.0...v6.2.1) (2021-04-06)
+
+
+### Bug Fixes
+
+* **security:** patch ini dependency vulnerabilities ([#444](https://github.com/ForestAdmin/forest-rails/issues/444)) ([2e42eba](https://github.com/ForestAdmin/forest-rails/commit/2e42ebabb5e204bc8be4f7c662a96b2600ecac18))
+
 # [6.2.0](https://github.com/ForestAdmin/forest-rails/compare/v6.1.1...v6.2.0) (2021-03-30)
 
 
