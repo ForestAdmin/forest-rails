@@ -1,3 +1,10 @@
+## [6.2.2](https://github.com/ForestAdmin/forest-rails/compare/v6.2.1...v6.2.2) (2021-04-06)
+
+
+### Bug Fixes
+
+* **security:** patch y18n dependency vulnerabilities ([#445](https://github.com/ForestAdmin/forest-rails/issues/445)) ([9e10f7a](https://github.com/ForestAdmin/forest-rails/commit/9e10f7ae2db98a8c835f5fb548ea23d209fefe30))
+
 ## [6.2.1](https://github.com/ForestAdmin/forest-rails/compare/v6.2.0...v6.2.1) (2021-04-06)
 
 
