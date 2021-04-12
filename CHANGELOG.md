@@ -1,3 +1,10 @@
+# [6.3.0](https://github.com/ForestAdmin/forest-rails/compare/v6.2.3...v6.3.0) (2021-04-12)
+
+
+### Features
+
+* **smart-action:** handle isReadOnly field in smart action forms ([#442](https://github.com/ForestAdmin/forest-rails/issues/442)) ([835eab7](https://github.com/ForestAdmin/forest-rails/commit/835eab7176c652921e1df48418c97920c288e107))
+
 ## [6.2.3](https://github.com/ForestAdmin/forest-rails/compare/v6.2.2...v6.2.3) (2021-04-06)
 
 
