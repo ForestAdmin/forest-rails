@@ -47,6 +47,7 @@ module ForestLiana
       'default_value',
       'enums',
       'is_required',
+      'is_read_only',
       'reference',
       'description',
       'position',
