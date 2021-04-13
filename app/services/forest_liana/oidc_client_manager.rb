@@ -6,7 +6,7 @@ module ForestLiana
       begin
         configuration = ForestLiana::OidcConfigurationRetriever.retrieve()
         if ForestLiana.forest_client_id.nil?
-          client_data = Rails.cache.read("#{callback_url}-#{ForestLiana.env_secret}-#{client-data}") || nil
+          client_data = Rails.cache.read("#{callback_url}-#{ForestLiana.env_secret}-client-data") || nil
           if client_data.nil?
             client_credentials = ForestLiana::OidcDynamicClientRegistrator.register({
               token_endpoint_auth_method: 'none',
@@ -14,7 +14,7 @@ module ForestLiana
               registration_endpoint: configuration['registration_endpoint']
             })
             client_data = { :client_id => client_credentials['client_id'], :issuer => configuration['issuer'] }
-            Rails.cache.write("#{callback_url}-#{ForestLiana.env_secret}-#{client-data}", client_data)
+            Rails.cache.write("#{callback_url}-#{ForestLiana.env_secret}-client-data", client_data)
           end
         else
           client_data = { :client_id => ForestLiana.forest_client_id, :issuer => configuration['issuer'] }
@@ -28,7 +28,7 @@ module ForestLiana
           token_endpoint: '/oidc/token',
         )
       rescue => error
-        Rails.cache.delete("#{callback_url}-#{ForestLiana.env_secret}-#{client-data}")
+        Rails.cache.delete("#{callback_url}-#{ForestLiana.env_secret}-client-data")
         raise error
       end
     end
