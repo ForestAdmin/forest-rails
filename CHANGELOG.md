@@ -1,3 +1,10 @@
+## [6.3.1](https://github.com/ForestAdmin/forest-rails/compare/v6.3.0...v6.3.1) (2021-04-13)
+
+
+### Bug Fixes
+
+* **authentication:** fix authentication errors after deploying a new instance with the same code (#gb01xz) ([#447](https://github.com/ForestAdmin/forest-rails/issues/447)) ([e2d1e37](https://github.com/ForestAdmin/forest-rails/commit/e2d1e374419fe7231374960e1cb279648b47882f)), closes [#gb01](https://github.com/ForestAdmin/forest-rails/issues/gb01)
+
 # [6.3.0](https://github.com/ForestAdmin/forest-rails/compare/v6.2.3...v6.3.0) (2021-04-12)
 
 
