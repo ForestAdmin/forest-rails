@@ -93,10 +93,10 @@ module ForestLiana
           " AND '#{Time.now}'"
       when OPERATOR_BEFORE_X_HOURS_AGO
         ensure_integer_value(value)
-        return "< '#{to_client_timezone((Integer(value)).hour.ago)}'"
+        return "< '#{(Integer(value)).hour.ago}'"
       when OPERATOR_AFTER_X_HOURS_AGO
         ensure_integer_value(value)
-        return "> '#{to_client_timezone((Integer(value)).hour.ago)}'"
+        return "> '#{(Integer(value)).hour.ago}'"
       end
 
       duration = PERIODS[operator][:duration]
