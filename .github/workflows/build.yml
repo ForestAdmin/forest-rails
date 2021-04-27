@@ -49,7 +49,7 @@ jobs:
       - name: Bundle install
         run: |
           bundle config path vendor/bundle
-          gem install bundler -v '1.17.3'
+          gem install bundler -v '2.1.4'
           bundle install
       - name: Test
         env:
