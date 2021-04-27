@@ -1,3 +1,10 @@
+## [6.3.2](https://github.com/ForestAdmin/forest-rails/compare/v6.3.1...v6.3.2) (2021-04-27)
+
+
+### Bug Fixes
+
+* **date-filter:** filtering only on hours now returns the expected records ([#449](https://github.com/ForestAdmin/forest-rails/issues/449)) ([aa02186](https://github.com/ForestAdmin/forest-rails/commit/aa021865df0309cb6a8894f501f267e29244cccf))
+
 ## [6.3.1](https://github.com/ForestAdmin/forest-rails/compare/v6.3.0...v6.3.1) (2021-04-13)
 
 
