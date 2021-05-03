@@ -3,6 +3,9 @@ module ForestLiana
     attr_accessor :record
 
     def client_timezone
+      # As stated here https://github.com/ankane/groupdate#for-sqlite
+      # groupdate does not handle timezone for SQLite
+      return nil if 'SQLite' == ActiveRecord::Base.connection.adapter_name
       @params[:timezone]
     end
 
