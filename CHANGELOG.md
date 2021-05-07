@@ -1,3 +1,10 @@
+## [6.3.3](https://github.com/ForestAdmin/forest-rails/compare/v6.3.2...v6.3.3) (2021-05-07)
+
+
+### Bug Fixes
+
+* allow actions hooks in production ([#455](https://github.com/ForestAdmin/forest-rails/issues/455)) ([39e976e](https://github.com/ForestAdmin/forest-rails/commit/39e976e550482f9c4f7da1c7facd11eb19ad499f))
+
 ## [6.3.2](https://github.com/ForestAdmin/forest-rails/compare/v6.3.1...v6.3.2) (2021-04-27)
 
 
