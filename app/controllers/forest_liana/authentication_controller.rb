@@ -5,7 +5,7 @@ module ForestLiana
   class AuthenticationController < ForestLiana::BaseController
     START_AUTHENTICATION_ROUTE = 'authentication'
     CALLBACK_AUTHENTICATION_ROUTE = 'authentication/callback'
-    LOGOUT_ROUTE = 'authentication/logout';
+    LOGOUT_ROUTE = 'authentication/logout'
     PUBLIC_ROUTES = [
       "/#{START_AUTHENTICATION_ROUTE}",
       "/#{CALLBACK_AUTHENTICATION_ROUTE}",
