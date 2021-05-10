@@ -21,6 +21,14 @@ module Dummy
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     # config.active_record.raise_in_transactional_callbacks = true
+
+    # Substitute to the default forest_liana logger implementation
+    # It's tested in forest_liana_test.rb (test 'override the log formatter')
+    logger = ActiveSupport::Logger.new($stdout)
+    logger.formatter = proc do |severity, datetime, progname, msg|
+      {:message => msg}.to_json
+    end
+    ForestLiana.custom_logger = logger
   end
 end
 
