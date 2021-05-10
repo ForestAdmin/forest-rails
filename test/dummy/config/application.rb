@@ -21,6 +21,11 @@ module Dummy
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     # config.active_record.raise_in_transactional_callbacks = true
+    logger = ActiveSupport::Logger.new($stdout)
+    logger.formatter = proc do |severity, datetime, progname, msg|
+      {:message => msg}.to_json
+    end
+    ForestLiana.custom_logger = logger
   end
 end
 
