@@ -24,7 +24,7 @@ module ForestLiana
     describe 'Check perform function' do
       describe 'Using a Count aggregation' do
         describe 'Using a Week time range' do
-          it 'should do something amazing' do
+          it 'should return consistent data based on monday as week_start ' do
             
             # Week should start on monday
             # 08-05-2021 was a Saturday
@@ -40,8 +40,8 @@ module ForestLiana
               group_by_date_field: "hired_at",
             }).perform
             
-            expect(stat.value[0]).to eq({:label=>"W18-2021", :values=>{:value=>2}})
-            expect(stat.value[1]).to eq({:label=>"W19-2021", :values=>{:value=>2}})
+            expect(stat.value.find { |item| item[:label] == "W18-2021" }[:values][:value]).to eq(2)
+            expect(stat.value.find { |item| item[:label] == "W19-2021" }[:values][:value]).to eq(2)
           end
         end
       end
