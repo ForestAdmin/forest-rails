@@ -29,9 +29,10 @@ module ForestLiana
         value = FiltersParser.new(@params[:filters], value, @params[:timezone]).apply_filters
       end
 
+      Groupdate.week_start = :monday
+
       value = value.send(time_range, group_by_date_field, {
-        time_zone: client_timezone,
-        week_start: :mon
+        time_zone: client_timezone
       })
 
       value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
