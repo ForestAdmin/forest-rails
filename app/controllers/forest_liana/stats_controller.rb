@@ -89,6 +89,11 @@ module ForestLiana
       parameters.delete('controller');
       parameters.delete('action');
 
+      # NOTICE: Remove the field information from group_by_field => collection:id
+      if parameters['group_by_field']
+        parameters['group_by_field'] = parameters['group_by_field'].split(':').first
+      end
+
       return parameters;
     end
 
