@@ -72,12 +72,14 @@ describe "Stats", type: :request do
       expect(response.status).to eq(404)
     end
 
-    # it 'should respond 403 Forbidden' do
-    #   allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { false }
+    it 'should respond 403 Forbidden' do
+      allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { false }
+      # NOTICE: bypass : find_resource error
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:find_resource) { true }
 
-    #   post '/forest/stats/Products', params: JSON.dump(params), headers: headers
-    #   expect(response.status).to eq(403)
-    # end
+      post '/forest/stats/Products', params: JSON.dump(params), headers: headers
+      expect(response.status).to eq(403)
+    end
   end
   
   describe 'POST /stats' do
