@@ -4,7 +4,7 @@ PATH
     forest_liana (6.3.3)
       arel-helpers
       bcrypt
-      groupdate (= 2.5.2)
+      groupdate (>= 5.0.0)
       httparty
       ipaddress
       json
@@ -89,8 +89,8 @@ GEM
     erubi (1.10.0)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
-    groupdate (2.5.2)
-      activesupport (>= 3)
+    groupdate (5.2.2)
+      activesupport (>= 5)
     httparty (0.18.1)
       mime-types (~> 3.0)
       multi_xml (>= 0.5.2)
@@ -235,7 +235,7 @@ DEPENDENCIES
   bcrypt
   byebug
   forest_liana!
-  groupdate (= 2.5.2)
+  groupdate (= 5.2.2)
   httparty (= 0.18.1)
   ipaddress (= 0.8.3)
   json
