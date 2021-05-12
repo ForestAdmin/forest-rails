@@ -1,3 +1,10 @@
+## [6.3.4](https://github.com/ForestAdmin/forest-rails/compare/v6.3.3...v6.3.4) (2021-05-12)
+
+
+### Bug Fixes
+
+* **dependency:** ensure that project with a groupdate dependency >= 5 can install forest-rails ([#454](https://github.com/ForestAdmin/forest-rails/issues/454)) ([2c0a350](https://github.com/ForestAdmin/forest-rails/commit/2c0a3501a4a70319877bd1bd1bde970d10a86c9b))
+
 ## [6.3.3](https://github.com/ForestAdmin/forest-rails/compare/v6.3.2...v6.3.3) (2021-05-07)
 
 
