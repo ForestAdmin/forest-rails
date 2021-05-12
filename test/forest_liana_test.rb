@@ -25,6 +25,8 @@ class ForestLianaTest < ActiveSupport::TestCase
     ForestLiana.config_dir = 'lib/forest_liana/**/*.rb'
   end
 
+  # Default logger is overrided by application bootstrap
+  # Test catches the output to $stdout with the help of rails-expectations
   test 'override the log formatter' do
     expect { FOREST_LOGGER.error "[error] override logger" }.to output({:message => "[error] override logger"}.to_json).to_stdout_from_any_process
     expect { FOREST_LOGGER.info "[info] override logger" }.to output({:message => "[info] override logger"}.to_json).to_stdout_from_any_process
