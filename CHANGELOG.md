@@ -1,3 +1,10 @@
+## [6.3.5](https://github.com/ForestAdmin/forest-rails/compare/v6.3.4...v6.3.5) (2021-05-12)
+
+
+### Bug Fixes
+
+* distribution charts using groupby on a relationship should not throws 403 Forbidden ([#459](https://github.com/ForestAdmin/forest-rails/issues/459)) ([50663e9](https://github.com/ForestAdmin/forest-rails/commit/50663e93083fc1b816b5fb56f8c0d049a9cec990))
+
 ## [6.3.4](https://github.com/ForestAdmin/forest-rails/compare/v6.3.3...v6.3.4) (2021-05-12)
 
 
