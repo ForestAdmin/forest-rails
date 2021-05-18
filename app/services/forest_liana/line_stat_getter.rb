@@ -30,9 +30,8 @@ module ForestLiana
       end
 
       Groupdate.week_start = :monday
-      Groupdate.time_zone = client_timezone;
 
-      value = value.send(time_range, group_by_date_field)
+      value = value.send(time_range, group_by_date_field, time_zone: client_timezone)
 
       value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
         .map do |k, v|
