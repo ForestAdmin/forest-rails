@@ -2,11 +2,11 @@ module ForestLiana
   describe LineStatGetter do
     describe 'Check client_timezone function' do
       describe 'with a SQLite database' do
-        it 'should return nil' do
+        it 'should return false' do
           expect(LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
             aggregate: "Count",
-          }).client_timezone).to eq(nil)
+          }).client_timezone).to eq(false)
         end
       end
 
