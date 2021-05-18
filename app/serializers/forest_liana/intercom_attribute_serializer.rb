@@ -1,6 +1,6 @@
 module ForestLiana
   class IntercomAttributeSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :session_count
     attribute :last_seen_ip
