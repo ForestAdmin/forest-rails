@@ -1,3 +1,10 @@
+## [6.3.7](https://github.com/ForestAdmin/forest-rails/compare/v6.3.6...v6.3.7) (2021-05-18)
+
+
+### Bug Fixes
+
+* **schema:** generate the schema properly on server start while using the classic Autoloader using Rails 5 ([#463](https://github.com/ForestAdmin/forest-rails/issues/463)) ([767236c](https://github.com/ForestAdmin/forest-rails/commit/767236c9a856709fc22d8f3b55f60e3384ec99d5))
+
 ## [6.3.6](https://github.com/ForestAdmin/forest-rails/compare/v6.3.5...v6.3.6) (2021-05-18)
 
 
