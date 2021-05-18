@@ -23,7 +23,7 @@ group :test do
 end
 
 gem 'rails', '6.0.3.6'
-gem 'jsonapi-serializers', path: '../jsonapi-serializers'
+gem 'jsonapi-serializers', git: 'https://github.com/ForestAdmin/jsonapi-serializers.git', ref: 'chore/re-namespace-jsonapi-serializer'
 gem 'rack-cors'
 gem 'arel-helpers', '2.11.0'
 gem 'groupdate', '5.2.2'
