@@ -1,3 +1,10 @@
+## [6.3.6](https://github.com/ForestAdmin/forest-rails/compare/v6.3.5...v6.3.6) (2021-05-18)
+
+
+### Bug Fixes
+
+* fix timebased charts display with groupdate 5.2 and ruby 3.0 ([#462](https://github.com/ForestAdmin/forest-rails/issues/462)) ([ef64d9e](https://github.com/ForestAdmin/forest-rails/commit/ef64d9eedd4942dabd969ed1e139bba1f0d88b0e))
+
 ## [6.3.5](https://github.com/ForestAdmin/forest-rails/compare/v6.3.4...v6.3.5) (2021-05-12)
 
 
