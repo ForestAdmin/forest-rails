@@ -45,13 +45,6 @@ module ForestLiana
       {:record => get_record,  :field_changed => found_field_changed, :fields => fields}
     end
 
-    def validate_field(field)
-      raise Exception.new 'Field attribute must be a string' if field[:field].nil? ||  !field[:field].is_a?(String)
-      raise Exception.new "description of field #{field[:field]} attribute must be a string" if field[:description] && !field[:description].is_a?(String)
-      raise Exception.new "enums of field #{field[:field]} attribute must be a string" if field[:enums] && !field[:enums].is_a?(Array)
-      raise Exception.new "reference of field #{field[:field]} attribute must be a string" if field[:reference] && !field[:reference].is_a?(Array)
-    end
-
     def handle_result(result, action)
       if result.nil? || !result.is_a?(Array)
         return render status: 500, json: { error: 'Error in smart action load hook: hook must return an array of fields' }
@@ -59,8 +52,8 @@ module ForestLiana
 
       # Apply result on fields (transform the object back to an array), preserve order.
       fields = result.map do |field|
-
-        validate_field(field)
+        # Validate that the field is well formed
+        ForestLiana::SmartActionFieldValidator.validate_field(field)
 
         updated_field = result.find{|f| f[:field] == field[:field]}
 

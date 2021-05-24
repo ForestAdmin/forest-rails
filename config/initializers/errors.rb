@@ -70,6 +70,37 @@ module ForestLiana
       end
     end
 
+    class EmptyActionFieldNameError < ExpectedError
+      def initialize(message='field property cannot be nil')
+        super(500, :internal_server_error, message, 'EmptyActionFieldNameError')
+      end
+    end
+    class InconsistentActionFieldNameTypeError < ExpectedError
+      def initialize(message='field property must be a string')
+        super(500, :internal_server_error, message, 'InconsistentActionFieldNameTypeError')
+      end
+    end
+    class InconsistentActionFieldDescriptionTypeError < ExpectedError
+      def initialize(message='description property must be a string')
+        super(500, :internal_server_error, message, 'InconsistentActionFieldDescriptionTypeError')
+      end
+    end
+    class InconsistentActionFieldEnumsTypeError < ExpectedError
+      def initialize(message='enums property must be an array')
+        super(500, :internal_server_error, message, 'InconsistentActionFieldEnumsTypeError')
+      end
+    end
+    class InconsistentActionFieldReferenceTypeError < ExpectedError
+      def initialize(message='reference property must be a string')
+        super(500, :internal_server_error, message, 'InconsistentActionFieldReferenceTypeError')
+      end
+    end
+    class InvalidActionFieldTypeError < ExpectedError
+      def initialize(message='type property must be a valid type')
+        super(500, :internal_server_error, message, 'InvalidActionFieldTypeError')
+      end
+    end
+
     class ExceptionHelper
       def self.recursively_print(error, margin: '', is_error: false)
         logger = is_error ?
