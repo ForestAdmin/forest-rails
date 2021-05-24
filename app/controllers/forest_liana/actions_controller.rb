@@ -80,7 +80,7 @@ module ForestLiana
         updated_field
       end
 
-      render serializer: nil, json: { fields: result }, status: :ok
+      render serializer: nil, json: { fields: fields }, status: :ok
     end
 
     def load
@@ -117,7 +117,6 @@ module ForestLiana
       result = action.hooks[:change][params[:changedField]].(context)
 
       handle_result(result, action)
-      # end
     end
   end
 end
