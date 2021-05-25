@@ -52,6 +52,7 @@ module ForestLiana
       'description',
       'position',
       'widget',
+      'hook',
     ]
     KEYS_SEGMENT = ['name']
 

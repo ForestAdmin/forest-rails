@@ -30,6 +30,7 @@ describe 'Requesting Actions routes', :type => :request  do
         reference: nil,
         description: nil,
         widget: nil,
+        hook: 'on_foo_changed'
     }
     enum = {
         field: 'enum',
@@ -50,7 +51,7 @@ describe 'Requesting Actions routes', :type => :request  do
               context[:fields]
             },
             :change => {
-              'foo' => -> (context) {
+              'on_foo_changed' => -> (context) {
                 foo = context[:fields].find{|field| field[:field] == 'foo'}
                 foo[:value] = 'baz'
                 context[:fields]
@@ -66,7 +67,7 @@ describe 'Requesting Actions routes', :type => :request  do
               1
             },
             :change => {
-                'foo' => -> (context) {
+                'on_foo_changed' => -> (context) {
                   1
                 }
             }
@@ -80,7 +81,7 @@ describe 'Requesting Actions routes', :type => :request  do
               {}
             },
             :change => {
-                'foo' => -> (context) {
+                'on_foo_changed' => -> (context) {
                   context[:fields]['baz'] = foo.clone.update({field: 'baz'})
                   context[:fields]
                 }
@@ -92,7 +93,7 @@ describe 'Requesting Actions routes', :type => :request  do
       fields: [foo, enum],
       hooks: {
         :change => {
-          'foo' => -> (context) {
+          'on_foo_changed' => -> (context) {
             fields = context[:fields]
             enum_field = fields.find{|field| field[:field] == 'enum'}
             enum_field[:enums] = %w[c d e]
@@ -107,7 +108,7 @@ describe 'Requesting Actions routes', :type => :request  do
         fields: [foo, multiple_enum],
         hooks: {
             :change => {
-                'foo' => -> (context) {
+                'on_foo_changed' => -> (context) {
                   fields = context[:fields]
                   enum_field = fields.find{|field| field[:field] == 'multipleEnum'}
                   enum_field[:enums] = %w[c d z]

@@ -52,8 +52,13 @@ module ForestLiana
 
       # Apply result on fields (transform the object back to an array), preserve order.
       fields = result.map do |field|
-        # Validate that the field is well formed
-        ForestLiana::SmartActionFieldValidator.validate_field(field)
+
+        # Validate that the field is well formed.
+        begin
+          ForestLiana::SmartActionFieldValidator.validate_field(field, action.name)
+        rescue StandardError => error
+          FOREST_LOGGER.error error.message
+        end
 
         updated_field = result.find{|f| f[:field] == field[:field]}
 
@@ -106,8 +111,10 @@ module ForestLiana
       # Get the smart action hook change context
       context = get_smart_action_change_ctx(params[:fields], params[:changedField])
 
+      field_changed_hook = context[:field_changed][:hook]
+
       # Call the user-defined change hook.
-      result = action.hooks[:change][params[:changedField]].(context)
+      result = action.hooks[:change][field_changed_hook].(context)
 
       handle_result(result, action)
     end

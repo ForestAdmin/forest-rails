@@ -1,43 +1,43 @@
 module ForestLiana
   describe SmartActionFieldValidator do
     describe 'self.validate_field' do
-      it 'should raise an EmptyActionFieldNameError with nil field' do
-        expect {SmartActionFieldValidator.validate_field(nil)}.to raise_error(ForestLiana::Errors::EmptyActionFieldNameError)
+      it 'should raise an SmartActionInvalidFieldError with nil field' do
+        expect {SmartActionFieldValidator.validate_field(nil, 'actionName')}.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError)
       end
 
-      it 'should raise an InconsistentActionFieldNameTypeError with a field that is not a string' do
+      it 'should raise an SmartActionInvalidFieldError with a field that is not a string' do
         expect {SmartActionFieldValidator.validate_field({
           :field => 5
-        })}.to raise_error(ForestLiana::Errors::InconsistentActionFieldNameTypeError)
+        }, 'actionName')}.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError)
       end
 
-      it 'should raise an InconsistentActionFieldDescriptionTypeError with description that is not a string' do
+      it 'should raise an SmartActionInvalidFieldError with description that is not a string' do
         expect {SmartActionFieldValidator.validate_field({
           :field => 'field',
           :description => 5
-        })}.to raise_error(ForestLiana::Errors::InconsistentActionFieldDescriptionTypeError)
+        }, 'actionName')}.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError)
       end
 
-      it 'should raise an InconsistentActionFieldEnumsTypeError with an enums that is not an array' do
+      it 'should raise an SmartActionInvalidFieldError with an enums that is not an array' do
         expect {SmartActionFieldValidator.validate_field({
           :field => 'field',
           :enums => 'NotAnArray'
-        })}.to raise_error(ForestLiana::Errors::InconsistentActionFieldEnumsTypeError)
+        }, 'actionName')}.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError)
       end
 
-      it 'should raise an InconsistentActionFieldReferenceTypeError with a reference that is not a string' do
+      it 'should raise an SmartActionInvalidFieldError with a reference that is not a string' do
         expect {SmartActionFieldValidator.validate_field({
           :field => 'field',
           :type => 'String',
           :reference => 5
-        })}.to raise_error(ForestLiana::Errors::InconsistentActionFieldReferenceTypeError)
+        }, 'actionName')}.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError)
       end
 
-      it 'should raise an InvalidActionFieldTypeError with an invalid type' do
+      it 'should raise an SmartActionInvalidFieldError with an invalid type' do
         expect {SmartActionFieldValidator.validate_field({
           :field => 'field',
           :type => 'AbsolutelyNotAValidType'
-        })}.to raise_error(ForestLiana::Errors::InvalidActionFieldTypeError)
+        }, 'actionName')}.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError)
       end
     end
   end

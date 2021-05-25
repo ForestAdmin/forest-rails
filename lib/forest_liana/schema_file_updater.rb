@@ -63,6 +63,7 @@ module ForestLiana
       'description',
       'position',
       'widget',
+      'hook',
     ]
     KEYS_SEGMENT = ['name']
 
@@ -96,6 +97,7 @@ module ForestLiana
         end
 
         collection['actions'] = collection['actions'].map do |action|
+          SmartActionFieldValidator.validate_smart_action_fields(action.symbolize_keys, collection[:name])
           action['fields'] = action['fields'].map { |field| field.slice(*KEYS_ACTION_FIELD) }
           action.slice(*KEYS_ACTION)
         end
