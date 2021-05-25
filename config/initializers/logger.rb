@@ -3,8 +3,8 @@ module ForestLiana
   class Logger
     class << self
       def log
-        if ForestLiana.custom_logger != nil
-          logger = ForestLiana.custom_logger
+        if ForestLiana.logger != nil
+          logger = ForestLiana.logger
         else
           logger = ::Logger.new(STDOUT)
           logger_colors = {
