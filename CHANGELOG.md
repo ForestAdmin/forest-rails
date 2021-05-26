@@ -1,3 +1,10 @@
+# [6.4.0](https://github.com/ForestAdmin/forest-rails/compare/v6.3.8...v6.4.0) (2021-05-26)
+
+
+### Features
+
+* **logger:** allow the logger to be configurable by the parent application ([#467](https://github.com/ForestAdmin/forest-rails/issues/467)) ([0bd355a](https://github.com/ForestAdmin/forest-rails/commit/0bd355ae6e52da33aa3a2988d48e958c400fb5f4))
+
 ## [6.3.8](https://github.com/ForestAdmin/forest-rails/compare/v6.3.7...v6.3.8) (2021-05-26)
 
 

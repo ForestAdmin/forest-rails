@@ -1,6 +1,6 @@
 {
   "name": "forest-rails",
-  "version": "6.3.8",
+  "version": "6.4.0",
   "description": "The official Rails liana for Forest.",
   "directories": {
     "test": "test"
