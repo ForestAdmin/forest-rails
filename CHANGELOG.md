@@ -1,3 +1,10 @@
+## [6.3.8](https://github.com/ForestAdmin/forest-rails/compare/v6.3.7...v6.3.8) (2021-05-26)
+
+
+### Bug Fixes
+
+* **validation:** support multilines regex ([#466](https://github.com/ForestAdmin/forest-rails/issues/466)) ([1daf0b1](https://github.com/ForestAdmin/forest-rails/commit/1daf0b18e1757dd24e24b1cd2db759769a2daf1f))
+
 ## [6.3.7](https://github.com/ForestAdmin/forest-rails/compare/v6.3.6...v6.3.7) (2021-05-18)
 
 
