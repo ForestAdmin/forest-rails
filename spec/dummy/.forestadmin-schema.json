@@ -1,0 +1,63 @@
+{
+  "collections": [{
+    "name": "Location",
+    "name_old": "Location",
+    "icon": null,
+    "is_read_only": false,
+    "is_searchable": false,
+    "is_virtual": true,
+    "only_for_relationships": false,
+    "pagination_type": "page",
+    "fields": [{
+      "field": "alter_coordinates",
+      "type": "String",
+      "default_value": null,
+      "enums": null,
+      "integration": null,
+      "is_filterable": false,
+      "is_read_only": true,
+      "is_required": false,
+      "is_sortable": false,
+      "is_virtual": true,
+      "reference": null,
+      "inverse_of": null,
+      "widget": null,
+      "validations": []
+    }],
+    "segments": [],
+    "actions": []
+  }, {
+    "name": "User",
+    "name_old": "User",
+    "icon": null,
+    "is_read_only": false,
+    "is_searchable": false,
+    "is_virtual": true,
+    "only_for_relationships": false,
+    "pagination_type": "page",
+    "fields": [{
+      "field": "cap_name",
+      "type": "String",
+      "default_value": null,
+      "enums": null,
+      "integration": null,
+      "is_filterable": false,
+      "is_read_only": true,
+      "is_required": false,
+      "is_sortable": false,
+      "is_virtual": true,
+      "reference": null,
+      "inverse_of": null,
+      "widget": null,
+      "validations": []
+    }],
+    "segments": [],
+    "actions": []
+  }],
+  "meta": {
+    "database_type": "sqlite3",
+    "liana": "forest-rails",
+    "liana_version": "6.3.7",
+    "orm_version": "6.0.3.6"
+  }
+}
