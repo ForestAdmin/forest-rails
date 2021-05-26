@@ -20,7 +20,7 @@ module ForestLiana
             object.name.to_s == ForestLiana.name_for(Product)
           end
 
-          uri_field = collection.fields.find { |field| field[:field] == 'uri' } #&& field[:type] == 'Date' }
+          uri_field = collection.fields.find { |field| field[:field] == 'uri' }
           uri_regex_validation = uri_field[:validations].find { |validation| validation[:type] == "is like"}
           expect(uri_regex_validation[:value].match('\n')).to eq(nil)
         end
