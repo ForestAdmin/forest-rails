@@ -97,7 +97,13 @@ module ForestLiana
         end
 
         collection['actions'] = collection['actions'].map do |action|
-          SmartActionFieldValidator.validate_smart_action_fields(action.symbolize_keys, collection[:name])
+          begin
+            SmartActionFieldValidator.validate_smart_action_fields(action['fields'], action['name'], action['hooks']['change'])
+          rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
+            FOREST_LOGGER.warn invalid_field_error.message
+          rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
+            FOREST_LOGGER.error invalid_hook_error.message
+          end
           action['fields'] = action['fields'].map { |field| field.slice(*KEYS_ACTION_FIELD) }
           action.slice(*KEYS_ACTION)
         end

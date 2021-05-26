@@ -50,16 +50,18 @@ module ForestLiana
         return render status: 500, json: { error: 'Error in smart action load hook: hook must return an array of fields' }
       end
 
+      # Validate that the fields are well formed.
+      begin
+        ForestLiana::SmartActionFieldValidator.validate_smart_action_fields(result, action.name, action.hooks[:change].keys)
+      rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
+        FOREST_LOGGER.warn invalid_field_error.message
+      rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
+        FOREST_LOGGER.error invalid_hook_error.message
+        return render status: 500, json: { error: invalid_hook_error.message }
+      end
+
       # Apply result on fields (transform the object back to an array), preserve order.
       fields = result.map do |field|
-
-        # Validate that the field is well formed.
-        begin
-          ForestLiana::SmartActionFieldValidator.validate_field(field, action.name)
-        rescue StandardError => error
-          FOREST_LOGGER.error error.message
-        end
-
         updated_field = result.find{|f| f[:field] == field[:field]}
 
         # Reset `value` when not present in `enums` (which means `enums` has changed).
