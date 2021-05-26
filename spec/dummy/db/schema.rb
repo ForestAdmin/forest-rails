@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_11_141752) do
+ActiveRecord::Schema.define(version: 2021_05_26_084712) do
 
   create_table "isle", force: :cascade do |t|
     t.string "name"
@@ -30,6 +30,10 @@ ActiveRecord::Schema.define(version: 2021_05_11_141752) do
   create_table "owners", force: :cascade do |t|
     t.string "name"
     t.datetime "hired_at"
+  end
+
+  create_table "products", force: :cascade do |t|
+    t.string "uri"
   end
 
   create_table "references", force: :cascade do |t|
