@@ -15,7 +15,10 @@ module ForestLiana
 
     class SmartActionInvalidFieldError < StandardError
       def initialize(action_name=nil, field_name=nil, message=nil)
-        error_message = "Error while parsing action \"#{action_name}\" on field \"#{field_name}\": " if !action_name.nil? && !field_name.nil?
+        error_message = ""
+        error_message << "Error while parsing action \"#{action_name}\"" if !action_name.nil?
+        error_message << "on field \"#{field_name}\"" if !field_name.nil?
+        error_message << ": " if !field_name.nil? || !action_name.nil?
         error_message << message if !message.nil?
         super(error_message)
       end
