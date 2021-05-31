@@ -22,11 +22,11 @@ group :test do
   gem 'simplecov', '~> 0.17.0', require: false
 end
 
-gem 'rails', '6.0.3.4'
+gem 'rails', '6.0.3.6'
 gem 'jsonapi-serializers', '1.0.1'
 gem 'rack-cors'
 gem 'arel-helpers', '2.11.0'
-gem 'groupdate', '2.5.2'
+gem 'groupdate', '5.2.2'
 gem 'useragent'
 gem 'jwt'
 gem 'bcrypt'

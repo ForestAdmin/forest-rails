@@ -73,30 +73,34 @@ module ForestLiana
     def get_date_filter(operator, value)
       return nil unless is_date_operator? operator
 
-      case operator
-      when OPERATOR_FUTURE
-        return ">= '#{Time.now}'"
-      when OPERATOR_PAST
-        return "<= '#{Time.now}'"
-      when OPERATOR_TODAY
-        return "BETWEEN '#{to_client_timezone(Time.now.beginning_of_day)}' " +
-          "AND '#{to_client_timezone(Time.now.end_of_day)}'"
-      when OPERATOR_PREVIOUS_X_DAYS
-        ensure_integer_value(value)
-        return "BETWEEN '" +
-          "#{to_client_timezone(Integer(value).day.ago.beginning_of_day)}'" +
-          " AND '#{to_client_timezone(1.day.ago.end_of_day)}'"
-      when OPERATOR_PREVIOUS_X_DAYS_TO_DATE
-        ensure_integer_value(value)
-        return "BETWEEN '" +
-          "#{to_client_timezone((Integer(value) - 1).day.ago.beginning_of_day)}'" +
-          " AND '#{Time.now}'"
-      when OPERATOR_BEFORE_X_HOURS_AGO
-        ensure_integer_value(value)
-        return "< '#{to_client_timezone((Integer(value)).hour.ago)}'"
-      when OPERATOR_AFTER_X_HOURS_AGO
-        ensure_integer_value(value)
-        return "> '#{to_client_timezone((Integer(value)).hour.ago)}'"
+      filter = case operator
+        when OPERATOR_FUTURE
+          ">= '#{Time.now}'"
+        when OPERATOR_PAST
+          "<= '#{Time.now}'"
+        when OPERATOR_TODAY
+          "BETWEEN '#{to_client_timezone(Time.now.beginning_of_day)}' " +
+            "AND '#{to_client_timezone(Time.now.end_of_day)}'"
+        when OPERATOR_PREVIOUS_X_DAYS
+          ensure_integer_value(value)
+          "BETWEEN '" +
+            "#{to_client_timezone(Integer(value).day.ago.beginning_of_day)}'" +
+            " AND '#{to_client_timezone(1.day.ago.end_of_day)}'"
+        when OPERATOR_PREVIOUS_X_DAYS_TO_DATE
+          ensure_integer_value(value)
+          "BETWEEN '" +
+            "#{to_client_timezone((Integer(value) - 1).day.ago.beginning_of_day)}'" +
+            " AND '#{Time.now}'"
+        when OPERATOR_BEFORE_X_HOURS_AGO
+          ensure_integer_value(value)
+          "< '#{(Integer(value)).hour.ago}'"
+        when OPERATOR_AFTER_X_HOURS_AGO
+          ensure_integer_value(value)
+          "> '#{(Integer(value)).hour.ago}'"
+      end
+
+      if filter != nil
+        return filter
       end
 
       duration = PERIODS[operator][:duration]

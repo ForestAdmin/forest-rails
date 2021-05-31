@@ -27,6 +27,7 @@ module ForestLiana
   mattr_accessor :user_class_name
   mattr_accessor :names_overriden
   mattr_accessor :meta
+  mattr_accessor :logger
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
 
@@ -38,6 +39,7 @@ module ForestLiana
   self.user_class_name = nil
   self.names_overriden = {}
   self.meta = {}
+  self.logger = nil
 
   @config_dir = 'lib/forest_liana/**/*.rb'
 

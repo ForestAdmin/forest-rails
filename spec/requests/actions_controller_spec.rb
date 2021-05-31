@@ -26,6 +26,7 @@ describe 'Requesting Actions routes', :type => :request  do
         default_value: nil,
         enums: nil,
         is_required: false,
+        is_read_only: false,
         reference: nil,
         description: nil,
         widget: nil,

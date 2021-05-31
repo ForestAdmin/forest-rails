@@ -48,6 +48,7 @@ class ForestLiana::Model::Action
       field[:default_value] = nil unless field.key?(:default_value)
       field[:enums] = nil unless field.key?(:enums)
       field[:is_required] = false unless field.key?(:is_required)
+      field[:is_read_only] = false unless field.key?(:is_read_only)
       field[:reference] = nil unless field.key?(:reference)
       field[:description] = nil unless field.key?(:description)
       field[:widget] = nil unless field.key?(:widget)
