@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - beta
   pull_request:
 
 jobs:
@@ -67,7 +68,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [lint, test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta')
     steps:
       - uses: actions/checkout@v2
         with:
