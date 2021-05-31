@@ -1,3 +1,173 @@
+# [6.4.0](https://github.com/ForestAdmin/forest-rails/compare/v6.3.8...v6.4.0) (2021-05-26)
+
+
+### Features
+
+* **logger:** allow the logger to be configurable by the parent application ([#467](https://github.com/ForestAdmin/forest-rails/issues/467)) ([0bd355a](https://github.com/ForestAdmin/forest-rails/commit/0bd355ae6e52da33aa3a2988d48e958c400fb5f4))
+
+## [6.3.8](https://github.com/ForestAdmin/forest-rails/compare/v6.3.7...v6.3.8) (2021-05-26)
+
+
+### Bug Fixes
+
+* **validation:** support multilines regex ([#466](https://github.com/ForestAdmin/forest-rails/issues/466)) ([1daf0b1](https://github.com/ForestAdmin/forest-rails/commit/1daf0b18e1757dd24e24b1cd2db759769a2daf1f))
+
+## [6.3.7](https://github.com/ForestAdmin/forest-rails/compare/v6.3.6...v6.3.7) (2021-05-18)
+
+
+### Bug Fixes
+
+* **schema:** generate the schema properly on server start while using the classic Autoloader using Rails 5 ([#463](https://github.com/ForestAdmin/forest-rails/issues/463)) ([767236c](https://github.com/ForestAdmin/forest-rails/commit/767236c9a856709fc22d8f3b55f60e3384ec99d5))
+
+## [6.3.6](https://github.com/ForestAdmin/forest-rails/compare/v6.3.5...v6.3.6) (2021-05-18)
+
+
+### Bug Fixes
+
+* fix timebased charts display with groupdate 5.2 and ruby 3.0 ([#462](https://github.com/ForestAdmin/forest-rails/issues/462)) ([ef64d9e](https://github.com/ForestAdmin/forest-rails/commit/ef64d9eedd4942dabd969ed1e139bba1f0d88b0e))
+
+## [6.3.5](https://github.com/ForestAdmin/forest-rails/compare/v6.3.4...v6.3.5) (2021-05-12)
+
+
+### Bug Fixes
+
+* distribution charts using groupby on a relationship should not throws 403 Forbidden ([#459](https://github.com/ForestAdmin/forest-rails/issues/459)) ([50663e9](https://github.com/ForestAdmin/forest-rails/commit/50663e93083fc1b816b5fb56f8c0d049a9cec990))
+
+## [6.3.4](https://github.com/ForestAdmin/forest-rails/compare/v6.3.3...v6.3.4) (2021-05-12)
+
+
+### Bug Fixes
+
+* **dependency:** ensure that project with a groupdate dependency >= 5 can install forest-rails ([#454](https://github.com/ForestAdmin/forest-rails/issues/454)) ([2c0a350](https://github.com/ForestAdmin/forest-rails/commit/2c0a3501a4a70319877bd1bd1bde970d10a86c9b))
+
+## [6.3.3](https://github.com/ForestAdmin/forest-rails/compare/v6.3.2...v6.3.3) (2021-05-07)
+
+
+### Bug Fixes
+
+* allow actions hooks in production ([#455](https://github.com/ForestAdmin/forest-rails/issues/455)) ([39e976e](https://github.com/ForestAdmin/forest-rails/commit/39e976e550482f9c4f7da1c7facd11eb19ad499f))
+
+## [6.3.2](https://github.com/ForestAdmin/forest-rails/compare/v6.3.1...v6.3.2) (2021-04-27)
+
+
+### Bug Fixes
+
+* **date-filter:** filtering only on hours now returns the expected records ([#449](https://github.com/ForestAdmin/forest-rails/issues/449)) ([aa02186](https://github.com/ForestAdmin/forest-rails/commit/aa021865df0309cb6a8894f501f267e29244cccf))
+
+## [6.3.1](https://github.com/ForestAdmin/forest-rails/compare/v6.3.0...v6.3.1) (2021-04-13)
+
+
+### Bug Fixes
+
+* **authentication:** fix authentication errors after deploying a new instance with the same code (#gb01xz) ([#447](https://github.com/ForestAdmin/forest-rails/issues/447)) ([e2d1e37](https://github.com/ForestAdmin/forest-rails/commit/e2d1e374419fe7231374960e1cb279648b47882f)), closes [#gb01](https://github.com/ForestAdmin/forest-rails/issues/gb01)
+
+# [6.3.0](https://github.com/ForestAdmin/forest-rails/compare/v6.2.3...v6.3.0) (2021-04-12)
+
+
+### Features
+
+* **smart-action:** handle isReadOnly field in smart action forms ([#442](https://github.com/ForestAdmin/forest-rails/issues/442)) ([835eab7](https://github.com/ForestAdmin/forest-rails/commit/835eab7176c652921e1df48418c97920c288e107))
+
+## [6.2.3](https://github.com/ForestAdmin/forest-rails/compare/v6.2.2...v6.2.3) (2021-04-06)
+
+
+### Bug Fixes
+
+* **security:** patch marked dependency vulnerabilities ([#446](https://github.com/ForestAdmin/forest-rails/issues/446)) ([3a48d76](https://github.com/ForestAdmin/forest-rails/commit/3a48d76df19d1ec40542f882c935fee8675cc7e5))
+
+## [6.2.2](https://github.com/ForestAdmin/forest-rails/compare/v6.2.1...v6.2.2) (2021-04-06)
+
+
+### Bug Fixes
+
+* **security:** patch y18n dependency vulnerabilities ([#445](https://github.com/ForestAdmin/forest-rails/issues/445)) ([9e10f7a](https://github.com/ForestAdmin/forest-rails/commit/9e10f7ae2db98a8c835f5fb548ea23d209fefe30))
+
+## [6.2.1](https://github.com/ForestAdmin/forest-rails/compare/v6.2.0...v6.2.1) (2021-04-06)
+
+
+### Bug Fixes
+
+* **security:** patch ini dependency vulnerabilities ([#444](https://github.com/ForestAdmin/forest-rails/issues/444)) ([2e42eba](https://github.com/ForestAdmin/forest-rails/commit/2e42ebabb5e204bc8be4f7c662a96b2600ecac18))
+
+# [6.2.0](https://github.com/ForestAdmin/forest-rails/compare/v6.1.1...v6.2.0) (2021-03-30)
+
+
+### Features
+
+* **filter:** add the possibility to filter on a smart field ([#410](https://github.com/ForestAdmin/forest-rails/issues/410)) ([00728be](https://github.com/ForestAdmin/forest-rails/commit/00728bedb5296ed2226c6eb94a6b4cb71758138c))
+
+## [6.1.1](https://github.com/ForestAdmin/forest-rails/compare/v6.1.0...v6.1.1) (2021-03-22)
+
+
+### Bug Fixes
+
+* forest stats api 403 forbidden at chart creation ([#438](https://github.com/ForestAdmin/forest-rails/issues/438)) ([974a485](https://github.com/ForestAdmin/forest-rails/commit/974a485614221e7d460a9b23a97a5a7ab5f84f90))
+
+# [6.1.0](https://github.com/ForestAdmin/forest-rails/compare/v6.0.5...v6.1.0) (2021-03-15)
+
+
+### Features
+
+* **security:** authorised only allowed stats queries using permissions ([#434](https://github.com/ForestAdmin/forest-rails/issues/434)) ([2014ab5](https://github.com/ForestAdmin/forest-rails/commit/2014ab5e4ef9365928f2a461ea19487c80558982))
+
+## [6.0.5](https://github.com/ForestAdmin/forest-rails/compare/v6.0.4...v6.0.5) (2021-03-11)
+
+
+### Bug Fixes
+
+* **serurity:** decrease token expiration time to 1 hour ([c7a13c9](https://github.com/ForestAdmin/forest-rails/commit/c7a13c99ec3000aec5e081ffc271a4f169373b8e))
+
+## [6.0.4](https://github.com/ForestAdmin/forest-rails/compare/v6.0.3...v6.0.4) (2021-03-09)
+
+
+### Bug Fixes
+
+* **authentication:** authentication error when the agent uses a prefix path in its url (#fb79c7) ([#436](https://github.com/ForestAdmin/forest-rails/issues/436)) ([0c6d46a](https://github.com/ForestAdmin/forest-rails/commit/0c6d46ae6817d14042320e5b4a38aaa2a2487d71)), closes [#fb79c7](https://github.com/ForestAdmin/forest-rails/issues/fb79c7)
+
+## [6.0.3](https://github.com/ForestAdmin/forest-rails/compare/v6.0.2...v6.0.3) (2021-03-04)
+
+
+### Bug Fixes
+
+* **authentication:** safari cannot login on remote lianas because of third party cookies ([#435](https://github.com/ForestAdmin/forest-rails/issues/435)) ([033661f](https://github.com/ForestAdmin/forest-rails/commit/033661fc930b34da852e7a7720e621a8ebc9a9d8))
+
+## [6.0.2](https://github.com/ForestAdmin/forest-rails/compare/v6.0.1...v6.0.2) (2021-03-04)
+
+
+### Bug Fixes
+
+* **authentication:** properly setup the session cookie to restore authentication on remote environments ([#433](https://github.com/ForestAdmin/forest-rails/issues/433)) ([556c56d](https://github.com/ForestAdmin/forest-rails/commit/556c56d37d0334464cb44c67ab91a21e191aa3a5))
+
+## [6.0.1](https://github.com/ForestAdmin/forest-rails/compare/v6.0.0...v6.0.1) (2021-02-26)
+
+
+### Bug Fixes
+
+* **authentication:** add missing environment variable generation and check if caching is enabled (#epz6k0) ([#431](https://github.com/ForestAdmin/forest-rails/issues/431)) ([3fb83d1](https://github.com/ForestAdmin/forest-rails/commit/3fb83d17e2cfa8aa6148f90eba1f62748e938135)), closes [#epz6k0](https://github.com/ForestAdmin/forest-rails/issues/epz6k0)
+
+# [6.0.0](https://github.com/ForestAdmin/forest-rails/compare/v5.4.4...v6.0.0) (2021-02-22)
+
+
+### Bug Fixes
+
+* **auth:** support multi-instances and remove auth's redirection ([#407](https://github.com/ForestAdmin/forest-rails/issues/407)) ([8fcf9d4](https://github.com/ForestAdmin/forest-rails/commit/8fcf9d4ba0f41b8c98451a3d15d31c73ab4fd162))
+* **gemfile:** gemfile.lock forest_liana version mismatch ([#401](https://github.com/ForestAdmin/forest-rails/issues/401)) ([60ceaf1](https://github.com/ForestAdmin/forest-rails/commit/60ceaf195371c56ee327cffbd40e8b85bf42ea3a))
+
+
+### Features
+
+* **auth:** authenticate using oidc ([#383](https://github.com/ForestAdmin/forest-rails/issues/383)) ([b535ab4](https://github.com/ForestAdmin/forest-rails/commit/b535ab4e7e7e371c93d01bdb41c6006bd9acc7cd))
+* **auth:** authenticate using oidc ([#400](https://github.com/ForestAdmin/forest-rails/issues/400)) ([4898b73](https://github.com/ForestAdmin/forest-rails/commit/4898b73bc70bf3a4828d7cdf63cd642add10b643))
+
+
+### BREAKING CHANGES
+
+* **auth:** Introduces a new authentication system.
+- The application_url property is required to initialize ForestLiana,
+- CORS rules must be adapted (to allow null origins).
+* **auth:** New authentication system.
+The application_url must be set in the ForestLiana initializer, adding a regex CORS rule for null origin is required.
+
 ## [5.4.4](https://github.com/ForestAdmin/forest-rails/compare/v5.4.3...v5.4.4) (2021-02-19)
 
 

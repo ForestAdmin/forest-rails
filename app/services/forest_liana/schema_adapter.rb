@@ -479,7 +479,7 @@ module ForestLiana
                 regex = value.source
 
                 # NOTICE: Transform a Ruby regex into a JS one
-                regex = regex.sub('\\A' , '^').sub('\\Z' , '$').sub('\\z' , '$')
+                regex = regex.sub('\\A' , '^').sub('\\Z' , '$').sub('\\z' , '$').gsub(/\n+|\s+/, '')
 
                 column_schema[:validations] << {
                   type: 'is like',

@@ -18,6 +18,13 @@ module ForestLiana
         ForestLiana.auth_secret = ForestLiana.auth_key
       end
 
+      unless Rails.application.config.action_controller.perform_caching || Rails.env.test? || ForestLiana.forest_client_id
+        FOREST_LOGGER.error "You need to enable caching on your environment to use Forest Admin.\n" \
+          "For a development environment, run: `rails dev:cache`\n" \
+          "Or setup a static forest_client_id by following this part of the documentation:\n" \
+          "https://docs.forestadmin.com/documentation/how-tos/maintain/upgrade-notes-rails/upgrade-to-v6#setup-a-static-clientid"
+      end
+
       fetch_models
       check_integrations_setup
       namespace_duplicated_models
@@ -46,6 +53,18 @@ module ForestLiana
       collection.actions.find {|action| action.name == action_name}
     end
 
+    def generate_action_hooks()
+      @collections_sent.each do |collection|
+        collection['actions'].each do |action|
+          c = get_collection(collection['name'])
+          a = get_action(c, action['name'])
+          load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
+          change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
+          action['hooks'] = {:load => load, :change => change}
+        end
+      end
+    end
+
     def generate_apimap
       create_apimap
       require_lib_forest_liana
@@ -53,18 +72,8 @@ module ForestLiana
 
       if Rails.env.development?
         @collections_sent = ForestLiana.apimap.as_json
-
-        @collections_sent.each do |collection|
-          collection['actions'].each do |action|
-            c = get_collection(collection['name'])
-            a = get_action(c, action['name'])
-            load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
-            change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
-            action['hooks'] = {:load => load, :change => change}
-          end
-        end
-
         @meta_sent = ForestLiana.meta
+        generate_action_hooks
         SchemaFileUpdater.new(SCHEMA_FILENAME, @collections_sent, @meta_sent).perform()
       else
         if File.exists?(SCHEMA_FILENAME)
@@ -72,6 +81,7 @@ module ForestLiana
             content = JSON.parse(File.read(SCHEMA_FILENAME))
             @collections_sent = content['collections']
             @meta_sent = content['meta']
+            generate_action_hooks
           rescue JSON::JSONError
             FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
             FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."

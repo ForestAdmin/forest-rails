@@ -109,7 +109,7 @@ module ForestLiana
 
     describe 'handling cache' do
       let(:collection_name) { 'all_rights_collection' }
-      let(:fake_ressource) { nil }
+      let(:fake_ressource) { collection_name }
       let(:default_rendering_id) { 1 }
 
       context 'when calling twice the same permissions' do
@@ -191,7 +191,7 @@ module ForestLiana
 
 
     context 'scopes cache' do
-      let(:fake_ressource) { nil }
+      let(:fake_ressource) { collection_name }
       let(:rendering_id) { 1 }
       let(:collection_name) { 'custom' }
       let(:scope_permissions) { { rendering_id => { 'custom' => nil } } }
@@ -349,7 +349,7 @@ module ForestLiana
     describe '#is_authorized?' do
       # Resource is only used to retrieve the collection name as it's stubbed it does not
       # need to be defined
-      let(:fake_ressource) { nil }
+      let(:fake_ressource) { collection_name }
       let(:default_rendering_id) { nil }
       let(:api_permissions) { default_api_permissions }
       let(:collection_name) { 'all_rights_collection' }

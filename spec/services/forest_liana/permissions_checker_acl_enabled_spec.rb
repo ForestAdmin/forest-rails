@@ -132,7 +132,7 @@ module ForestLiana
 
     describe 'handling cache' do
       let(:collection_name) { 'all_rights_collection_boolean' }
-      let(:fake_ressource) { nil }
+      let(:fake_ressource) { collection_name }
       let(:default_rendering_id) { 1 }
 
       context 'collections cache' do
@@ -396,7 +396,7 @@ module ForestLiana
     describe '#is_authorized?' do
       # Resource is only used to retrieve the collection name as it's stub it does not
       # need to be defined
-      let(:fake_ressource) { nil }
+      let(:fake_ressource) { collection_name }
       let(:default_rendering_id) { nil }
       let(:api_permissions) { default_api_permissions }
 

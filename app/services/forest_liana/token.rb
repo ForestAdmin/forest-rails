@@ -1,4 +1,4 @@
-EXPIRATION_IN_SECONDS = 14.days
+EXPIRATION_IN_SECONDS = 1.hours
 
 module ForestLiana
   class Token

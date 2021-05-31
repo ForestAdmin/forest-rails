@@ -60,10 +60,9 @@ describe "Authentications", type: :request do
     end
 
     it "should return a valid authentication token" do
-      session_cookie = response.headers['set-cookie']
-      expect(session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=[^;]+; secure; HttpOnly$/)
+      body = JSON.parse(response.body, :symbolize_names => true);
 
-      token = session_cookie.match(/^forest_session_token=([^;]+);/)[1]
+      token = body[:token]
       decoded = JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
 
       expected_token_data = {
@@ -76,31 +75,18 @@ describe "Authentications", type: :request do
       }
 
       expect(decoded).to include(expected_token_data)
-      expect(JSON.parse(response.body, :symbolize_names => true)).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
+      expect(body).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
       expect(response).to have_http_status(200)
     end
   end
 
   describe "POST /authentication/logout" do
     before() do 
-      cookies['forest_session_token'] = {
-        value: 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6NjY2LCJlbWFpbCI6ImFsaWNlQGZvcmVzdGFkbWluLmNvbSIsImZpcnN0X25hbWUiOiJBbGljZSIsImxhc3RfbmFtZSI6IkRvZSIsInRlYW0iOjEsInJlbmRlcmluZ19pZCI6IjQyIiwiZXhwIjoxNjA4MDQ5MTI2fQ.5xaMxjUjE3wKldBsj3wW0BP9GHnnMqQi2Kpde8cIHEw',
-        path: '/',
-        expires: Time.now.to_i + 14.days,
-        secure: true,
-        httponly: true
-      }
       post ForestLiana::Engine.routes.url_helpers.authentication_logout_path, params: { :renderingId => 42 }, :headers => headers
-      cookies.delete('forest_session_token')
     end
 
     it "should respond with a 204 code" do
       expect(response).to have_http_status(204)
-    end
-
-    it "should invalidate token from browser" do
-      invalidated_session_cookie = response.headers['set-cookie']
-      expect(invalidated_session_cookie).to match(/^forest_session_token=[^;]+; path=\/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; HttpOnly$/)
     end
   end
 end
