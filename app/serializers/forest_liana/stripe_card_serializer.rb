@@ -1,6 +1,6 @@
 module ForestLiana
   class StripeCardSerializer
-    include ForestAdmin::JSONAPI::Serializer
+    include JSONAPI::Serializer
 
     attribute :last4
     attribute :brand

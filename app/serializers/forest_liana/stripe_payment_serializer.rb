@@ -1,6 +1,6 @@
 module ForestLiana
   class StripePaymentSerializer
-    include ForestAdmin::JSONAPI::Serializer
+    include JSONAPI::Serializer
 
     attribute :description
     attribute :refunded

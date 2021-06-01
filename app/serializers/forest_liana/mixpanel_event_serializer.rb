@@ -1,6 +1,6 @@
 module ForestLiana
   class MixpanelEventSerializer
-    include ForestAdmin::JSONAPI::Serializer
+    include JSONAPI::Serializer
 
     attribute :id
     attribute :event
