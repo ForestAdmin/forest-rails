@@ -53,7 +53,7 @@ module ForestLiana
 
     def serializer_for(active_record_class)
       serializer = Class.new {
-        include JSONAPI::Serializer
+        include ForestAdmin::JSONAPI::Serializer
 
         def self_link
           "/forest#{super.underscore}"

@@ -41,7 +41,7 @@ module ForestLiana
         updater.perform
 
         if updater.errors
-          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          render serializer: nil, json: ForestAdmin::JSONAPI::Serializer.serialize_errors(
             updater.errors), status: 422
         else
           head :no_content

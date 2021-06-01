@@ -1,6 +1,6 @@
 module ForestLiana
   class StripeInvoiceSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :amount_due
     attribute :amount_paid
