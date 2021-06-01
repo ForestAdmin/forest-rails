@@ -1,3 +1,10 @@
+## [6.4.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.0...v6.4.1) (2021-06-01)
+
+
+### Bug Fixes
+
+* fix time based graph when timezone is different with database ([#476](https://github.com/ForestAdmin/forest-rails/issues/476)) ([5d9fb89](https://github.com/ForestAdmin/forest-rails/commit/5d9fb8903ae53615dd1789bdebbc4d9c7d6f4576))
+
 # [6.4.0](https://github.com/ForestAdmin/forest-rails/compare/v6.3.8...v6.4.0) (2021-05-26)
 
 
