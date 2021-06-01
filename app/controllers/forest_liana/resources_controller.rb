@@ -41,7 +41,7 @@ module ForestLiana
           status: :unprocessable_entity, serializer: nil
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
-        error_data = JSONAPI::Serializer.serialize_errors([{
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
           status: error.error_code,
           detail: error.message
         }])
@@ -73,7 +73,7 @@ module ForestLiana
           status: :unprocessable_entity, serializer: nil
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
-        error_data = JSONAPI::Serializer.serialize_errors([{
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
           status: error.error_code,
           detail: error.message
         }])
@@ -108,12 +108,12 @@ module ForestLiana
         creator.perform
 
         if creator.errors
-          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          render serializer: nil, json: ForestAdmin::JSONAPI::Serializer.serialize_errors(
             creator.errors), status: 400
         elsif creator.record.valid?
           render serializer: nil, json: render_record_jsonapi(creator.record)
         else
-          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          render serializer: nil, json: ForestAdmin::JSONAPI::Serializer.serialize_errors(
             creator.record.errors), status: 400
         end
       rescue => error
@@ -131,12 +131,12 @@ module ForestLiana
         updater.perform
 
         if updater.errors
-          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          render serializer: nil, json: ForestAdmin::JSONAPI::Serializer.serialize_errors(
             updater.errors), status: 400
         elsif updater.record.valid?
           render serializer: nil, json: render_record_jsonapi(updater.record)
         else
-          render serializer: nil, json: JSONAPI::Serializer.serialize_errors(
+          render serializer: nil, json: ForestAdmin::JSONAPI::Serializer.serialize_errors(
             updater.record.errors), status: 400
         end
       rescue => error
