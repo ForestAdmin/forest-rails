@@ -1,15 +1,3 @@
-## [6.4.1-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.0...v6.4.1-beta.1) (2021-06-01)
-
-
-### chore
-
-* **force-release:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#464](https://github.com/ForestAdmin/forest-rails/issues/464)) ([00ee2a4](https://github.com/ForestAdmin/forest-rails/commit/00ee2a40ded4eaccbe7fecb68e4edf0aaa36e38b))
-
-
-### BREAKING CHANGES
-
-* **force-release:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
-
 # [6.4.0](https://github.com/ForestAdmin/forest-rails/compare/v6.3.8...v6.4.0) (2021-05-26)
 
 

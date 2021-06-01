@@ -1,6 +1,6 @@
 module ForestLiana
   class StripeSubscriptionSerializer
-    include ForestAdmin::JSONAPI::Serializer
+    include JSONAPI::Serializer
 
     attribute :cancel_at_period_end
     attribute :canceled_at

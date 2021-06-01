@@ -1,6 +1,6 @@
 module ForestLiana
   class StripeBankAccountSerializer
-    include ForestAdmin::JSONAPI::Serializer
+    include JSONAPI::Serializer
 
     attribute :account_holder_name
     attribute :account_holder_type
