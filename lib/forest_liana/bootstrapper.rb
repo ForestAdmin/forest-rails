@@ -139,7 +139,7 @@ module ForestLiana
 
       # Monkey patch the find_serializer_class_name method to specify the
       # good serializer to use.
-      ::JSONAPI::Serializer.class_eval do
+      ::ForestAdmin::JSONAPI::Serializer.class_eval do
         def self.find_serializer_class_name(record, options)
           if record.respond_to?(:jsonapi_serializer_class_name)
             record.jsonapi_serializer_class_name.to_s
