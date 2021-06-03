@@ -15,14 +15,14 @@ module ForestLiana
         expect { SmartActionFieldValidator.validate_field({
           :field => "field",
           :description => 5
-        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName"on field "field": The description attribute must be a string.')
+        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName" on field "field": The description attribute must be a string.')
       end
 
       it "should raise an SmartActionInvalidFieldError with an enums that is not an array" do
         expect { SmartActionFieldValidator.validate_field({
           :field => "field",
           :enums => "NotAnArray"
-        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName"on field "field": The enums attribute must be an array.')
+        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName" on field "field": The enums attribute must be an array.')
       end
 
       it "should raise an SmartActionInvalidFieldError with a reference that is not a string" do
@@ -30,14 +30,14 @@ module ForestLiana
           :field => "field",
           :type => "String",
           :reference => 5
-        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName"on field "field": The reference attribute must be a string.')
+        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName" on field "field": The reference attribute must be a string.')
       end
 
       it "should raise an SmartActionInvalidFieldError with an invalid type" do
         expect { SmartActionFieldValidator.validate_field({
           :field => "field",
           :type => "AbsolutelyNotAValidType"
-        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName"on field "field": The type attribute must be a valid type. See the documentation for more information. https://docs.forestadmin.com/documentation/reference-guide/fields/create-and-manage-smart-fields#available-field-options.')
+        }, "actionName") }.to raise_error(ForestLiana::Errors::SmartActionInvalidFieldError, 'Error while parsing action "actionName" on field "field": The type attribute must be a valid type. See the documentation for more information. https://docs.forestadmin.com/documentation/reference-guide/fields/create-and-manage-smart-fields#available-field-options.')
       end
 
       it "should not raise any error when everything is configured correctly" do

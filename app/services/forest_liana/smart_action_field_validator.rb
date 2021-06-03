@@ -26,7 +26,7 @@ module ForestLiana
       raise ForestLiana::Errors::SmartActionInvalidFieldError.new(action_name, nil, "The field attribute must be a string.") if !field[:field].is_a?(String)
       raise ForestLiana::Errors::SmartActionInvalidFieldError.new(action_name, field[:field], "The description attribute must be a string.") if field[:description] && !field[:description].is_a?(String)
       raise ForestLiana::Errors::SmartActionInvalidFieldError.new(action_name, field[:field], "The enums attribute must be an array.") if field[:enums] && !field[:enums].is_a?(Array)
-      raise ForestLiana::Errors::SmartActionInvalidFieldError.new(action_name, field[:field], "The reference attribute must be a string.") if field[:reference] && !field[:reference].is_a?(Array)
+      raise ForestLiana::Errors::SmartActionInvalidFieldError.new(action_name, field[:field], "The reference attribute must be a string.") if field[:reference] && !field[:reference].is_a?(String)
 
       is_type_valid = field[:type].is_a?(Array) ?
         @@accepted_array_field_type.include?(field[:type][0]) :
