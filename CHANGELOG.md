@@ -1,3 +1,10 @@
+# [6.5.0](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1...v6.5.0) (2021-06-03)
+
+
+### Features
+
+* **schema:** move some meta data under stack attribute to prevent blocking scenarios on DWO ([#469](https://github.com/ForestAdmin/forest-rails/issues/469)) ([76aa754](https://github.com/ForestAdmin/forest-rails/commit/76aa7540300f75b0ea1d00ec3b60e4976b7d800e))
+
 ## [6.4.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.0...v6.4.1) (2021-06-01)
 
 
