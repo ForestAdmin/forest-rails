@@ -1,3 +1,16 @@
+# [7.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.1...v7.0.0-beta.2) (2021-06-07)
+
+
+### Features
+
+* **hooks:** developers can dynamically add or remove smart actions fields ([#465](https://github.com/ForestAdmin/forest-rails/issues/465)) ([970f3d8](https://github.com/ForestAdmin/forest-rails/commit/970f3d82806296137f2e64379c92884b04954580))
+
+
+### BREAKING CHANGES
+
+* **hooks:** fields parameters on hook function is no longer a map of field, it is now an array.
+change hook is no longer choosen by the field name, field need to have hook defined inside it definition by addin a props hook.
+
 # [7.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1-beta.1...v7.0.0-beta.1) (2021-06-01)
 
 
