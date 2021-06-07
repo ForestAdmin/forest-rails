@@ -30,6 +30,7 @@ describe 'Requesting Actions routes', :type => :request  do
         reference: nil,
         description: nil,
         widget: nil,
+        hook: 'on_foo_changed'
     }
     enum = {
         field: 'enum',
@@ -50,10 +51,10 @@ describe 'Requesting Actions routes', :type => :request  do
               context[:fields]
             },
             :change => {
-              'foo' => -> (context) {
-                fields = context[:fields]
-                fields['foo'][:value] = 'baz'
-                return fields
+              'on_foo_changed' => -> (context) {
+                foo = context[:fields].find{|field| field[:field] == 'foo'}
+                foo[:value] = 'baz'
+                context[:fields]
               }
             }
         }
@@ -66,7 +67,7 @@ describe 'Requesting Actions routes', :type => :request  do
               1
             },
             :change => {
-                'foo' => -> (context) {
+                'on_foo_changed' => -> (context) {
                   1
                 }
             }
@@ -77,11 +78,10 @@ describe 'Requesting Actions routes', :type => :request  do
         fields: [foo],
         hooks: {
             :load => -> (context) {
-              context[:fields]['baz'] = foo.clone.update({field: 'baz'})
-              context[:fields]
+              {}
             },
             :change => {
-                'foo' => -> (context) {
+                'on_foo_changed' => -> (context) {
                   context[:fields]['baz'] = foo.clone.update({field: 'baz'})
                   context[:fields]
                 }
@@ -93,10 +93,11 @@ describe 'Requesting Actions routes', :type => :request  do
       fields: [foo, enum],
       hooks: {
         :change => {
-          'foo' => -> (context) {
+          'on_foo_changed' => -> (context) {
             fields = context[:fields]
-            fields['enum'][:enums] = %w[c d e]
-            return fields
+            enum_field = fields.find{|field| field[:field] == 'enum'}
+            enum_field[:enums] = %w[c d e]
+            fields
           }
         }
       }
@@ -107,10 +108,11 @@ describe 'Requesting Actions routes', :type => :request  do
         fields: [foo, multiple_enum],
         hooks: {
             :change => {
-                'foo' => -> (context) {
+                'on_foo_changed' => -> (context) {
                   fields = context[:fields]
-                  fields['multipleEnum'][:enums] = %w[c d z]
-                  return fields
+                  enum_field = fields.find{|field| field[:field] == 'multipleEnum'}
+                  enum_field[:enums] = %w[c d z]
+                  fields
                 }
             }
         }
@@ -136,16 +138,19 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should respond 500 with bad params' do
         post '/forest/actions/my_action/hooks/load', params: {}
         expect(response.status).to eq(500)
+        expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: cannot retrieve action from collection'})
       end
 
       it 'should respond 500 with bad hook result type' do
         post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
+        expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
 
       it 'should respond 500 with bad hook result data structure' do
         post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
+        expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
     end
 
@@ -163,18 +168,15 @@ describe 'Requesting Actions routes', :type => :request  do
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/change', params: {}
+        post '/forest/actions/my_action/hooks/change', params: JSON.dump({collectionName: 'Island'}), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
+        expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action change hook: fields params is mandatory'})
       end
 
       it 'should respond 500 with bad hook result type' do
         post '/forest/actions/fail_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
-      end
-
-      it 'should respond 500 with bad hook result data structure' do
-        post '/forest/actions/cheat_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
-        expect(response.status).to eq(500)
+        expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
 
       it 'should reset value when enums has changed' do
