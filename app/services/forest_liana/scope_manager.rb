@@ -9,8 +9,7 @@ module ForestLiana
       raise 'Missing required collection_name' unless collection_name
 
       collection_scope = get_collection_scope(user['rendering_id'], collection_name)
-      # TODO: format dynamic values
-      collection_scope
+      format_dynamic_values(user['id'], collection_scope)
     end
 
     def self.get_collection_scope(rendering_id, collection_name)
@@ -45,6 +44,23 @@ module ForestLiana
       else
         raise 'Unable to fetch scopes'
       end
+    end
+
+    def self.format_dynamic_values(user_id, collection_scope)
+      filter = collection_scope.dig('scope', 'filter')
+      return nil unless filter
+
+      dynamic_scopes_values = collection_scope.dig('scope', 'dynamicScopesValues')
+
+      # Only goes one level deep as required for now
+      filter['conditions'].map do |condition|
+        value = condition['value']
+        if value.is_a?(String) && value.start_with?('$currentUser')
+          condition['value'] = dynamic_scopes_values.dig('users', user_id, value)
+        end
+      end
+
+      filter
     end
 
     def self.invalidate_scope_cache(rendering_id)

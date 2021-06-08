@@ -2,10 +2,34 @@ module ForestLiana
   describe ScopeManager do
     describe '#get_scope_for_user' do
       let(:rendering_id) { 13 }
-      let(:user) { { 'rendering_id' => rendering_id } }
+      let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
       let(:collection_name) { 'Users' }
-      let(:first_collection_scope) { 'mon_super_scope' }
-      let(:second_collection_scope) { 'mon_super_scope' }
+      let(:first_collection_scope) {
+        {
+          'scope'=> {
+            'filter'=> {
+              'aggregator' => 'and',
+              'conditions' => [
+                { 'field' => 'description', 'operator' => 'contains', 'value' => 'check' }
+              ]
+            },
+            'dynamicScopesValues' => { }
+          }
+        }
+      }
+      let(:second_collection_scope) {
+        {
+          'scope'=> {
+            'filter'=> {
+              'aggregator' => 'and',
+              'conditions' => [
+                { 'field' => 'description', 'operator' => 'contains', 'value' => 'toto' }
+              ]
+            },
+            'dynamicScopesValues' => { }
+          }
+        }
+      }
       let(:first_json_scopes) { JSON.generate({ collection_name => first_collection_scope }) }
       let(:second_json_scopes) { JSON.generate({ collection_name => second_collection_scope }) }
       let(:first_scopes_api_call_response) { Net::HTTPOK.new({}, 200, first_json_scopes) }
@@ -49,7 +73,7 @@ module ForestLiana
         let(:scope) { described_class.get_scope_for_user(user, collection_name) }
 
         it 'should fetch the relevant scope and return it' do
-          expect(scope).to eq first_collection_scope
+          expect(scope).to eq first_collection_scope['scope']['filter']
           expect(ForestLiana::ForestApiRequester).to have_received(:get).once
           expect(ForestLiana::ForestApiRequester).to have_received(:get).with('/liana/scopes', query: { 'renderingId' => rendering_id })
         end
@@ -60,8 +84,8 @@ module ForestLiana
         let(:scope_second_fetch) { described_class.get_scope_for_user(user, collection_name) }
 
         it 'should return the same value twice and have fetch the scopes from the backend only once' do
-          expect(scope_first_fetch).to eq first_collection_scope
-          expect(scope_second_fetch).to eq first_collection_scope
+          expect(scope_first_fetch).to eq first_collection_scope['scope']['filter']
+          expect(scope_second_fetch).to eq first_collection_scope['scope']['filter']
           expect(ForestLiana::ForestApiRequester).to have_received(:get).once.with('/liana/scopes', query: { 'renderingId' => rendering_id })
         end
       end
@@ -71,10 +95,43 @@ module ForestLiana
         let(:scope_second_fetch) { described_class.get_scope_for_user(user, collection_name) }
 
         it 'should return the a new value and have fetch the scopes from the backend twice' do
-          expect(scope_first_fetch).to eq first_collection_scope
+          expect(scope_first_fetch).to eq first_collection_scope['scope']['filter']
           allow(Time).to receive(:now).and_return(Time.now + 20.minutes)
-          expect(scope_second_fetch).to eq second_collection_scope
+          expect(scope_second_fetch).to eq second_collection_scope['scope']['filter']
           expect(ForestLiana::ForestApiRequester).to have_received(:get).twice.with('/liana/scopes', query: { 'renderingId' => rendering_id })
+        end
+      end
+
+      describe 'when scope contains dynamic values' do
+        let(:first_collection_scope) {
+          {
+            'scope' => {
+              'filter'=> {
+                'aggregator' => 'and',
+                'conditions' => [
+                  { 'field' => 'description', 'operator' => 'contains', 'value' => '$currentUser.firstName' }
+                ]
+              },
+              'dynamicScopesValues' => {
+                'users' => { '1' => { '$currentUser.firstName' => 'Valentin' } }
+              }
+            }
+          }
+        }
+        let(:scope_filter) { described_class.get_scope_for_user(user, collection_name) }
+        let(:expected_filter) {
+          {
+            'aggregator' => 'and',
+            'conditions' => [
+              { 'field' => 'description', 'operator' => 'contains', 'value' => 'Valentin' }
+            ]
+          }
+        }
+
+        it 'should replace the dynamic values properly' do
+          expect(scope_filter).to eq expected_filter
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).once
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with('/liana/scopes', query: { 'renderingId' => rendering_id })
         end
       end
     end
