@@ -6,7 +6,7 @@ module ForestLiana
 
         return nil unless collection
 
-        collection.actions.find { |action| action.endpoint == endpoint && action.http_method == http_method }
+        collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
       end
     end
   end

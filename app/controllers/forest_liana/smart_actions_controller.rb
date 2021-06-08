@@ -57,11 +57,8 @@ module ForestLiana
 
     # smart action permissions are retrieved from the action's endpoint and http_method
     def get_smart_action_request_info
-      endpoint = request.fullpath
-      # Trim starting '/'
-      endpoint[0] = '' if endpoint[0] == '/'
       {
-        endpoint: endpoint,
+        endpoint: request.fullpath,
         http_method: request.request_method
       }
     end
