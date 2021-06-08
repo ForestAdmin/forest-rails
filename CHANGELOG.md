@@ -1,3 +1,11 @@
+## [6.5.1](https://github.com/ForestAdmin/forest-rails/compare/v6.5.0...v6.5.1) (2021-06-08)
+
+
+### Bug Fixes
+
+* allow smart action endpoints to start with slashes ([d4f6a61](https://github.com/ForestAdmin/forest-rails/commit/d4f6a618aeea72364b0e7511545b67fbbfb17c99))
+* allow smart action endpoints to start with slashes ([cf6c6a9](https://github.com/ForestAdmin/forest-rails/commit/cf6c6a96498e6813e4b7ccaa56cacd9abefc332f))
+
 # [6.5.0](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1...v6.5.0) (2021-06-03)
 
 
