@@ -13,7 +13,13 @@ module ForestLiana
     end
 
     def self.get_collection_scope(rendering_id, collection_name)
-      refresh_scopes_cache(rendering_id) if has_cache_expired?(rendering_id)
+      if !@@scopes_cache[rendering_id]
+        # when scope cache is unset wait for the refresh
+        refresh_scopes_cache(rendering_id)
+      elsif has_cache_expired?(rendering_id)
+        # when cache expired refresh the scopes without waiting for it
+        Thread.new { refresh_scopes_cache(rendering_id) }
+      end
 
       @@scopes_cache[rendering_id][:scopes][collection_name]
     end
@@ -27,7 +33,6 @@ module ForestLiana
     end
 
     def self.refresh_scopes_cache(rendering_id)
-      # TODO: if already existing trigger refresh without waiting for it (Threads ?)
       scopes = fetch_scopes(rendering_id)
       @@scopes_cache[rendering_id] = {
         :fetched_at => Time.now,
