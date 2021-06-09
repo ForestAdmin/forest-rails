@@ -1,3 +1,10 @@
+# [6.6.0](https://github.com/ForestAdmin/forest-rails/compare/v6.5.1...v6.6.0) (2021-06-09)
+
+
+### Features
+
+* include role in the user data inside the request ([#478](https://github.com/ForestAdmin/forest-rails/issues/478)) ([0a34716](https://github.com/ForestAdmin/forest-rails/commit/0a347165897aa118e486895e55f4b29ba7fb888b))
+
 ## [6.5.1](https://github.com/ForestAdmin/forest-rails/compare/v6.5.0...v6.5.1) (2021-06-08)
 
 
