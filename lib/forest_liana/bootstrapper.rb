@@ -45,26 +45,6 @@ module ForestLiana
 
     private
 
-    def get_collection(collection_name)
-      ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
-    end
-
-    def get_action(collection, action_name)
-      collection.actions.find {|action| action.name == action_name}
-    end
-
-    def generate_action_hooks()
-      @collections_sent.each do |collection|
-        collection['actions'].each do |action|
-          c = get_collection(collection['name'])
-          a = get_action(c, action['name'])
-          load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
-          change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
-          action['hooks'] = {:load => load, :change => change}
-        end
-      end
-    end
-
     def generate_apimap
       create_apimap
       require_lib_forest_liana
@@ -73,7 +53,6 @@ module ForestLiana
       if Rails.env.development?
         @collections_sent = ForestLiana.apimap.as_json
         @meta_sent = ForestLiana.meta
-        generate_action_hooks
         SchemaFileUpdater.new(SCHEMA_FILENAME, @collections_sent, @meta_sent).perform()
       else
         if File.exists?(SCHEMA_FILENAME)
@@ -81,7 +60,6 @@ module ForestLiana
             content = JSON.parse(File.read(SCHEMA_FILENAME))
             @collections_sent = content['collections']
             @meta_sent = content['meta']
-            generate_action_hooks
           rescue JSON::JSONError
             FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
             FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
@@ -244,6 +222,12 @@ module ForestLiana
       end
     end
 
+    def generate_action_hooks(action)
+        load = !action.hooks.nil? && action.hooks.key?(:load) && action.hooks[:load].is_a?(Proc)
+        change = !action.hooks.nil? && action.hooks.key?(:change) && action.hooks[:change].is_a?(Hash) ? action.hooks[:change].keys : []
+        action['hooks'] = {:load => load, :change => change}
+    end
+
     def format_and_validate_smart_actions
       ForestLiana.apimap.each do |collection|
         collection.actions.each do |action|
@@ -253,6 +237,7 @@ module ForestLiana
               field[:position] = index
             end
           end
+          generate_action_hooks(action)
         end
       end
     end
