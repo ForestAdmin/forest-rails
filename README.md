@@ -80,7 +80,7 @@ a custom logic. With virtually no limitations, you can extend the way you
 manipulate data and trigger actions (e.g. refund a customer, apply a coupon,
 ban a user, etc.)
 
-<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/custom+actions.jpeg" alt="Sorting and Pagination">
+<img src="https://forest-assets.s3.amazonaws.com/Github+README+assets/custom+actions.jpeg" alt="Custom action">
 
 ### Export
 
