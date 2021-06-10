@@ -177,7 +177,7 @@ module ForestLiana
       return false unless pool_permissions
 
       # NOTICE: equivalent to Object.values in js & removes nil values
-      array_permission_infos = @query_request_info.values.filter_map{ |x| x unless x.nil? }
+      array_permission_infos = @query_request_info.values.select{ |x| !x.nil? }
 
       # NOTICE: Is there any pool_permissions containing the array_permission_infos
       return pool_permissions.any? {
