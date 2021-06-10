@@ -1,3 +1,10 @@
+## [6.6.1](https://github.com/ForestAdmin/forest-rails/compare/v6.6.0...v6.6.1) (2021-06-10)
+
+
+### Bug Fixes
+
+* support permissions infos with ruby < 2.7 ([#486](https://github.com/ForestAdmin/forest-rails/issues/486)) ([a611271](https://github.com/ForestAdmin/forest-rails/commit/a611271e709bb6a9ed0d3ebccfb64b6eea1d324d))
+
 # [6.6.0](https://github.com/ForestAdmin/forest-rails/compare/v6.5.1...v6.6.0) (2021-06-09)
 
 
