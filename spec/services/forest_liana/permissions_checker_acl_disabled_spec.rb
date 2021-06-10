@@ -191,7 +191,6 @@ module ForestLiana
       end
     end
 
-
     context 'renderings cache' do
       let(:fake_ressource) { collection_name }
       let(:rendering_id) { 1 }
@@ -499,7 +498,7 @@ module ForestLiana
                   expect(subject.is_authorized?).to be false
                 end
               end
-            
+
             end
 
             context 'when user has not the required permission' do
@@ -519,7 +518,6 @@ module ForestLiana
                 expect(subject.is_authorized?).to be false
               end
             end
-
           end
         end
 

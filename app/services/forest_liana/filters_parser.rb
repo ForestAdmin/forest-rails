@@ -109,13 +109,15 @@ module ForestLiana
       parsed_value = parse_value(operator, value)
       field_and_operator = "#{parsed_field} #{parsed_operator}"
 
+      # parenthesis around the parsed_value are required to make the `IN` operator work
+      # and have no side effects on other requests
       if Rails::VERSION::MAJOR < 5
-        "#{field_and_operator} #{ActiveRecord::Base.sanitize(parsed_value)}"
+        "#{field_and_operator} (#{ActiveRecord::Base.sanitize(parsed_value)})"
       # NOTICE: sanitize method as been removed in Rails 5.1 and sanitize_sql introduced in Rails 5.2.
       elsif Rails::VERSION::MAJOR == 5 && Rails::VERSION::MINOR == 1
-        "#{field_and_operator} #{ActiveRecord::Base.connection.quote(parsed_value)}"
+        "#{field_and_operator} (#{ActiveRecord::Base.connection.quote(parsed_value)})"
       else
-        ActiveRecord::Base.sanitize_sql(["#{field_and_operator} ?", parsed_value])
+        ActiveRecord::Base.sanitize_sql(["#{field_and_operator} (?)", parsed_value])
       end
     end
 
@@ -147,6 +149,8 @@ module ForestLiana
         'IS'
       when 'present'
         'IS NOT'
+      when 'in'
+        'IN'
       else
         raise_unknown_operator_error(operator)
       end
@@ -154,7 +158,7 @@ module ForestLiana
 
     def parse_value(operator, value)
       case operator
-      when 'not', 'greater_than', 'less_than', 'not_equal', 'equal', 'before', 'after'
+      when 'not', 'greater_than', 'less_than', 'not_equal', 'equal', 'before', 'after', 'in'
         value
       when 'contains', 'not_contains'
         "%#{value}%"

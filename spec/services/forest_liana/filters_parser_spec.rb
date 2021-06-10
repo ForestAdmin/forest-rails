@@ -281,7 +281,7 @@ module ForestLiana
       let(:result) { filter_parser.parse_condition(condition) }
 
       context 'on valid condition' do
-        it { expect(result).to eq "\"trees\".\"name\" LIKE '%3'" }
+        it { expect(result).to eq "\"trees\".\"name\" LIKE ('%3')" }
       end
 
       context 'on belongs_to condition' do

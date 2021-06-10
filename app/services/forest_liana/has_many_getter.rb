@@ -4,7 +4,7 @@ module ForestLiana
     attr_reader :includes
     attr_reader :records_count
 
-    def initialize(resource, association, params)
+    def initialize(resource, association, params, forest_user)
       @resource = resource
       @association = association
       @params = params
@@ -13,7 +13,7 @@ module ForestLiana
       @collection = get_collection(@collection_name)
       compute_includes()
       includes_symbols = @includes.map { |include| include.to_sym }
-      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection)
+      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection, forest_user)
 
       prepare_query()
     end

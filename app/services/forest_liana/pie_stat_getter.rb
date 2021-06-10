@@ -7,8 +7,10 @@ module ForestLiana
         timezone_offset = @params[:timezone].to_i
         resource = get_resource().eager_load(@includes)
 
-        unless @params[:filters].blank?
-          resource = FiltersParser.new(@params[:filters], resource, @params[:timezone]).apply_filters
+        filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
+
+        unless filters.blank?
+          resource = FiltersParser.new(filters, resource, @params[:timezone]).apply_filters
         end
 
         result = resource
@@ -53,7 +55,8 @@ module ForestLiana
       if @params[:aggregate].downcase == 'sum'
         field = @params[:aggregate_field].downcase
       else
-        field = Rails::VERSION::MAJOR >= 5 || @includes.size > 0 ? 'id' : 'all'
+        # `count_id` is required only for rails v5
+        field = Rails::VERSION::MAJOR == 5 || @includes.size > 0 ? 'id' : 'all'
       end
       "#{@params[:aggregate].downcase}_#{field} #{order}"
     end
