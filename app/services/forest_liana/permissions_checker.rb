@@ -40,6 +40,7 @@ module ForestLiana
         @@permissions_cached[@rendering_id] = permissions
       end
 
+      # NOTICE: Add stats permissions to the RenderingPermissions
       permissions['data']['renderings'][@rendering_id]['stats'] = permissions['stats']
       add_scopes_to_cache(permissions)
     end
@@ -98,7 +99,10 @@ module ForestLiana
     # This will happen only on rolesACLActivated (as scope cache will always be up to date on disabled)
     def refresh_scope_cache
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id, rendering_specific_only: true)
+
+      # NOTICE: Add stats permissions to the RenderingPermissions
       permissions['data']['renderings'][@rendering_id]['stats'] = permissions['stats']
+
       add_scopes_to_cache(permissions)
     end
 
