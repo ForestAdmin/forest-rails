@@ -1,7 +1,7 @@
 module ForestLiana
   class PermissionsChecker
     @@permissions_cached = Hash.new
-    @@scopes_cached = Hash.new
+    @@rederings_cached = Hash.new
     @@roles_acl_activated = false
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
@@ -39,13 +39,15 @@ module ForestLiana
         permissions['data'] = ForestLiana::PermissionsFormatter.convert_to_new_format(permissions['data'], @rendering_id)
         @@permissions_cached[@rendering_id] = permissions
       end
+
+      permissions['data']['renderings'][@rendering_id]['stats'] = permissions['stats']
       add_scopes_to_cache(permissions)
     end
 
     def add_scopes_to_cache(permissions)
       permissions['data']['renderings'].keys.each { |rendering_id|
-        @@scopes_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
-        @@scopes_cached[rendering_id]['last_fetch'] = Time.now
+        @@rederings_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
+        @@rederings_cached[rendering_id]['last_fetch'] = Time.now
       } if permissions['data']['renderings']
     end
 
@@ -58,8 +60,6 @@ module ForestLiana
       elsif @permission_name === 'statWithParameters'
         return stat_with_parameters_allowed?
       end
-
-      
 
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
@@ -83,21 +83,22 @@ module ForestLiana
     end
 
     def get_scope_in_permissions
-      @@scopes_cached[@rendering_id] &&
-      @@scopes_cached[@rendering_id][@collection_name] &&
-      @@scopes_cached[@rendering_id][@collection_name]['scope']
+      @@rederings_cached[@rendering_id] &&
+      @@rederings_cached[@rendering_id][@collection_name] &&
+      @@rederings_cached[@rendering_id][@collection_name]['scope']
     end
 
     def scope_cache_expired?
-      return true unless @@scopes_cached[@rendering_id] && @@scopes_cached[@rendering_id]['last_fetch']
+      return true unless @@rederings_cached[@rendering_id] && @@rederings_cached[@rendering_id]['last_fetch']
 
-      elapsed_seconds = date_difference_in_seconds(Time.now, @@scopes_cached[@rendering_id]['last_fetch'])
+      elapsed_seconds = date_difference_in_seconds(Time.now, @@rederings_cached[@rendering_id]['last_fetch'])
       elapsed_seconds >= @@expiration_in_seconds
     end
 
     # This will happen only on rolesACLActivated (as scope cache will always be up to date on disabled)
     def refresh_scope_cache
       permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id, rendering_specific_only: true)
+      permissions['data']['renderings'][@rendering_id]['stats'] = permissions['stats']
       add_scopes_to_cache(permissions)
     end
 
@@ -112,12 +113,12 @@ module ForestLiana
     end
 
     def get_live_query_permissions_content
-      permissions = get_permissions
+      permissions = @@rederings_cached[@rendering_id]
       permissions && permissions['stats'] && permissions['stats']['queries']
     end
     
     def get_stat_with_parameters_content(statPermissionType)
-      permissions = get_permissions
+      permissions = @@rederings_cached[@rendering_id]
       permissions && permissions['stats'] && permissions['stats'][statPermissionType]
     end
 
@@ -201,7 +202,7 @@ module ForestLiana
     # Used only for testing purpose
     def self.empty_cache
       @@permissions_cached = Hash.new
-      @@scopes_cached = Hash.new
+      @@rederings_cached = Hash.new
       @@roles_acl_activated = false
       @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
     end
