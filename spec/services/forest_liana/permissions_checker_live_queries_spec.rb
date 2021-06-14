@@ -20,7 +20,8 @@ module ForestLiana
         })
       ]
     }
-    let(:scope_permissions) { nil }
+    let(:default_rendering_id) { 1 }
+    let(:scope_permissions) { { default_rendering_id => { 'scopes' => nil } } }
     let(:default_api_permissions) {
       {
         "data" => {
@@ -61,7 +62,6 @@ module ForestLiana
         },
       }
     }
-    let(:default_rendering_id) { 1 }
 
     before do
       allow(ForestLiana).to receive(:apimap).and_return(schema)
