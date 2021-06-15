@@ -7,7 +7,6 @@ module ForestLiana
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
     def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, query_request_info: nil)
-      
       @collection_name = resource.present? ? ForestLiana.name_for(resource) : nil
       @permission_name = permission_name
       @rendering_id = rendering_id
@@ -58,8 +57,6 @@ module ForestLiana
       elsif @permission_name === 'statWithParameters'
         return stat_with_parameters_allowed?
       end
-
-      
 
       if permissions && permissions[@collection_name] &&
         permissions[@collection_name]['collection']
@@ -115,7 +112,7 @@ module ForestLiana
       permissions = get_permissions
       permissions && permissions['stats'] && permissions['stats']['queries']
     end
-    
+
     def get_stat_with_parameters_content(statPermissionType)
       permissions = get_permissions
       permissions && permissions['stats'] && permissions['stats'][statPermissionType]
@@ -166,7 +163,7 @@ module ForestLiana
 
       return false unless live_queries_permissions
 
-      # NOTICE: @query_request_info matching an existing live query 
+      # NOTICE: @query_request_info matching an existing live query
       return live_queries_permissions.include? @query_request_info
     end
 
