@@ -1,3 +1,10 @@
+## [6.6.2](https://github.com/ForestAdmin/forest-rails/compare/v6.6.1...v6.6.2) (2021-06-16)
+
+
+### Bug Fixes
+
+* stats permissions should be retrieved only one time per team ([#489](https://github.com/ForestAdmin/forest-rails/issues/489)) ([c2e9104](https://github.com/ForestAdmin/forest-rails/commit/c2e9104ebf32deeb3e5676706fdcbaae5de34869))
+
 ## [6.6.1](https://github.com/ForestAdmin/forest-rails/compare/v6.6.0...v6.6.1) (2021-06-10)
 
 
