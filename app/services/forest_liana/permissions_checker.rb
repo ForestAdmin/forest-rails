@@ -1,7 +1,7 @@
 module ForestLiana
   class PermissionsChecker
     @@permissions_cached = Hash.new
-    @@rederings_cached = Hash.new
+    @@renderings_cached = Hash.new
     @@roles_acl_activated = false
     # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
@@ -47,8 +47,8 @@ module ForestLiana
 
     def add_scopes_to_cache(permissions)
       permissions['data']['renderings'].keys.each { |rendering_id|
-        @@rederings_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
-        @@rederings_cached[rendering_id]['last_fetch'] = Time.now
+        @@renderings_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
+        @@renderings_cached[rendering_id]['last_fetch'] = Time.now
       } if permissions['data']['renderings']
     end
 
@@ -84,15 +84,15 @@ module ForestLiana
     end
 
     def get_scope_in_permissions
-      @@rederings_cached[@rendering_id] &&
-      @@rederings_cached[@rendering_id][@collection_name] &&
-      @@rederings_cached[@rendering_id][@collection_name]['scope']
+      @@renderings_cached[@rendering_id] &&
+      @@renderings_cached[@rendering_id][@collection_name] &&
+      @@renderings_cached[@rendering_id][@collection_name]['scope']
     end
 
     def scope_cache_expired?
-      return true unless @@rederings_cached[@rendering_id] && @@rederings_cached[@rendering_id]['last_fetch']
+      return true unless @@renderings_cached[@rendering_id] && @@renderings_cached[@rendering_id]['last_fetch']
 
-      elapsed_seconds = date_difference_in_seconds(Time.now, @@rederings_cached[@rendering_id]['last_fetch'])
+      elapsed_seconds = date_difference_in_seconds(Time.now, @@renderings_cached[@rendering_id]['last_fetch'])
       elapsed_seconds >= @@expiration_in_seconds
     end
 
@@ -117,12 +117,12 @@ module ForestLiana
     end
 
     def get_live_query_permissions_content
-      permissions = @@rederings_cached[@rendering_id]
+      permissions = @@renderings_cached[@rendering_id]
       permissions && permissions['stats'] && permissions['stats']['queries']
     end
     
     def get_stat_with_parameters_content(statPermissionType)
-      permissions = @@rederings_cached[@rendering_id]
+      permissions = @@renderings_cached[@rendering_id]
       permissions && permissions['stats'] && permissions['stats'][statPermissionType]
     end
 
@@ -206,7 +206,7 @@ module ForestLiana
     # Used only for testing purpose
     def self.empty_cache
       @@permissions_cached = Hash.new
-      @@rederings_cached = Hash.new
+      @@renderings_cached = Hash.new
       @@roles_acl_activated = false
       @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
     end
