@@ -34,11 +34,8 @@ module ForestLiana
     let(:first_scopes_api_call_response) { Net::HTTPOK.new({}, 200, first_json_scopes) }
     let(:second_scopes_api_call_response) { Net::HTTPOK.new({}, 200, second_json_scopes) }
 
-    before(:each) do
-      described_class.invalidate_scope_cache(rendering_id)
-    end
-
     before do
+      described_class.invalidate_scope_cache(rendering_id)
       allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(first_scopes_api_call_response, second_scopes_api_call_response)
       allow(first_scopes_api_call_response).to receive(:body).and_return(first_json_scopes)
       allow(second_scopes_api_call_response).to receive(:body).and_return(second_json_scopes)
