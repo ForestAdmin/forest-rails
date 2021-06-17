@@ -75,7 +75,7 @@ module ForestLiana
                 "users" => nil
               },
             },
-            "scope" => nil
+            "segments" => nil
           },
           "no_rights_collection" => {
             "collection" => {
@@ -93,7 +93,7 @@ module ForestLiana
                 "users" => nil
               }
             },
-            "scope" => nil
+            "segments" => nil
           },
         },
         "meta" => {
@@ -146,6 +146,8 @@ module ForestLiana
 
       context 'with permissions coming from 2 different renderings' do
         let(:collection_name) { 'custom' }
+
+        let(:segments_permissions) { nil }
         let(:api_permissions_rendering_1) {
           {
             "data" => {
@@ -160,7 +162,7 @@ module ForestLiana
                   "searchToEdit" => true
                 },
                 "actions" => { },
-                "scope" => nil
+                "segments" => segments_permissions
               },
             },
             "meta" => {
@@ -217,7 +219,7 @@ module ForestLiana
           }
         }
       }
-      let(:api_permissions_scope_only) {
+      let(:api_permissions_rendering_only) {
         {
           "data" => {
             'collections' => { },
@@ -233,7 +235,7 @@ module ForestLiana
         # clones is called to duplicate the returned value and not use to same (which results in an error
         # as the permissions is edited through the formatter)
         allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id) { api_permissions.clone }
-        allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+        allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_rendering_only)
       end
 
       context 'when checking once for authorization' do
@@ -313,7 +315,7 @@ module ForestLiana
 
         context 'on two different renderings' do
           let(:other_rendering_id) { 2 }
-          let(:api_permissions_scope_only) {
+          let(:api_permissions_rendering_only) {
             {
               "data" => {
                 'collections' => { },
@@ -330,7 +332,7 @@ module ForestLiana
 
           before do
             allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id).and_return(api_permissions_copy)
-            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+            allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_rendering_only)
           end
 
           it 'should not call the API to refresh the rederings permissions' do
@@ -350,7 +352,7 @@ module ForestLiana
       # Resource is only used to retrieve the collection name as it's stubbed it does not
       # need to be defined
       let(:fake_ressource) { collection_name }
-      let(:default_rendering_id) { nil }
+      let(:default_rendering_id) { 1 }
       let(:api_permissions) { default_api_permissions }
       let(:collection_name) { 'all_rights_collection' }
 
@@ -480,6 +482,26 @@ module ForestLiana
               end
             end
 
+            context 'when segments are defined' do
+              let(:segments_permissions) { ['SELECT * FROM products;', 'SELECT * FROM sellers;'] }
+              let(:collection_list_parameters) { { :user_id => "1", :segmentQuery => segmentQuery } }
+
+              context 'when segments are passing validation' do
+                  let(:segmentQuery) { 'SELECT * FROM products;' }
+                  it 'should return true' do
+                    expect(subject.is_authorized?).to be true
+                  end
+              end
+
+              context 'when segments are NOT passing validation' do
+                let(:segmentQuery) { 'SELECT * FROM rockets WHERE name = "Starship";' }
+                it 'should return false' do
+                  expect(subject.is_authorized?).to be false
+                end
+              end
+            
+            end
+
             context 'when user has not the required permission' do
               let(:collection_permissions) {
                 {
@@ -498,25 +520,6 @@ module ForestLiana
               end
             end
 
-            context 'when segments are defined' do
-              let(:segments_permissions) { ['SELECT * FROM products;', 'SELECT * FROM sellers;'] }
-              let(:collection_list_parameters) { { :user_id => "1", :segmentQuery => segmentQuery } }
-
-              context 'when segments are passing validation' do
-                  let(:segmentQuery) { 'SELECT * FROM products;' }
-                  it 'should return true' do
-                    expect(subject.is_authorized?).to be true
-                  end
-              end
-
-              context 'when scopes are NOT passing validation' do
-                let(:segmentQuery) { 'SELECT * FROM rockets WHERE name = "Starship";' }
-                it 'should return false' do
-                  expect(subject.is_authorized?).to be false
-                end
-              end
-            
-            end
           end
         end
 

@@ -6,7 +6,7 @@ module ForestLiana
 
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, query_request_info: nil)
+    def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: Hash.new, query_request_info: nil)
       
       @collection_name = resource.present? ? ForestLiana.name_for(resource) : nil
       @permission_name = permission_name
@@ -69,7 +69,7 @@ module ForestLiana
         else
           if @permission_name === 'browseEnabled'
             refresh_rendering_cache if rendering_cache_expired?
-            
+
             # NOTICE: In this case we need to check that that query is allowed
             if @collection_list_parameters[:segmentQuery].present?
               return false unless segment_query_allowed?
