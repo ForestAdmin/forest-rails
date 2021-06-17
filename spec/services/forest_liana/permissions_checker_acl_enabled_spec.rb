@@ -50,7 +50,8 @@ module ForestLiana
         })
       ]
     }
-    let(:scope_permissions) { nil }
+    let(:default_rendering_id) { 1 }
+    let(:scope_permissions) { { default_rendering_id => { 'scopes' => nil } } }
     let(:default_api_permissions) {
       {
         "data" => {
@@ -118,12 +119,14 @@ module ForestLiana
           },
           'renderings' => scope_permissions
         },
+        "stats" => {
+          "queries"=>[],
+        },
         "meta" => {
           "rolesACLActivated" => true
         }
       }
     }
-    let(:default_rendering_id) { 1 }
 
     before do
       allow(ForestLiana).to receive(:apimap).and_return(schema)
@@ -368,8 +371,11 @@ module ForestLiana
                 "data" => {
                   'collections' => { },
                   'renderings' => {
-                    '2' => { 'custom' => nil }
+                    other_rendering_id => { 'custom' => nil }
                   }
+                },
+                "stats" => {
+                  "somestats" => [],
                 },
                 "meta" => {
                   "rolesACLActivated" => true

@@ -23,7 +23,7 @@ module ForestLiana
     end
 
     def perform
-      value = get_resource().eager_load(@includes)
+      value = get_resource().joins(@includes)
 
       unless @params[:filters].blank?
         value = FiltersParser.new(@params[:filters], value, @params[:timezone]).apply_filters

@@ -83,6 +83,8 @@ jobs:
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v2
         id: semantic
+        with:
+          semantic_version: 17.3.0
         env:
           GEM_HOST_API_KEY: ${{ secrets.GEM_HOST_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

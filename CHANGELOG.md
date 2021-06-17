@@ -1,3 +1,38 @@
+## [6.6.2](https://github.com/ForestAdmin/forest-rails/compare/v6.6.1...v6.6.2) (2021-06-16)
+
+
+### Bug Fixes
+
+* stats permissions should be retrieved only one time per team ([#489](https://github.com/ForestAdmin/forest-rails/issues/489)) ([c2e9104](https://github.com/ForestAdmin/forest-rails/commit/c2e9104ebf32deeb3e5676706fdcbaae5de34869))
+
+## [6.6.1](https://github.com/ForestAdmin/forest-rails/compare/v6.6.0...v6.6.1) (2021-06-10)
+
+
+### Bug Fixes
+
+* support permissions infos with ruby < 2.7 ([#486](https://github.com/ForestAdmin/forest-rails/issues/486)) ([a611271](https://github.com/ForestAdmin/forest-rails/commit/a611271e709bb6a9ed0d3ebccfb64b6eea1d324d))
+
+# [6.6.0](https://github.com/ForestAdmin/forest-rails/compare/v6.5.1...v6.6.0) (2021-06-09)
+
+
+### Features
+
+* include role in the user data inside the request ([#478](https://github.com/ForestAdmin/forest-rails/issues/478)) ([0a34716](https://github.com/ForestAdmin/forest-rails/commit/0a347165897aa118e486895e55f4b29ba7fb888b))
+
+## [6.5.1](https://github.com/ForestAdmin/forest-rails/compare/v6.5.0...v6.5.1) (2021-06-08)
+
+
+### Bug Fixes
+
+* **dependency:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#475](https://github.com/ForestAdmin/forest-rails/issues/475)) ([3feea36](https://github.com/ForestAdmin/forest-rails/commit/3feea36b3b578638f3ad7c16ebab8e457a68d71f))
+
+
+### BREAKING CHANGES
+
+* **dependency:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
+* allow smart action endpoints to start with slashes ([d4f6a61](https://github.com/ForestAdmin/forest-rails/commit/d4f6a618aeea72364b0e7511545b67fbbfb17c99))
+* allow smart action endpoints to start with slashes ([cf6c6a9](https://github.com/ForestAdmin/forest-rails/commit/cf6c6a96498e6813e4b7ccaa56cacd9abefc332f))
+
 # [7.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.1...v7.0.0-beta.2) (2021-06-07)
 
 
@@ -11,17 +46,22 @@
 * **hooks:** fields parameters on hook function is no longer a map of field, it is now an array.
 change hook is no longer choosen by the field name, field need to have hook defined inside it definition by addin a props hook.
 
+
+
+# [6.5.0](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1...v6.5.0) (2021-06-03)
+
+
+### Features
+
+* **schema:** move some meta data under stack attribute to prevent blocking scenarios on DWO ([#469](https://github.com/ForestAdmin/forest-rails/issues/469)) ([76aa754](https://github.com/ForestAdmin/forest-rails/commit/76aa7540300f75b0ea1d00ec3b60e4976b7d800e))
+
 # [7.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1-beta.1...v7.0.0-beta.1) (2021-06-01)
+## [6.4.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.0...v6.4.1) (2021-06-01)
 
 
 ### Bug Fixes
 
-* **dependency:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#475](https://github.com/ForestAdmin/forest-rails/issues/475)) ([3feea36](https://github.com/ForestAdmin/forest-rails/commit/3feea36b3b578638f3ad7c16ebab8e457a68d71f))
-
-
-### BREAKING CHANGES
-
-* **dependency:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
+* fix time based graph when timezone is different with database ([#476](https://github.com/ForestAdmin/forest-rails/issues/476)) ([5d9fb89](https://github.com/ForestAdmin/forest-rails/commit/5d9fb8903ae53615dd1789bdebbc4d9c7d6f4576))
 
 # [6.4.0](https://github.com/ForestAdmin/forest-rails/compare/v6.3.8...v6.4.0) (2021-05-26)
 

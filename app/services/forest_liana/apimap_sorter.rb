@@ -93,6 +93,7 @@ module ForestLiana
           end
         end
 
+        @apimap['meta']['stack'] = reorder_keys_basic(@apimap['meta']['stack'])
         @apimap['meta'] = reorder_keys_basic(@apimap['meta'])
         @apimap
       rescue => exception
