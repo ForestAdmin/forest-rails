@@ -89,7 +89,7 @@ module ForestLiana
     end
 
     describe 'with scopes' do
-      # Mock empty scopes
+      # Mock NOT empty scopes
       before do
         ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
         collection_scope = {
