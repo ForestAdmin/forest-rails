@@ -4,9 +4,11 @@ module ForestLiana
       context 'on a disordered apimap' do
         apimap = {
           'meta': {
-            'orm_version': '4.34.9',
+            stack: {
+              'orm_version': '4.34.9',
+              'database_type': 'postgresql',
+            },
             'liana_version': '1.5.24',
-            'database_type': 'postgresql',
             liana: 'forest-rails',
           },
           'data': [{
@@ -165,8 +167,8 @@ module ForestLiana
         end
 
         it 'should sort the meta values' do
-          expect(apimap_sorted['meta'].keys).to eq(
-            ['database_type', 'liana', 'liana_version', 'orm_version'])
+          expect(apimap_sorted['meta'].keys).to eq(['liana', 'liana_version', 'stack'])
+          expect(apimap_sorted['meta']['stack'].keys).to eq(['database_type', 'orm_version'])
         end
       end
     end
