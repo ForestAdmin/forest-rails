@@ -10,7 +10,7 @@ module ForestLiana
 
     def index
       begin
-        getter = HasManyGetter.new(@resource, @association, params)
+        getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.perform
 
         respond_to do |format|
@@ -25,7 +25,7 @@ module ForestLiana
 
     def count
       begin
-        getter = HasManyGetter.new(@resource, @association, params)
+        getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count
 
         render serializer: nil, json: { count: getter.records_count }

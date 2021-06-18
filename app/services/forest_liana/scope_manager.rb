@@ -4,12 +4,31 @@ module ForestLiana
     # 5 minutes exipration cache
     @@scope_cache_expiration_delta = 300
 
-    def self.get_scope_for_user(user, collection_name)
+    def self.append_scope_for_user(existing_filter, user, collection_name)
+      scope_filter = get_scope_for_user(user, collection_name, as_string: true)
+      filters = [existing_filter, scope_filter].compact
+
+      case filters.length
+      when 0
+        nil
+      when 1
+        filters[0]
+      else
+        "{\"aggregator\":\"and\",\"conditions\":[#{existing_filter},#{scope_filter}]}"
+      end
+    end
+
+    def self.get_scope_for_user(user, collection_name, as_string: false)
       raise 'Missing required rendering_id' unless user['rendering_id']
       raise 'Missing required collection_name' unless collection_name
 
       collection_scope = get_collection_scope(user['rendering_id'], collection_name)
-      format_dynamic_values(user['id'], collection_scope)
+
+      return nil unless collection_scope
+
+      filters = format_dynamic_values(user['id'], collection_scope)
+
+      as_string && filters ? JSON.generate(filters) : filters
     end
 
     def self.get_collection_scope(rendering_id, collection_name)

@@ -17,6 +17,8 @@ describe 'Requesting Tree resources', :type => :request  do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
 
     allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
+
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({})
   end
 
   token = JWT.encode({

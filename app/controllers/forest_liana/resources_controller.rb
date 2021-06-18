@@ -29,7 +29,7 @@ module ForestLiana
           return head :forbidden unless checker.is_authorized?
         end
 
-        getter = ForestLiana::ResourcesGetter.new(@resource, params)
+        getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.perform
 
         respond_to do |format|
@@ -63,7 +63,7 @@ module ForestLiana
         )
         return head :forbidden unless checker.is_authorized?
 
-        getter = ForestLiana::ResourcesGetter.new(@resource, params)
+        getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.count
 
         render serializer: nil, json: { count: getter.records_count }
