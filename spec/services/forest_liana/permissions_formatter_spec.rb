@@ -202,7 +202,7 @@ module ForestLiana
         let(:expected_new_format_permissions) { old_format_segments_permissions }
 
         context 'when segments permissions are set' do
-          let(:old_format_segments_permissions) { ['segmentQuery1', 'segmentQuery2'] } } }
+          let(:old_format_segments_permissions) { ['segmentQuery1', 'segmentQuery2'] }
 
           it 'expected segments permissions should be set' do
             expect(subject).to eq expected_new_format_permissions
