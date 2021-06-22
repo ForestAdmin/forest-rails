@@ -27,15 +27,15 @@ module ForestLiana
     def get
       case params[:type]
       when CHART_TYPE_VALUE
-        stat = ValueStatGetter.new(@resource, params)
+        stat = ValueStatGetter.new(@resource, params, forest_user)
       when CHART_TYPE_PIE
-        stat = PieStatGetter.new(@resource, params)
+        stat = PieStatGetter.new(@resource, params, forest_user)
       when CHART_TYPE_LINE
-        stat = LineStatGetter.new(@resource, params)
+        stat = LineStatGetter.new(@resource, params, forest_user)
       when CHART_TYPE_OBJECTIVE
-        stat = ObjectiveStatGetter.new(@resource, params)
+        stat = ObjectiveStatGetter.new(@resource, params, forest_user)
       when CHART_TYPE_LEADERBOARD
-        stat = LeaderboardStatGetter.new(@resource, params)
+        stat = LeaderboardStatGetter.new(@resource, params, forest_user)
       end
 
       stat.perform
