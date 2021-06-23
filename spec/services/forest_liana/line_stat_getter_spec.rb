@@ -1,12 +1,21 @@
 module ForestLiana
   describe LineStatGetter do
+    let(:rendering_id) { 13 }
+    let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
+    let(:scopes) { { } }
+
+    before(:each) do
+      ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
+      allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+    end
+
     describe 'Check client_timezone function' do
       describe 'with a SQLite database' do
         it 'should return false' do
           expect(LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
             aggregate: "Count",
-          }).client_timezone).to eq(false)
+          }, user).client_timezone).to eq(false)
         end
       end
 
@@ -16,7 +25,7 @@ module ForestLiana
           expect(LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
             aggregate: "Count",
-          }).client_timezone).to eq('Europe/Paris')
+          }, user).client_timezone).to eq('Europe/Paris')
         end
       end
     end
@@ -25,7 +34,6 @@ module ForestLiana
       describe 'Using a Count aggregation' do
         describe 'Using a Week time range' do
           it 'should return consistent data based on monday as week_start ' do
-            
             # Week should start on monday
             # 08-05-2021 was a Saturday
             Owner.create(name: 'Michel', hired_at: Date.parse('08-05-2021'));
@@ -38,8 +46,8 @@ module ForestLiana
               aggregate: "Count",
               time_range: "Week",
               group_by_date_field: "hired_at",
-            }).perform
-            
+            }, user).perform
+
             expect(stat.value.find { |item| item[:label] == "W18-2021" }[:values][:value]).to eq(2)
             expect(stat.value.find { |item| item[:label] == "W19-2021" }[:values][:value]).to eq(2)
           end
