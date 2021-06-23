@@ -1,5 +1,8 @@
 module ForestLiana
   class PieStatGetterTest < ActiveSupport::TestCase
+    rendering_id = 13
+    user = { 'rendering_id' => rendering_id }
+
     test 'Pie stat getter with an aggregate on a boolean field' do
       stat = PieStatGetter.new(BooleanField, {
         type: "Pie",
@@ -7,7 +10,7 @@ module ForestLiana
         timezone: "Europe/Paris",
         aggregate: "Count",
         group_by_field: "field"
-      })
+      }, user)
 
       stat.perform
       assert stat.record.value.count == 0
@@ -20,7 +23,7 @@ module ForestLiana
         timezone: "Europe/Paris",
         aggregate: "Count",
         group_by_field: "has_one_field_id"
-      })
+      }, user)
 
       stat.perform
       assert stat.record.value.count == 30

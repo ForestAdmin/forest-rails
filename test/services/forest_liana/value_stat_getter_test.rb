@@ -1,5 +1,8 @@
 module ForestLiana
   class ValueStatGetterTest < ActiveSupport::TestCase
+    rendering_id = 13
+    user = { 'rendering_id' => rendering_id }
+
     test 'Value stat getter with a simple filter' do
       stat = ValueStatGetter.new(BooleanField, {
         type: "Value",
@@ -11,7 +14,7 @@ module ForestLiana
           operator: 'equal',
           value: "true"
         }.to_json
-      })
+      }, user)
 
       stat.perform
       assert stat.record.value[:countCurrent] == 0
@@ -28,7 +31,7 @@ module ForestLiana
           operator: 'equal',
           value: 3
         }.to_json
-      })
+      }, user)
 
       stat.perform
       assert stat.record.value[:countCurrent] == 1
@@ -45,7 +48,7 @@ module ForestLiana
           operator: 'equal',
           value: "false"
         }.to_json
-      })
+      }, user)
 
       stat.perform
       assert stat.record.value[:countCurrent] == 0
@@ -62,7 +65,7 @@ module ForestLiana
           operator: 'equal',
           value: "pending"
         }.to_json
-      })
+      }, user)
 
       stat.perform
       assert stat.record.value[:countCurrent] == 1
