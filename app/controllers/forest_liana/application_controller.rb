@@ -86,15 +86,6 @@ module ForestLiana
       end
     end
 
-    def get_smart_action_context
-      begin
-        params[:data][:attributes].values[0].to_hash.symbolize_keys
-      rescue => error
-        FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
-        {}
-      end
-    end
-
     def internal_server_error
       head :internal_server_error
     end

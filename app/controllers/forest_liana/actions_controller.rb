@@ -10,10 +10,6 @@ module ForestLiana
       end
     end
 
-    def values
-      render serializer: nil, json: {}, status: :ok
-    end
-
     def get_collection(collection_name)
       ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
     end
@@ -27,14 +23,6 @@ module ForestLiana
         nil
       end
     end
-    
-    def get_record
-      hook_request = get_smart_action_hook_request
-      model = ForestLiana::SchemaUtils.find_model_from_collection_name(hook_request[:collection_name])
-      record_getter = ForestLiana::ResourceGetter.new(model, {:id => hook_request[:ids][0]})
-      record_getter.perform
-      record_getter.record
-    end
 
     def get_smart_action_load_ctx(fields)
       fields = fields.map do |field|
@@ -42,7 +30,7 @@ module ForestLiana
         field[:value] = nil unless field[:value]
         field
       end
-      {:record => get_record, :fields => fields}
+      {:fields => fields, :params => params}
     end
 
     def get_smart_action_change_ctx(fields, field_changed)
@@ -52,7 +40,7 @@ module ForestLiana
         ForestLiana::WidgetsHelper.set_field_widget(field)
         field
       end
-      {:record => get_record,  :field_changed => found_field_changed, :fields => fields}
+      {:field_changed => found_field_changed, :fields => fields, :params => params}
     end
 
     def handle_result(result, action)

@@ -10,14 +10,6 @@ describe 'Requesting Actions routes', :type => :request  do
   after(:each) do
     Island.destroy_all
   end
-
-  describe 'call /values' do
-    it 'should respond 200' do
-      post '/forest/actions/foo/values', {}
-      expect(response.status).to eq(200)
-      expect(response.body).to be {}
-    end
-  end
   
   describe 'hooks' do
     foo = {
