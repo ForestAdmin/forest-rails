@@ -12,15 +12,16 @@ module ForestLiana
     def get_action(collection_name)
       collection = get_collection(collection_name)
       begin
-         collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
+        collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
       rescue => error
         FOREST_LOGGER.error "Smart Action get action retrieval error: #{error}"
         nil
       end
     end
-    
+
     def get_record
       model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
+      # TODO: add user
       redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]})
       redord_getter.perform
       redord_getter.record

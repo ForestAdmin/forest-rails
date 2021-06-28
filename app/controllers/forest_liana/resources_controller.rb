@@ -89,10 +89,12 @@ module ForestLiana
         checker = ForestLiana::PermissionsChecker.new(@resource, 'readEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
-        getter = ForestLiana::ResourceGetter.new(@resource, params)
+        getter = ForestLiana::ResourceGetter.new(@resource, params, forest_user)
         getter.perform
 
         render serializer: nil, json: render_record_jsonapi(getter.record)
+      rescue ActiveRecord::RecordNotFound
+        render serializer: nil, json: { status: 404 }, status: :not_found
       rescue => error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
