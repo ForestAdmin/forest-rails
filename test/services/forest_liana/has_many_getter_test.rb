@@ -40,7 +40,7 @@ module ForestLiana
           count = getter.count
 
           assert records.count == 3
-          assert count = 3
+          assert count == 3
           assert records.first.id == 7
         end
       end
@@ -61,7 +61,7 @@ module ForestLiana
           count = getter.count
 
           assert records.count == 3
-          assert count = 3
+          assert count == 3
           assert records.first.id == 8
         end
       end
@@ -82,7 +82,7 @@ module ForestLiana
           count = getter.count
 
           assert records.count == 1
-          assert count = 1
+          assert count == 1
           assert records.first.id == 8
         end
       end
@@ -123,7 +123,7 @@ module ForestLiana
 
           # only sequoia and fir contains an `i`
           assert records.count == 2
-          assert count = 2
+          assert count == 2
           assert records.first.id == 7
         end
       end
