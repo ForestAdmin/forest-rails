@@ -240,7 +240,12 @@ module ForestLiana
       SchemaUtils.associations(@model).each do |association|
         begin
           # NOTICE: Delete the association if the targeted model is excluded.
-          if !SchemaUtils.model_included?(association.klass)
+          if SchemaUtils.polymorphic?(association)
+            included = SchemaUtils.model_included?(association.active_record)
+          else
+            included = SchemaUtils.model_included?(association.klass)
+          end
+          if !included
             field = collection.fields.find do |x|
               x[:field] == association.foreign_key
             end
@@ -273,13 +278,17 @@ module ForestLiana
     end
 
     def automatic_inverse_of(association)
-      name = association.active_record.name.demodulize.underscore
+      if association.options[:polymorphic]
+        association.active_record.name.demodulize.underscore.pluralize
+      else
+        name = association.active_record.name.demodulize.underscore
 
-      inverse_association = association.klass.reflections.keys.find do |k|
-        k.to_s == name || k.to_s == name.pluralize
+        inverse_association = association.klass.reflections.keys.find do |k|
+          k.to_s == name || k.to_s == name.pluralize
+        end
+
+        inverse_association.try(:to_s)
       end
-
-      inverse_association.try(:to_s)
     end
 
     def get_schema_for_column(column)

@@ -63,7 +63,11 @@ module ForestLiana
             # ActionController::Parameters do not inherit from Hash anymore
             # since Rails 5.
             if (data.is_a?(Hash) || data.is_a?(ActionController::Parameters)) && data[:id]
-              @attributes[name] = association.klass.find(data[:id])
+              if association.options[:polymorphic]
+                @attributes[name] = association.active_record.find(data[:id])
+              else
+                @attributes[name] = association.klass.find(data[:id])
+              end
             elsif data.blank?
               @attributes[name] = nil
             end

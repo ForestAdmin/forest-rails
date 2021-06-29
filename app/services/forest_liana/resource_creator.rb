@@ -18,7 +18,7 @@ module ForestLiana
         end
         set_has_many_relationships
       rescue ActiveRecord::StatementInvalid => exception
-        # NOTICE: SQL request cannot be executed properly
+        # NOTICE: SQL request cannot be executed properly
         @errors = [{ detail: exception.cause.error }]
       rescue ForestLiana::Errors::SerializeAttributeBadFormat => exception
         @errors = [{ detail: exception.message }]
@@ -41,7 +41,11 @@ module ForestLiana
             if data.is_a?(Array)
               data.each do |x|
                 existing_records = @record.send(name)
-                new_record = association.klass.find(x[:id])
+                if association.options[:polymorphic]
+                  new_record = association.active_record.find(x[:id])
+                else
+                  new_record = association.klass.find(x[:id])
+                end
                 if !existing_records.include?(new_record)
                   existing_records << new_record
                 end

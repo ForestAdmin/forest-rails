@@ -265,7 +265,12 @@ module ForestLiana
 
         SchemaUtils.associations(active_record_class).each do |a|
           begin
-            if SchemaUtils.model_included?(a.klass)
+            if SchemaUtils.polymorphic?(a)
+              included = SchemaUtils.model_included?(a.active_record)
+            else
+              included = SchemaUtils.model_included?(a.klass)
+            end
+            if included
               serializer.send(serializer_association(a), a.name) {
                 if [:has_one, :belongs_to].include?(a.macro)
                   begin

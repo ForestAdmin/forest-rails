@@ -13,7 +13,11 @@ module ForestLiana
 
       if @data.is_a?(Array)
         @data.each do |record_added|
-          associated_records << @association.klass.find(record_added[:id])
+          if @association.options[:polymorphic]
+            associated_records << @association.active_record.find(record_added[:id])
+          else
+            associated_records << @association.klass.find(record_added[:id])
+          end
         end
       end
     end
