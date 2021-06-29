@@ -4,6 +4,14 @@ module ForestLiana
     # 5 minutes exipration cache
     @@scope_cache_expiration_delta = 300
 
+    def self.apply_scopes_on_records(records, forest_user, collection_name, timezone)
+      scope_filters = get_scope_for_user(forest_user, collection_name, as_string: true)
+
+      return records if scope_filters.blank?
+
+      FiltersParser.new(scope_filters, records, timezone).apply_filters
+    end
+
     def self.append_scope_for_user(existing_filter, user, collection_name)
       scope_filter = get_scope_for_user(user, collection_name, as_string: true)
       filters = [existing_filter, scope_filter].compact

@@ -129,7 +129,7 @@ module ForestLiana
         checker = ForestLiana::PermissionsChecker.new(@resource, 'editEnabled', @rendering_id, user_id: forest_user['id'])
         return head :forbidden unless checker.is_authorized?
 
-        updater = ForestLiana::ResourceUpdater.new(@resource, params)
+        updater = ForestLiana::ResourceUpdater.new(@resource, params, forest_user)
         updater.perform
 
         if updater.errors
