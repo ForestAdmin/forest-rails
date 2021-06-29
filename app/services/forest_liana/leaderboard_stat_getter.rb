@@ -29,7 +29,7 @@ module ForestLiana
     def get_scoped_model(model, forest_user, timezone)
       scope_filters = ForestLiana::ScopeManager.get_scope_for_user(forest_user, model.name, as_string: true)
 
-      return model if scope_filters.blank?
+      return model.unscoped if scope_filters.blank?
 
       FiltersParser.new(scope_filters, model, timezone).apply_filters
     end
