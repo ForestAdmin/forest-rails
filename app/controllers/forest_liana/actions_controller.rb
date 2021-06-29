@@ -1,5 +1,5 @@
 module ForestLiana
-  class ActionsController < ForestLiana::BaseController
+  class ActionsController < ApplicationController
 
     def values
       render serializer: nil, json: {}, status: :ok
@@ -22,7 +22,7 @@ module ForestLiana
     def get_record
       model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
       # TODO: add user
-      redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]})
+      redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]}, forest_user)
       redord_getter.perform
       redord_getter.record
     end
