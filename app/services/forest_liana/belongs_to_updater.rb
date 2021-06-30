@@ -13,10 +13,7 @@ module ForestLiana
     def perform
       begin
         @record = @resource.find(@params[:id])
-        new_value = nil
-        if @data && @data[:id]
-          new_value = SchemaUtils.association_ref(@association).find(@data[:id])
-        end
+        new_value = SchemaUtils.association_ref(@association).find(@data[:id]) if @data && @data[:id]
         @record.send("#{@association.name}=", new_value)
 
         @record.save

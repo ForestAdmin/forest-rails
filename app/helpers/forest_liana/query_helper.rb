@@ -2,7 +2,7 @@ module ForestLiana
   module QueryHelper
     def self.get_one_associations(resource)
       SchemaUtils.one_associations(resource)
-        .select { |association| SchemaUtils.model_included?(SchemaUtils.association_ref(association)) }
+        .select { |association| !SchemaUtils.polymorphic?(association) && SchemaUtils.model_included?(association.klass) }
     end
 
     def self.get_one_association_names_symbol(resource)
