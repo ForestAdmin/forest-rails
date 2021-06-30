@@ -3,7 +3,7 @@ module ForestLiana
     def initialize(resource, params)
       @resource = resource
       @params = params
-      @model_relationship =  @resource.reflect_on_association(@params[:relationship_field]).klass
+      @model_relationship = @resource.reflect_on_association(@params[:relationship_field]).klass
       compute_includes()
       @label_field = @params[:label_field]
       @aggregate = @params[:aggregate].downcase

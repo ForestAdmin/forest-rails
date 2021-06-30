@@ -94,7 +94,7 @@ module ForestLiana
           .map { |field| field.split('.').first.to_sym }
 
         includes_has_many = SchemaUtils.many_associations(@resource)
-          .select { |association| SchemaUtils.model_included?(association.klass) }
+          .select { |association| SchemaUtils.model_included?(SchemaUtils.association_ref(association)) }
           .map(&:name)
 
         includes_for_smart_search = includes_for_smart_search & includes_has_many

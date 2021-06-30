@@ -13,7 +13,7 @@ module ForestLiana
 
       if @data.is_a?(Array)
         @data.each do |record_added|
-          associated_records << @association.klass.find(record_added[:id])
+          associated_records << SchemaUtils.association_ref(@association).find(record_added[:id])
         end
       end
     end
