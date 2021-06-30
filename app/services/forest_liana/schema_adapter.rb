@@ -272,15 +272,19 @@ module ForestLiana
         automatic_inverse_of(association)
     end
 
+    def polymorphic_inverse_of(association)
+      active_models = ActiveRecord::Base.descendants
+      active_models.each do |model|
+        a = model.reflect_on_all_associations.select{|a| a.options[:as] == association.name }
+        unless a.empty?
+          return a.first.name
+        end
+      end
+    end
+
     def automatic_inverse_of(association)
       if SchemaUtils.polymorphic?(association)
-        active_models = ActiveRecord::Base.descendants
-        active_models.each do |model|
-          a = model.reflect_on_all_associations.select{|a| a.options[:as] == association.name }
-          unless a.empty?
-            return a.first.name
-          end
-        end
+        polymorphic_inverse_of(association)
       else
         name = association.active_record.name.demodulize.underscore
         inverse_association = association.klass.reflections.keys.find do |k|
