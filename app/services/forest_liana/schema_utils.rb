@@ -4,11 +4,7 @@ module ForestLiana
     def self.associations(active_record_class)
       active_record_class.reflect_on_all_associations.select do |association|
         begin
-          if polymorphic?(association)
-            !is_active_type?(association.active_record)
-          else
-            !is_active_type?(association.klass)
-          end
+          !is_active_type?(SchemaUtils.association_ref(association))
         rescue
           FOREST_LOGGER.warn "Unknown association #{association.name} on class #{active_record_class.name}"
           false
@@ -60,6 +56,14 @@ module ForestLiana
 
     def self.polymorphic?(association)
       association.options[:polymorphic]
+    end
+
+    def self.association_ref(association)
+      if self.polymorphic?(association)
+        association.active_record
+      else
+        association.klass
+      end
     end
 
     def self.find_model_from_abstract_class(abstract_class, collection_name)

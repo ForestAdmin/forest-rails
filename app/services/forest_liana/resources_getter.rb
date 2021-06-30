@@ -82,14 +82,6 @@ module ForestLiana
       @records.offset(offset).limit(limit).to_a
     end
 
-    def included(association)
-      if association.options[:polymorphic]
-        SchemaUtils.model_included?(association.active_record)
-      else
-        SchemaUtils.model_included?(association.klass)
-      end
-    end
-
     def compute_includes
       associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
 
@@ -102,7 +94,7 @@ module ForestLiana
           .map { |field| field.split('.').first.to_sym }
 
         includes_has_many = SchemaUtils.many_associations(@resource)
-          .select { |association| self.included association }
+          .select { |association| SchemaUtils.model_included?(SchemaUtils.association_ref(association)) }
           .map(&:name)
 
         includes_for_smart_search = includes_for_smart_search & includes_has_many

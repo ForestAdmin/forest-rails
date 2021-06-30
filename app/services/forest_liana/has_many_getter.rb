@@ -37,7 +37,7 @@ module ForestLiana
     private
 
     def compute_includes
-      @includes = @association.klass
+      @includes = SchemaUtils.association_ref(@association)
         .reflect_on_all_associations
         .select do |association|
           inclusion = !SchemaUtils.polymorphic?(association) &&

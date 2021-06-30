@@ -240,11 +240,7 @@ module ForestLiana
       SchemaUtils.associations(@model).each do |association|
         begin
           # NOTICE: Delete the association if the targeted model is excluded.
-          if SchemaUtils.polymorphic?(association)
-            included = SchemaUtils.model_included?(association.active_record)
-          else
-            included = SchemaUtils.model_included?(association.klass)
-          end
+          included = SchemaUtils.model_included?(SchemaUtils.association_ref(association))
           if !included
             field = collection.fields.find do |x|
               x[:field] == association.foreign_key
@@ -278,11 +274,10 @@ module ForestLiana
     end
 
     def automatic_inverse_of(association)
-      if association.options[:polymorphic]
-        association.active_record.name.demodulize.underscore.pluralize
+      name = SchemaUtils.association_ref(association).name.demodulize.underscore
+      if SchemaUtils.polymorphic?(association)
+        name.pluralize.try(:to_s)
       else
-        name = association.active_record.name.demodulize.underscore
-
         inverse_association = association.klass.reflections.keys.find do |k|
           k.to_s == name || k.to_s == name.pluralize
         end
@@ -322,7 +317,7 @@ module ForestLiana
         field: association.name.to_s,
         type: get_type_for_association(association),
         relationship: get_relationship_type(association),
-        reference: "#{ForestLiana.name_for(association.klass)}.id",
+        reference: "#{ForestLiana.name_for(SchemaUtils.association_ref(association))}.id",
         inverse_of: inverse_of(association),
         is_filterable: !is_many_association(association),
         is_sortable: true,
@@ -509,7 +504,7 @@ module ForestLiana
     end
 
     def get_reference_for(association)
-      if association.options[:polymorphic] == true
+      if SchemaUtils.polymorphic?(association)
         '*.id'
       else
         "#{ForestLiana.name_for(association.klass)}.id"

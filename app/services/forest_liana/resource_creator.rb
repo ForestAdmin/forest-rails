@@ -41,11 +41,7 @@ module ForestLiana
             if data.is_a?(Array)
               data.each do |x|
                 existing_records = @record.send(name)
-                if association.options[:polymorphic]
-                  new_record = association.active_record.find(x[:id])
-                else
-                  new_record = association.klass.find(x[:id])
-                end
+                new_record = SchemaUtils.association_ref(association).find(x[:id])
                 if !existing_records.include?(new_record)
                   existing_records << new_record
                 end

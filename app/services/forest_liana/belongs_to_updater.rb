@@ -15,11 +15,7 @@ module ForestLiana
         @record = @resource.find(@params[:id])
         new_value = nil
         if @data && @data[:id]
-          if @association.options[:polymorphic]
-            new_value = @association.active_record.find(@data[:id])
-          else
-            new_value = @association.klass.find(@data[:id])
-          end
+          new_value = SchemaUtils.association_ref(@association).find(@data[:id])
         end
         @record.send("#{@association.name}=", new_value)
 

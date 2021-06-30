@@ -8,14 +8,6 @@ module ForestLiana
       @data = params['data']
     end
 
-    def exists(record_id)
-      if @association.options[:polymorphic]
-        @association.active_record.exists?(record_id)
-      else
-        @association.klass.exists?(record_id)
-      end
-    end
-
     def perform
       @record = @resource.find(@params[:id])
       associated_records = @resource.find(@params[:id]).send(@association.name)
@@ -33,21 +25,13 @@ module ForestLiana
       if !record_ids.nil? && record_ids.any?
         if remove_association
           record_ids.each do |id|
-            if @association.options[:polymorphic]
-              associated_records.delete(@association.active_record.find(id))
-            else
-              associated_records.delete(@association.klass.find(id))
-            end
+            associated_records.delete(SchemaUtils.association_ref(@association).find(id))
           end
         end
 
         if @with_deletion
-          record_ids = record_ids.select { |record_id| self.exists record_id }
-          if @association.options[:polymorphic]
-            @association.active_record.destroy(record_ids)
-          else
-            @association.klass.destroy(record_ids)
-          end
+          record_ids = record_ids.select { |record_id| SchemaUtils.association_ref(@association).exists?(record_id) }
+          SchemaUtils.association_ref(@association).destroy(record_ids)
         end
       end
     end
