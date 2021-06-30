@@ -151,7 +151,14 @@ module ForestLiana
       checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user_id: forest_user['id'])
       return head :forbidden unless checker.is_authorized?
 
-      @resource.destroy(params[:id]) if @resource.exists?(params[:id])
+      collection_name = ForestLiana.name_for(@resource)
+      scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, forest_user, collection_name, params[:timezone])
+
+      unless scoped_records.exists?(params[:id])
+        return render serializer: nil, json: { status: 404 }, status: :not_found
+      end
+
+      scoped_records.destroy(params[:id])
 
       head :no_content
     rescue => error
@@ -163,7 +170,7 @@ module ForestLiana
       checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user_id: forest_user['id'])
       return head :forbidden unless checker.is_authorized?
 
-      ids = ForestLiana::ResourcesGetter.get_ids_from_request(params)
+      ids = ForestLiana::ResourcesGetter.get_ids_from_request(params, forest_user)
       @resource.destroy(ids) if ids&.any?
 
       head :no_content
