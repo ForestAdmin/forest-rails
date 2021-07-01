@@ -13,7 +13,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
   describe 'call /values' do
     it 'should respond 200' do
-      post '/forest/actions/foo/values', {}
+      post '/forest/actions/foo/values', params: {}
       expect(response.status).to eq(200)
       expect(response.body).to be {}
     end
