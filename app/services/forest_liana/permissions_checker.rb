@@ -1,9 +1,7 @@
 module ForestLiana
   class PermissionsChecker
     @@permissions_cached = Hash.new
-    @@scopes_cached = Hash.new
     @@roles_acl_activated = false
-    # TODO: handle cache scopes per rendering
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
     def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: nil, query_request_info: nil)
@@ -38,14 +36,6 @@ module ForestLiana
         permissions['data'] = ForestLiana::PermissionsFormatter.convert_to_new_format(permissions['data'], @rendering_id)
         @@permissions_cached[@rendering_id] = permissions
       end
-      add_scopes_to_cache(permissions)
-    end
-
-    def add_scopes_to_cache(permissions)
-      permissions['data']['renderings'].keys.each { |rendering_id|
-        @@scopes_cached[rendering_id] = permissions['data']['renderings'][rendering_id]
-        @@scopes_cached[rendering_id]['last_fetch'] = Time.now
-      } if permissions['data']['renderings']
     end
 
     def is_allowed
@@ -63,39 +53,11 @@ module ForestLiana
         if @permission_name === 'actions'
           return smart_action_allowed?(permissions[@collection_name]['actions'])
         else
-          if @permission_name === 'browseEnabled'
-            refresh_scope_cache if scope_cache_expired?
-            scope_permissions = get_scope_in_permissions
-            if scope_permissions
-              # NOTICE: current_scope will either contains conditions filter and
-              #         dynamic user values definition, or null for collection that does not use scopes
-              return false unless are_scopes_valid?(scope_permissions)
-            end
-          end
           return is_user_allowed(permissions[@collection_name]['collection'][@permission_name])
         end
       else
         false
       end
-    end
-
-    def get_scope_in_permissions
-      @@scopes_cached[@rendering_id] &&
-      @@scopes_cached[@rendering_id][@collection_name] &&
-      @@scopes_cached[@rendering_id][@collection_name]['scope']
-    end
-
-    def scope_cache_expired?
-      return true unless @@scopes_cached[@rendering_id] && @@scopes_cached[@rendering_id]['last_fetch']
-
-      elapsed_seconds = date_difference_in_seconds(Time.now, @@scopes_cached[@rendering_id]['last_fetch'])
-      elapsed_seconds >= @@expiration_in_seconds
-    end
-
-    # This will happen only on rolesACLActivated (as scope cache will always be up to date on disabled)
-    def refresh_scope_cache
-      permissions = ForestLiana::PermissionsGetter::get_permissions_for_rendering(@rendering_id, rendering_specific_only: true)
-      add_scopes_to_cache(permissions)
     end
 
     # When acl disabled permissions are stored and retrieved by rendering
@@ -151,13 +113,6 @@ module ForestLiana
       is_user_allowed(smart_action_permissions['triggerEnabled'])
     end
 
-    def are_scopes_valid?(scope_permissions)
-      return ForestLiana::ScopeValidator.new(
-        scope_permissions['filter'],
-        scope_permissions['dynamicScopesValues']['users']
-      ).is_scope_in_request?(@collection_list_parameters)
-    end
-
     def live_query_allowed?
       live_queries_permissions = get_live_query_permissions_content
 
@@ -198,7 +153,6 @@ module ForestLiana
     # Used only for testing purpose
     def self.empty_cache
       @@permissions_cached = Hash.new
-      @@scopes_cached = Hash.new
       @@roles_acl_activated = false
       @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
     end
