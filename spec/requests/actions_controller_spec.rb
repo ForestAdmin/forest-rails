@@ -1,10 +1,15 @@
 require 'rails_helper'
 
 describe 'Requesting Actions routes', :type => :request  do
+  let(:rendering_id) { 13 }
+
   before(:each) do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
     Island.create(name: 'Corsica')
+
+    ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
+    allow(ForestLiana::ScopeManager).to receive(:get_scope_for_user).and_return({})
   end
 
   after(:each) do
@@ -13,11 +18,31 @@ describe 'Requesting Actions routes', :type => :request  do
 
   describe 'call /values' do
     it 'should respond 200' do
-      post '/forest/actions/foo/values', params: {}
+      post '/forest/actions/foo/values', params: {},  headers: headers
       expect(response.status).to eq(200)
       expect(response.body).to be {}
     end
   end
+
+  let(:token) {
+    JWT.encode({
+      id: 38,
+      email: 'michael.kelso@that70.show',
+      first_name: 'Michael',
+      last_name: 'Kelso',
+      team: 'Operations',
+      rendering_id: rendering_id,
+      exp: Time.now.to_i + 2.weeks.to_i
+    }, ForestLiana.auth_secret, 'HS256')
+  }
+
+  let(:headers) {
+    {
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json',
+      'Authorization' => "Bearer #{token}"
+    }
+  }
 
   describe 'hooks' do
     foo = {
@@ -128,23 +153,23 @@ describe 'Requesting Actions routes', :type => :request  do
       params = {recordIds: [1], collectionName: 'Island'}
 
       it 'should respond 200' do
-        post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).stringify_keys]})
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/load', params: {}
+        post '/forest/actions/my_action/hooks/load', params: {}, headers: headers
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result type' do
-        post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result data structure' do
-        post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
       end
     end
@@ -154,7 +179,7 @@ describe 'Requesting Actions routes', :type => :request  do
       params = {recordIds: [1], fields: [updated_foo], collectionName: 'Island', changedField: 'foo'}
 
       it 'should respond 200' do
-        post '/forest/actions/my_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/my_action/hooks/change', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
         expected = updated_foo.clone.merge({:value => 'baz'})
         expected[:widgetEdit] = nil
@@ -163,24 +188,24 @@ describe 'Requesting Actions routes', :type => :request  do
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/change', params: {}
+        post '/forest/actions/my_action/hooks/change', params: {}, headers: headers
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result type' do
-        post '/forest/actions/fail_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/fail_action/hooks/change', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
       end
 
       it 'should respond 500 with bad hook result data structure' do
-        post '/forest/actions/cheat_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/cheat_action/hooks/change', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
       end
 
       it 'should reset value when enums has changed' do
         updated_enum = enum.clone.merge({:previousValue => nil, :value => 'a'}) # set value to a
         p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
-        post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil, :widgetEdit => nil})
@@ -194,7 +219,7 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should not reset value when every enum values are in the enums definition' do
         updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[c]})
         p = {recordIds: [1], fields: [foo, updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
-        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_multiple_enum = updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => %w[c]})
@@ -208,7 +233,7 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should reset value when one of the enum values is not in the enums definition' do
         wrongly_updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[a b]})
         p = {recordIds: [1], fields: [foo, wrongly_updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
-        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_multiple_enum = wrongly_updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => nil })

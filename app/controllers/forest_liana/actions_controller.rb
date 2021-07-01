@@ -1,5 +1,5 @@
 module ForestLiana
-  class ActionsController < ForestLiana::BaseController
+  class ActionsController < ApplicationController
 
     def values
       render serializer: nil, json: {}, status: :ok
@@ -12,18 +12,19 @@ module ForestLiana
     def get_action(collection_name)
       collection = get_collection(collection_name)
       begin
-         collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
+        collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
       rescue => error
         FOREST_LOGGER.error "Smart Action get action retrieval error: #{error}"
         nil
       end
     end
-    
+
     def get_record
       model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
-      redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]})
-      redord_getter.perform
-      redord_getter.record
+      # TODO: add user
+      record_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]}, forest_user)
+      record_getter.perform
+      record_getter.record
     end
 
     def get_smart_action_load_ctx(fields)

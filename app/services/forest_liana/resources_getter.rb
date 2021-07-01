@@ -20,7 +20,7 @@ module ForestLiana
       prepare_query
     end
 
-    def self.get_ids_from_request(params)
+    def self.get_ids_from_request(params, user)
       attributes = params.dig('data', 'attributes')
       has_body_attributes = attributes != nil
       is_select_all_records_query = has_body_attributes && attributes[:all_records] == true
@@ -46,11 +46,11 @@ module ForestLiana
           collection: parent_collection_name,
           id: attributes[:parent_collection_id],
           association_name: attributes[:parent_association_name],
-        }), @user)
+        }), user)
       else
         collection_name = attributes[:collection_name]
         model = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
-        resources_getter = ForestLiana::ResourcesGetter.new(model, attributes, @user)
+        resources_getter = ForestLiana::ResourcesGetter.new(model, attributes, user)
       end
 
       # NOTICE: build IDs list.
