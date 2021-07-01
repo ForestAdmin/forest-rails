@@ -22,9 +22,9 @@ module ForestLiana
     def get_record
       model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
       # TODO: add user
-      redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]}, forest_user)
-      redord_getter.perform
-      redord_getter.record
+      record_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]}, forest_user)
+      record_getter.perform
+      record_getter.record
     end
 
     def get_smart_action_load_ctx(fields)
