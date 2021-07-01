@@ -304,11 +304,12 @@ module ForestLiana
                 described_class.empty_cache
               end
 
-              it 'should call the API to refresh the scopes cache' do
+            # scopes are not handled in the permissions anymore
+              it 'should NOT call the API to refresh the scopes cache' do
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
-                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).once
+                expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
               end
             end
           end
@@ -351,12 +352,13 @@ module ForestLiana
                 described_class.empty_cache
               end
 
-              it 'should call the API to refresh the scopes permissions' do
+              # scopes are not handled in the permissions anymore
+              it 'should NOT call the API to refresh the scopes permissions' do
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).twice
-                expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).twice
+                expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
               end
             end
           end
@@ -381,12 +383,13 @@ module ForestLiana
               allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
             end
 
-            it 'should call the API to refresh the scopes permissions' do
+            # scopes are not handled in the permissions anymore
+            it 'should NOT call the API to refresh the scopes permissions' do
               described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
               described_class.new(fake_ressource, 'browseEnabled', other_rendering_id, user_id: user_id).is_authorized?
 
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
-              expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).once
+              expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true)
             end
           end
         end
@@ -504,8 +507,9 @@ module ForestLiana
                   }
                 }
 
-                it 'should return false' do
-                  expect(subject.is_authorized?).to be false
+                # scopes are not handled in the permissions anymore
+                it 'should return true' do
+                  expect(subject.is_authorized?).to be true
                 end
               end
             end
