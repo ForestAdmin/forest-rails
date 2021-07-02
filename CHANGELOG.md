@@ -1,3 +1,10 @@
+# [7.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.2...v7.0.0-beta.3) (2021-07-02)
+
+
+### Features
+
+* **security:** secure segments queries ([#495](https://github.com/ForestAdmin/forest-rails/issues/495)) ([571f889](https://github.com/ForestAdmin/forest-rails/commit/571f889d85c226b8d4b78618150c75f4fa2aa9ad))
+
 ## [6.6.2](https://github.com/ForestAdmin/forest-rails/compare/v6.6.1...v6.6.2) (2021-06-16)
 
 
