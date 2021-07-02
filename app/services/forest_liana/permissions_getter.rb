@@ -26,10 +26,7 @@ module ForestLiana
       # rederings => {
       #   {rendering_id} => {
       #       {collection_id} => {
-      #         scope => {
-      #           dynamicScopesValues => {},
-      #           filter => {}
-      #         }
+      #         segments => ['query1', 'query2']
       #       }
       #     }
       #   }

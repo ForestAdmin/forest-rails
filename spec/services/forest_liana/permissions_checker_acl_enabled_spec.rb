@@ -51,7 +51,7 @@ module ForestLiana
       ]
     }
     let(:default_rendering_id) { 1 }
-    let(:scope_permissions) { { default_rendering_id => { 'scopes' => nil } } }
+    let(:segments_permissions) { { default_rendering_id => { 'segments' => nil } } }
     let(:default_api_permissions) {
       {
         "data" => {
@@ -117,7 +117,7 @@ module ForestLiana
               }
             },
           },
-          'renderings' => scope_permissions
+          'renderings' => segments_permissions
         },
         "stats" => {
           "queries"=>[],
@@ -177,7 +177,7 @@ module ForestLiana
           end
 
           let(:collection_name) { 'custom' }
-          let(:scope_permissions) { { default_rendering_id => { 'custom' => nil }, 2 => { 'custom' => nil } } }
+          let(:segments_permissions) { { default_rendering_id => { 'custom' => nil }, 2 => { 'custom' => nil } } }
           let(:api_permissions_rendering_1) {
             {
               "data" => {
@@ -194,7 +194,7 @@ module ForestLiana
                     "actions" => { }
                   },
                 },
-                'renderings' => scope_permissions
+                'renderings' => segments_permissions
               },
               "meta" => {
                 "rolesACLActivated" => true
@@ -245,10 +245,10 @@ module ForestLiana
         end
       end
 
-      context 'scopes cache' do
+      context 'renderings cache' do
         let(:rendering_id) { 1 }
         let(:collection_name) { 'custom' }
-        let(:scope_permissions) { { rendering_id => { 'custom' => nil } } }
+        let(:segments_permissions) { { rendering_id => { 'custom' => nil } } }
         let(:api_permissions) {
           {
             "data" => {
@@ -265,18 +265,18 @@ module ForestLiana
                   "actions" => { }
                 },
               },
-              'renderings' => scope_permissions
+              'renderings' => segments_permissions
             },
             "meta" => {
               "rolesACLActivated" => true
             }
           }
         }
-        let(:api_permissions_scope_only) {
+        let(:api_permissions_rendering_only) {
           {
             "data" => {
               'collections' => { },
-              'renderings' => scope_permissions
+              'renderings' => segments_permissions
             },
             "meta" => {
               "rolesACLActivated" => true
@@ -286,13 +286,13 @@ module ForestLiana
 
         before do
           allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id).and_return(api_permissions)
-          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+          allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).and_return(api_permissions_rendering_only)
         end
 
         context 'when checking once for authorization' do
           context 'when checking browseEnabled' do
             context 'when expiration value is set to its default' do
-              it 'should not call the API to refresh the scopes cache' do
+              it 'should not call the API to refresh the renderings cache' do
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
@@ -307,7 +307,7 @@ module ForestLiana
                 described_class.empty_cache
               end
 
-              it 'should call the API to refresh the scopes cache' do
+              it 'should call the API to refresh the renderings cache' do
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
@@ -316,7 +316,7 @@ module ForestLiana
             end
           end
 
-          # Only browse permission requires scopes
+          # Only browse permission requires segments
           context 'when checking exportEnabled' do
             context 'when expiration value is set in the past' do
               before do
@@ -326,7 +326,7 @@ module ForestLiana
               end
             end
 
-            it 'should NOT call the API to refresh the scopes cache' do
+            it 'should NOT call the API to refresh the rendering cache' do
               described_class.new(fake_ressource, 'exportEnabled', rendering_id, user_id: user_id).is_authorized?
 
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
@@ -337,8 +337,8 @@ module ForestLiana
 
         context 'when checking twice for authorization' do
           context 'on the same rendering' do
-            context 'when scopes permission has NOT expired' do
-              it 'should NOT call the API to refresh the scopes permissions' do
+            context 'when rendering permission has NOT expired' do
+              it 'should NOT call the API to refresh the rendering permissions' do
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
@@ -347,14 +347,14 @@ module ForestLiana
               end
             end
 
-            context 'when scopes permission has expired' do
+            context 'when renderings permission has expired' do
               before do
                 allow(ENV).to receive(:[]).with('FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS').and_return('-1')
                 # Needed to enforce ENV stub
                 described_class.empty_cache
               end
 
-              it 'should call the API to refresh the scopes permissions' do
+              it 'should call the API to refresh the rendering permissions' do
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
                 described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
 
@@ -366,7 +366,7 @@ module ForestLiana
 
           context 'on two different renderings' do
             let(:other_rendering_id) { 2 }
-            let(:api_permissions_scope_only) {
+            let(:api_permissions_rendering_only) {
               {
                 "data" => {
                   'collections' => { },
@@ -384,10 +384,10 @@ module ForestLiana
             }
 
             before do
-              allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_scope_only)
+              allow(ForestLiana::PermissionsGetter).to receive(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).and_return(api_permissions_rendering_only)
             end
 
-            it 'should call the API to refresh the scopes permissions' do
+            it 'should call the API to refresh the rendering permissions' do
               described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
               described_class.new(fake_ressource, 'browseEnabled', other_rendering_id, user_id: user_id).is_authorized?
 
@@ -458,58 +458,28 @@ module ForestLiana
               end
             end
 
-            context 'when scopes are defined' do
+            context 'when segments are defined' do
               let(:default_rendering_id) { 1 }
-              let(:scope_permissions) {
+              let(:segments_permissions) {
                 {
                   default_rendering_id => {
                     collection_name => {
-                      'scope' => {
-                        'dynamicScopesValues' => {},
-                        'filter' => { 'aggregator' => 'and', 'conditions' => [condition] }
-                      }
+                      'segments' => ['SELECT * FROM products;', 'SELECT * FROM sellers;']
                     }
                   }
                 }
               }
-              let(:collection_list_parameters) { { :user_id => "1", :filters => JSON.generate(condition) } }
+              let(:collection_list_parameters) { { :user_id => "1", :segmentQuery => segmentQuery } }
 
-              context 'when scopes are passing validation' do
-                context 'when scope value is a string' do
-                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
-
-                  it 'should return true' do
-                    expect(subject.is_authorized?).to be true
-                  end
-                end
-
-                context 'when scope value is a boolean' do
-                  let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => 'true' } }
-
-                  it 'should return true' do
-                    expect(subject.is_authorized?).to be true
-                  end
+              context 'when segments are passing validation' do
+                let(:segmentQuery) { 'SELECT * FROM products;' }
+                it 'should return true' do
+                  expect(subject.is_authorized?).to be true
                 end
               end
 
-              context 'when scopes are NOT passing validation' do
-                let(:condition) { { 'field' => 'field_1', 'operator' => 'equal', 'value' => true } }
-                let(:other_condition) {
-                  {
-                    aggregator: 'and',
-                    conditions: [
-                      { field: 'name', value: 'john', operator: 'equal' },
-                      { field: 'price', value: '2500', operator: 'equal' }
-                    ]
-                  }
-                }
-                let(:collection_list_parameters) {
-                  {
-                    :user_id => "1",
-                    :filters => JSON.generate(other_condition)
-                  }
-                }
-
+              context 'when segments are NOT passing validation' do
+                let(:segmentQuery) { 'SELECT * FROM rockets WHERE name = "Starship";' }
                 it 'should return false' do
                   expect(subject.is_authorized?).to be false
                 end

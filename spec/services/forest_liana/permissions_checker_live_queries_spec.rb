@@ -21,7 +21,7 @@ module ForestLiana
       ]
     }
     let(:default_rendering_id) { 1 }
-    let(:scope_permissions) { { default_rendering_id => { 'scopes' => nil } } }
+    let(:segments_permissions) { { default_rendering_id => { 'segments' => nil } } }
     let(:default_api_permissions) {
       {
         "data" => {
@@ -42,7 +42,7 @@ module ForestLiana
               }
             },
           },
-          'renderings' => scope_permissions
+          'renderings' => segments_permissions
         },
         "meta" => {
           "rolesACLActivated" => true

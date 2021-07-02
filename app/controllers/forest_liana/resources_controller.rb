@@ -249,6 +249,7 @@ module ForestLiana
       {
         user_id: user['id'],
         filters: collection_list_request[:filters],
+        segmentQuery: collection_list_request[:segmentQuery],
       }
     end
   end

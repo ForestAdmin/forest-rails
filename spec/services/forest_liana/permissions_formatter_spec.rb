@@ -14,7 +14,7 @@ module ForestLiana
         }
       }
       let(:old_format_action_permissions) { { 'allowed' => true, 'users' => nil } }
-      let(:old_format_scope_permissions) { nil }
+      let(:old_format_segments_permissions) { nil }
       let(:old_format_permissions) {
         {
           'collection_1' => {
@@ -22,7 +22,7 @@ module ForestLiana
             'actions' => {
               'action_1' => old_format_action_permissions
             },
-            'scope' => old_format_scope_permissions
+            'segments' => old_format_segments_permissions
           }
         }
       }
@@ -197,22 +197,22 @@ module ForestLiana
         end
       end
 
-      describe 'scope permissions' do
-        subject { converted_permission['renderings'][rendering_id]['collection_1']['scope'] }
-        let(:expected_new_format_permissions) { old_format_scope_permissions }
+      describe 'segments permissions' do
+        subject { converted_permission['renderings'][rendering_id]['collection_1']['segments'] }
+        let(:expected_new_format_permissions) { old_format_segments_permissions }
 
-        context 'when scope permissions are set' do
-          let(:old_format_scope_permissions) { { 'dynamicScopesValues' => {}, 'filter' => { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'field_1', 'operator' => 'equal', 'value' => true }] } } }
+        context 'when segments permissions are set' do
+          let(:old_format_segments_permissions) { ['segmentQuery1', 'segmentQuery2'] }
 
-          it 'expected scope permissions should be set' do
+          it 'expected segments permissions should be set' do
             expect(subject).to eq expected_new_format_permissions
           end
         end
 
-        context 'when scope permissions are nil' do
-          let(:old_format_scope_permissions) { nil }
+        context 'when segments permissions are nil' do
+          let(:old_format_segments_permissions) { nil }
 
-          it 'expected scope permissions should be nil' do
+          it 'expected segments permissions should be nil' do
             expect(subject).to eq expected_new_format_permissions
           end
         end
