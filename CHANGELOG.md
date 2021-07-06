@@ -1,3 +1,15 @@
+# [7.0.0-beta.4](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.3...v7.0.0-beta.4) (2021-07-06)
+
+
+### Features
+
+* smart action hooks now have access to the http request ([#499](https://github.com/ForestAdmin/forest-rails/issues/499)) ([5cd4a0e](https://github.com/ForestAdmin/forest-rails/commit/5cd4a0e7b9d9e1fcc551198a2eab62e471f51d92))
+
+
+### BREAKING CHANGES
+
+* record is no longer send to the hook midleware & values option on smart action is no longer supported
+
 # [7.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.2...v7.0.0-beta.3) (2021-07-02)
 
 
