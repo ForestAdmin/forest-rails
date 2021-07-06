@@ -18,7 +18,7 @@ describe 'Requesting Actions routes', :type => :request  do
       expect(response.body).to be {}
     end
   end
-
+  
   describe 'hooks' do
     foo = {
         field: 'foo',
@@ -127,7 +127,11 @@ describe 'Requesting Actions routes', :type => :request  do
     island.actions = [action, fail_action, cheat_action, enums_action, multiple_enums_action]
 
     describe 'call /load' do
-      params = {recordIds: [1], collectionName: 'Island'}
+      params = {
+        data: {
+          attributes: { ids: [1], collection_name: 'Island' }
+        }
+      }
 
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
@@ -156,7 +160,16 @@ describe 'Requesting Actions routes', :type => :request  do
 
     describe 'call /change' do
       updated_foo = foo.clone.merge({:previousValue => nil, :value => 'bar'})
-      params = {recordIds: [1], fields: [updated_foo], collectionName: 'Island', changedField: 'foo'}
+      params = {
+        data: {
+          attributes: {
+            ids: [1],
+            fields: [updated_foo],
+            collection_name: 'Island',
+            changed_field: 'foo'
+          }
+        }
+      }
 
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
@@ -168,7 +181,7 @@ describe 'Requesting Actions routes', :type => :request  do
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/change', params: JSON.dump({collectionName: 'Island'}), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/my_action/hooks/change', params: JSON.dump({ data: { attributes: { collection_name: 'Island' }}}), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action change hook: fields params is mandatory'})
       end
@@ -181,7 +194,16 @@ describe 'Requesting Actions routes', :type => :request  do
 
       it 'should reset value when enums has changed' do
         updated_enum = enum.clone.merge({:previousValue => nil, :value => 'a'}) # set value to a
-        p = {recordIds: [1], fields: [updated_foo, updated_enum], collectionName: 'Island', changedField: 'foo'}
+        p = {
+          data: {
+            attributes: {
+              ids: [1],
+              fields: [updated_foo, updated_enum],
+              collection_name: 'Island',
+              changed_field: 'foo'
+            }
+          }
+        }
         post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 
@@ -195,7 +217,16 @@ describe 'Requesting Actions routes', :type => :request  do
 
       it 'should not reset value when every enum values are in the enums definition' do
         updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[c]})
-        p = {recordIds: [1], fields: [foo, updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        p = {
+          data: {
+            attributes: {
+              ids: [1],
+              fields: [foo, updated_multiple_enum],
+              collection_name: 'Island',
+              changed_field: 'foo'
+            }
+          }
+        }
         post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 
@@ -209,7 +240,17 @@ describe 'Requesting Actions routes', :type => :request  do
 
       it 'should reset value when one of the enum values is not in the enums definition' do
         wrongly_updated_multiple_enum = multiple_enum.clone.merge({:previousValue => nil, :value => %w[a b]})
-        p = {recordIds: [1], fields: [foo, wrongly_updated_multiple_enum], collectionName: 'Island', changedField: 'foo'}
+        p = {
+          data: {
+            attributes: {
+              ids: [1],
+              fields: [foo, wrongly_updated_multiple_enum],
+              collection_name: 'Island',
+              changed_field: 'foo'
+            }
+          }
+        }
+
         post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
         expect(response.status).to eq(200)
 

@@ -1,6 +1,15 @@
 module ForestLiana
   class ActionsController < ForestLiana::BaseController
 
+    def get_smart_action_hook_request
+      begin
+        params[:data][:attributes]
+      rescue => error
+        FOREST_LOGGER.error "Smart Action hook request error: #{error}"
+        {}
+      end
+    end
+
     def values
       render serializer: nil, json: {}, status: :ok
     end
@@ -20,10 +29,11 @@ module ForestLiana
     end
     
     def get_record
-      model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
-      redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]})
-      redord_getter.perform
-      redord_getter.record
+      hook_request = get_smart_action_hook_request
+      model = ForestLiana::SchemaUtils.find_model_from_collection_name(hook_request[:collection_name])
+      record_getter = ForestLiana::ResourceGetter.new(model, {:id => hook_request[:ids][0]})
+      record_getter.perform
+      record_getter.record
     end
 
     def get_smart_action_load_ctx(fields)
@@ -87,7 +97,9 @@ module ForestLiana
     end
 
     def load
-      action = get_action(params[:collectionName])
+      load_request = get_smart_action_hook_request
+
+      action = get_action(load_request[:collection_name])
 
       if !action
         render status: 500, json: {error: 'Error in smart action load hook: cannot retrieve action from collection'}
@@ -103,18 +115,20 @@ module ForestLiana
     end
 
     def change
-      action = get_action(params[:collectionName])
+      change_request = get_smart_action_hook_request
+
+      action = get_action(change_request[:collection_name])
 
       if !action
         return render status: 500, json: {error: 'Error in smart action change hook: cannot retrieve action from collection'}
-      elsif params[:fields].nil?
+      elsif change_request[:fields].nil?
         return render status: 500, json: {error: 'Error in smart action change hook: fields params is mandatory'}
-      elsif !params[:fields].is_a?(Array)
+      elsif !change_request[:fields].is_a?(Array)
         return render status: 500, json: {error: 'Error in smart action change hook: fields params must be an array'}
       end
 
       # Get the smart action hook change context
-      context = get_smart_action_change_ctx(params[:fields], params[:changedField])
+      context = get_smart_action_change_ctx(change_request[:fields], change_request[:changed_field])
 
       field_changed_hook = context[:field_changed][:hook]
 
