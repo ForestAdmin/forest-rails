@@ -20,7 +20,6 @@ group :test do
   gem 'rake'
   gem 'sqlite3', '~> 1.4'
   gem 'simplecov', '~> 0.17.0', require: false
-  gem 'webmock'
 end
 
 gem 'rails', '6.0.3.6'
