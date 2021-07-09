@@ -1,3 +1,10 @@
+# [7.0.0-beta.5](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.4...v7.0.0-beta.5) (2021-07-09)
+
+
+### Features
+
+* **scopes:** enforce scopes restrictions on a wider range of requests ([#488](https://github.com/ForestAdmin/forest-rails/issues/488)) ([66825a3](https://github.com/ForestAdmin/forest-rails/commit/66825a339fc11d03b8a1653b1877cb9d492dacfb))
+
 # [7.0.0-beta.4](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.3...v7.0.0-beta.4) (2021-07-06)
 
 
