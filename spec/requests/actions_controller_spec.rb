@@ -328,7 +328,7 @@ describe 'Requesting Actions routes', :type => :request  do
         it 'should respond 400 and NOT perform the action' do
           post '/forest/actions/test', params: JSON.dump(params), headers: headers
           expect(response.status).to eq(400)
-          expect(JSON.parse(response.body)).to eq({'error' => 'Smart Action: target records are out of scope'})
+          expect(JSON.parse(response.body)).to eq({ 'error' => 'Smart Action: target record not found' })
         end
 
         describe 'and all_records are targeted' do

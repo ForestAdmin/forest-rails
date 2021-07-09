@@ -44,7 +44,8 @@ module ForestLiana
         # resources getter will return records inside the scope. if the length differs then ids are out of scope
         return if resources_getter.count == attributes[:ids].length
 
-        render serializer: nil, json: { error: 'Smart Action: target records are out of scope' }, status: :bad_request
+        # target records are out of scope
+        render serializer: nil, json: { error: 'Smart Action: target record not found' }, status: :bad_request
       rescue => error
         FOREST_LOGGER.error "Smart Action: #{error}\n#{format_stacktrace(error)}"
         render serializer: nil, json: { error: 'Smart Action: failed to evaluate permissions' }, status: :internal_server_error
