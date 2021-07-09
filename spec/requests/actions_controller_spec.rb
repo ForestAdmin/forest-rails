@@ -1,16 +1,42 @@
 require 'rails_helper'
 
 describe 'Requesting Actions routes', :type => :request  do
+  let(:rendering_id) { 13 }
+  let(:scope_filters) { nil }
+
   before(:each) do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
-    Island.create(name: 'Corsica')
+    Island.create(id: 1, name: 'Corsica')
+
+    ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
+    allow(ForestLiana::ScopeManager).to receive(:get_scope_for_user).and_return(scope_filters)
   end
 
   after(:each) do
     Island.destroy_all
   end
-  
+
+  let(:token) {
+    JWT.encode({
+      id: 38,
+      email: 'michael.kelso@that70.show',
+      first_name: 'Michael',
+      last_name: 'Kelso',
+      team: 'Operations',
+      rendering_id: rendering_id,
+      exp: Time.now.to_i + 2.weeks.to_i
+    }, ForestLiana.auth_secret, 'HS256')
+  }
+
+  let(:headers) {
+    {
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json',
+      'Authorization' => "Bearer #{token}"
+    }
+  }
+
   describe 'hooks' do
     foo = {
         field: 'foo',
@@ -126,25 +152,25 @@ describe 'Requesting Actions routes', :type => :request  do
       }
 
       it 'should respond 200' do
-        post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).stringify_keys]})
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/load', params: {}
+        post '/forest/actions/my_action/hooks/load', params: {}, headers: headers
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: cannot retrieve action from collection'})
       end
 
       it 'should respond 500 with bad hook result type' do
-        post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
 
       it 'should respond 500 with bad hook result data structure' do
-        post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
@@ -164,7 +190,7 @@ describe 'Requesting Actions routes', :type => :request  do
       }
 
       it 'should respond 200' do
-        post '/forest/actions/my_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/my_action/hooks/change', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
         expected = updated_foo.clone.merge({:value => 'baz'})
         expected[:widgetEdit] = nil
@@ -173,13 +199,13 @@ describe 'Requesting Actions routes', :type => :request  do
       end
 
       it 'should respond 500 with bad params' do
-        post '/forest/actions/my_action/hooks/change', params: JSON.dump({ data: { attributes: { collection_name: 'Island' }}}), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/my_action/hooks/change', params: JSON.dump({ data: { attributes: { collection_name: 'Island' }}}), headers: headers
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action change hook: fields params is mandatory'})
       end
 
       it 'should respond 500 with bad hook result type' do
-        post '/forest/actions/fail_action/hooks/change', params: JSON.dump(params), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/fail_action/hooks/change', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
@@ -196,7 +222,7 @@ describe 'Requesting Actions routes', :type => :request  do
             }
           }
         }
-        post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil, :widgetEdit => nil})
@@ -219,7 +245,7 @@ describe 'Requesting Actions routes', :type => :request  do
             }
           }
         }
-        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_multiple_enum = updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => %w[c]})
@@ -243,7 +269,7 @@ describe 'Requesting Actions routes', :type => :request  do
           }
         }
 
-        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: { 'CONTENT_TYPE' => 'application/json' }
+        post '/forest/actions/multiple_enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_multiple_enum = wrongly_updated_multiple_enum.clone.merge({ :enums => %w[c d z], :widgetEdit => nil, :value => nil })
@@ -252,6 +278,68 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_foo.delete(:widget)
 
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
+      end
+    end
+  end
+
+  describe 'calling the action' do
+    before(:each) do
+      allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
+    end
+
+    let(:all_records) { false }
+    let(:params) {
+      {
+        data: {
+          attributes: {
+            collection_name: 'Island',
+            ids: ['1'],
+            all_records: all_records,
+            smart_action_id: 'Island-Test'
+          },
+          type: 'custom-action-requests'
+        },
+        timezone: 'Europe/Paris'
+      }
+    }
+
+    describe 'without scopes' do
+      it 'should respond 200 and perform the action' do
+        post '/forest/actions/test', params: JSON.dump(params), headers: headers
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)).to eq({'success' => 'You are OK.'})
+      end
+    end
+
+    describe 'with scopes' do
+      describe 'when record is in scope' do
+        let(:scope_filters) { JSON.generate({ field: 'name', operator: 'equal', value: 'Corsica' }) }
+
+        it 'should respond 200 and perform the action' do
+          post '/forest/actions/test', params: JSON.dump(params), headers: headers
+          expect(response.status).to eq(200)
+          expect(JSON.parse(response.body)).to eq({'success' => 'You are OK.'})
+        end
+      end
+
+      describe 'when record is out of scope' do
+        let(:scope_filters) { JSON.generate({ field: 'name', operator: 'equal', value: 'Ré' }) }
+
+        it 'should respond 400 and NOT perform the action' do
+          post '/forest/actions/test', params: JSON.dump(params), headers: headers
+          expect(response.status).to eq(400)
+          expect(JSON.parse(response.body)).to eq({ 'error' => 'Smart Action: target record not found' })
+        end
+
+        describe 'and all_records are targeted' do
+          let(:all_records) { true }
+
+          it 'should respond 200 and perform the action' do
+            post '/forest/actions/test', params: JSON.dump(params), headers: headers
+            expect(response.status).to eq(200)
+            expect(JSON.parse(response.body)).to eq({'success' => 'You are OK.'})
+          end
+        end
       end
     end
   end

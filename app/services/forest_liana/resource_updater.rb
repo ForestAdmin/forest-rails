@@ -3,15 +3,18 @@ module ForestLiana
     attr_accessor :record
     attr_accessor :errors
 
-    def initialize(resource, params)
+    def initialize(resource, params, forest_user)
       @resource = resource
       @params = params
       @errors = nil
+      @user = forest_user
     end
 
     def perform
       begin
-        @record = @resource.find(@params[:id])
+        collection_name = ForestLiana.name_for(@resource)
+        scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, @user, collection_name, @params[:timezone])
+        @record = scoped_records.find(@params[:id])
 
         if has_strong_parameter
           @record.update(resource_params)

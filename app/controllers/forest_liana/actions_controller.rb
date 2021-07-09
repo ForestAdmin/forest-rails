@@ -1,5 +1,5 @@
 module ForestLiana
-  class ActionsController < ForestLiana::BaseController
+  class ActionsController < ApplicationController
 
     def get_smart_action_hook_request
       begin
@@ -17,7 +17,7 @@ module ForestLiana
     def get_action(collection_name)
       collection = get_collection(collection_name)
       begin
-         collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
+        collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
       rescue => error
         FOREST_LOGGER.error "Smart Action get action retrieval error: #{error}"
         nil
