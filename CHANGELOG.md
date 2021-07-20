@@ -50,12 +50,6 @@
 
 ### Bug Fixes
 
-* **dependency:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#475](https://github.com/ForestAdmin/forest-rails/issues/475)) ([3feea36](https://github.com/ForestAdmin/forest-rails/commit/3feea36b3b578638f3ad7c16ebab8e457a68d71f))
-
-
-### BREAKING CHANGES
-
-* **dependency:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
 * allow smart action endpoints to start with slashes ([d4f6a61](https://github.com/ForestAdmin/forest-rails/commit/d4f6a618aeea72364b0e7511545b67fbbfb17c99))
 * allow smart action endpoints to start with slashes ([cf6c6a9](https://github.com/ForestAdmin/forest-rails/commit/cf6c6a96498e6813e4b7ccaa56cacd9abefc332f))
 
@@ -72,8 +66,6 @@
 * **hooks:** fields parameters on hook function is no longer a map of field, it is now an array.
 change hook is no longer choosen by the field name, field need to have hook defined inside it definition by addin a props hook.
 
-
-
 # [6.5.0](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1...v6.5.0) (2021-06-03)
 
 
@@ -82,6 +74,17 @@ change hook is no longer choosen by the field name, field need to have hook defi
 * **schema:** move some meta data under stack attribute to prevent blocking scenarios on DWO ([#469](https://github.com/ForestAdmin/forest-rails/issues/469)) ([76aa754](https://github.com/ForestAdmin/forest-rails/commit/76aa7540300f75b0ea1d00ec3b60e4976b7d800e))
 
 # [7.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.1-beta.1...v7.0.0-beta.1) (2021-06-01)
+
+
+### Bug Fixes
+
+* **dependency:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#475](https://github.com/ForestAdmin/forest-rails/issues/475)) ([3feea36](https://github.com/ForestAdmin/forest-rails/commit/3feea36b3b578638f3ad7c16ebab8e457a68d71f))
+
+
+### BREAKING CHANGES
+
+* **dependency:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
+
 ## [6.4.1](https://github.com/ForestAdmin/forest-rails/compare/v6.4.0...v6.4.1) (2021-06-01)
 
 
