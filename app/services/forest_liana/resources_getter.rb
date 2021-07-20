@@ -4,7 +4,7 @@ module ForestLiana
     attr_reader :includes
     attr_reader :records_count
 
-    def initialize(resource, params)
+    def initialize(resource, params, forest_user)
       @resource = resource
       @params = params
       @count_needs_includes = false
@@ -14,12 +14,13 @@ module ForestLiana
       @field_names_requested = field_names_requested
       get_segment
       compute_includes
-      @search_query_builder = SearchQueryBuilder.new(@params, @includes, @collection)
+      @user = forest_user
+      @search_query_builder = SearchQueryBuilder.new(@params, @includes, @collection, forest_user)
 
       prepare_query
     end
 
-    def self.get_ids_from_request(params)
+    def self.get_ids_from_request(params, user)
       attributes = params.dig('data', 'attributes')
       has_body_attributes = attributes != nil
       is_select_all_records_query = has_body_attributes && attributes[:all_records] == true
@@ -45,11 +46,11 @@ module ForestLiana
           collection: parent_collection_name,
           id: attributes[:parent_collection_id],
           association_name: attributes[:parent_association_name],
-        }))
+        }), user)
       else
         collection_name = attributes[:collection_name]
         model = ForestLiana::SchemaUtils.find_model_from_collection_name(collection_name)
-        resources_getter = ForestLiana::ResourcesGetter.new(model, attributes)
+        resources_getter = ForestLiana::ResourcesGetter.new(model, attributes, user)
       end
 
       # NOTICE: build IDs list.

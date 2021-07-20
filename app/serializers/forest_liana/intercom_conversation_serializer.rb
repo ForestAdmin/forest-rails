@@ -1,6 +1,6 @@
 module ForestLiana
   class IntercomConversationSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :created_at
     attribute :updated_at

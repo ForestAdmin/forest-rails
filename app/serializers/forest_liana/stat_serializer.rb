@@ -1,6 +1,6 @@
 module ForestLiana
   class StatSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :value
 

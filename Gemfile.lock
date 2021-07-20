@@ -1,15 +1,15 @@
 PATH
   remote: .
   specs:
-    forest_liana (6.6.2)
+    forest_liana (7.0.0-beta.6)
       arel-helpers
       bcrypt
+      forestadmin-jsonapi-serializers (>= 0.14.0)
       groupdate (>= 5.0.0)
       httparty
       ipaddress
       json
       json-jwt
-      jsonapi-serializers (>= 0.14.0)
       jwt
       openid_connect
       rack-cors
@@ -87,6 +87,8 @@ GEM
     diff-lcs (1.4.4)
     docile (1.3.5)
     erubi (1.10.0)
+    forestadmin-jsonapi-serializers (2.0.0.pre.beta.2)
+      activesupport
     globalid (0.4.2)
       activesupport (>= 4.2.0)
     groupdate (5.2.2)
@@ -103,8 +105,6 @@ GEM
       activesupport (>= 4.2)
       aes_key_wrap
       bindata
-    jsonapi-serializers (1.0.1)
-      activesupport
     jwt (2.2.3)
     loofah (2.9.1)
       crass (~> 1.0.2)
@@ -235,12 +235,12 @@ DEPENDENCIES
   bcrypt
   byebug
   forest_liana!
+  forestadmin-jsonapi-serializers
   groupdate (= 5.2.2)
   httparty (= 0.18.1)
   ipaddress (= 0.8.3)
   json
   json-jwt (= 1.12.0)
-  jsonapi-serializers (= 1.0.1)
   jwt
   openid_connect (= 1.2.0)
   rack-cors
@@ -252,4 +252,4 @@ DEPENDENCIES
   useragent
 
 BUNDLED WITH
-   2.1.4
+   2.2.3

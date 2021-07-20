@@ -13,6 +13,23 @@ module ForestLiana
       end
     end
 
+    class SmartActionInvalidFieldError < StandardError
+      def initialize(action_name=nil, field_name=nil, message=nil)
+        error_message = ""
+        error_message << "Error while parsing action \"#{action_name}\"" if !action_name.nil?
+        error_message << " on field \"#{field_name}\"" if !field_name.nil?
+        error_message << ": " if !field_name.nil? || !action_name.nil?
+        error_message << message if !message.nil?
+        super(error_message)
+      end
+    end
+
+    class SmartActionInvalidFieldHookError < StandardError
+      def initialize(action_name=nil, field_name=nil, hook_name=nil)
+        super("The hook \"#{hook_name}\" of \"#{field_name}\" field on the smart action \"#{action_name}\" is not defined.")
+      end
+    end
+
     class ExpectedError < StandardError
       attr_reader :error_code, :status, :message, :name
 

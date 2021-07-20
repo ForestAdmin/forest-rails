@@ -13,7 +13,7 @@ module ForestLiana
             'actions' => convert_actions_permissions_to_new_format(permissions[collection_name]['actions'])
           }
 
-          permissions_new_format['renderings'][rendering_id][collection_name] = { 'scope' => permissions[collection_name]['scope'] }
+          permissions_new_format['renderings'][rendering_id][collection_name] = { 'segments' => permissions[collection_name]['segments'] }
         }
 
         permissions_new_format

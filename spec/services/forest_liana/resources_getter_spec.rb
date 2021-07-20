@@ -6,13 +6,21 @@ module ForestLiana
     let(:sort) { 'id' }
     let(:fields) { }
     let(:filters) { }
+    let(:scopes) { { } }
+    let(:rendering_id) { 13 }
+    let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
 
     let(:getter) { described_class.new(resource, {
       page: { size: pageSize, number: pageNumber },
       sort: sort,
       fields: fields,
       filters: filters,
-    })}
+    }, user) }
+
+    def init_scopes
+      ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
+      allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+    end
 
     before(:each) do
       users = ['Michel', 'Robert', 'Vince', 'Sandro', 'Olesya', 'Romain', 'Valentin', 'Jason', 'Arnaud', 'Jeff', 'Steve', 'Marc', 'Xavier', 'Paul', 'Mickael', 'Mike', 'Maxime', 'Gertrude', 'Monique', 'Mia', 'Rachid', 'Edouard', 'Sacha', 'Caro', 'Amand', 'Nathan', 'Noémie', 'Robin', 'Gaelle', 'Isabelle']
@@ -43,6 +51,7 @@ module ForestLiana
       ].map { |location| Location.create(coordinates: location[:coordinates], island: location[:island]) }
 
       reference = Reference.create()
+      init_scopes
     end
 
     after(:each) do
@@ -353,6 +362,64 @@ module ForestLiana
           ForestLiana::Errors::NotImplementedMethodError,
            "method filter on smart field 'alter_coordinates' not found"
         )
+      end
+    end
+
+    describe 'when scopes are defined' do
+      let(:resource) { Island }
+      let(:pageSize) { 15 }
+      let(:fields) { }
+      let(:filters) { }
+      let(:scopes) {
+        {
+          'Island' => {
+            'scope'=> {
+              'filter'=> {
+                'aggregator' => 'and',
+                'conditions' => [
+                  { 'field' => 'name', 'operator' => 'contains', 'value' => 'u' }
+                ]
+              },
+              'dynamicScopesValues' => { }
+            }
+          }
+        }
+      }
+
+      describe 'when there are NO filters already defined' do
+        it 'should get only the records matching the scope' do
+          getter.perform
+          records = getter.records
+          count = getter.count
+
+          expect(records.count).to eq 3
+          expect(count).to eq 3
+          expect(records.first.name).to eq 'Skull'
+          expect(records.second.name).to eq 'Muerta'
+          expect(records.third.name).to eq 'Treasure'
+        end
+      end
+
+      describe 'when there are filters already defined' do
+        let(:filters) { {
+          aggregator: 'and',
+          conditions: [{
+            field: 'name',
+            operator: 'contains',
+            value: 'a',
+          }]
+        }.to_json }
+
+        it 'should get only the records matching the scope' do
+          getter.perform
+          records = getter.records
+          count = getter.count
+
+          expect(records.count).to eq 2
+          expect(count).to eq 2
+          expect(records.first.name).to eq 'Muerta'
+          expect(records.second.name).to eq 'Treasure'
+        end
       end
     end
   end

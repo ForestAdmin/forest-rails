@@ -1,5 +1,5 @@
 module ForestLiana
-  class HasManyDissociator
+  class HasManyDissociator < ForestLiana::ApplicationController
     def initialize(resource, association, params)
       @resource = resource
       @association = association
@@ -17,7 +17,7 @@ module ForestLiana
       if @data.is_a?(Array)
         record_ids = @data.map { |record| record[:id] }
       elsif @data.dig('attributes').present?
-        record_ids = ForestLiana::ResourcesGetter.get_ids_from_request(@params)
+        record_ids = ForestLiana::ResourcesGetter.get_ids_from_request(@params, forest_user)
       else
         record_ids = Array.new
       end

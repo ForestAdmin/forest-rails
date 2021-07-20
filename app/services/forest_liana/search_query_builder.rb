@@ -4,12 +4,13 @@ module ForestLiana
 
     attr_reader :fields_searched
 
-    def initialize(params, includes, collection)
+    def initialize(params, includes, collection, user)
       @params = params
       @includes = includes
       @collection = collection
       @fields_searched = []
       @search = @params[:search]
+      @user = user
     end
 
     def perform(resource)
@@ -18,8 +19,10 @@ module ForestLiana
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
 
-      unless @params[:filters].blank?
-        @records = FiltersParser.new(@params[:filters], @records, @params[:timezone]).apply_filters
+      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @collection.name)
+
+      unless filters.blank?
+        @records = FiltersParser.new(filters, @records, @params[:timezone]).apply_filters
       end
 
       if @search

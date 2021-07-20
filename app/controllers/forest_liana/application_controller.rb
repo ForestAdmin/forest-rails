@@ -34,14 +34,14 @@ module ForestLiana
 
     def serialize_model(record, options = {})
       options[:is_collection] = false
-      json = JSONAPI::Serializer.serialize(record, options)
+      json = ForestAdmin::JSONAPI::Serializer.serialize(record, options)
 
       force_utf8_encoding(json)
     end
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
-      json = JSONAPI::Serializer.serialize(records, options)
+      json = ForestAdmin::JSONAPI::Serializer.serialize(records, options)
 
       if options[:params] && options[:params][:search]
         # NOTICE: Add the Smart Fields with a 'String' type.
@@ -83,15 +83,6 @@ module ForestLiana
           serializer: nil
       rescue
         head :unauthorized
-      end
-    end
-
-    def get_smart_action_context
-      begin
-        params[:data][:attributes].values[0].to_hash.symbolize_keys
-      rescue => error
-        FOREST_LOGGER.error "Smart Action context retrieval error: #{error}"
-        {}
       end
     end
 

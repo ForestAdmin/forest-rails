@@ -23,19 +23,16 @@ module ForestLiana
       #     },
       #   },
       # },
-      # rederings => {
+      # renderings => {
       #   {rendering_id} => {
       #       {collection_id} => {
-      #         scope => {
-      #           dynamicScopesValues => {},
-      #           filter => {}
-      #         }
+      #         segments => ['query1', 'query2']
       #       }
       #     }
       #   }
       # }
       # With `rendering_specific_only` this returns only the permissions related data specific to the provided rendering
-      # For now this only includes scopes
+      # For now this only includes scopes (but scopes are not used anymore in permissions)
       def get_permissions_for_rendering(rendering_id, rendering_specific_only: false)
         begin
           query_parameters = { 'renderingId' => rendering_id }

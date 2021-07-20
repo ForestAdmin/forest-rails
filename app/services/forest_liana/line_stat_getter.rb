@@ -25,8 +25,10 @@ module ForestLiana
     def perform
       value = get_resource().joins(@includes)
 
-      unless @params[:filters].blank?
-        value = FiltersParser.new(@params[:filters], value, @params[:timezone]).apply_filters
+      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
+
+      unless filters.blank?
+        value = FiltersParser.new(filters, @resource, @params[:timezone]).apply_filters
       end
 
       Groupdate.week_start = :monday

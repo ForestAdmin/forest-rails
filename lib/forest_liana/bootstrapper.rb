@@ -60,7 +60,7 @@ module ForestLiana
           a = get_action(c, action['name'])
           load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
           change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
-          action['hooks'] = {:load => load, :change => change}
+          action['hooks'] = {'load' => load, 'change' => change}
         end
       end
     end
@@ -139,7 +139,7 @@ module ForestLiana
 
       # Monkey patch the find_serializer_class_name method to specify the
       # good serializer to use.
-      ::JSONAPI::Serializer.class_eval do
+      ::ForestAdmin::JSONAPI::Serializer.class_eval do
         def self.find_serializer_class_name(record, options)
           if record.respond_to?(:jsonapi_serializer_class_name)
             record.jsonapi_serializer_class_name.to_s
