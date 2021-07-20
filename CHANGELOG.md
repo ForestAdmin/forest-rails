@@ -1,3 +1,32 @@
+# [7.0.0](https://github.com/ForestAdmin/forest-rails/compare/v6.6.2...v7.0.0) (2021-07-20)
+
+
+### Bug Fixes
+
+* **dependency:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#475](https://github.com/ForestAdmin/forest-rails/issues/475)) ([3feea36](https://github.com/ForestAdmin/forest-rails/commit/3feea36b3b578638f3ad7c16ebab8e457a68d71f))
+
+
+### chore
+
+* **force-release:** now using forestadmin-jsonapi-serializers instead of the jsonapi-serializers gem ([#464](https://github.com/ForestAdmin/forest-rails/issues/464)) ([00ee2a4](https://github.com/ForestAdmin/forest-rails/commit/00ee2a40ded4eaccbe7fecb68e4edf0aaa36e38b))
+
+
+### Features
+
+* **scopes:** enforce scopes restrictions on a wider range of requests ([#488](https://github.com/ForestAdmin/forest-rails/issues/488)) ([66825a3](https://github.com/ForestAdmin/forest-rails/commit/66825a339fc11d03b8a1653b1877cb9d492dacfb))
+* smart action hooks now have access to the http request ([#499](https://github.com/ForestAdmin/forest-rails/issues/499)) ([5cd4a0e](https://github.com/ForestAdmin/forest-rails/commit/5cd4a0e7b9d9e1fcc551198a2eab62e471f51d92))
+* **hooks:** developers can dynamically add or remove smart actions fields ([#465](https://github.com/ForestAdmin/forest-rails/issues/465)) ([970f3d8](https://github.com/ForestAdmin/forest-rails/commit/970f3d82806296137f2e64379c92884b04954580))
+* **security:** secure segments queries ([#495](https://github.com/ForestAdmin/forest-rails/issues/495)) ([571f889](https://github.com/ForestAdmin/forest-rails/commit/571f889d85c226b8d4b78618150c75f4fa2aa9ad))
+
+
+### BREAKING CHANGES
+
+* record is no longer send to the hook midleware & values option on smart action is no longer supported
+* **hooks:** fields parameters on hook function is no longer a map of field, it is now an array.
+change hook is no longer choosen by the field name, field need to have hook defined inside it definition by addin a props hook.
+* **dependency:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
+* **force-release:** Switch from jsonapi-serializers to forestadmin-jsonapi-serializers to serialize data to the JSONAPI format, mainly to avoid conflict with the jsonapi-serializer library
+
 # [7.0.0-beta.6](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0-beta.5...v7.0.0-beta.6) (2021-07-20)
 
 
