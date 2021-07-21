@@ -84,7 +84,7 @@ module ForestLiana
           subject.perform
 
           expect(subject.record).to be nil
-          expect(subject.errors[0][:detail]).to eq 'Couldn\'t find User with \'id\'=1 [WHERE (("users"."id" > (2)))]'
+          expect(subject.errors[0][:detail]).to eq 'Couldn\'t find User with \'id\'=1 [WHERE (("users"."id" > 2))]'
         end
       end
 
