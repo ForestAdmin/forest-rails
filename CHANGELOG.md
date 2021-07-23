@@ -1,3 +1,11 @@
+## [7.0.1](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0...v7.0.1) (2021-07-23)
+
+
+### Bug Fixes
+
+* restrict the use of surrounding parentheses only to in operator ([2e8d0cd](https://github.com/ForestAdmin/forest-rails/commit/2e8d0cdf05d9a1a0bb509bb0f67beff0136a1b19))
+* restrict the use of surrounding parentheses only to IN operator ([17df2c0](https://github.com/ForestAdmin/forest-rails/commit/17df2c017fdaa7d5904a9dc3307e9c7ec8e69570))
+
 # [7.0.0](https://github.com/ForestAdmin/forest-rails/compare/v6.6.2...v7.0.0) (2021-07-20)
 
 
