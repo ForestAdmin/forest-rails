@@ -70,7 +70,7 @@ module ForestLiana
             refresh_rendering_cache if rendering_cache_expired?
 
             # NOTICE: In this case we need to check that that query is allowed
-            elsif @collection_list_parameters[:segmentQuery].present?
+            if @collection_list_parameters[:segmentQuery].present?
               return false unless segment_query_allowed?
             end
           end
