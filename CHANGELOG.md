@@ -1,3 +1,10 @@
+## [7.0.2](https://github.com/ForestAdmin/forest-rails/compare/v7.0.1...v7.0.2) (2021-08-16)
+
+
+### Bug Fixes
+
+* **hooks:** smart action hooks response correctly send back serialized fields ([#514](https://github.com/ForestAdmin/forest-rails/issues/514)) ([794f9a7](https://github.com/ForestAdmin/forest-rails/commit/794f9a7b45a828cc7971a4d7f21192dc0ed2edd3))
+
 ## [7.0.1](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0...v7.0.1) (2021-07-23)
 
 
