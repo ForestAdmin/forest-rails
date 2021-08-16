@@ -154,7 +154,7 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
-        expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).stringify_keys]})
+        expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
       end
 
       it 'should respond 500 with bad params' do
@@ -184,7 +184,8 @@ describe 'Requesting Actions routes', :type => :request  do
             ids: [1],
             fields: [updated_foo],
             collection_name: 'Island',
-            changed_field: 'foo'
+            changed_field: 'foo',
+            is_read_only: true
           }
         }
       }
@@ -195,6 +196,7 @@ describe 'Requesting Actions routes', :type => :request  do
         expected = updated_foo.clone.merge({:value => 'baz'})
         expected[:widgetEdit] = nil
         expected.delete(:widget)
+        expected = expected.transform_keys { |key| key.to_s.camelize(:lower) }
         expect(JSON.parse(response.body)).to eq({'fields' => [expected.stringify_keys]})
       end
 
@@ -230,6 +232,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_foo = updated_foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
 
+        expected_enum = expected_enum.transform_keys { |key| key.to_s.camelize(:lower) }
+        expected_foo = expected_foo.transform_keys { |key| key.to_s.camelize(:lower) }
+
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys]})
       end
 
@@ -252,6 +257,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_multiple_enum.delete(:widget)
         expected_foo = foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
+
+        expected_multiple_enum = expected_multiple_enum.transform_keys { |key| key.to_s.camelize(:lower) }
+        expected_foo = expected_foo.transform_keys { |key| key.to_s.camelize(:lower) }
 
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
       end
@@ -276,6 +284,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_multiple_enum.delete(:widget)
         expected_foo = foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
+
+        expected_multiple_enum = expected_multiple_enum.transform_keys { |key| key.to_s.camelize(:lower) }
+        expected_foo = expected_foo.transform_keys { |key| key.to_s.camelize(:lower) }
 
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
       end

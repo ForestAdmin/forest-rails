@@ -44,6 +44,12 @@ class ForestLiana::Model::Action
         field.delete(:isRequired)
       end
 
+      if field.key?(:isReadOnly)
+        FOREST_LOGGER.warn "DEPRECATION WARNING: isReadOnly on field \"#{field[:field]}\" is deprecated. Please use is_read_only."
+        field[:is_read_only] = !!field[:isReadOnly]
+        field.delete(:isReadOnly)
+      end
+
       field[:type] = "String" unless field.key?(:type)
       field[:default_value] = nil unless field.key?(:default_value)
       field[:enums] = nil unless field.key?(:enums)
