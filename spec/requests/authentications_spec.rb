@@ -73,10 +73,13 @@ describe "Authentications", type: :request do
         "last_name" => 'Doe',
         "team" => 1,
         "role" => "Test",
-        "tags" => [{ :key=>"city", :value=>"Paris" }]
       }
 
       expect(decoded).to include(expected_token_data)
+      tags = decoded['tags']
+      expect(tags.length).to eq(1)
+      expect(tags[0]['key']).to eq("city")
+      expect(tags[0]['value']).to eq("Paris")
       expect(body).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
       expect(response).to have_http_status(200)
     end
