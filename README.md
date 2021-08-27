@@ -1,7 +1,7 @@
 # Forest Admin in Rails
 
 [![Gem](https://badge.fury.io/rb/forest_liana.svg)](https://badge.fury.io/rb/forest_liana)
-[![CI status](https://github.com/ForestAdmin/forest-rails/workflows/Build,%20Test%20and%20Deploy/badge.svg?branch=master)](https://github.com/ForestAdmin/forest-rails/actions)
+[![CI status](https://github.com/ForestAdmin/forest-rails/workflows/Build,%20Test%20and%20Deploy/badge.svg?branch=main)](https://github.com/ForestAdmin/forest-rails/actions)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/959c02b420b455eac51f/test_coverage)](https://codeclimate.com/github/ForestAdmin/forest-rails/test_coverage)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
@@ -151,7 +151,7 @@ with an extensive activity log system.
 
 This repository is officially maintained by Forest Admin.
 We're always happy to get contributions for other fellow lumberjacks.
-All contributions will be reviewed by Forest Admin's team before being merged into master.
+All contributions will be reviewed by Forest Admin's team before being merged into main.
 
 Here is the contribution workflow:
 
