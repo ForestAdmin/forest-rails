@@ -1,3 +1,10 @@
+# [7.2.0](https://github.com/ForestAdmin/forest-rails/compare/v7.1.0...v7.2.0) (2021-09-10)
+
+
+### Features
+
+* **filter:** add "is in" filter ([#518](https://github.com/ForestAdmin/forest-rails/issues/518)) ([020310c](https://github.com/ForestAdmin/forest-rails/commit/020310c80e9aee2d39e77301ec97577e1b26f8ee))
+
 # [7.1.0](https://github.com/ForestAdmin/forest-rails/compare/v7.0.2...v7.1.0) (2021-08-25)
 
 
