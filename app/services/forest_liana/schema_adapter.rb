@@ -350,10 +350,12 @@ module ForestLiana
         type = 'Number'
       when :json, :jsonb, :hstore
         type = 'Json'
-      when :string, :text, :citext, :uuid
+      when :string, :text, :citext
         type = 'String'
       when :time
         type = 'Time'
+      when :uuid
+        type = 'Uuid'
       end
 
       is_array = (column.respond_to?(:array) && column.array == true)
