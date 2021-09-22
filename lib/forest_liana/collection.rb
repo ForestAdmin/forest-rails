@@ -91,6 +91,7 @@ module ForestLiana::Collection
               begin
                 object.instance_eval(&block)
               rescue => exception
+                FOREST_REPORTER.report exception
                 FOREST_LOGGER.error "Cannot retrieve the " + name.to_s + " value because of an " \
                   "internal error in the getter implementation: " + exception.message
                 nil
