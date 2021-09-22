@@ -60,6 +60,7 @@ module ForestLiana
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Live Query error: #{error.message}"
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
@@ -110,6 +111,7 @@ module ForestLiana
 
         return head :forbidden unless checker.is_authorized?
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Stats execution error: #{error}"
         render serializer: nil, json: { status: 400 }, status: :bad_request
       end

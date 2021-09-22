@@ -47,6 +47,7 @@ module ForestLiana
         }])
         render(serializer: nil, json: error_data, status: error.status)
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -79,6 +80,7 @@ module ForestLiana
         }])
         render(serializer: nil, json: error_data, status: error.status)
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Index Count error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -96,6 +98,7 @@ module ForestLiana
       rescue ActiveRecord::RecordNotFound
         render serializer: nil, json: { status: 404 }, status: :not_found
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -119,6 +122,7 @@ module ForestLiana
             creator.record.errors), status: 400
         end
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Create error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -142,6 +146,7 @@ module ForestLiana
             updater.record.errors), status: 400
         end
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Update error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -162,6 +167,7 @@ module ForestLiana
 
       head :no_content
     rescue => error
+      FOREST_REPORTER.report error
       FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
       internal_server_error
     end
@@ -175,6 +181,7 @@ module ForestLiana
 
       head :no_content
     rescue => error
+      FOREST_REPORTER.report error
       FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"
       internal_server_error
     end
@@ -190,6 +197,7 @@ module ForestLiana
           render serializer: nil, json: { status: 404 }, status: :not_found
         end
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Find Collection error: #{error}\n#{format_stacktrace(error)}"
         render serializer: nil, json: { status: 404 }, status: :not_found
       end

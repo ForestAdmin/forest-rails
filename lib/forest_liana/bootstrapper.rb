@@ -82,7 +82,8 @@ module ForestLiana
             @collections_sent = content['collections']
             @meta_sent = content['meta']
             generate_action_hooks
-          rescue JSON::JSONError
+          rescue JSON::JSONError => error
+            FOREST_REPORTER.report error
             FOREST_LOGGER.error "The content of .forestadmin-schema.json file is not a correct JSON."
             FOREST_LOGGER.error "The schema cannot be synchronized with Forest Admin servers."
           end
@@ -122,6 +123,7 @@ module ForestLiana
           end
         end
       rescue => exception
+        FOREST_REPORTER.report exception
         FOREST_LOGGER.error "Cannot fetch properly model #{model.name}:\n" \
           "#{exception}"
       end

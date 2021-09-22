@@ -102,6 +102,7 @@ module ForestLiana
           rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
             FOREST_LOGGER.warn invalid_field_error.message
           rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
+            FOREST_REPORTER.report invalid_hook_error
             FOREST_LOGGER.error invalid_hook_error.message
           end
           action['fields'] = action['fields'].map { |field| field.slice(*KEYS_ACTION_FIELD) }

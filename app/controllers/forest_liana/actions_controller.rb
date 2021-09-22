@@ -5,6 +5,7 @@ module ForestLiana
       begin
         params[:data][:attributes]
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action hook request error: #{error}"
         {}
       end
@@ -19,6 +20,7 @@ module ForestLiana
       begin
         collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action get action retrieval error: #{error}"
         nil
       end
@@ -57,6 +59,7 @@ module ForestLiana
       rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
         FOREST_LOGGER.warn invalid_field_error.message
       rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
+        FOREST_REPORTER.report invalid_hook_error
         FOREST_LOGGER.error invalid_hook_error.message
         return render status: 500, json: { error: invalid_hook_error.message }
       end

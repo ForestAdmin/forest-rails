@@ -12,6 +12,7 @@ module ForestLiana
         ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
         return render serializer: nil, json: { status: 200 }, status: :ok
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Error during scope cache invalidation: #{error.message}"
         render serializer: nil, json: {status: 500 }, status: :internal_server_error
       end
