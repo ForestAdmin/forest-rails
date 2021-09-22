@@ -14,11 +14,12 @@ module ForestLiana
       begin
          collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action get action retrieval error: #{error}"
         nil
       end
     end
-    
+
     def get_record
       model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collectionName])
       redord_getter = ForestLiana::ResourceGetter.new(model, {:id => params[:recordIds][0]})
@@ -47,9 +48,19 @@ module ForestLiana
       if result.nil? || !result.is_a?(Hash)
         return render status: 500, json: { error: 'Error in smart action load hook: hook must return an object' }
       end
-      is_same_data_structure = ForestLiana::IsSameDataStructureHelper::Analyser.new(formatted_fields, result, 1)
-      unless is_same_data_structure.perform
-        return render status: 500, json: { error: 'Error in smart action hook: fields must be unchanged (no addition nor deletion allowed)' }
+
+      # Validate that the fields are well formed.
+      begin
+        # action.hooks[:change] is a hashmap here
+        # to do the validation, only the hook names are require
+        change_hooks_name = action.hooks[:change].nil? ? nil : action.hooks[:change].keys
+        ForestLiana::SmartActionFieldValidator.validate_smart_action_fields(result, action.name, change_hooks_name)
+      rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
+        FOREST_LOGGER.warn invalid_field_error.message
+      rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
+        FOREST_REPORTER.report invalid_hook_error
+        FOREST_LOGGER.error invalid_hook_error.message
+        return render status: 500, json: { error: invalid_hook_error.message }
       end
 
       # Apply result on fields (transform the object back to an array), preserve order.

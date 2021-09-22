@@ -30,6 +30,7 @@ module ForestLiana
         }])
         render(serializer: nil, json: error_data, status: exception.status)
       rescue => exception
+        FOREST_REPORTER.report exception
         FOREST_LOGGER.error(exception)
         FOREST_LOGGER.error(exception.backtrace.join("\n"))
         render(serializer: nil, json: nil, status: :internal_server_error)

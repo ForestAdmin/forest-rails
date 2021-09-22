@@ -12,6 +12,7 @@ module ForestLiana
       begin
         params[:data][:attributes]
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action execution error: #{error}"
         {}
       end
@@ -35,6 +36,7 @@ module ForestLiana
           render serializer: nil, json: { status: 400 }, status: :bad_request
         end
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action execution error: #{error}"
         render serializer: nil, json: { status: 400 }, status: :bad_request
       end
@@ -50,6 +52,7 @@ module ForestLiana
           end
           resource
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Find Collection error: #{error}\n#{format_stacktrace(error)}"
         render serializer: nil, json: { status: 404 }, status: :not_found
       end

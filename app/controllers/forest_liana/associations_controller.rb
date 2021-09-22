@@ -18,6 +18,7 @@ module ForestLiana
           format.csv { render_csv(getter, @association.klass) }
         end
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -30,6 +31,7 @@ module ForestLiana
 
         render serializer: nil, json: { count: getter.records_count }
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index Count error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -47,6 +49,7 @@ module ForestLiana
           head :no_content
         end
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Update error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
@@ -59,6 +62,7 @@ module ForestLiana
 
         head :no_content
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Associate error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end

@@ -46,6 +46,7 @@ module ForestLiana
           d
         end
       rescue ::Stripe::InvalidRequestError => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Stripe error: #{error.message}"
         @records = []
       end

@@ -261,6 +261,7 @@ module ForestLiana
           FOREST_LOGGER.warn "The association \"#{association.name.to_s}\" " \
             "does not seem to exist for model \"#{@model.name}\"."
         rescue => exception
+          FOREST_REPORTER.report exception
           FOREST_LOGGER.error "An error occured trying to add " \
             "\"#{association.name.to_s}\" association:\n#{exception}"
         end

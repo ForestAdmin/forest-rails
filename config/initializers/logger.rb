@@ -18,12 +18,19 @@ module ForestLiana
             displayed_message = "[#{datetime.to_s(:db)}] Forest 🌳🌳🌳  " \
                   "#{message}\n"
                 "\e[#{logger_colors[severity.to_sym]}m#{displayed_message}\033[0m"
-            end
+          end
           logger
         end
       end
     end
   end
+
+  class Reporter
+    def self.report (error)
+      ForestLiana.reporter.report error if ForestLiana.reporter
+    end
+  end
 end
 
 FOREST_LOGGER = ForestLiana::Logger.log
+FOREST_REPORTER = ForestLiana::Reporter

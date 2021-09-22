@@ -28,6 +28,7 @@ module ForestLiana
             begin
               @records = field[:search].call(@records, @search)
             rescue => exception
+              FOREST_REPORTER.report exception
               FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \
                 "#{exception}"
             end

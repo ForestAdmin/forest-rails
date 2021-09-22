@@ -14,6 +14,7 @@ module ForestLiana
       rescue Intercom::ResourceNotFound
         @record = nil
       rescue Intercom::UnexpectedError => exception
+        FOREST_REPORTER.report exception
         FOREST_LOGGER.error "Cannot retrieve the Intercom conversation: #{exception.message}"
         @record = nil
       end
