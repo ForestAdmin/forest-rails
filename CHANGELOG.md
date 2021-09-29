@@ -1,3 +1,10 @@
+## [7.2.1](https://github.com/ForestAdmin/forest-rails/compare/v7.2.0...v7.2.1) (2021-09-29)
+
+
+### Bug Fixes
+
+* smart actions restricted to a segment using segment query should be visible ([#510](https://github.com/ForestAdmin/forest-rails/issues/510)) ([6bb4439](https://github.com/ForestAdmin/forest-rails/commit/6bb4439dee11da92e4aa89a1d2b57a2aa02938a2))
+
 # [7.2.0](https://github.com/ForestAdmin/forest-rails/compare/v7.1.0...v7.2.0) (2021-09-10)
 
 
