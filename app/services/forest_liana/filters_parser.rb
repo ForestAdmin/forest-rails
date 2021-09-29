@@ -149,7 +149,7 @@ module ForestLiana
 
     def parse_value(operator, value)
       case operator
-      when 'not', 'greater_than', 'less_than', 'not_equal', 'equal', 'before', 'after', 'in'
+      when 'not', 'greater_than', 'less_than', 'not_equal', 'equal', 'before', 'after'
         value
       when 'contains', 'not_contains'
         "%#{value}%"
@@ -157,6 +157,12 @@ module ForestLiana
         "#{value}%"
       when 'ends_with'
         "%#{value}"
+      when 'in'
+        if value.kind_of?(String)
+          value.split(',').map { |val| val.strip() }
+        else
+          value
+        end
       when 'present', 'blank'
       else
         raise_unknown_operator_error(operator)

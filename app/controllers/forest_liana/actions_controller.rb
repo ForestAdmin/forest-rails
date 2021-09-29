@@ -78,7 +78,9 @@ module ForestLiana
           end
         end
 
-        updated_field
+        # Response of load hook is not JSONAPI serialized
+        # so we need to transform snake_case properties back to camelCase
+        updated_field.transform_keys { |key| key.to_s.camelize(:lower) }
       end
 
       render serializer: nil, json: { fields: fields }, status: :ok

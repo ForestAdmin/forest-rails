@@ -1,3 +1,24 @@
+# [7.2.0](https://github.com/ForestAdmin/forest-rails/compare/v7.1.0...v7.2.0) (2021-09-10)
+
+
+### Features
+
+* **filter:** add "is in" filter ([#518](https://github.com/ForestAdmin/forest-rails/issues/518)) ([020310c](https://github.com/ForestAdmin/forest-rails/commit/020310c80e9aee2d39e77301ec97577e1b26f8ee))
+
+# [7.1.0](https://github.com/ForestAdmin/forest-rails/compare/v7.0.2...v7.1.0) (2021-08-25)
+
+
+### Features
+
+* include tags in the user data inside the request ([#515](https://github.com/ForestAdmin/forest-rails/issues/515)) ([91e9bb9](https://github.com/ForestAdmin/forest-rails/commit/91e9bb93e954c9f8e03191497dd1a8fae7fb4fcf))
+
+## [7.0.2](https://github.com/ForestAdmin/forest-rails/compare/v7.0.1...v7.0.2) (2021-08-16)
+
+
+### Bug Fixes
+
+* **hooks:** smart action hooks response correctly send back serialized fields ([#514](https://github.com/ForestAdmin/forest-rails/issues/514)) ([794f9a7](https://github.com/ForestAdmin/forest-rails/commit/794f9a7b45a828cc7971a4d7f21192dc0ed2edd3))
+
 ## [7.0.1](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0...v7.0.1) (2021-07-23)
 
 
