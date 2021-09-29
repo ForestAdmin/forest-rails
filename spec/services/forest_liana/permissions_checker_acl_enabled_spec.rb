@@ -458,6 +458,14 @@ module ForestLiana
               end
             end
 
+            context 'when user has no segments queries permissions and param segmentQuery is there' do
+              let(:segmentQuery) { 'SELECT * FROM products;' }
+              let(:collection_list_parameters) { { :user_id => "1", :segmentQuery => segmentQuery } }
+              it 'should be authorized' do
+                expect(subject.is_authorized?).to be false
+              end
+            end
+
             context 'when segments are defined' do
               let(:default_rendering_id) { 1 }
               let(:segments_permissions) {
@@ -482,6 +490,36 @@ module ForestLiana
                 let(:segmentQuery) { 'SELECT * FROM rockets WHERE name = "Starship";' }
                 it 'should return false' do
                   expect(subject.is_authorized?).to be false
+                end
+              end
+
+              context 'when received union segments NOT passing validation' do
+                let(:segmentQuery) { 'SELECT * FROM sellers/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT column_name(s) FROM table1 UNION SELECT column_name(s) FROM table2' }
+                it 'should return false' do
+                  expect(subject.is_authorized?).to be false
+                end
+              end
+
+              context 'when received union segments passing validation' do
+                let(:segmentQuery) { 'SELECT * FROM sellers/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT * FROM products' }
+                it 'should return true' do
+                  expect(subject.is_authorized?).to be true
+                end
+              end
+
+              context 'when received union segments with UNION inside passing validation' do
+                let(:segmentQuery) { 'SELECT COUNT(*) AS value FROM products/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT column_name(s) FROM table1 UNION SELECT column_name(s) FROM table2' }
+                let(:segments_permissions) {
+                  {
+                    default_rendering_id => {
+                      collection_name => {
+                        'segments' => ['SELECT COUNT(*) AS value FROM products;', 'SELECT column_name(s) FROM table1 UNION SELECT column_name(s) FROM table2;', 'SELECT * FROM products;', 'SELECT * FROM sellers;']
+                      }
+                    }
+                  }
+                }
+                it 'should return true' do
+                  expect(subject.is_authorized?).to be true
                 end
               end
             end
