@@ -1,3 +1,10 @@
+## [7.2.2](https://github.com/ForestAdmin/forest-rails/compare/v7.2.1...v7.2.2) (2021-09-30)
+
+
+### Bug Fixes
+
+* **authentication:** fix certificate issues that break the authentication ([#522](https://github.com/ForestAdmin/forest-rails/issues/522)) ([0caa6c5](https://github.com/ForestAdmin/forest-rails/commit/0caa6c561055e892504b9df8181ab2142c2ea9d4))
+
 ## [7.2.1](https://github.com/ForestAdmin/forest-rails/compare/v7.2.0...v7.2.1) (2021-09-29)
 
 
