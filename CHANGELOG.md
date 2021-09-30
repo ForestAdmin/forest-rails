@@ -1,3 +1,10 @@
+## [6.6.3](https://github.com/ForestAdmin/forest-rails/compare/v6.6.2...v6.6.3) (2021-09-30)
+
+
+### Bug Fixes
+
+* **authentication:** fix certificate issues that break the authentication ([#524](https://github.com/ForestAdmin/forest-rails/issues/524)) ([6526b85](https://github.com/ForestAdmin/forest-rails/commit/6526b858e76206047fa265e583a74042302b9436))
+
 ## [6.6.2](https://github.com/ForestAdmin/forest-rails/compare/v6.6.1...v6.6.2) (2021-06-16)
 
 
