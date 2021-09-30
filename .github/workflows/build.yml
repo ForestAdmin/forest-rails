@@ -3,7 +3,7 @@ name: Build, Test and Deploy
 on:
   push:
     branches:
-      - master
+      - 6.x.x
       - beta
   pull_request:
 
@@ -68,7 +68,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [lint, test]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/6.x.x' || github.ref == 'refs/heads/beta')
     steps:
       - uses: actions/checkout@v2
         with:
