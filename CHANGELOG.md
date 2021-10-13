@@ -1,3 +1,10 @@
+# [7.3.0](https://github.com/ForestAdmin/forest-rails/compare/v7.2.2...v7.3.0) (2021-10-13)
+
+
+### Features
+
+* **filter:** handle correctly uuid field type ([#525](https://github.com/ForestAdmin/forest-rails/issues/525)) ([22be1a8](https://github.com/ForestAdmin/forest-rails/commit/22be1a8d032b8fb56b96464fcfecf03514b48cbc))
+
 ## [7.2.2](https://github.com/ForestAdmin/forest-rails/compare/v7.2.1...v7.2.2) (2021-09-30)
 
 
