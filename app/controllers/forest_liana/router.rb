@@ -39,6 +39,7 @@ class ForestLiana::Router
 
         controller.action(action.to_sym).call(env)
       rescue NoMethodError => exception
+        FOREST_REPORTER.report exception
         FOREST_LOGGER.error "Routing error: #{exception}\n#{exception.backtrace.join("\n\t")}"
         ForestLiana::BaseController.action(:route_not_found).call(env)
       end

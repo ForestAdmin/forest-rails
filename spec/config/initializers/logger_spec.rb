@@ -27,4 +27,41 @@ module ForestLiana
       end
     end
   end
+
+  describe Reporter do
+    describe 'self.reporter' do
+      describe 'with a reporter provided' do
+        it 'should report the error' do
+          class SampleReporter
+            def report(error)
+            end
+          end
+
+          spier = spy('sampleReporter')
+
+          ForestLiana.reporter = spier
+          FOREST_REPORTER.report(Exception.new "sample error")
+
+          expect(spier).to have_received(:report)
+          ForestLiana.reporter = nil
+        end
+      end
+
+      describe 'without any reporter provided' do
+        it 'should not report the error' do
+          class ErrorReporter
+            def report(error)
+              expect(false).to be_truthy
+            end
+          end
+
+          spier = spy('errorReporter')
+
+          FOREST_REPORTER.report(Exception.new "sample error")
+
+          expect(spier).not_to have_received(:export)
+        end
+      end
+    end
+  end
 end
