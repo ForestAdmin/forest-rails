@@ -1,3 +1,10 @@
+# [7.4.0](https://github.com/ForestAdmin/forest-rails/compare/v7.3.0...v7.4.0) (2021-11-04)
+
+
+### Features
+
+* **reporter:** customers can now catch every errors thrown by forest ([#519](https://github.com/ForestAdmin/forest-rails/issues/519)) ([c040b73](https://github.com/ForestAdmin/forest-rails/commit/c040b7351177757bb6d43a9111bcd175a372c219))
+
 # [7.3.0](https://github.com/ForestAdmin/forest-rails/compare/v7.2.2...v7.3.0) (2021-10-13)
 
 
