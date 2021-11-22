@@ -57,10 +57,12 @@ module ForestLiana
       @collections_sent.each do |collection|
         collection['actions'].each do |action|
           c = get_collection(collection['name'])
-          a = get_action(c, action['name'])
-          load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
-          change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
-          action['hooks'] = {'load' => load, 'change' => change}
+          unless c.nil?
+            a = get_action(c, action['name'])
+            load = !a.hooks.nil? && a.hooks.key?(:load) && a.hooks[:load].is_a?(Proc)
+            change = !a.hooks.nil? && a.hooks.key?(:change) && a.hooks[:change].is_a?(Hash) ? a.hooks[:change].keys : []
+            action['hooks'] = {'load' => load, 'change' => change}
+          end
         end
       end
     end
