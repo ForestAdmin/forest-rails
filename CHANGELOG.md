@@ -1,3 +1,10 @@
+## [7.4.1](https://github.com/ForestAdmin/forest-rails/compare/v7.4.0...v7.4.1) (2021-11-22)
+
+
+### Bug Fixes
+
+* avoid attaching smart action hooks on pre-defined smart actions ([#526](https://github.com/ForestAdmin/forest-rails/issues/526)) ([baab51f](https://github.com/ForestAdmin/forest-rails/commit/baab51f4c95011a5cc11f2bb9ce42be82e92713b))
+
 # [7.4.0](https://github.com/ForestAdmin/forest-rails/compare/v7.3.0...v7.4.0) (2021-11-04)
 
 
