@@ -136,13 +136,26 @@ describe 'Requesting Actions routes', :type => :request  do
         }
     }
 
+    use_user_context_action_definition = {
+      name: 'use_user_context',
+      fields: [foo],
+      hooks: {
+        :load => -> (context) {
+          foo = context[:fields].find{|field| field[:field] == 'foo'}
+          foo[:value] = context[:user]['first_name']
+          context[:fields]
+        }
+      }
+    }
+
     action = ForestLiana::Model::Action.new(action_definition)
     fail_action = ForestLiana::Model::Action.new(fail_action_definition)
     cheat_action = ForestLiana::Model::Action.new(cheat_action_definition)
     enums_action = ForestLiana::Model::Action.new(enums_action_definition)
     multiple_enums_action = ForestLiana::Model::Action.new(multiple_enums_action_definition)
+    use_user_context_action = ForestLiana::Model::Action.new(use_user_context_action_definition)
     island = ForestLiana.apimap.find {|collection| collection.name.to_s == ForestLiana.name_for(Island)}
-    island.actions = [action, fail_action, cheat_action, enums_action, multiple_enums_action]
+    island.actions = [action, fail_action, cheat_action, enums_action, multiple_enums_action, use_user_context_action]
 
     describe 'call /load' do
       params = {
@@ -173,6 +186,12 @@ describe 'Requesting Actions routes', :type => :request  do
         post '/forest/actions/cheat_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
+      end
+
+      it 'should return the first_name of the user who call the action' do
+        post '/forest/actions/use_user_context/hooks/load', params: JSON.dump(params), headers: headers
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => 'Michael'}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
       end
     end
 
