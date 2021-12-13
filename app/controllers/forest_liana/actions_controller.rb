@@ -32,7 +32,7 @@ module ForestLiana
         field[:value] = nil unless field[:value]
         field
       end
-      {:fields => fields, :params => params}
+      {:fields => fields, :params => params, :user => forest_user}
     end
 
     def get_smart_action_change_ctx(fields, field_changed)
@@ -42,7 +42,7 @@ module ForestLiana
         ForestLiana::WidgetsHelper.set_field_widget(field)
         field
       end
-      {:field_changed => found_field_changed, :fields => fields, :params => params}
+      {:field_changed => found_field_changed, :fields => fields, :params => params, :user => forest_user}
     end
 
     def handle_result(result, action)
