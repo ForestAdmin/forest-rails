@@ -1,3 +1,10 @@
+## [7.4.2](https://github.com/ForestAdmin/forest-rails/compare/v7.4.1...v7.4.2) (2021-12-16)
+
+
+### Bug Fixes
+
+* add user inside context for smart actions hooks ([#532](https://github.com/ForestAdmin/forest-rails/issues/532)) ([8d71e9c](https://github.com/ForestAdmin/forest-rails/commit/8d71e9c957d305dfb365d455a5abdef019ae2569))
+
 ## [7.4.1](https://github.com/ForestAdmin/forest-rails/compare/v7.4.0...v7.4.1) (2021-11-22)
 
 
