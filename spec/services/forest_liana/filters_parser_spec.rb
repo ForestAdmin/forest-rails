@@ -396,6 +396,8 @@ module ForestLiana
         it { expect(filter_parser.parse_value('present', nil)).to eq nil }
         it { expect(filter_parser.parse_value('equal', 'yes')).to eq 'yes' }
         it { expect(filter_parser.parse_value('blank', nil)).to eq nil }
+        it { expect(filter_parser.parse_value('in', 'yes,maybe   ,no  ')).to eq ['yes', 'maybe', 'no'] }
+        it { expect(filter_parser.parse_value('in', 123)).to eq 123 }
       end
 
       context 'on unknown operator' do

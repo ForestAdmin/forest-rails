@@ -136,13 +136,26 @@ describe 'Requesting Actions routes', :type => :request  do
         }
     }
 
+    use_user_context_action_definition = {
+      name: 'use_user_context',
+      fields: [foo],
+      hooks: {
+        :load => -> (context) {
+          foo = context[:fields].find{|field| field[:field] == 'foo'}
+          foo[:value] = context[:user]['first_name']
+          context[:fields]
+        }
+      }
+    }
+
     action = ForestLiana::Model::Action.new(action_definition)
     fail_action = ForestLiana::Model::Action.new(fail_action_definition)
     cheat_action = ForestLiana::Model::Action.new(cheat_action_definition)
     enums_action = ForestLiana::Model::Action.new(enums_action_definition)
     multiple_enums_action = ForestLiana::Model::Action.new(multiple_enums_action_definition)
+    use_user_context_action = ForestLiana::Model::Action.new(use_user_context_action_definition)
     island = ForestLiana.apimap.find {|collection| collection.name.to_s == ForestLiana.name_for(Island)}
-    island.actions = [action, fail_action, cheat_action, enums_action, multiple_enums_action]
+    island.actions = [action, fail_action, cheat_action, enums_action, multiple_enums_action, use_user_context_action]
 
     describe 'call /load' do
       params = {
@@ -154,7 +167,7 @@ describe 'Requesting Actions routes', :type => :request  do
       it 'should respond 200' do
         post '/forest/actions/my_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
-        expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).stringify_keys]})
+        expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
       end
 
       it 'should respond 500 with bad params' do
@@ -174,6 +187,12 @@ describe 'Requesting Actions routes', :type => :request  do
         expect(response.status).to eq(500)
         expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: hook must return an array of fields'})
       end
+
+      it 'should return the first_name of the user who call the action' do
+        post '/forest/actions/use_user_context/hooks/load', params: JSON.dump(params), headers: headers
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => 'Michael'}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
+      end
     end
 
     describe 'call /change' do
@@ -184,7 +203,8 @@ describe 'Requesting Actions routes', :type => :request  do
             ids: [1],
             fields: [updated_foo],
             collection_name: 'Island',
-            changed_field: 'foo'
+            changed_field: 'foo',
+            is_read_only: true
           }
         }
       }
@@ -195,6 +215,7 @@ describe 'Requesting Actions routes', :type => :request  do
         expected = updated_foo.clone.merge({:value => 'baz'})
         expected[:widgetEdit] = nil
         expected.delete(:widget)
+        expected = expected.transform_keys { |key| key.to_s.camelize(:lower) }
         expect(JSON.parse(response.body)).to eq({'fields' => [expected.stringify_keys]})
       end
 
@@ -230,6 +251,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_foo = updated_foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
 
+        expected_enum = expected_enum.transform_keys { |key| key.to_s.camelize(:lower) }
+        expected_foo = expected_foo.transform_keys { |key| key.to_s.camelize(:lower) }
+
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_enum.stringify_keys]})
       end
 
@@ -252,6 +276,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_multiple_enum.delete(:widget)
         expected_foo = foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
+
+        expected_multiple_enum = expected_multiple_enum.transform_keys { |key| key.to_s.camelize(:lower) }
+        expected_foo = expected_foo.transform_keys { |key| key.to_s.camelize(:lower) }
 
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
       end
@@ -276,6 +303,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expected_multiple_enum.delete(:widget)
         expected_foo = foo.clone.merge({ :widgetEdit => nil})
         expected_foo.delete(:widget)
+
+        expected_multiple_enum = expected_multiple_enum.transform_keys { |key| key.to_s.camelize(:lower) }
+        expected_foo = expected_foo.transform_keys { |key| key.to_s.camelize(:lower) }
 
         expect(JSON.parse(response.body)).to eq({'fields' => [expected_foo.stringify_keys, expected_multiple_enum.stringify_keys]})
       end

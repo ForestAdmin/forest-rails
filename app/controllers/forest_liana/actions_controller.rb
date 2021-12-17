@@ -5,6 +5,7 @@ module ForestLiana
       begin
         params[:data][:attributes]
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action hook request error: #{error}"
         {}
       end
@@ -19,6 +20,7 @@ module ForestLiana
       begin
         collection.actions.find {|action| ActiveSupport::Inflector.parameterize(action.name) == params[:action_name]}
       rescue => error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action get action retrieval error: #{error}"
         nil
       end
@@ -30,7 +32,7 @@ module ForestLiana
         field[:value] = nil unless field[:value]
         field
       end
-      {:fields => fields, :params => params}
+      {:fields => fields, :params => params, :user => forest_user}
     end
 
     def get_smart_action_change_ctx(fields, field_changed)
@@ -40,7 +42,7 @@ module ForestLiana
         ForestLiana::WidgetsHelper.set_field_widget(field)
         field
       end
-      {:field_changed => found_field_changed, :fields => fields, :params => params}
+      {:field_changed => found_field_changed, :fields => fields, :params => params, :user => forest_user}
     end
 
     def handle_result(result, action)
@@ -57,6 +59,7 @@ module ForestLiana
       rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
         FOREST_LOGGER.warn invalid_field_error.message
       rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
+        FOREST_REPORTER.report invalid_hook_error
         FOREST_LOGGER.error invalid_hook_error.message
         return render status: 500, json: { error: invalid_hook_error.message }
       end
@@ -78,7 +81,9 @@ module ForestLiana
           end
         end
 
-        updated_field
+        # Response of load hook is not JSONAPI serialized
+        # so we need to transform snake_case properties back to camelCase
+        updated_field.transform_keys { |key| key.to_s.camelize(:lower) }
       end
 
       render serializer: nil, json: { fields: fields }, status: :ok

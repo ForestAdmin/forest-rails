@@ -159,8 +159,15 @@ module ForestLiana
 
     def segment_query_allowed?
       segments_queries_permissions = get_segments_in_permissions
-
+      # NOTICE: The segmentQuery should be in the segments_queries_permissions
       return false unless segments_queries_permissions
+
+      # Handle UNION queries made by the FRONT to display available actions on details view
+      unionQueries = @collection_list_parameters[:segmentQuery].split('/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION ');
+      if unionQueries.length > 1
+        # Are unionQueries all included only in the allowed queries
+        return unionQueries.all? { |unionQuery| segments_queries_permissions.select { |query| query.gsub(/;\s*/i, '') === unionQuery }.length > 0 };
+      end
 
       # NOTICE: @query_request_info matching an existing segment query
       return segments_queries_permissions.include? @collection_list_parameters[:segmentQuery]

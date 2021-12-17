@@ -1,3 +1,66 @@
+## [7.4.2](https://github.com/ForestAdmin/forest-rails/compare/v7.4.1...v7.4.2) (2021-12-16)
+
+
+### Bug Fixes
+
+* add user inside context for smart actions hooks ([#532](https://github.com/ForestAdmin/forest-rails/issues/532)) ([8d71e9c](https://github.com/ForestAdmin/forest-rails/commit/8d71e9c957d305dfb365d455a5abdef019ae2569))
+
+## [7.4.1](https://github.com/ForestAdmin/forest-rails/compare/v7.4.0...v7.4.1) (2021-11-22)
+
+
+### Bug Fixes
+
+* avoid attaching smart action hooks on pre-defined smart actions ([#526](https://github.com/ForestAdmin/forest-rails/issues/526)) ([baab51f](https://github.com/ForestAdmin/forest-rails/commit/baab51f4c95011a5cc11f2bb9ce42be82e92713b))
+
+# [7.4.0](https://github.com/ForestAdmin/forest-rails/compare/v7.3.0...v7.4.0) (2021-11-04)
+
+
+### Features
+
+* **reporter:** customers can now catch every errors thrown by forest ([#519](https://github.com/ForestAdmin/forest-rails/issues/519)) ([c040b73](https://github.com/ForestAdmin/forest-rails/commit/c040b7351177757bb6d43a9111bcd175a372c219))
+
+# [7.3.0](https://github.com/ForestAdmin/forest-rails/compare/v7.2.2...v7.3.0) (2021-10-13)
+
+
+### Features
+
+* **filter:** handle correctly uuid field type ([#525](https://github.com/ForestAdmin/forest-rails/issues/525)) ([22be1a8](https://github.com/ForestAdmin/forest-rails/commit/22be1a8d032b8fb56b96464fcfecf03514b48cbc))
+
+## [7.2.2](https://github.com/ForestAdmin/forest-rails/compare/v7.2.1...v7.2.2) (2021-09-30)
+
+
+### Bug Fixes
+
+* **authentication:** fix certificate issues that break the authentication ([#522](https://github.com/ForestAdmin/forest-rails/issues/522)) ([0caa6c5](https://github.com/ForestAdmin/forest-rails/commit/0caa6c561055e892504b9df8181ab2142c2ea9d4))
+
+## [7.2.1](https://github.com/ForestAdmin/forest-rails/compare/v7.2.0...v7.2.1) (2021-09-29)
+
+
+### Bug Fixes
+
+* smart actions restricted to a segment using segment query should be visible ([#510](https://github.com/ForestAdmin/forest-rails/issues/510)) ([6bb4439](https://github.com/ForestAdmin/forest-rails/commit/6bb4439dee11da92e4aa89a1d2b57a2aa02938a2))
+
+# [7.2.0](https://github.com/ForestAdmin/forest-rails/compare/v7.1.0...v7.2.0) (2021-09-10)
+
+
+### Features
+
+* **filter:** add "is in" filter ([#518](https://github.com/ForestAdmin/forest-rails/issues/518)) ([020310c](https://github.com/ForestAdmin/forest-rails/commit/020310c80e9aee2d39e77301ec97577e1b26f8ee))
+
+# [7.1.0](https://github.com/ForestAdmin/forest-rails/compare/v7.0.2...v7.1.0) (2021-08-25)
+
+
+### Features
+
+* include tags in the user data inside the request ([#515](https://github.com/ForestAdmin/forest-rails/issues/515)) ([91e9bb9](https://github.com/ForestAdmin/forest-rails/commit/91e9bb93e954c9f8e03191497dd1a8fae7fb4fcf))
+
+## [7.0.2](https://github.com/ForestAdmin/forest-rails/compare/v7.0.1...v7.0.2) (2021-08-16)
+
+
+### Bug Fixes
+
+* **hooks:** smart action hooks response correctly send back serialized fields ([#514](https://github.com/ForestAdmin/forest-rails/issues/514)) ([794f9a7](https://github.com/ForestAdmin/forest-rails/commit/794f9a7b45a828cc7971a4d7f21192dc0ed2edd3))
+
 ## [7.0.1](https://github.com/ForestAdmin/forest-rails/compare/v7.0.0...v7.0.1) (2021-07-23)
 
 

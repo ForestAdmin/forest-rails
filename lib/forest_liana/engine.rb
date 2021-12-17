@@ -37,6 +37,7 @@ module ForestLiana
         end
         nil
       rescue => exception
+        FOREST_REPORTER.report exception
         exception
       end
     end
@@ -51,6 +52,7 @@ module ForestLiana
         ActiveRecord::Base.connection_pool.with_connection { |connection| connection.active? }
       rescue => error
         database_available = false
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "No Apimap sent to Forest servers, it seems that the database is not accessible:\n#{error}"
       end
       database_available
@@ -75,6 +77,7 @@ module ForestLiana
 
     config.after_initialize do |app|
       if error
+        FOREST_REPORTER.report error
         FOREST_LOGGER.error "Impossible to set the whitelisted Forest " \
           "domains for CORS constraint:\n#{error}"
       end

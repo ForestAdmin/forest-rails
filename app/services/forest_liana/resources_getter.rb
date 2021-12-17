@@ -179,6 +179,7 @@ module ForestLiana
           )
         rescue => error
           error_message = "Live Query Segment: #{error.message}"
+          FOREST_REPORTER.report error
           FOREST_LOGGER.error(error_message)
           raise ForestLiana::Errors::LiveQueryError.new(error_message)
         end

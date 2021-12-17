@@ -45,7 +45,7 @@ describe "Authentications", type: :request do
 
   describe "GET /authentication/callback" do
     before() do 
-      response = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3],"role":"Test"}}}'
+      response = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3],"role":"Test","tags":[{"key":"city","value":"Paris"}]}}}'
       allow(ForestLiana::ForestApiRequester).to receive(:get).with(
         "/liana/v2/renderings/42/authorization", { :headers => { "forest-token" => "THE-ACCESS-TOKEN" }, :query=> {} }
       ).and_return(
@@ -76,6 +76,10 @@ describe "Authentications", type: :request do
       }
 
       expect(decoded).to include(expected_token_data)
+      tags = decoded['tags']
+      expect(tags.length).to eq(1)
+      expect(tags[0]['key']).to eq("city")
+      expect(tags[0]['value']).to eq("Paris")
       expect(body).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
       expect(response).to have_http_status(200)
     end
