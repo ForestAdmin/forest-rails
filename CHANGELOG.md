@@ -1,3 +1,10 @@
+## [7.4.5](https://github.com/ForestAdmin/forest-rails/compare/v7.4.4...v7.4.5) (2021-12-22)
+
+
+### Bug Fixes
+
+* onboarding with rails 7 when running "rails g forest_liana:install" ([#539](https://github.com/ForestAdmin/forest-rails/issues/539)) ([6fcee9b](https://github.com/ForestAdmin/forest-rails/commit/6fcee9b00cf71cd717680854397016442a4c2d99))
+
 ## [7.4.4](https://github.com/ForestAdmin/forest-rails/compare/v7.4.3...v7.4.4) (2021-12-22)
 
 
