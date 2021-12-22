@@ -1,3 +1,10 @@
+## [7.4.4](https://github.com/ForestAdmin/forest-rails/compare/v7.4.3...v7.4.4) (2021-12-22)
+
+
+### Bug Fixes
+
+* revert "fix: update arel-helpers dependency ([#535](https://github.com/ForestAdmin/forest-rails/issues/535))" ([#537](https://github.com/ForestAdmin/forest-rails/issues/537)) ([7b75556](https://github.com/ForestAdmin/forest-rails/commit/7b755567a89c6fe59b8280c8ce2f62e2def0b4ba))
+
 ## [7.4.3](https://github.com/ForestAdmin/forest-rails/compare/v7.4.2...v7.4.3) (2021-12-21)
 
 
