@@ -75,8 +75,8 @@ GEM
       tzinfo (~> 1.1)
       zeitwerk (~> 2.2, >= 2.2.2)
     aes_key_wrap (1.1.0)
-    arel-helpers (2.11.0)
-      activerecord (>= 3.1.0, < 7)
+    arel-helpers (2.14.0)
+      activerecord (>= 3.1.0, < 8)
     attr_required (1.0.1)
     bcrypt (3.1.16)
     bindata (2.4.9)
@@ -231,7 +231,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  arel-helpers (= 2.11.0)
+  arel-helpers (= 2.14.0)
   bcrypt
   byebug
   forest_liana!
@@ -252,4 +252,4 @@ DEPENDENCIES
   useragent
 
 BUNDLED WITH
-   2.2.3
+   2.2.22
