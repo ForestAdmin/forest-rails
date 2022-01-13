@@ -109,6 +109,7 @@ module ForestLiana
 
     def fetch_models
       ActiveRecord::Base.subclasses.each { |model| fetch_model(model) }
+      ForestLiana.models.uniq!
     end
 
     def fetch_model(model)
