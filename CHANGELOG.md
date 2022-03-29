@@ -1,3 +1,10 @@
+# [7.5.0](https://github.com/ForestAdmin/forest-rails/compare/v7.4.5...v7.5.0) (2022-03-29)
+
+
+### Features
+
+* **count:** add deactivate count support ([#547](https://github.com/ForestAdmin/forest-rails/issues/547)) ([06423f9](https://github.com/ForestAdmin/forest-rails/commit/06423f9bbd4470fa32b745ec5840f8596383cd2e))
+
 ## [7.4.5](https://github.com/ForestAdmin/forest-rails/compare/v7.4.4...v7.4.5) (2021-12-22)
 
 
