@@ -8,9 +8,13 @@ module ForestLiana
     rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
 
     if Rails::VERSION::MAJOR < 4
-      before_filter :find_resource
+      before_filter :find_resource, except: :count
     else
-      before_action :find_resource
+      before_action :find_resource, except: :count
+    end
+
+    def deactivate_count_response
+      render serializer: nil, json: { meta: { count: 'deactivated '} }
     end
 
     def index
@@ -54,6 +58,7 @@ module ForestLiana
     end
 
     def count
+      find_resource
       begin
         checker = ForestLiana::PermissionsChecker.new(
           @resource,
