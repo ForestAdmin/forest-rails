@@ -55,4 +55,25 @@ describe 'Requesting Owner', :type => :request  do
       expect(response.status).to eq(200)
     end
   end
+
+  describe 'deactivate_count_response' do
+    params = {
+      fields: { 'Product' => 'id,name' },
+      page: { 'number' => '1', 'size' => '10' },
+      search: 'foo',
+      searchExtended: '0',
+      sort: '-id',
+      timezone: 'Europe/Paris'
+    }
+
+    it 'should respond 200' do
+      get '/forest/Owner/count', params: params, headers: headers
+      expect(response.status).to eq(200)
+    end
+
+    it 'should equal to deactivated response' do
+      get '/forest/Owner/count', params: params, headers: headers
+      expect(response.body).to eq('{"meta":{"count":"deactivated "}}')
+    end
+  end
 end
