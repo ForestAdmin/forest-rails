@@ -90,6 +90,10 @@ module ForestLiana
       head :internal_server_error
     end
 
+    def deactivate_count_response
+      render serializer: nil, json: { meta: { count: 'deactivated '} }
+    end
+
     private
 
     def force_utf8_encoding(json)

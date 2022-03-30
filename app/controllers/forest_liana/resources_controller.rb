@@ -13,10 +13,6 @@ module ForestLiana
       before_action :find_resource, except: :count
     end
 
-    def deactivate_count_response
-      render serializer: nil, json: { meta: { count: 'deactivated '} }
-    end
-
     def index
       begin
         if request.format == 'csv'
