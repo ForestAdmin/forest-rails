@@ -1,11 +1,11 @@
 module ForestLiana
   class AssociationsController < ForestLiana::ApplicationController
     if Rails::VERSION::MAJOR < 4
-      before_filter :find_resource
-      before_filter :find_association
+      before_filter :find_resource, except: :count
+      before_filter :find_association, except: :count
     else
-      before_action :find_resource
-      before_action :find_association
+      before_action :find_resource, except: :count
+      before_action :find_association, except: :count
     end
 
     def index
@@ -25,6 +25,8 @@ module ForestLiana
     end
 
     def count
+      find_resource
+      find_association
       begin
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count

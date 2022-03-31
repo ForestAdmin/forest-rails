@@ -3,7 +3,8 @@ require 'rails_helper'
 describe 'Requesting Owner', :type => :request  do
   before(:each) do
     1.upto(10) do |i|
-     Owner.create(name: "Owner #{i}")
+      owner = Owner.create(name: "Owner #{i}")
+      Tree.create(name: "Tree #{i}", owner_id: owner.id)
     end
   end
 
@@ -52,13 +53,33 @@ describe 'Requesting Owner', :type => :request  do
 
     it 'should equal to 10' do
       get '/forest/Owner/count', params: params, headers: headers
+      expect(response.body).to eq('{"count":10}')
+    end
+  end
+
+  describe 'count on relationships' do
+    params = {
+      fields: { 'Tree' => 'id,name,owner' },
+      page: { 'number' => '1', 'size' => '10' },
+      searchExtended: '0',
+      sort: '-id',
+      timezone: 'Europe/Paris'
+    }
+
+    it 'should respond 200' do
+      get '/forest/Owner/1/relationships/trees/count', params: params, headers: headers
       expect(response.status).to eq(200)
+    end
+
+    it 'should equal to 1' do
+      get '/forest/Owner/1/relationships/trees/count', params: params, headers: headers
+      expect(response.body).to eq('{"count":1}')
     end
   end
 
   describe 'deactivate_count_response' do
     params = {
-      fields: { 'Product' => 'id,name' },
+      fields: { 'Owner' => 'id,name' },
       page: { 'number' => '1', 'size' => '10' },
       search: 'foo',
       searchExtended: '0',
@@ -73,6 +94,27 @@ describe 'Requesting Owner', :type => :request  do
 
     it 'should equal to deactivated response' do
       get '/forest/Owner/count', params: params, headers: headers
+      expect(response.body).to eq('{"meta":{"count":"deactivated "}}')
+    end
+  end
+
+  describe 'deactivate_count_response' do
+    params = {
+      fields: { 'Tree' => 'id,name,owner' },
+      page: { 'number' => '1', 'size' => '10' },
+      search: 'foo',
+      searchExtended: '0',
+      sort: '-id',
+      timezone: 'Europe/Paris'
+    }
+
+    it 'should respond 200' do
+      get '/forest/Owner/1/relationships/trees/count', params: params, headers: headers
+      expect(response.status).to eq(200)
+    end
+
+    it 'should equal to deactivated response' do
+      get '/forest/Owner/1/relationships/trees/count', params: params, headers: headers
       expect(response.body).to eq('{"meta":{"count":"deactivated "}}')
     end
   end
