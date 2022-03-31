@@ -1,3 +1,10 @@
+## [7.5.1](https://github.com/ForestAdmin/forest-rails/compare/v7.5.0...v7.5.1) (2022-03-31)
+
+
+### Bug Fixes
+
+* add support count deactivate on relationships resources ([#552](https://github.com/ForestAdmin/forest-rails/issues/552)) ([4d24c0f](https://github.com/ForestAdmin/forest-rails/commit/4d24c0fd473bc3f7d2b455ebce43670cfa9478a5))
+
 # [7.5.0](https://github.com/ForestAdmin/forest-rails/compare/v7.4.5...v7.5.0) (2022-03-29)
 
 
