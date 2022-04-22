@@ -25,7 +25,7 @@ This project has been designed with scalability in mind to fit requirements from
 
 ## Getting Started
 
-[https://docs.forestadmin.com/documentation/getting-started/installation](https://docs.forestadmin.com/documentation/getting-started/installation)
+[https://docs.forestadmin.com/documentation/how-tos/setup/install](https://docs.forestadmin.com/documentation/how-tos/setup/install)
 
 ## Documentation
 
