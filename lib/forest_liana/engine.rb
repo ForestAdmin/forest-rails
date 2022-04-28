@@ -8,6 +8,21 @@ require 'bcrypt'
 require_relative 'bootstrapper'
 require_relative 'collection'
 
+module Rack
+  class Cors
+    class Resource
+      def to_preflight_headers(env)
+        h = to_headers(env)
+        h['Access-Control-Allow-Private-Network'] = 'true' if env['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'] == 'true'
+        if env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS]
+          h.merge!('Access-Control-Allow-Headers' => env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS])
+        end
+        h
+      end
+    end
+  end
+end
+
 module ForestLiana
   class Engine < ::Rails::Engine
     isolate_namespace ForestLiana
