@@ -1,3 +1,10 @@
+# [7.6.0](https://github.com/ForestAdmin/forest-rails/compare/v7.5.1...v7.6.0) (2022-05-03)
+
+
+### Features
+
+* **cors:** add access control allow private network handling ([#554](https://github.com/ForestAdmin/forest-rails/issues/554)) ([7832b4c](https://github.com/ForestAdmin/forest-rails/commit/7832b4c7554fd2f9ea89aa9118770ebc57cabbf6))
+
 ## [7.5.1](https://github.com/ForestAdmin/forest-rails/compare/v7.5.0...v7.5.1) (2022-03-31)
 
 
