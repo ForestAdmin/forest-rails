@@ -11,6 +11,7 @@
 /test/dummy/db/*.sqlite3
 /spec/dummy/log/
 /spec/dummy/db/*.sqlite3
+/spec/dummy/tmp/
 /tmp/
 .byebug_history
 
