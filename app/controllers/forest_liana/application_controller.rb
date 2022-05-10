@@ -91,7 +91,7 @@ module ForestLiana
     end
 
     def deactivate_count_response
-      render serializer: nil, json: { meta: { count: 'deactivated '} }
+      render serializer: nil, json: { meta: { count: 'deactivated'} }
     end
 
     private
