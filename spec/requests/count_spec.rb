@@ -94,7 +94,7 @@ describe 'Requesting Owner', :type => :request  do
 
     it 'should equal to deactivated response' do
       get '/forest/Owner/count', params: params, headers: headers
-      expect(response.body).to eq('{"meta":{"count":"deactivated "}}')
+      expect(response.body).to eq('{"meta":{"count":"deactivated"}}')
     end
   end
 
@@ -115,7 +115,7 @@ describe 'Requesting Owner', :type => :request  do
 
     it 'should equal to deactivated response' do
       get '/forest/Owner/1/relationships/trees/count', params: params, headers: headers
-      expect(response.body).to eq('{"meta":{"count":"deactivated "}}')
+      expect(response.body).to eq('{"meta":{"count":"deactivated"}}')
     end
   end
 end
