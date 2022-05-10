@@ -1,3 +1,10 @@
+## [7.6.1](https://github.com/ForestAdmin/forest-rails/compare/v7.6.0...v7.6.1) (2022-05-10)
+
+
+### Bug Fixes
+
+* typo on deactivated count response ([#559](https://github.com/ForestAdmin/forest-rails/issues/559)) ([43f7c5b](https://github.com/ForestAdmin/forest-rails/commit/43f7c5b73f087c7be75dc501fcc773963b4a340f))
+
 # [7.6.0](https://github.com/ForestAdmin/forest-rails/compare/v7.5.1...v7.6.0) (2022-05-03)
 
 
