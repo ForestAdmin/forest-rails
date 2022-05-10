@@ -13,8 +13,8 @@ module ForestLiana
       schema = '{
         "collections": [
           {
-            "name": "Customer",
-            "name_old": "customers",
+            "name": "Island",
+            "name_old": "Island",
             "icon": null,
             "is_read_only": false,
             "is_searchable": true,
@@ -101,7 +101,7 @@ module ForestLiana
       }'
 
 
-      it "Should return actions hooks empty for the customer collection" do
+      it "Should return actions hooks empty for the island collection" do
         allow(ForestLiana).to receive(:env_secret).and_return(nil)
         bootstrapper = Bootstrapper.new
         content = JSON.parse(schema)
