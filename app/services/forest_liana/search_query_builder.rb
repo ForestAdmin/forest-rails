@@ -61,7 +61,7 @@ module ForestLiana
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
-          @fields_searched << column.name if text_type? column.type
+          @fields_searched << column.name if text_type?(column.type) || column.type == :uuid
           column_name = format_column_name(@resource.table_name, column.name)
           if (@collection.search_fields && !@collection.search_fields.include?(column.name))
             conditions
