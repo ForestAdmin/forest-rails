@@ -1,3 +1,10 @@
+## [7.6.2](https://github.com/ForestAdmin/forest-rails/compare/v7.6.1...v7.6.2) (2022-05-11)
+
+
+### Bug Fixes
+
+* **apimap:** fix generate schema with unknown action ([#555](https://github.com/ForestAdmin/forest-rails/issues/555)) ([92a0da4](https://github.com/ForestAdmin/forest-rails/commit/92a0da47fe207d188793f88d9bf4fa8a6edade0a))
+
 ## [7.6.1](https://github.com/ForestAdmin/forest-rails/compare/v7.6.0...v7.6.1) (2022-05-10)
 
 
