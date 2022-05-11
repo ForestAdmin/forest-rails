@@ -61,7 +61,7 @@ module ForestLiana
         conditions = []
 
         @resource.columns.each_with_index do |column, index|
-          @fields_searched << column.name if text_type? column.type
+          @fields_searched << column.name if text_type?(column.type) || column.type == :uuid
           column_name = format_column_name(@resource.table_name, column.name)
           if (@collection.search_fields && !@collection.search_fields.include?(column.name))
             conditions
@@ -73,6 +73,8 @@ module ForestLiana
               conditions << "#{@resource.table_name}.id = :search_value_for_uuid"
             end
           # NOTICE: Rails 3 do not have a defined_enums method
+          elsif REGEX_UUID.match(@search) && column.type == :uuid
+            conditions << "#{column_name}  = :search_value_for_uuid"
           elsif @resource.respond_to?(:defined_enums) &&
             @resource.defined_enums.has_key?(column.name) &&
             !@resource.defined_enums[column.name][@search.downcase].nil?
