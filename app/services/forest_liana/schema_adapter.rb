@@ -8,7 +8,7 @@ module ForestLiana
       add_columns
       add_associations
 
-      collection.fields.sort_by! { |k| k[:field] }
+      collection.fields.sort_by! { |k| k[:field].to_s }
 
       # NOTICE: Add ActsAsTaggable fields
       if @model.try(:taggable?) && @model.respond_to?(:acts_as_taggable) &&
