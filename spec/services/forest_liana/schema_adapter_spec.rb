@@ -8,7 +8,19 @@ module ForestLiana
           end
 
           expect(collection.fields.map { |field| field[:field] }).to eq(
-            ["id", "name", "created_at", "updated_at", "trees", "location"]
+            ["created_at", "id", "location", "name", "trees", "updated_at"]
+          )
+        end
+      end
+
+      context 'with standard fields' do
+        it 'should be sort by alphabetical order' do
+          collection = ForestLiana.apimap.find do |object|
+            object.name.to_s == ForestLiana.name_for(Tree)
+          end
+
+          expect(collection.fields.map { |field| field[:field].to_s}).to eq(
+            ["age", "created_at", "cutter", "id", "island", "name", "owner", "updated_at"]
           )
         end
       end
