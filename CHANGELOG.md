@@ -1,3 +1,11 @@
+## [7.6.3](https://github.com/ForestAdmin/forest-rails/compare/v7.6.2...v7.6.3) (2022-05-19)
+
+
+### Bug Fixes
+
+* sort fields in schema ([#561](https://github.com/ForestAdmin/forest-rails/issues/561)) ([d5eff3c](https://github.com/ForestAdmin/forest-rails/commit/d5eff3c2134d69417121fcb07c6252ee4c011534))
+* **search:** fix search on fields of type UUID ([#560](https://github.com/ForestAdmin/forest-rails/issues/560)) ([f997659](https://github.com/ForestAdmin/forest-rails/commit/f997659925670fe03c336a2924317ce04de9d67b))
+
 ## [7.6.2](https://github.com/ForestAdmin/forest-rails/compare/v7.6.1...v7.6.2) (2022-05-11)
 
 
