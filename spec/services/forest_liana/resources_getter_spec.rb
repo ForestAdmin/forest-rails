@@ -124,6 +124,21 @@ module ForestLiana
       end
     end
 
+    describe 'when no sorting' do
+      let(:pageSize) { 5 }
+      let(:sort) { nil }
+
+      it 'should get only the 5 last records order by id DESC' do
+        getter.perform
+        records = getter.records
+        count = getter.count
+
+        expect(records.count).to eq 5
+        expect(count).to eq 30
+        expect(records.map(&:id)).to eq [30, 29, 28, 27, 26]
+      end
+    end
+
     describe 'when sorting by a belongs_to association' do
       let(:resource) { Tree }
       let(:sort) { 'owner.name' }
