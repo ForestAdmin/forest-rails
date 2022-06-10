@@ -29,5 +29,27 @@ module ForestLiana
     def compute_includes
       @includes = ForestLiana::QueryHelper.get_one_association_names_symbol(@resource)
     end
+
+    def optimize_record_loading(resource, records)
+      instance_dependent_associations = instance_dependent_associations(resource)
+      eager_loads = @includes - instance_dependent_associations
+
+      result = records.eager_load(eager_loads)
+
+      # Rails 7 can mix `eager_load` and `preload` in the same scope
+      # Rails 6 cannot mix `eager_load` and `preload` in the same scope
+      # Rails 6 and 7 cannot mix `eager_load` and `includes` in the same scope
+      if Rails::VERSION::MAJOR >= 7
+        result = result.preload(instance_dependent_associations)
+      end
+
+      result
+    end
+
+    def instance_dependent_associations(resource)
+      @includes.select do |association_name|
+        resource.reflect_on_association(association_name)&.scope&.arity&.positive?
+      end
+    end
   end
 end

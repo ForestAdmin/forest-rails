@@ -5,7 +5,7 @@ module ForestLiana
     def perform
       if @params[:group_by_field]
         timezone_offset = @params[:timezone].to_i
-        resource = get_resource().eager_load(@includes)
+        resource = optimize_record_loading(@resource, get_resource)
 
         filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
 

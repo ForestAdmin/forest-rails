@@ -64,12 +64,8 @@ module ForestLiana
     end
 
     def prepare_query
-      @records = @search_query_builder.perform(
-        get_resource()
-          .find(@params[:id])
-          .send(@params[:association_name])
-          .eager_load(@includes)
-      )
+      association = get_resource().find(@params[:id]).send(@params[:association_name])
+      @records = optimize_record_loading(association, @search_query_builder.perform(association))
     end
 
     def offset
