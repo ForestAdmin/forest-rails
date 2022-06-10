@@ -14,29 +14,35 @@ module ForestLiana
         end
       end
 
-      context 'on a model having 3 belongsTo associations' do
+      context 'on a model having some belongsTo associations' do
+        let(:expected_association_attributes) do
+          [
+            { name: :owner, klass: User },
+            { name: :cutter, klass: User },
+            { name: :island, klass: Island },
+            { name: :eponymous_island, klass: Island },
+          ]
+        end
+
         it 'should return the one-one associations' do
           associations = QueryHelper.get_one_associations(Tree)
-          expect(associations.length).to eq(3)
-          expect(associations.first.name).to eq(:owner)
-          expect(associations.first.klass).to eq(User)
-          expect(associations.second.name).to eq(:cutter)
-          expect(associations.second.klass).to eq(User)
-          expect(associations.third.name).to eq(:island)
-          expect(associations.third.klass).to eq(Island)
+          expect(associations.length).to eq(expected_association_attributes.length)
+          associations.zip(expected_association_attributes).each do |association, expected_attributes|
+            expect(association).to have_attributes(expected_attributes)
+          end
         end
       end
     end
 
     describe 'get_one_association_names_symbol' do
       it 'should return the one-one associations names as symbols' do
-        expect(QueryHelper.get_one_association_names_symbol(Tree)).to eq([:owner, :cutter, :island])
+        expect(QueryHelper.get_one_association_names_symbol(Tree)).to eq([:owner, :cutter, :island, :eponymous_island])
       end
     end
 
     describe 'get_one_association_names_string' do
       it 'should return the one-one associations names as strings' do
-        expect(QueryHelper.get_one_association_names_string(Tree)).to eq(['owner', 'cutter', 'island'])
+        expect(QueryHelper.get_one_association_names_string(Tree)).to eq(['owner', 'cutter', 'island', 'eponymous_island'])
       end
     end
 
@@ -64,8 +70,9 @@ module ForestLiana
         end
 
         it 'should return relationships on models having a custom table name' do
-          expect(tables_associated_to_relations_name['isle'].length).to eq(1)
+          expect(tables_associated_to_relations_name['isle'].length).to eq(2)
           expect(tables_associated_to_relations_name['isle'].first).to eq(:island)
+          expect(tables_associated_to_relations_name['isle'].second).to eq(:eponymous_island)
         end
       end
     end
