@@ -1,11 +1,59 @@
 module ForestLiana
   describe Bootstrapper do
+    before do
+      allow(ForestLiana).to receive(:env_secret).and_return(nil)
+    end
+
     describe 'setup_forest_liana_meta' do
       it "should put statistic data related to user stack on a dedicated object" do
         expect(ForestLiana.meta[:stack])
           .to include(:orm_version)
         expect(ForestLiana.meta[:stack])
           .to include(:database_type)
+      end
+    end
+
+    describe 'models' do
+      let(:expected_models) do
+        [
+          Island,
+          Location,
+          Owner,
+          Product,
+          Reference,
+          Tree,
+          User
+        ]
+      end
+
+      it 'should populate the models correctly' do
+        ForestLiana::Bootstrapper.new
+        rails_models = [ActiveRecord::InternalMetadata, ActiveRecord::SchemaMigration]
+
+        expect(ForestLiana.models).to match_array(ForestLiana.models.uniq)
+        expect(ForestLiana.models).to match_array(expected_models + rails_models)
+      end
+
+      it 'should generate serializers for all models' do
+        factory = instance_double(ForestLiana::SerializerFactory, serializer_for: nil)
+        allow(ForestLiana::SerializerFactory).to receive(:new).and_return(factory)
+
+        ForestLiana::Bootstrapper.new
+
+        expected_models.each do |model|
+          expect(factory).to have_received(:serializer_for).with(model).once
+        end
+      end
+
+      it 'should generate controllers for all models' do
+        factory = instance_double(ForestLiana::ControllerFactory, controller_for: nil)
+        allow(ForestLiana::ControllerFactory).to receive(:new).and_return(factory)
+
+        ForestLiana::Bootstrapper.new
+
+        expected_models.each do |model|
+          expect(factory).to have_received(:controller_for).with(model).once
+        end
       end
     end
 
@@ -102,7 +150,6 @@ module ForestLiana
 
 
       it "Should return actions hooks empty for the island collection" do
-        allow(ForestLiana).to receive(:env_secret).and_return(nil)
         bootstrapper = Bootstrapper.new
         content = JSON.parse(schema)
         bootstrapper.instance_variable_set(:@collections_sent, content['collections'])

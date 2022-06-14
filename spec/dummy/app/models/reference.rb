@@ -1,2 +1,2 @@
-class Reference < ActiveRecord::Base
+class Reference < SubApplicationRecord
 end
