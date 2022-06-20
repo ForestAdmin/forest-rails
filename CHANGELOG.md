@@ -1,3 +1,10 @@
+## [7.6.4](https://github.com/ForestAdmin/forest-rails/compare/v7.6.3...v7.6.4) (2022-06-20)
+
+
+### Bug Fixes
+
+* handle instance dependent associations ([#567](https://github.com/ForestAdmin/forest-rails/issues/567)) ([43f60a3](https://github.com/ForestAdmin/forest-rails/commit/43f60a3b7a0f67981697e2b724b89e396bd30016))
+
 ## [7.6.3](https://github.com/ForestAdmin/forest-rails/compare/v7.6.2...v7.6.3) (2022-05-19)
 
 
