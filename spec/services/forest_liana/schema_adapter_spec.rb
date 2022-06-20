@@ -8,7 +8,7 @@ module ForestLiana
           end
 
           expect(collection.fields.map { |field| field[:field] }).to eq(
-            ["created_at", "id", "location", "name", "trees", "updated_at"]
+            ["created_at", "eponymous_tree", "id", "location", "name", "trees", "updated_at"]
           )
         end
       end
@@ -20,7 +20,7 @@ module ForestLiana
           end
 
           expect(collection.fields.map { |field| field[:field].to_s}).to eq(
-            ["age", "created_at", "cutter", "id", "island", "name", "owner", "updated_at"]
+            ["age", "created_at", "cutter", "eponymous_island", "id", "island", "name", "owner", "updated_at"]
           )
         end
       end

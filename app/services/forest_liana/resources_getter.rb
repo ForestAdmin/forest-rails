@@ -66,13 +66,13 @@ module ForestLiana
     end
 
     def perform
-      @records = @records.eager_load(@includes)
+      @records = optimize_record_loading(@resource, @records)
     end
 
     def count
-      # NOTICE: For performance reasons, do not eager load the data if there is  no search or
+      # NOTICE: For performance reasons, do not optimize loading the data if there is  no search or
       #         filters on associations.
-      @records_count = @count_needs_includes ? @records.eager_load(@includes).count : @records.count
+      @records_count = @count_needs_includes ? optimize_record_loading(@resource, @records).count : @records.count
     end
 
     def query_for_batch

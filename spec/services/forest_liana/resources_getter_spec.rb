@@ -155,6 +155,21 @@ module ForestLiana
       end
     end
 
+    describe 'when getting instance dependent associations' do
+      let(:resource) { Island }
+      let(:fields) { { 'Island' => 'id,eponymous_tree', 'eponymous_tree' => 'id,name'} }
+
+      it 'should get only the expected records' do
+        getter.perform
+        records = getter.records
+        count = getter.count
+
+        expect(records.count).to eq Island.count
+        expect(count).to eq Island.count
+        expect(records.map(&:name)).to match_array(Island.pluck(:name))
+      end
+    end
+
     describe 'when filtering on an ambiguous field' do
       let(:resource) { Tree }
       let(:pageSize) { 5 }
