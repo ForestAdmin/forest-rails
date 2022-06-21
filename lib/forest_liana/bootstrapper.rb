@@ -114,14 +114,14 @@ module ForestLiana
     def fetch_model(model)
       begin
         if model.abstract_class?
-          model.descendants.each { |submodel| fetch_model(submodel) }
+          model.subclasses.each { |submodel| fetch_model(submodel) }
         else
           if is_sti_parent_model?(model)
-            model.descendants.each { |submodel_sti| fetch_model(submodel_sti) }
+            model.subclasses.each { |submodel_sti| fetch_model(submodel_sti) }
           end
 
           if analyze_model?(model)
-            ForestLiana.models << model
+            ForestLiana.models << model unless ForestLiana.models.include?(model)
           end
         end
       rescue => exception
@@ -136,7 +136,7 @@ module ForestLiana
     end
 
     def create_factories
-      ForestLiana.models.uniq.map do |model|
+      ForestLiana.models.map do |model|
         ForestLiana::SerializerFactory.new.serializer_for(model)
         ForestLiana::ControllerFactory.new.controller_for(model)
       end
