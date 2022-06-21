@@ -1,3 +1,10 @@
+## [7.6.5](https://github.com/ForestAdmin/forest-rails/compare/v7.6.4...v7.6.5) (2022-06-21)
+
+
+### Bug Fixes
+
+* prevent duplication of models from multiple ActiveRecord application classes ([#566](https://github.com/ForestAdmin/forest-rails/issues/566)) ([3a135b7](https://github.com/ForestAdmin/forest-rails/commit/3a135b79a91544e9b37fe07345acdfe1ff6a2554))
+
 ## [7.6.4](https://github.com/ForestAdmin/forest-rails/compare/v7.6.3...v7.6.4) (2022-06-20)
 
 
