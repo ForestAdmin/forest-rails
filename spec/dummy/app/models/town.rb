@@ -1,0 +1,2 @@
+class Town < Location
+end
