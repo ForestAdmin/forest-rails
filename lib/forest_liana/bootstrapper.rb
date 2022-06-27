@@ -96,39 +96,25 @@ module ForestLiana
       end
     end
 
-    def is_sti_parent_model?(model)
-      return false unless model.try(:table_exists?)
-
-      model.inheritance_column && model.columns.find { |column| column.name == model.inheritance_column }
-    end
-
     def analyze_model?(model)
       model && model.table_exists? && !SchemaUtils.habtm?(model) &&
         SchemaUtils.model_included?(model)
     end
 
     def fetch_models
-      ActiveRecord::Base.subclasses.each { |model| fetch_model(model) }
+      ActiveRecord::Base.descendants.each { |model| fetch_model(model) }
     end
 
     def fetch_model(model)
-      begin
-        if model.abstract_class?
-          model.subclasses.each { |submodel| fetch_model(submodel) }
-        else
-          if is_sti_parent_model?(model)
-            model.subclasses.each { |submodel_sti| fetch_model(submodel_sti) }
-          end
+      return if model.abstract_class?
+      return if ForestLiana.models.include?(model)
+      return unless analyze_model?(model)
 
-          if analyze_model?(model)
-            ForestLiana.models << model unless ForestLiana.models.include?(model)
-          end
-        end
-      rescue => exception
-        FOREST_REPORTER.report exception
-        FOREST_LOGGER.error "Cannot fetch properly model #{model.name}:\n" \
+      ForestLiana.models << model
+    rescue => exception
+      FOREST_REPORTER.report exception
+      FOREST_LOGGER.error "Cannot fetch properly model #{model.name}:\n" \
           "#{exception}"
-      end
     end
 
     def cast_to_array value
