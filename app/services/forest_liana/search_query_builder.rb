@@ -176,10 +176,6 @@ module ForestLiana
             column = field
           end
         end
-      elsif @resource.column_names.include?('created_at')
-        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'created_at')
-      elsif @resource.column_names.include?('id')
-        column = ForestLiana::AdapterHelper.format_column_name(@resource.table_name, 'id')
       end
 
       if column
