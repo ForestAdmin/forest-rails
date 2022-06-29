@@ -1,3 +1,10 @@
+## [7.6.6](https://github.com/ForestAdmin/forest-rails/compare/v7.6.5...v7.6.6) (2022-06-29)
+
+
+### Bug Fixes
+
+* take into account subclasses of ActiveRecord models ([#569](https://github.com/ForestAdmin/forest-rails/issues/569)) ([2298081](https://github.com/ForestAdmin/forest-rails/commit/22980817c2e5edeb437c32da404e75e79e8cb8bf))
+
 ## [7.6.5](https://github.com/ForestAdmin/forest-rails/compare/v7.6.4...v7.6.5) (2022-06-21)
 
 
