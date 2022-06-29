@@ -1,3 +1,10 @@
+## [7.6.7](https://github.com/ForestAdmin/forest-rails/compare/v7.6.6...v7.6.7) (2022-06-29)
+
+
+### Bug Fixes
+
+* remove default sort on columns created_at & id in the query builder ([fd734fc](https://github.com/ForestAdmin/forest-rails/commit/fd734fc8f581262cb922b0b95921506c6494e37d))
+
 ## [7.6.6](https://github.com/ForestAdmin/forest-rails/compare/v7.6.5...v7.6.6) (2022-06-29)
 
 
