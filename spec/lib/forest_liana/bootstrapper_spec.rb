@@ -14,13 +14,21 @@ module ForestLiana
     end
 
     describe 'models' do
-      let(:expected_models) do
+      let(:application_models) do
+        ForestLiana.models.reject do |model|
+          rails_models.any? { |rails_model| model <= rails_model }
+        end
+      end
+      let(:rails_models) { [ActiveRecord::InternalMetadata, ActiveRecord::SchemaMigration] }
+
+      let(:expected_application_models) do
         [
           Island,
           Location,
           Owner,
           Product,
           Reference,
+          Town,
           Tree,
           User
         ]
@@ -28,10 +36,10 @@ module ForestLiana
 
       it 'should populate the models correctly' do
         ForestLiana::Bootstrapper.new
-        rails_models = [ActiveRecord::InternalMetadata, ActiveRecord::SchemaMigration]
 
         expect(ForestLiana.models).to match_array(ForestLiana.models.uniq)
-        expect(ForestLiana.models).to match_array(expected_models + rails_models)
+        expect(ForestLiana.models).to include(*rails_models)
+        expect(application_models).to match_array(expected_application_models)
       end
 
       it 'should generate serializers for all models' do
@@ -40,7 +48,7 @@ module ForestLiana
 
         ForestLiana::Bootstrapper.new
 
-        expected_models.each do |model|
+        expected_application_models.each do |model|
           expect(factory).to have_received(:serializer_for).with(model).once
         end
       end
@@ -51,7 +59,7 @@ module ForestLiana
 
         ForestLiana::Bootstrapper.new
 
-        expected_models.each do |model|
+        expected_application_models.each do |model|
           expect(factory).to have_received(:controller_for).with(model).once
         end
       end
