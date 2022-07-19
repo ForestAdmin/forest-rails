@@ -32,15 +32,23 @@ module ForestLiana
 
     def optimize_record_loading(resource, records)
       instance_dependent_associations = instance_dependent_associations(resource)
-      eager_loads = @includes - instance_dependent_associations
 
-      result = records.eager_load(eager_loads)
+      preload_loads = @includes.select do |name|
+        targetModelConnection = resource.reflect_on_association(name).inverse_of&.active_record&.connection
+        targetModelDatabase = targetModelConnection.current_database if targetModelConnection.respond_to? :current_database
+        resourceConnection = resource.connection
+        resourceDatabase = resourceConnection if resourceConnection.respond_to? :current_database
+
+        targetModelDatabase != resourceDatabase
+      end + instance_dependent_associations
+
+      result = records.eager_load(@includes - preload_loads)
 
       # Rails 7 can mix `eager_load` and `preload` in the same scope
       # Rails 6 cannot mix `eager_load` and `preload` in the same scope
       # Rails 6 and 7 cannot mix `eager_load` and `includes` in the same scope
       if Rails::VERSION::MAJOR >= 7
-        result = result.preload(instance_dependent_associations)
+        result = result.preload(preload_loads)
       end
 
       result

@@ -19,6 +19,13 @@ development:
 test:
   <<: *default
   database: db/test.sqlite3
+  
+garage:
+  <<: *default
+  database: db/test2.sqlite3
+user:
+  <<: *default
+  database: db/test3.sqlite3
 
 production:
   <<: *default

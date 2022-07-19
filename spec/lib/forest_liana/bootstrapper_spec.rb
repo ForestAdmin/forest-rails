@@ -30,7 +30,9 @@ module ForestLiana
           Reference,
           Town,
           Tree,
-          User
+          User,
+          Driver,
+          Car,
         ]
       end
 
