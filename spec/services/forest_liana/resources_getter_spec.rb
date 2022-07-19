@@ -153,6 +153,36 @@ module ForestLiana
         expect(count).to eq 5
         expect(records.map(&:id)).to eq [1, 4, 5, 3, 2]
       end
+
+      it 'should include associated table only once' do
+        sql_query = getter.perform.to_sql
+        location_includes_count = sql_query.scan('LEFT OUTER JOIN "locations"').count
+        expect(location_includes_count).to eq(1)
+      end
+
+      context 'when fields is given' do
+        let(:filters) { {
+          field: 'location:id',
+          operator: 'equal',
+          value: 1,
+        }.to_json }
+
+        it 'should get only the expected records' do
+          getter.perform
+          records = getter.records
+          count = getter.count
+
+          expect(records.count).to eq 1
+          expect(count).to eq 1
+          expect(records.map(&:id)).to eq [1]
+        end
+
+        it 'should include associated table only once' do
+          sql_query = getter.perform.to_sql
+          location_includes_count = sql_query.scan('LEFT OUTER JOIN "locations"').count
+          expect(location_includes_count).to eq(1)
+        end
+      end
     end
 
     describe 'when getting instance dependent associations' do
