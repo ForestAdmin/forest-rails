@@ -23,8 +23,8 @@ module ForestLiana
       @joins.each do |join|
         current_resource = @resource.reflect_on_association(join.name).klass
         current_resource.include(ArelHelpers::Aliases)
-        current_resource.aliased_as(join.name) do |aliased_resource|
-          @resource = @resource.joins(ArelHelpers.join_association(@resource, join.name, Arel::Nodes::OuterJoin, aliases: [aliased_resource]))
+        current_resource.aliased_as("#{join.name}_#{@resource.table_name}") do |aliased_resource|
+          @resource = @resource.joins(ArelHelpers.join_association(@resource, join.name, Arel::Nodes::OuterJoin, { aliases: [aliased_resource] }))
         end
       end
 
@@ -174,14 +174,16 @@ module ForestLiana
         current_resource = @resource.reflect_on_association(field.split(':').first.to_sym)&.klass
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") unless current_resource
 
-        association = get_association_name_for_condition(field)
-        quoted_table_name = ActiveRecord::Base.connection.quote_column_name(association)
+        association = get_association_for_condition(field)
+
+        quoted_table_name = ActiveRecord::Base.connection.quote_table_name("#{association.name}_#{@resource.table_name}")
         field_name = field.split(':')[1]
       else
         quoted_table_name = @resource.quoted_table_name
         current_resource = @resource
         field_name = field
       end
+
       quoted_field_name = ActiveRecord::Base.connection.quote_column_name(field_name)
 
       column_found = current_resource.columns.find { |column| column.name == field.split(':').last }
@@ -196,7 +198,7 @@ module ForestLiana
       field.include?(':')
     end
 
-    def get_association_name_for_condition(field)
+    def get_association_for_condition(field)
       field, subfield = field.split(':')
 
       association = @resource.reflect_on_association(field.to_sym)
@@ -204,7 +206,7 @@ module ForestLiana
 
       @joins << association unless @joins.include? association
 
-      association.name
+      association
     end
 
     # NOTICE: Look for a previous interval condition matching the following:

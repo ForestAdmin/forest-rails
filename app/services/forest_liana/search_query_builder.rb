@@ -189,13 +189,10 @@ module ForestLiana
       ref, field = param.split('.')
 
       if ref && field
-        association = @resource.reflect_on_all_associations
-          .find {|a| a.name == ref.to_sym }
-
-        referenced_table = association ? association_table_name(association.name) : ref
+        association = @resource.reflect_on_all_associations().find {|a| a.name == ref.to_sym }
 
         ForestLiana::AdapterHelper
-          .format_column_name(referenced_table, field)
+          .format_column_name("#{association.name}_#{@resource.table_name}", field)
       else
         param
       end

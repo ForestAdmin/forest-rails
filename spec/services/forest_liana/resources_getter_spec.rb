@@ -129,6 +129,9 @@ module ForestLiana
       let(:sort) { 'owner.name' }
 
       it 'should get only the expected records' do
+        sql_query = getter.perform.to_sql
+        p sql_query
+
         getter.perform
         records = getter.records
         count = getter.count
@@ -160,7 +163,7 @@ module ForestLiana
         expect(location_includes_count).to eq(1)
       end
 
-      context 'when fields is given' do
+      context 'when filters is given' do
         let(:filters) { {
           field: 'location:id',
           operator: 'equal',
@@ -179,6 +182,7 @@ module ForestLiana
 
         it 'should include associated table only once' do
           sql_query = getter.perform.to_sql
+          p sql_query
           location_includes_count = sql_query.scan('LEFT OUTER JOIN "locations"').count
           expect(location_includes_count).to eq(1)
         end
