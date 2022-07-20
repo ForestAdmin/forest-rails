@@ -1,3 +1,10 @@
+## [7.6.8](https://github.com/ForestAdmin/forest-rails/compare/v7.6.7...v7.6.8) (2022-07-20)
+
+
+### Bug Fixes
+
+* **multidb:** allow associations across databases to work properly ([#572](https://github.com/ForestAdmin/forest-rails/issues/572)) ([0f6261d](https://github.com/ForestAdmin/forest-rails/commit/0f6261d22dd59d39ccf7c783555fa9176abe6f62))
+
 ## [7.6.7](https://github.com/ForestAdmin/forest-rails/compare/v7.6.6...v7.6.7) (2022-06-29)
 
 
