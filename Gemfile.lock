@@ -210,7 +210,7 @@ GEM
       httpclient (>= 2.4)
     thor (1.1.0)
     thread_safe (0.3.6)
-    tzinfo (1.2.9)
+    tzinfo (1.2.10)
       thread_safe (~> 0.1)
     useragent (0.16.10)
     validate_email (0.1.6)
