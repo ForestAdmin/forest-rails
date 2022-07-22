@@ -102,7 +102,7 @@ module ForestLiana
     end
 
     def fetch_models
-      ActiveRecord::Base.descendants.each { |model| fetch_model(model) }
+      ActiveRecord::Base.descendants.each { |model| fetch_model(model) }.sort { |a, b| a.name <=> b.name }
     end
 
     def fetch_model(model)
