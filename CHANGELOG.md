@@ -1,3 +1,10 @@
+## [7.6.9](https://github.com/ForestAdmin/forest-rails/compare/v7.6.8...v7.6.9) (2022-07-22)
+
+
+### Bug Fixes
+
+* **security:** patch tzinfo dependency vulnerabilities ([#573](https://github.com/ForestAdmin/forest-rails/issues/573)) ([9793917](https://github.com/ForestAdmin/forest-rails/commit/97939176d11d7b9f0545a2394f3d22faccefd846))
+
 ## [7.6.8](https://github.com/ForestAdmin/forest-rails/compare/v7.6.7...v7.6.8) (2022-07-20)
 
 
