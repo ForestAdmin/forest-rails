@@ -34,10 +34,10 @@ module ForestLiana
       instance_dependent_associations = instance_dependent_associations(resource)
 
       preload_loads = @includes.select do |name|
-        targetModelConnection = resource.reflect_on_association(name).inverse_of&.active_record&.connection
+        targetModelConnection = resource.reflect_on_association(name).klass.connection
         targetModelDatabase = targetModelConnection.current_database if targetModelConnection.respond_to? :current_database
         resourceConnection = resource.connection
-        resourceDatabase = resourceConnection if resourceConnection.respond_to? :current_database
+        resourceDatabase = resourceConnection.current_database if resourceConnection.respond_to? :current_database
 
         targetModelDatabase != resourceDatabase
       end + instance_dependent_associations
