@@ -1,3 +1,10 @@
+## [7.6.11](https://github.com/ForestAdmin/forest-rails/compare/v7.6.10...v7.6.11) (2022-08-01)
+
+
+### Bug Fixes
+
+* use stable sort for schema fields so we get same results across OS ([#577](https://github.com/ForestAdmin/forest-rails/issues/577)) ([359d396](https://github.com/ForestAdmin/forest-rails/commit/359d396c27e152ad4f2aaaa096a8dd285183b3a4)), closes [#575](https://github.com/ForestAdmin/forest-rails/issues/575)
+
 ## [7.6.10](https://github.com/ForestAdmin/forest-rails/compare/v7.6.9...v7.6.10) (2022-08-01)
 
 
