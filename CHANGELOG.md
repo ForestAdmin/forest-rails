@@ -1,3 +1,10 @@
+## [7.6.10](https://github.com/ForestAdmin/forest-rails/compare/v7.6.9...v7.6.10) (2022-08-01)
+
+
+### Bug Fixes
+
+* **multidb:** fix issue with multiple connection detection ([#578](https://github.com/ForestAdmin/forest-rails/issues/578)) ([3a3340b](https://github.com/ForestAdmin/forest-rails/commit/3a3340b147fd5fcc7ce94d6a27249d505ac516fb))
+
 ## [7.6.9](https://github.com/ForestAdmin/forest-rails/compare/v7.6.8...v7.6.9) (2022-07-22)
 
 
