@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_05_26_084712) do
+ActiveRecord::Schema.define(version: 2022_07_27_114930) do
 
   create_table "isle", force: :cascade do |t|
     t.string "name"
@@ -27,6 +27,10 @@ ActiveRecord::Schema.define(version: 2021_05_26_084712) do
     t.index ["island_id"], name: "index_locations_on_island_id"
   end
 
+  create_table "manufacturers", force: :cascade do |t|
+    t.string "name"
+  end
+
   create_table "owners", force: :cascade do |t|
     t.string "name"
     t.datetime "hired_at"
@@ -34,6 +38,11 @@ ActiveRecord::Schema.define(version: 2021_05_26_084712) do
 
   create_table "products", force: :cascade do |t|
     t.string "uri"
+    t.string "name"
+    t.integer "manufacturer_id"
+    t.integer "driver_id"
+    t.index ["driver_id"], name: "index_products_on_driver_id"
+    t.index ["manufacturer_id"], name: "index_products_on_manufacturer_id"
   end
 
   create_table "references", force: :cascade do |t|
