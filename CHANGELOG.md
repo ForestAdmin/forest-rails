@@ -1,3 +1,10 @@
+## [7.6.12](https://github.com/ForestAdmin/forest-rails/compare/v7.6.11...v7.6.12) (2022-08-09)
+
+
+### Bug Fixes
+
+* **sti:** remove unnecessary sti detection and always use actual model instead of parent ([#579](https://github.com/ForestAdmin/forest-rails/issues/579)) ([a159ad0](https://github.com/ForestAdmin/forest-rails/commit/a159ad0b51fe3a8d79e38a96673efbba85995136))
+
 ## [7.6.11](https://github.com/ForestAdmin/forest-rails/compare/v7.6.10...v7.6.11) (2022-08-01)
 
 
