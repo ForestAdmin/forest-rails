@@ -48,7 +48,7 @@ module ForestLiana
         Thread.new { refresh_scopes_cache(rendering_id) }
       end
 
-      @@scopes_cache[rendering_id][:scopes][collection_name]
+      @@scopes_cache[rendering_id][:scopes][collection_name].deep_dup
     end
 
     def self.has_cache_expired?(rendering_id)
@@ -91,7 +91,6 @@ module ForestLiana
           condition['value'] = dynamic_scopes_values.dig('users', user_id, value)
         end
       end
-
       filter
     end
 
