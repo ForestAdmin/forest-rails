@@ -91,7 +91,6 @@ module ForestLiana
           condition['value'] = dynamic_scopes_values.dig('users', user_id, value)
         end
       end
-      
       filter
     end
 
