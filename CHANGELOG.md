@@ -1,3 +1,10 @@
+## [7.6.13](https://github.com/ForestAdmin/forest-rails/compare/v7.6.12...v7.6.13) (2022-08-23)
+
+
+### Bug Fixes
+
+* dynamic scopes ([#580](https://github.com/ForestAdmin/forest-rails/issues/580)) ([890eead](https://github.com/ForestAdmin/forest-rails/commit/890eeadd73eb6485c75041103a42df20384f9a73))
+
 ## [7.6.12](https://github.com/ForestAdmin/forest-rails/compare/v7.6.11...v7.6.12) (2022-08-09)
 
 
