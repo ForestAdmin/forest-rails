@@ -2,7 +2,7 @@ module ForestLiana
   class ScopeManager
     @@scopes_cache = Hash.new
     # 5 minutes exipration cache
-    @@scope_cache_expiration_delta = 300
+    @@scope_cache_expiration_delta = ENV['SCOPE_CACHE_EXPIRATION_DELTA'] || 300
 
     def self.apply_scopes_on_records(records, forest_user, collection_name, timezone)
       scope_filters = get_scope_for_user(forest_user, collection_name, as_string: true)
