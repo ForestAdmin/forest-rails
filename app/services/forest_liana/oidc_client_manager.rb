@@ -16,7 +16,7 @@ module ForestLiana
             Rails.cache.write("#{ForestLiana.env_secret}-client-data", client_data)
           end
         else
-          client_data = { :client_id => ForestLiana.forest_client_id, :issuer => configuration['issuer'] }
+          client_data = { :client_id => ForestLiana.forest_client_id, :issuer => configuration['issuer'], :redirect_uri => File.join(ForestLiana.application_url, "/forest/authentication/callback").to_s }
         end
 
         OpenIDConnect::Client.new(
