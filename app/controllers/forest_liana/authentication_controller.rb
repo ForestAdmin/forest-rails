@@ -6,20 +6,10 @@ module ForestLiana
     START_AUTHENTICATION_ROUTE = 'authentication'
     CALLBACK_AUTHENTICATION_ROUTE = 'authentication/callback'
     LOGOUT_ROUTE = 'authentication/logout'
-    PUBLIC_ROUTES = [
-      "/#{START_AUTHENTICATION_ROUTE}",
-      "/#{CALLBACK_AUTHENTICATION_ROUTE}",
-      "/#{LOGOUT_ROUTE}",
-    ]
+    PUBLIC_ROUTES = %W[/#{START_AUTHENTICATION_ROUTE} /#{CALLBACK_AUTHENTICATION_ROUTE} /#{LOGOUT_ROUTE}]
 
     def initialize
       @authentication_service = ForestLiana::Authentication.new()
-    end
-  
-    def get_callback_url
-      File.join(ForestLiana.application_url, "/forest/#{CALLBACK_AUTHENTICATION_ROUTE}").to_s
-    rescue => error
-      raise "application_url is not valid or not defined" if error.is_a?(ArgumentError)
     end
 
     def get_and_check_rendering_id
@@ -28,7 +18,7 @@ module ForestLiana
       end
 
       rendering_id = params[:renderingId]
-      
+
       if !(rendering_id.instance_of?(String) || rendering_id.instance_of?(Numeric)) || (rendering_id.instance_of?(Numeric) && rendering_id.nan?)
         raise ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_RENDERING_ID]
       end
@@ -36,15 +26,10 @@ module ForestLiana
       return rendering_id.to_i
     end
 
-    def start_authentication 
+    def start_authentication
       begin
         rendering_id = get_and_check_rendering_id()
-        callback_url = get_callback_url()
-
-        result = @authentication_service.start_authentication(
-          callback_url,
-          { 'renderingId' => rendering_id },
-        )
+        result = @authentication_service.start_authentication({ 'renderingId' => rendering_id })
 
         render json: { authorizationUrl: result['authorization_url']}, status: 200
       rescue => error
@@ -55,12 +40,7 @@ module ForestLiana
 
     def authentication_callback
       begin
-        callback_url = get_callback_url()
-
-        token = @authentication_service.verify_code_and_generate_token(
-          callback_url,
-          params,
-        )
+        token = @authentication_service.verify_code_and_generate_token(params)
 
         response_body = {
           token: token,
@@ -79,7 +59,7 @@ module ForestLiana
       begin
         if cookies.has_key?(:forest_session_token)
           forest_session_token = cookies[:forest_session_token]
-          
+
           if forest_session_token
             response.set_cookie(
               'forest_session_token',
