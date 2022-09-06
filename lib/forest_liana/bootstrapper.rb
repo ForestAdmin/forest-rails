@@ -30,7 +30,7 @@ module ForestLiana
 
       unless Rails.application.config.action_controller.perform_caching || Rails.env.test?
         FOREST_LOGGER.error "You need to enable caching on your environment to use Forest Admin.\n" \
-          "For a development environment, run: `rails dev:cache`."
+          "For a development environment, run: `rails dev:cache`"
       end
 
       fetch_models
