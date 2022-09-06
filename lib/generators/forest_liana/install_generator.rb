@@ -5,7 +5,6 @@ module ForestLiana
     desc 'Forest Rails Liana installation generator'
 
     argument :env_secret, type: :string, required: true, desc: 'required', banner: 'env_secret'
-    argument :application_url, type: :string, required: false, desc: 'optional', banner: 'application_url', default: 'http://localhost:3000'
 
     def install
       if ForestLiana.env_secret.present?
@@ -28,42 +27,35 @@ module ForestLiana
       if File.exist? 'config/secrets.yml'
         inject_into_file 'config/secrets.yml', after: "development:\n" do
           "  forest_env_secret: #{env_secret}\n" +
-          "  forest_auth_secret: #{auth_secret}\n" +
-          "  forest_application_url: #{application_url}\n"
+          "  forest_auth_secret: #{auth_secret}\n"
         end
 
         inject_into_file 'config/secrets.yml', after: "staging:\n", force: true do
           "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
-          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n" +
-          "  forest_application_url: <%= ENV[\"FOREST_APPLICATION_URL\"] %>\n"
+          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
         end
 
         inject_into_file 'config/secrets.yml', after: "production:\n", force: true do
           "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
-          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n" +
-          "  forest_application_url: <%= ENV[\"FOREST_APPLICATION_URL\"] %>\n"
+          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
         end
       else
         create_file 'config/secrets.yml' do
           "development:\n" +
           "  forest_env_secret: #{env_secret}\n" +
           "  forest_auth_secret: #{auth_secret}\n" +
-          "  forest_application_url: #{application_url}\n" +
           "staging:\n" +
           "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
           "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n" +
-          "  forest_application_url: <%= ENV[\"FOREST_APPLICATION_URL\"] %>\n" +
           "production:\n" +
           "  forest_env_secret: <%= ENV[\"FOREST_ENV_SECRET\"] %>\n" +
-          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n" +
-          "  forest_application_url: <%= ENV[\"FOREST_APPLICATION_URL\"] %>\n"
+          "  forest_auth_secret: <%= ENV[\"FOREST_AUTH_SECRET\"] %>\n"
         end
       end
 
       initializer 'forest_liana.rb' do
         "ForestLiana.env_secret = Rails.application.secrets.forest_env_secret" +
-        "\nForestLiana.auth_secret = Rails.application.secrets.forest_auth_secret" +
-        "\nForestLiana.application_url = Rails.application.secrets.forest_application_url"
+        "\nForestLiana.auth_secret = Rails.application.secrets.forest_auth_secret"
       end
     end
   end
