@@ -58,9 +58,9 @@ module ForestLiana
 
       # NOTICE: check liveQueries permissions
       if @permission_name === 'liveQueries'
-        return ALLOWED_PERMISSION_LEVELS.include? @user['permission_level'] || live_query_allowed?
+        return ALLOWED_PERMISSION_LEVELS.include?(@user['permission_level']) || live_query_allowed?
       elsif @permission_name === 'statWithParameters'
-        return ALLOWED_PERMISSION_LEVELS.include? @user['permission_level'] || stat_with_parameters_allowed?
+        return ALLOWED_PERMISSION_LEVELS.include?(@user['permission_level']) || stat_with_parameters_allowed?
       end
 
       if permissions && permissions[@collection_name] &&
