@@ -4,7 +4,6 @@ module ForestLiana
       described_class.empty_cache
     end
 
-    let(:user_id) { 1 }
     let(:schema) {
       [
         ForestLiana::Model::Collection.new({
@@ -50,7 +49,7 @@ module ForestLiana
         "stats" => {
           "queries" => [
           'SELECT COUNT(*) AS value FROM products;',
-          'SELECT COUNT(*) AS value FROM sometings;'
+          'SELECT COUNT(*) AS value FROM somethings;'
           ],
           "values" => [
             {
@@ -79,13 +78,9 @@ module ForestLiana
       end
 
       context 'when permissions liveQueries' do
+        let(:user) { { 'id' => '1', 'permission_level' => 'basic' } }
         context 'contains the query' do
-          request_info = {
-            "type" => "Value",
-            "collection" => "Product",
-            "aggregate" => "Count"
-          };
-          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, query_request_info: 'SELECT COUNT(*) AS value FROM sometings;') }
+          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user: user, query_request_info: 'SELECT COUNT(*) AS value FROM somethings;') }
 
           it 'should be authorized' do
             expect(subject.is_authorized?).to be true
@@ -93,7 +88,26 @@ module ForestLiana
         end
 
         context 'does not contains the query' do
-          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user_id: user_id, query_request_info: 'SELECT * FROM products WHERE category = Gifts OR 1=1-- AND released = 1') }
+          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user: user, query_request_info: 'SELECT * FROM products WHERE category = Gifts OR 1=1-- AND released = 1') }
+          it 'should NOT be authorized' do
+            expect(subject.is_authorized?).to be false
+          end
+        end
+      end
+
+      context 'exectute liveQueries when user' do
+        context 'has correct permission_level' do
+          let(:user) { { 'id' => '1', 'permission_level' => 'admin' } }
+          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user: user, query_request_info: 'SELECT COUNT(*) AS value FROM somethings;') }
+
+          it 'should be authorized' do
+            expect(subject.is_authorized?).to be true
+          end
+        end
+
+        context 'does not have the correct permission_level' do
+          let(:user) { { 'id' => '1', 'permission_level' => 'basic' } }
+          subject { described_class.new(fake_ressource, 'liveQueries', default_rendering_id, user: user, query_request_info: 'SELECT * FROM products WHERE category = Gifts OR 1=1-- AND released = 1') }
           it 'should NOT be authorized' do
             expect(subject.is_authorized?).to be false
           end
@@ -101,13 +115,14 @@ module ForestLiana
       end
 
       context 'when permissions statWithParameters' do
+        let(:user) { { 'id' => '1', 'permission_level' => 'basic' } }
         context 'contains the stat with the same parameters' do
           request_info = {
             "type" => "Value",
             "collection" => "Product",
             "aggregate" => "Count"
           };
-          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user_id: user_id, query_request_info: request_info) }
+          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user: user, query_request_info: request_info) }
 
           it 'should be authorized' do
             expect(subject.is_authorized?).to be true
@@ -120,7 +135,36 @@ module ForestLiana
             "collection" => "Product",
             "aggregate" => "Sum"
           };
-          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user_id: user_id, query_request_info: other_request_info) }
+          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user: user, query_request_info: other_request_info) }
+          it 'should NOT be authorized' do
+            expect(subject.is_authorized?).to be false
+          end
+        end
+      end
+
+      context 'execute statWithParameters when user' do
+        context 'has correct permission_level' do
+          let(:user) { { 'id' => '1', 'permission_level' => 'admin' } }
+          request_info = {
+            "type" => "Value",
+            "collection" => "Product",
+            "aggregate" => "Count"
+          };
+          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user: user, query_request_info: request_info) }
+
+          it 'should be authorized' do
+            expect(subject.is_authorized?).to be true
+          end
+        end
+
+        context 'does not contains the stat with the same parameters' do
+          let(:user) { { 'id' => '1', 'permission_level' => 'basic' } }
+          other_request_info = {
+            "type" => "Leaderboard",
+            "collection" => "Product",
+            "aggregate" => "Sum"
+          };
+          subject { described_class.new(fake_ressource, 'statWithParameters', default_rendering_id, user: user, query_request_info: other_request_info) }
           it 'should NOT be authorized' do
             expect(subject.is_authorized?).to be false
           end
