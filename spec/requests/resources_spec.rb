@@ -28,7 +28,8 @@ describe 'Requesting Tree resources', :type => :request  do
     last_name: 'Kelso',
     team: 'Operations',
     rendering_id: 16,
-    exp: Time.now.to_i + 2.weeks.to_i
+    exp: Time.now.to_i + 2.weeks.to_i,
+    permission_level: 'admin'
   }, ForestLiana.auth_secret, 'HS256')
 
   headers = {
