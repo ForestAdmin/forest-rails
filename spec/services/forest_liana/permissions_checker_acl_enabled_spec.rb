@@ -433,7 +433,7 @@ module ForestLiana
           end
 
           describe 'browseEnbled permission' do
-            let(:collection_list_parameters) { { :user => "1", :filters => nil } }
+            let(:collection_list_parameters) { { :user => ["id" => "1"], :filters => nil } }
             subject {
               described_class.new(
                 fake_ressource,
@@ -460,7 +460,7 @@ module ForestLiana
 
             context 'when user has no segments queries permissions and param segmentQuery is there' do
               let(:segmentQuery) { 'SELECT * FROM products;' }
-              let(:collection_list_parameters) { { :user => "1", :segmentQuery => segmentQuery } }
+              let(:collection_list_parameters) { { :user => ["id" => "1"], :segmentQuery => segmentQuery } }
               it 'should be authorized' do
                 expect(subject.is_authorized?).to be false
               end
@@ -477,7 +477,7 @@ module ForestLiana
                   }
                 }
               }
-              let(:collection_list_parameters) { { :user => "1", :segmentQuery => segmentQuery } }
+              let(:collection_list_parameters) { { :user => ["id" => "1"], :segmentQuery => segmentQuery } }
 
               context 'when segments are passing validation' do
                 let(:segmentQuery) { 'SELECT * FROM products;' }
@@ -671,7 +671,7 @@ module ForestLiana
           end
 
           describe 'browseEnabled permission' do
-            let(:collection_list_parameters) { { :user => "1", :filters => nil } }
+            let(:collection_list_parameters) { { :user => ["id" => "1"], :filters => nil } }
             subject {
               described_class.new(
                 fake_ressource,
