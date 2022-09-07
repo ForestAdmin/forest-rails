@@ -105,7 +105,7 @@ module ForestLiana
           nil,
           permission_name,
           @rendering_id,
-          user_id: forest_user['id'],
+          user: forest_user,
           query_request_info: query_request
         )
 
