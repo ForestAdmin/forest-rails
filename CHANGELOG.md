@@ -1,3 +1,10 @@
+## [7.6.14](https://github.com/ForestAdmin/forest-rails/compare/v7.6.13...v7.6.14) (2022-09-08)
+
+
+### Bug Fixes
+
+* **charts:** user with permissions level that allows charts creation or edition should always be allow to perform charts requests  released ([#583](https://github.com/ForestAdmin/forest-rails/issues/583)) ([e6611e9](https://github.com/ForestAdmin/forest-rails/commit/e6611e9c1adc2411439a8d88fa6259bd85b4e183))
+
 ## [7.6.13](https://github.com/ForestAdmin/forest-rails/compare/v7.6.12...v7.6.13) (2022-08-23)
 
 
