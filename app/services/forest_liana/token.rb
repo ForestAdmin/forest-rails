@@ -22,7 +22,8 @@ module ForestLiana
         role: user['role'],
         tags: user['tags'],
         rendering_id: rendering_id,
-        exp: expiration_in_seconds()
+        exp: expiration_in_seconds(),
+        permission_level: user['permission_level'],
       }, ForestLiana.auth_secret, 'HS256')
     end
   end

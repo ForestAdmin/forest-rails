@@ -10,7 +10,8 @@ describe "Stats", type: :request do
     last_name: 'Kelso',
     team: 'Operations',
     rendering_id: 16,
-    exp: Time.now.to_i + 2.weeks.to_i
+    exp: Time.now.to_i + 2.weeks.to_i,
+    permission_level: 'admin'
   }, ForestLiana.auth_secret, 'HS256')
 
   headers = {
@@ -37,7 +38,7 @@ describe "Stats", type: :request do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
-    
+
     allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
 
     allow_any_instance_of(ForestLiana::ValueStatGetter).to receive(:perform) { true }
@@ -81,7 +82,7 @@ describe "Stats", type: :request do
       expect(response.status).to eq(403)
     end
   end
-  
+
   describe 'POST /stats' do
     params = { query: 'SELECT COUNT(*) AS value FROM products;' }
 
@@ -107,7 +108,7 @@ describe "Stats", type: :request do
 
     it 'should respond 422 with unprocessable query' do
       allow_any_instance_of(ForestLiana::QueryStatGetter).to receive(:perform) { raise ForestLiana::Errors::LiveQueryError.new }
-      
+
       post '/forest/stats', params: JSON.dump(params), headers: headers
       expect(response.status).to eq(422)
     end

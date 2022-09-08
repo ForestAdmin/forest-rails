@@ -6,12 +6,14 @@ module ForestLiana
 
     @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
 
-    def initialize(resource, permission_name, rendering_id, user_id: nil, smart_action_request_info: nil, collection_list_parameters: Hash.new, query_request_info: nil)
+    ALLOWED_PERMISSION_LEVELS = %w[admin editor developer]
+
+    def initialize(resource, permission_name, rendering_id, user: nil, smart_action_request_info: nil, collection_list_parameters: Hash.new, query_request_info: nil)
       @collection_name = resource.present? ? ForestLiana.name_for(resource) : nil
       @permission_name = permission_name
       @rendering_id = rendering_id
 
-      @user_id = user_id
+      @user = user
       @smart_action_request_info = smart_action_request_info
       @collection_list_parameters = collection_list_parameters
       @query_request_info = query_request_info
@@ -56,9 +58,9 @@ module ForestLiana
 
       # NOTICE: check liveQueries permissions
       if @permission_name === 'liveQueries'
-        return live_query_allowed?
+        return ALLOWED_PERMISSION_LEVELS.include?(@user['permission_level']) || live_query_allowed?
       elsif @permission_name === 'statWithParameters'
-        return stat_with_parameters_allowed?
+        return ALLOWED_PERMISSION_LEVELS.include?(@user['permission_level']) || stat_with_parameters_allowed?
       end
 
       if permissions && permissions[@collection_name] &&
@@ -146,7 +148,7 @@ module ForestLiana
     def is_user_allowed(permission_value)
       return false if permission_value.nil?
       return permission_value if permission_value.in? [true, false]
-      permission_value.include?(@user_id.to_i)
+      permission_value.include?(@user['id'].to_i)
     end
 
     def smart_action_allowed?(smart_actions_permissions)

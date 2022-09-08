@@ -4,7 +4,7 @@ module ForestLiana
       described_class.empty_cache
     end
 
-    let(:user_id) { 1 }
+    let(:user) { { 'id' => '1' } }
     let(:schema) {
       [
         ForestLiana::Model::Collection.new({
@@ -152,8 +152,8 @@ module ForestLiana
             end
 
             it 'should call the API twice' do
-              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
-              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user: user).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user: user).is_authorized?
 
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).twice
             end
@@ -161,8 +161,8 @@ module ForestLiana
 
           context 'before expiration time' do
             it 'should call the API only once' do
-              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
-              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user: user).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user: user).is_authorized?
 
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).once
             end
@@ -209,8 +209,8 @@ module ForestLiana
           }
 
           context 'when the first call is authorized' do
-            let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user_id: user_id).is_authorized? }
-            let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user_id: user_id).is_authorized? }
+            let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'exportEnabled', 1, user: user).is_authorized? }
+            let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'exportEnabled', 2, user: user).is_authorized? }
 
             # Even if the value are different, the permissions are cross rendering thus another call
             # to the api wont be made until the permission expires
@@ -228,8 +228,8 @@ module ForestLiana
 
           # If not authorized the cached version is not used
           context 'when the first call is not authorized' do
-            let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'browseEnabled', 1, user_id: user_id).is_authorized? }
-            let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'browseEnabled', 2, user_id: user_id).is_authorized? }
+            let(:authorized_to_export_rendering_1) { described_class.new(fake_ressource, 'browseEnabled', 1, user: user).is_authorized? }
+            let(:authorized_to_export_rendering_2) { described_class.new(fake_ressource, 'browseEnabled', 2, user: user).is_authorized? }
 
             it 'should return different value' do
               expect(authorized_to_export_rendering_1).to eq false
@@ -293,7 +293,7 @@ module ForestLiana
           context 'when checking browseEnabled' do
             context 'when expiration value is set to its default' do
               it 'should not call the API to refresh the renderings cache' do
-                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
                 expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
@@ -308,7 +308,7 @@ module ForestLiana
               end
 
               it 'should call the API to refresh the renderings cache' do
-                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).once
@@ -327,7 +327,7 @@ module ForestLiana
             end
 
             it 'should NOT call the API to refresh the rendering cache' do
-              described_class.new(fake_ressource, 'exportEnabled', rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'exportEnabled', rendering_id, user: user).is_authorized?
 
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
               expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
@@ -339,8 +339,8 @@ module ForestLiana
           context 'on the same rendering' do
             context 'when rendering permission has NOT expired' do
               it 'should NOT call the API to refresh the rendering permissions' do
-                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
-                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
                 expect(ForestLiana::PermissionsGetter).not_to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true)
@@ -355,8 +355,8 @@ module ForestLiana
               end
 
               it 'should call the API to refresh the rendering permissions' do
-                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
-                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
+                described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
 
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).twice
                 expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id, rendering_specific_only: true).twice
@@ -388,8 +388,8 @@ module ForestLiana
             end
 
             it 'should call the API to refresh the rendering permissions' do
-              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user_id: user_id).is_authorized?
-              described_class.new(fake_ressource, 'browseEnabled', other_rendering_id, user_id: user_id).is_authorized?
+              described_class.new(fake_ressource, 'browseEnabled', rendering_id, user: user).is_authorized?
+              described_class.new(fake_ressource, 'browseEnabled', other_rendering_id, user: user).is_authorized?
 
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(rendering_id).once
               expect(ForestLiana::PermissionsGetter).to have_received(:get_permissions_for_rendering).with(other_rendering_id, rendering_specific_only: true).once
@@ -415,7 +415,7 @@ module ForestLiana
           let(:collection_name) { 'all_rights_collection_boolean' }
 
           describe 'exportEnabled permission' do
-            subject { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -433,13 +433,13 @@ module ForestLiana
           end
 
           describe 'browseEnbled permission' do
-            let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
+            let(:collection_list_parameters) { { :user => ["id" => "1"], :filters => nil } }
             subject {
               described_class.new(
                 fake_ressource,
                 'browseEnabled',
                 default_rendering_id,
-                user_id: user_id,
+                user: user,
                 collection_list_parameters: collection_list_parameters
               )
             }
@@ -460,7 +460,7 @@ module ForestLiana
 
             context 'when user has no segments queries permissions and param segmentQuery is there' do
               let(:segmentQuery) { 'SELECT * FROM products;' }
-              let(:collection_list_parameters) { { :user_id => "1", :segmentQuery => segmentQuery } }
+              let(:collection_list_parameters) { { :user => ["id" => "1"], :segmentQuery => segmentQuery } }
               it 'should be authorized' do
                 expect(subject.is_authorized?).to be false
               end
@@ -477,7 +477,7 @@ module ForestLiana
                   }
                 }
               }
-              let(:collection_list_parameters) { { :user_id => "1", :segmentQuery => segmentQuery } }
+              let(:collection_list_parameters) { { :user => ["id" => "1"], :segmentQuery => segmentQuery } }
 
               context 'when segments are passing validation' do
                 let(:segmentQuery) { 'SELECT * FROM products;' }
@@ -526,7 +526,7 @@ module ForestLiana
           end
 
           describe 'readEnabled permission' do
-            subject { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -544,7 +544,7 @@ module ForestLiana
           end
 
           describe 'addEnabled permission' do
-            subject { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -562,7 +562,7 @@ module ForestLiana
           end
 
           describe 'editEnabled permission' do
-            subject { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -580,7 +580,7 @@ module ForestLiana
           end
 
           describe 'deleteEnabled permission' do
-            subject { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -604,7 +604,7 @@ module ForestLiana
                 fake_ressource,
                 'actions',
                 default_rendering_id,
-                user_id: user_id,
+                user: user,
                 smart_action_request_info: smart_action_request_info
               )
             }
@@ -653,7 +653,7 @@ module ForestLiana
           let(:collection_name) { 'all_rights_collection_user_list' }
 
           describe 'exportEnabled permission' do
-            subject { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'exportEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -671,13 +671,13 @@ module ForestLiana
           end
 
           describe 'browseEnabled permission' do
-            let(:collection_list_parameters) { { :user_id => "1", :filters => nil } }
+            let(:collection_list_parameters) { { :user => ["id" => "1"], :filters => nil } }
             subject {
               described_class.new(
                 fake_ressource,
                 'browseEnabled',
                 default_rendering_id,
-                user_id: user_id,
+                user: user,
                 collection_list_parameters: collection_list_parameters
               )
             }
@@ -698,7 +698,7 @@ module ForestLiana
           end
 
           describe 'readEnabled permission' do
-            subject { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'readEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -716,7 +716,7 @@ module ForestLiana
           end
 
           describe 'addEnabled permission' do
-            subject { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'addEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -734,7 +734,7 @@ module ForestLiana
           end
 
           describe 'editEnabled permission' do
-            subject { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'editEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -752,7 +752,7 @@ module ForestLiana
           end
 
           describe 'deleteEnabled permission' do
-            subject { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'deleteEnabled', default_rendering_id, user: user) }
 
             context 'when user has the required permission' do
               it 'should be authorized' do
@@ -776,7 +776,7 @@ module ForestLiana
                 fake_ressource,
                 'actions',
                 default_rendering_id,
-                user_id: user_id,
+                user: user,
                 smart_action_request_info: smart_action_request_info
               )
             }
@@ -822,7 +822,7 @@ module ForestLiana
 
           # searchToEdit permission checker should not be called anymore once rolesAcl activated
           describe 'searchToEdit permission' do
-            subject { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user_id: user_id) }
+            subject { described_class.new(fake_ressource, 'searchToEdit', default_rendering_id, user: user) }
 
             context 'when user has all permissions' do
               it 'should NOT be authorized' do
