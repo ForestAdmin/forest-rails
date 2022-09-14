@@ -1,3 +1,10 @@
+# [7.7.0](https://github.com/ForestAdmin/forest-rails/compare/v7.6.14...v7.7.0) (2022-09-14)
+
+
+### Features
+
+* **auth:** remove callbackUrl parameter on authentication and remove forest_agent_url (FOREST_APPLICATION_URL) variable ([#582](https://github.com/ForestAdmin/forest-rails/issues/582)) ([00bfb3a](https://github.com/ForestAdmin/forest-rails/commit/00bfb3ab50a9aa4e5f742ef41cf30e108addff34))
+
 ## [7.6.14](https://github.com/ForestAdmin/forest-rails/compare/v7.6.13...v7.6.14) (2022-09-08)
 
 
