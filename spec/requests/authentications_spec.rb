@@ -14,7 +14,7 @@ describe "Authentications", type: :request do
         }', :symbolize_names => false)
     }
     allow(ForestLiana::ForestApiRequester).to receive(:post) {
-      instance_double(HTTParty::Response, body: '{ "client_id": "random_id" }', code: 201)
+      instance_double(HTTParty::Response, body: '{ "client_id": "random_id", "redirect_uris": ["http://localhost:3000/forest/authentication/callback"] }', code: 201)
     }
     allow_any_instance_of(OpenIDConnect::Client).to receive(:access_token!) {
       OpenIDConnect::AccessToken.new(access_token: 'THE-ACCESS-TOKEN', client: instance_double(OpenIDConnect::Client))
@@ -22,11 +22,11 @@ describe "Authentications", type: :request do
   end
 
   after do
-    Rails.cache.delete(URI.join(ForestLiana.application_url, ForestLiana::Engine.routes.url_helpers.authentication_callback_path).to_s)
+    Rails.cache.delete("#{ForestLiana.env_secret}-client-data")
   end
 
   describe "POST /authentication" do
-    before() do 
+    before() do
       post ForestLiana::Engine.routes.url_helpers.authentication_path, params: '{"renderingId":"42"}', headers: {
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
@@ -44,10 +44,10 @@ describe "Authentications", type: :request do
   end
 
   describe "GET /authentication/callback" do
-    before() do 
+    before() do
       response = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3],"role":"Test","tags":[{"key":"city","value":"Paris"}]}}}'
       allow(ForestLiana::ForestApiRequester).to receive(:get).with(
-        "/liana/v2/renderings/42/authorization", { :headers => { "forest-token" => "THE-ACCESS-TOKEN" }, :query=> {} }
+        "/liana/v2/renderings/42/authorization", { :headers => { "forest-token" => "THE-ACCESS-TOKEN" }, :query => {} }
       ).and_return(
         instance_double(HTTParty::Response, :body => response, :code => 200)
       )
@@ -86,7 +86,7 @@ describe "Authentications", type: :request do
   end
 
   describe "POST /authentication/logout" do
-    before() do 
+    before() do
       post ForestLiana::Engine.routes.url_helpers.authentication_logout_path, params: { :renderingId => 42 }, :headers => headers
     end
 

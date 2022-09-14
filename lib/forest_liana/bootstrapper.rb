@@ -18,11 +18,19 @@ module ForestLiana
         ForestLiana.auth_secret = ForestLiana.auth_key
       end
 
-      unless Rails.application.config.action_controller.perform_caching || Rails.env.test? || ForestLiana.forest_client_id
+      if ForestLiana.forest_client_id
+        FOREST_LOGGER.warn "DEPRECATION WARNING: The use of " \
+          "ForestLiana.forest_client_id is deprecated. It's not needed anymore."
+      end
+
+      if Rails.application.secrets.forest_application_url
+        FOREST_LOGGER.warn "DEPRECATION WARNING: The use of " \
+          "The secret forest_application_url is deprecated. It's not needed anymore."
+      end
+
+      unless Rails.application.config.action_controller.perform_caching || Rails.env.test?
         FOREST_LOGGER.error "You need to enable caching on your environment to use Forest Admin.\n" \
-          "For a development environment, run: `rails dev:cache`\n" \
-          "Or setup a static forest_client_id by following this part of the documentation:\n" \
-          "https://docs.forestadmin.com/documentation/how-tos/maintain/upgrade-notes-rails/upgrade-to-v6#setup-a-static-clientid"
+          "For a development environment, run: `rails dev:cache`"
       end
 
       fetch_models

@@ -1,18 +1,18 @@
 module ForestLiana
   class Authentication
-    def start_authentication(redirect_url, state)
-      client = ForestLiana::OidcClientManager.get_client_for_callback_url(redirect_url)
+    def start_authentication(state)
+      client = ForestLiana::OidcClientManager.get_client()
 
       authorization_url = client.authorization_uri({
         scope: 'openid email profile',
         state: state.to_s,
       })
-  
+
       { 'authorization_url' => authorization_url }
     end
 
-    def verify_code_and_generate_token(redirect_url, params) 
-      client = ForestLiana::OidcClientManager.get_client_for_callback_url(redirect_url)
+    def verify_code_and_generate_token(params)
+      client = ForestLiana::OidcClientManager.get_client()
 
       rendering_id = parse_state(params['state'])
       client.authorization_code = params['code']
