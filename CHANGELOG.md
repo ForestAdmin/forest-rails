@@ -1,3 +1,10 @@
+## [7.7.1](https://github.com/ForestAdmin/forest-rails/compare/v7.7.0...v7.7.1) (2022-10-20)
+
+
+### Bug Fixes
+
+* onboard issue with openid_connect gem when running "rails g forest_liana:install"  ([#586](https://github.com/ForestAdmin/forest-rails/issues/586)) ([18347c5](https://github.com/ForestAdmin/forest-rails/commit/18347c53e695541e55fed9dc5ebb60cb5c8774e5)), closes [#585](https://github.com/ForestAdmin/forest-rails/issues/585)
+
 # [7.7.0](https://github.com/ForestAdmin/forest-rails/compare/v7.6.14...v7.7.0) (2022-09-14)
 
 

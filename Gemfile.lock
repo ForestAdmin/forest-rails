@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (7.7.0)
+    forest_liana (7.7.1)
       arel-helpers
       bcrypt
       forestadmin-jsonapi-serializers (>= 0.14.0)
