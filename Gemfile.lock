@@ -9,9 +9,9 @@ PATH
       httparty
       ipaddress
       json
-      json-jwt
+      json-jwt (~> 1.15.0)
       jwt
-      openid_connect
+      openid_connect (= 1.4.2)
       rack-cors
       rails (>= 4.0)
       useragent
@@ -79,10 +79,10 @@ GEM
       activerecord (>= 3.1.0, < 8)
     attr_required (1.0.1)
     bcrypt (3.1.16)
-    bindata (2.4.9)
+    bindata (2.4.13)
     builder (3.2.4)
     byebug (11.1.3)
-    concurrent-ruby (1.1.8)
+    concurrent-ruby (1.1.10)
     crass (1.0.6)
     diff-lcs (1.4.4)
     docile (1.3.5)
@@ -97,14 +97,15 @@ GEM
       mime-types (~> 3.0)
       multi_xml (>= 0.5.2)
     httpclient (2.8.3)
-    i18n (1.8.10)
+    i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     ipaddress (0.8.3)
     json (2.5.1)
-    json-jwt (1.12.0)
+    json-jwt (1.15.0)
       activesupport (>= 4.2)
       aes_key_wrap
       bindata
+      httpclient
     jwt (2.2.3)
     loofah (2.9.1)
       crass (~> 1.0.2)
@@ -116,30 +117,35 @@ GEM
     mime-types (3.3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2021.0225)
-    mini_mime (1.1.0)
+    mini_mime (1.1.2)
     mini_portile2 (2.5.0)
-    minitest (5.14.4)
+    minitest (5.16.3)
     multi_xml (0.6.0)
+    net-protocol (0.1.3)
+      timeout
+    net-smtp (0.3.2)
+      net-protocol
     nio4r (2.5.7)
     nokogiri (1.11.3)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
-    openid_connect (1.2.0)
+    openid_connect (1.4.2)
       activemodel
       attr_required (>= 1.0.0)
-      json-jwt (>= 1.5.0)
-      rack-oauth2 (>= 1.6.1)
-      swd (>= 1.0.0)
+      json-jwt (>= 1.15.0)
+      net-smtp
+      rack-oauth2 (~> 1.21)
+      swd (~> 1.3)
       tzinfo
       validate_email
       validate_url
-      webfinger (>= 1.0.1)
-    public_suffix (4.0.6)
+      webfinger (~> 1.2)
+    public_suffix (5.0.0)
     racc (1.5.2)
-    rack (2.2.3)
+    rack (2.2.4)
     rack-cors (1.1.1)
       rack (>= 2.0.0)
-    rack-oauth2 (1.16.0)
+    rack-oauth2 (1.21.3)
       activesupport
       attr_required
       httpclient
@@ -204,28 +210,29 @@ GEM
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
     sqlite3 (1.4.2)
-    swd (1.2.0)
+    swd (1.3.0)
       activesupport (>= 3)
       attr_required (>= 0.0.5)
       httpclient (>= 2.4)
     thor (1.1.0)
     thread_safe (0.3.6)
+    timeout (0.3.0)
     tzinfo (1.2.10)
       thread_safe (~> 0.1)
     useragent (0.16.10)
     validate_email (0.1.6)
       activemodel (>= 3.0)
       mail (>= 2.2.5)
-    validate_url (1.0.13)
+    validate_url (1.0.15)
       activemodel (>= 3.0.0)
       public_suffix
-    webfinger (1.1.0)
+    webfinger (1.2.0)
       activesupport
       httpclient (>= 2.4)
     websocket-driver (0.7.3)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
-    zeitwerk (2.4.2)
+    zeitwerk (2.6.1)
 
 PLATFORMS
   ruby
@@ -240,9 +247,9 @@ DEPENDENCIES
   httparty (= 0.18.1)
   ipaddress (= 0.8.3)
   json
-  json-jwt (= 1.12.0)
+  json-jwt (= 1.15.0)
   jwt
-  openid_connect (= 1.2.0)
+  openid_connect (= 1.4.2)
   rack-cors
   rails (= 6.0.3.6)
   rake
