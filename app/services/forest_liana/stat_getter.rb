@@ -8,5 +8,11 @@ module ForestLiana
       @user = forest_user
       compute_includes()
     end
+
+    def get_resource
+      super
+      @resource.reorder('')
+    end
+
   end
 end
