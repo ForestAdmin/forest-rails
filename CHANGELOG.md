@@ -1,3 +1,10 @@
+## [7.7.2](https://github.com/ForestAdmin/forest-rails/compare/v7.7.1...v7.7.2) (2022-11-21)
+
+
+### Bug Fixes
+
+* **serializer:** serialize only the foreignKeys of belongsTo relations ([#587](https://github.com/ForestAdmin/forest-rails/issues/587)) ([3695f97](https://github.com/ForestAdmin/forest-rails/commit/3695f972a382f1c35ea0da42eb0af06793dc39be))
+
 ## [7.7.1](https://github.com/ForestAdmin/forest-rails/compare/v7.7.0...v7.7.1) (2022-10-20)
 
 
