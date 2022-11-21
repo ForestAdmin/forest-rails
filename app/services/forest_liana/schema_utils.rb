@@ -18,6 +18,12 @@ module ForestLiana
       end
     end
 
+    def self.belongs_to_associations(active_record_class)
+      self.associations(active_record_class).select do |x|
+        [:belongs_to].include?(x.macro)
+      end
+    end
+
     def self.many_associations(active_record_class)
       self.associations(active_record_class).select do |x|
         [:has_many, :has_and_belongs_to_many].include?(x.macro)

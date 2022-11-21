@@ -369,7 +369,6 @@ module ForestLiana
 
     def attributes(active_record_class)
       return [] if @is_smart_collection
-
       active_record_class.column_names.select do |column_name|
         !association?(active_record_class, column_name)
       end
@@ -410,7 +409,7 @@ module ForestLiana
 
     def foreign_keys(active_record_class)
       begin
-        SchemaUtils.associations(active_record_class).map(&:foreign_key)
+        SchemaUtils.belongs_to_associations(active_record_class).map(&:foreign_key)
       rescue => err
         # Association foreign_key triggers an error. Put the stacktrace and
         # returns no foreign keys.
