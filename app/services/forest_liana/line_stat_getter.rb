@@ -23,7 +23,7 @@ module ForestLiana
     end
 
     def perform
-      value = get_resource().joins(@includes)
+      value = get_resource()
 
       filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
 

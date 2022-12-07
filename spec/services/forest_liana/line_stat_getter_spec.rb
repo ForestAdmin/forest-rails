@@ -7,6 +7,7 @@ module ForestLiana
     before(:each) do
       ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+      Owner.delete_all
     end
 
     describe 'Check client_timezone function' do
@@ -51,6 +52,22 @@ module ForestLiana
             expect(stat.value.find { |item| item[:label] == "W18-2021" }[:values][:value]).to eq(2)
             expect(stat.value.find { |item| item[:label] == "W19-2021" }[:values][:value]).to eq(2)
           end
+        end
+      end
+    end
+
+    describe 'Check new instance function' do
+      describe 'Using a Count aggregation' do
+        it 'should remove any order to the resource' do
+          Owner.create(name: 'Shuri', hired_at: Date.parse('09-11-2022'));
+          stat = LineStatGetter.new(Owner, {
+            timezone: "Europe/Paris",
+            aggregate: "Count",
+            time_range: "Day",
+            group_by_date_field: "hired_at",
+          }, user)
+
+          expect(stat.get_resource.where(name: "Shuri").to_sql.downcase.exclude? "order by").to be true
         end
       end
     end
