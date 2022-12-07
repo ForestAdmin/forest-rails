@@ -1,3 +1,10 @@
+## [7.7.3](https://github.com/ForestAdmin/forest-rails/compare/v7.7.2...v7.7.3) (2022-12-07)
+
+
+### Bug Fixes
+
+* **charts:** remove any sort on chart and remove default join behaviour on line chart ([#588](https://github.com/ForestAdmin/forest-rails/issues/588)) ([2de4c83](https://github.com/ForestAdmin/forest-rails/commit/2de4c837462bea9acc7f958fa06c5c751590f2bc))
+
 ## [7.7.2](https://github.com/ForestAdmin/forest-rails/compare/v7.7.1...v7.7.2) (2022-11-21)
 
 
