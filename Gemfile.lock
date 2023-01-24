@@ -86,7 +86,7 @@ GEM
     bindata (2.4.14)
     builder (3.2.4)
     byebug (11.1.3)
-    concurrent-ruby (1.1.10)
+    concurrent-ruby (1.2.0)
     crass (1.0.6)
     date (3.3.3)
     diff-lcs (1.5.0)
@@ -94,7 +94,7 @@ GEM
     erubi (1.12.0)
     forestadmin-jsonapi-serializers (2.0.0.pre.beta.2)
       activesupport
-    globalid (1.0.0)
+    globalid (1.0.1)
       activesupport (>= 5.0)
     groupdate (5.2.2)
       activesupport (>= 5)
