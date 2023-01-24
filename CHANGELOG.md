@@ -1,3 +1,10 @@
+# [7.8.0](https://github.com/ForestAdmin/forest-rails/compare/v7.7.3...v7.8.0) (2023-01-24)
+
+
+### Features
+
+* **ruby:** make repo compatible with ruby 3.2 ([#595](https://github.com/ForestAdmin/forest-rails/issues/595)) ([8dad38c](https://github.com/ForestAdmin/forest-rails/commit/8dad38c0aa6a9ae8ccf5b970a4823af20035e5e8))
+
 ## [7.7.3](https://github.com/ForestAdmin/forest-rails/compare/v7.7.2...v7.7.3) (2022-12-07)
 
 
