@@ -86,7 +86,7 @@ module ForestLiana
         generate_action_hooks
         SchemaFileUpdater.new(SCHEMA_FILENAME, @collections_sent, @meta_sent).perform()
       else
-        if File.exists?(SCHEMA_FILENAME)
+        if File.exist?(SCHEMA_FILENAME)
           begin
             content = JSON.parse(File.read(SCHEMA_FILENAME))
             @collections_sent = content['collections']

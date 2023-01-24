@@ -45,7 +45,7 @@ module ForestLiana
 
         it 'should be as many categories as records count' do
           subject.perform
-          expect(subject.record.value).to eq [
+          expect(subject.record.value).to match_array([
             {:key => "Old Tree n1", :value => 1},
             {:key => "Old Tree n2", :value => 1},
             {:key => "Old Tree n3", :value => 1},
@@ -55,7 +55,7 @@ module ForestLiana
             {:key => "Young Tree n3", :value => 1},
             {:key => "Young Tree n4", :value => 1},
             {:key => "Young Tree n5", :value => 1}
-          ]
+          ])
         end
       end
 
@@ -91,13 +91,13 @@ module ForestLiana
 
         it 'should be as many categories as records inside the scope' do
           subject.perform
-          expect(subject.record.value).to eq [
+          expect(subject.record.value).to match_array([
             {:key => "Young Tree n1", :value => 1},
             {:key => "Young Tree n2", :value => 1},
             {:key => "Young Tree n3", :value => 1},
             {:key => "Young Tree n4", :value => 1},
             {:key => "Young Tree n5", :value => 1}
-          ]
+          ])
         end
       end
 

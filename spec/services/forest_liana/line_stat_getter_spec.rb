@@ -21,8 +21,11 @@ module ForestLiana
       end
 
       describe 'with a non-SQLite database' do
+        before do
+          allow(ActiveRecord::Base.connection).to receive(:adapter_name).and_return('NotSQLite')
+        end
+
         it 'should return the timezone' do
-          ActiveRecord::Base.connection.stub(:adapter_name) { 'NotSQLite' }
           expect(LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
             aggregate: "Count",
