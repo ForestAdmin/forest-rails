@@ -12,8 +12,6 @@ module ForestLiana
       elsif action == 'chart'
         is_chart_authorized?(user, args[:request])
 
-
-
       #todo ELSEIF
       #is_smart_action_authorized?(action, user, collection, args[])
       else

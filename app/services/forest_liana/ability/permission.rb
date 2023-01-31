@@ -30,42 +30,6 @@ module ForestLiana
           {}
         end
 
-
-        #if collections_data.has_key? collection
-        #  collections_data[collection][action].include? user_data['roleId']
-        #end
-
-        #crud: action,user,collection
-        #smartaction: action, smartaction_id, user, collection
-
-
-        #debugger
-        # cache commun 1
-        #   collections:
-        #     address
-        #       browse 4,5,6
-        #       read
-        #       edit
-        #       add
-        #       delete
-        #       export
-        #       actions
-        #         triggerEnabled
-        #         triggerConditions
-        #         approvalRequired
-        #         approvalRequiredConditions
-        #         userApprovalEnabled
-        #         userApprovalConditions
-        #         selfApprovalEnabled
-        #
-        # cache commun 2
-        #   users
-        #   [
-        #       id => user
-        #   ]
-        #
-        #
-        # cache by user
         false
       end
 
@@ -81,7 +45,6 @@ module ForestLiana
         unless allowed
           allowed = get_chart_data(user['rendering_id'], true).to_s.include? hash_request
         end
-
 
         allowed
       end

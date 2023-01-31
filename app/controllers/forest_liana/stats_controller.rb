@@ -89,28 +89,9 @@ module ForestLiana
 
     def check_permission(permission_name)
       begin
-        query_request = permission_name == 'liveQueries' ? get_live_query_request_info : get_stat_parameter_request_info;
+        query_request = Rails::VERSION::MAJOR < 5 ? params.dup : params.except(:contextVariables).permit(params.keys).to_h;
         forest_authorize!('chart', forest_user, nil, {request: query_request})
-        #todo traitement sur contextVariables et groupByFieldName
-
-
-
-        #{"type"=>"Pie", "collection"=>"Order", "group_by_field"=>"customer", "aggregate"=>"Count"}
-        #{"type"=>"Pie", "filter"=>nil, "aggregator"=>"Count", "groupByFieldName"=>"customer:id", "aggregateFieldName"=>nil, "sourceCollectionName"=>"Order"}
-
-        #{"type"=>"Pie", "sourceCollectionName"=>"Order", "aggregateFieldName"=>nil, "groupByFieldName"=>"customer:id", "aggregator"=>"Count", "filter"=>nil, "collection"=>"Order"}
-        #{"type"=>"Pie", "filter"=>nil, "aggregator"=>"Count", "groupByFieldName"=>"customer:id", "aggregateFieldName"=>nil, "sourceCollectionName"=>"Order"}
-
-
-        # checker = ForestLiana::PermissionsChecker.new(
-        #   nil,
-        #   permission_name,
-        #   @rendering_id,
-        #   user: forest_user,
-        #   query_request_info: query_request
-        # )
-        #
-        # return head :forbidden unless checker.is_authorized?
+        #todo traitement sur contextVariables
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Stats execution error: #{error}"
