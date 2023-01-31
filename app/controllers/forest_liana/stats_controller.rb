@@ -3,7 +3,7 @@ module ForestLiana
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
       before_filter only: [:get] do
-        find_resource()
+        find_resource
         check_permission('statWithParameters')
       end
       before_filter only: [:get_with_live_query] do
@@ -11,7 +11,7 @@ module ForestLiana
       end
     else
       before_action only: [:get] do
-        find_resource()
+        find_resource
         check_permission('statWithParameters')
       end
       before_action only: [:get_with_live_query] do
