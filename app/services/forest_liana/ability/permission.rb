@@ -103,7 +103,7 @@ module ForestLiana
       end
 
       def get_collections_permissions_data(force_fetch = false)
-        Rails.cache.delete('forest.collections') if force_fetch = true
+        Rails.cache.delete('forest.collections') if force_fetch == true
         cache = Rails.cache.fetch('forest.collections', expires_in: TTL) do
           collections = {}
           get_permissions('/liana/v4/permissions/environment')['collections'].each do |name, collection|
@@ -117,7 +117,7 @@ module ForestLiana
       end
 
       def get_chart_data(rendering_id, force_fetch = false)
-        Rails.cache.delete('forest.stats') if force_fetch = true
+        Rails.cache.delete('forest.stats') if force_fetch == true
         Rails.cache.fetch('forest.stats', expires_in: TTL) do
           stat_hash = []
           get_permissions('/liana/v4/permissions/renderings/' + rendering_id)['stats'].each do |stat|
