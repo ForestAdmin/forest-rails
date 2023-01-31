@@ -1,5 +1,6 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
+    include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
       before_filter only: [:get] do
         find_resource()
@@ -83,33 +84,33 @@ module ForestLiana
     end
 
     def get_stat_parameter_request_info
-      parameters = Rails::VERSION::MAJOR < 5 ? params.dup : params.permit(params.keys).to_h;
-
-      # Notice: Removes useless properties
-      parameters.delete('timezone');
-      parameters.delete('controller');
-      parameters.delete('action');
-
-      # NOTICE: Remove the field information from group_by_field => collection:id
-      if parameters['group_by_field']
-        parameters['group_by_field'] = parameters['group_by_field'].split(':').first
-      end
-
-      return parameters;
+      Rails::VERSION::MAJOR < 5 ? params.dup : params.except(:contextVariables).permit(params.keys).to_h;
     end
 
     def check_permission(permission_name)
       begin
         query_request = permission_name == 'liveQueries' ? get_live_query_request_info : get_stat_parameter_request_info;
-        checker = ForestLiana::PermissionsChecker.new(
-          nil,
-          permission_name,
-          @rendering_id,
-          user: forest_user,
-          query_request_info: query_request
-        )
+        forest_authorize!('chart', forest_user, nil, {request: query_request})
+        #todo traitement sur contextVariables et groupByFieldName
 
-        return head :forbidden unless checker.is_authorized?
+
+
+        #{"type"=>"Pie", "collection"=>"Order", "group_by_field"=>"customer", "aggregate"=>"Count"}
+        #{"type"=>"Pie", "filter"=>nil, "aggregator"=>"Count", "groupByFieldName"=>"customer:id", "aggregateFieldName"=>nil, "sourceCollectionName"=>"Order"}
+
+        #{"type"=>"Pie", "sourceCollectionName"=>"Order", "aggregateFieldName"=>nil, "groupByFieldName"=>"customer:id", "aggregator"=>"Count", "filter"=>nil, "collection"=>"Order"}
+        #{"type"=>"Pie", "filter"=>nil, "aggregator"=>"Count", "groupByFieldName"=>"customer:id", "aggregateFieldName"=>nil, "sourceCollectionName"=>"Order"}
+
+
+        # checker = ForestLiana::PermissionsChecker.new(
+        #   nil,
+        #   permission_name,
+        #   @rendering_id,
+        #   user: forest_user,
+        #   query_request_info: query_request
+        # )
+        #
+        # return head :forbidden unless checker.is_authorized?
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Stats execution error: #{error}"
