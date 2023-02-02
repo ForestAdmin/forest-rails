@@ -1,4 +1,5 @@
 require 'digest'
+require 'deepsort'
 
 module ForestLiana
   module Ability
@@ -30,6 +31,42 @@ module ForestLiana
           {}
         end
 
+
+        #if collections_data.has_key? collection
+        #  collections_data[collection][action].include? user_data['roleId']
+        #end
+
+        #crud: action,user,collection
+        #smartaction: action, smartaction_id, user, collection
+
+
+        #debugger
+        # cache commun 1
+        #   collections:
+        #     address
+        #       browse 4,5,6
+        #       read
+        #       edit
+        #       add
+        #       delete
+        #       export
+        #       actions
+        #         triggerEnabled
+        #         triggerConditions
+        #         approvalRequired
+        #         approvalRequiredConditions
+        #         userApprovalEnabled
+        #         userApprovalConditions
+        #         selfApprovalEnabled
+        #
+        # cache commun 2
+        #   users
+        #   [
+        #       id => user
+        #   ]
+        #
+        #
+        # cache by user
         false
       end
 
@@ -38,8 +75,10 @@ module ForestLiana
         request.delete('controller')
         request.delete('action')
         request.delete('collection')
+        request.delete('contextVariables')
 
-        hash_request = "#{request['type']}:#{Digest::SHA1.hexdigest(request.sort.to_s)}"
+
+        hash_request = "#{request['type']}:#{Digest::SHA1.hexdigest(request.deep_sort.to_s)}"
         allowed = get_chart_data(user['rendering_id']).to_s.include? hash_request
 
         unless allowed
@@ -84,7 +123,7 @@ module ForestLiana
         Rails.cache.fetch('forest.stats', expires_in: TTL) do
           stat_hash = []
           get_permissions('/liana/v4/permissions/renderings/' + rendering_id)['stats'].each do |stat|
-            stat_hash << "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.sort.to_s)}"
+            stat_hash << "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.sort.to_h.to_s)}"
           end
 
           stat_hash

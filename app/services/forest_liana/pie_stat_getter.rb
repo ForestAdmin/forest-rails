@@ -7,10 +7,10 @@ module ForestLiana
         timezone_offset = @params[:timezone].to_i
         resource = optimize_record_loading(@resource, get_resource)
 
-        filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
+        filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name)
 
         unless filters.blank?
-          resource = FiltersParser.new(filters, resource, @params[:timezone]).apply_filters
+          resource = FiltersParser.new(filters, resource, @params[:timezone], @params).apply_filters
         end
 
         result = resource

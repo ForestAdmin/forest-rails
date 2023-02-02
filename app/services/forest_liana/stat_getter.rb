@@ -4,7 +4,7 @@ module ForestLiana
 
     def initialize(resource, params, forest_user)
       @resource = resource
-      @params = clean_params(params)
+      @params = params
       @user = forest_user
       compute_includes
     end
@@ -13,14 +13,5 @@ module ForestLiana
       super
       @resource.reorder('')
     end
-
-    def clean_params(params)
-      params.delete('timezone')
-      params.delete('controller')
-      params.delete('action')
-      params.delete('collection')
-      params
-    end
-
   end
 end

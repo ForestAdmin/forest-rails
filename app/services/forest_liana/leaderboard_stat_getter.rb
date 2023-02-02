@@ -1,7 +1,6 @@
 module ForestLiana
   class LeaderboardStatGetter < StatGetter
     def initialize(parent_model, params, forest_user)
-      params = clean_params(params)
       @scoped_parent_model = get_scoped_model(parent_model, forest_user, params[:timezone])
       child_model = @scoped_parent_model.reflect_on_association(params[:relationshipFieldName]).klass
       @scoped_child_model = get_scoped_model(child_model, forest_user, params[:timezone])
@@ -32,7 +31,7 @@ module ForestLiana
 
       return model.unscoped if scope_filters.blank?
 
-      FiltersParser.new(scope_filters, model, timezone).apply_filters
+      FiltersParser.new(scope_filters, model, timezone, @params).apply_filters
     end
 
     def order

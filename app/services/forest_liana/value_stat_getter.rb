@@ -6,10 +6,10 @@ module ForestLiana
       return if @params[:aggregator].blank?
       resource = optimize_record_loading(@resource, get_resource)
 
-      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
+      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name)
 
       unless filters.blank?
-        filter_parser = FiltersParser.new(filters, resource, @params[:timezone])
+        filter_parser = FiltersParser.new(filters, resource, @params[:timezone], @params)
         resource = filter_parser.apply_filters
         raw_previous_interval = filter_parser.get_previous_interval_condition
 

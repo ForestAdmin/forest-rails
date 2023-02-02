@@ -2,20 +2,14 @@ module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
-      before_filter only: [:get] do
+      before_filter do
         find_resource
-        check_permission('statWithParameters')
-      end
-      before_filter only: [:get_with_live_query] do
-        check_permission('liveQueries')
+        check_permission
       end
     else
-      before_action only: [:get] do
+      before_action do
         find_resource
-        check_permission('statWithParameters')
-      end
-      before_action only: [:get_with_live_query] do
-        check_permission('liveQueries')
+        check_permission
       end
     end
 
@@ -68,6 +62,10 @@ module ForestLiana
       end
     end
 
+    def params
+      super.permit!
+    end
+
     private
 
     def find_resource
@@ -79,18 +77,9 @@ module ForestLiana
       end
     end
 
-    def get_live_query_request_info
-      params['query']
-    end
-
-    def get_stat_parameter_request_info
-      Rails::VERSION::MAJOR < 5 ? params.dup : params.except(:contextVariables).permit(params.keys).to_h;
-    end
-
-    def check_permission(permission_name)
+    def check_permission
       begin
-        query_request = Rails::VERSION::MAJOR < 5 ? params.dup : params.except(:contextVariables).permit(params.keys).to_h;
-        forest_authorize!('chart', forest_user, nil, {request: query_request})
+        forest_authorize!('chart', forest_user, nil, {request: params.to_h})
         #todo traitement sur contextVariables
       rescue => error
         FOREST_REPORTER.report error
