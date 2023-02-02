@@ -11,9 +11,8 @@ module ForestLiana
         is_crud_authorized?(action, user, collection)
       elsif action == 'chart'
         is_chart_authorized?(user, args[:request])
-
-      #todo ELSEIF
-      #is_smart_action_authorized?(action, user, collection, args[])
+      elsif action == 'action'
+        is_smart_action_authorized?(user, collection, args[:request], args[:endpoint], args[:http_method])
       else
         raise ForestLiana::Ability::Exceptions::AccessDenied.new
       end

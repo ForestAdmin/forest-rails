@@ -4,7 +4,7 @@ module ForestLiana
     @@renderings_cached = Hash.new
     @@roles_acl_activated = false
 
-    @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 3600).to_i
+    @@expiration_in_seconds = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 1).to_i
 
     ALLOWED_PERMISSION_LEVELS = %w[admin editor developer]
 

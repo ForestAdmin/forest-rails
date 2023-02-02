@@ -70,6 +70,28 @@ module ForestLiana
         false
       end
 
+      def is_smart_action_authorized?(user, collection, request, endpoint, http_method)
+        user_data = get_user_data(user['id'])
+        collections_data = get_collections_permissions_data
+        action = find_action_from_endpoint(collection, endpoint, http_method).name
+
+        #debugger
+
+        # begin
+        #   allowed = collections_data[collection][action].include? user_data['roleId']
+        #   # re-fetch if user permission is not allowed (may have been changed)
+        #   unless allowed
+        #     collections_data = get_collections_permissions_data(true)
+        #     allowed = collections_data[collection][action].include? user_data['roleId']
+        #   end
+        #   allowed
+        # rescue => error
+        #   FOREST_REPORTER.report error
+        #   FOREST_LOGGER.error "The collection #{collection} doesn't exist"
+        #   {}
+        # end
+      end
+
       def is_chart_authorized?(user, request)
         request.delete('timezone')
         request.delete('controller')
@@ -87,7 +109,6 @@ module ForestLiana
 
         allowed
       end
-
 
       private
 
@@ -163,6 +184,14 @@ module ForestLiana
         end
 
         actions
+      end
+
+      def find_action_from_endpoint(collection_name, endpoint, http_method)
+        collection = ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+
+        return nil unless collection
+
+        collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
       end
 
     # {
