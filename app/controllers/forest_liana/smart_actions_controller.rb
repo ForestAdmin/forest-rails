@@ -17,6 +17,16 @@ module ForestLiana
       ensure_record_ids_in_scope
     end
 
+    def access_denied(exception)
+      render json: {
+        errors: [{
+                  status: exception.error_code,
+                  detail: exception.message,
+                  name: exception.name
+                }]
+      }, status: exception.status
+    end
+
     def get_smart_action_request
       begin
         params[:data][:attributes]

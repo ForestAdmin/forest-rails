@@ -1,14 +1,14 @@
 module ForestLiana
   module Ability
     module Exceptions
-      # class TriggerForbidden < ActionException
-      #   def initialize(name: 'CustomActionTriggerForbiddenError', message: 'You don\'t have the permission to trigger this action')
-      #     super(name, message)
-      #   end
-      # end
-      class TriggerForbidden < StandardError
-        def message
-          "You are not authorized to this resource"
+      class TriggerForbidden < ForestLiana::Errors::ExpectedError
+        def initialize
+          super(
+            403,
+                :forbidden,
+                'You don\'t have the permission to trigger this action',
+                'CustomActionTriggerForbiddenError'
+          )
         end
       end
     end
