@@ -1,5 +1,6 @@
 module ForestLiana
   class SmartActionsController < ForestLiana::ApplicationController
+    rescue_from ForestLiana::Ability::Exceptions::TriggerForbidden, with: :access_denied
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
       before_filter :smart_action_pre_perform_checks
@@ -56,37 +57,26 @@ module ForestLiana
     end
 
     def check_permission_for_smart_route
-      begin
+      smart_action_request = params[:data][:attributes]
+      if !smart_action_request.nil? && smart_action_request.has_key?(:smart_action_id)
 
-        smart_action_request = params[:data][:attributes]
-
-        if !smart_action_request.nil? && smart_action_request.has_key?(:smart_action_id)
-
-
-
-          debugger
-          #TODO to_h here ?????????
-          forest_authorize!(
-            'action',
-            forest_user,
-            @resource.name,
-            {request: smart_action_request.permit!.to_h, endpoint: request.fullpath.split('?').first, http_method: request.request_method}
-          )
-        #   checker = ForestLiana::PermissionsChecker.new(
-        #     find_resource(smart_action_request[:collection_name]),
-        #     'actions',
-        #     @rendering_id,
-        #     user: forest_user,
-        #     smart_action_request_info: get_smart_action_request_info
-        #   )
-        #   return head :forbidden unless checker.is_authorized?
-        else
-          FOREST_LOGGER.error 'Smart action execution error: Unable to retrieve the smart action id.'
-          render serializer: nil, json: { status: 400 }, status: :bad_request
-        end
-      rescue => error
-        FOREST_REPORTER.report error
-        FOREST_LOGGER.error "Smart Action execution error: #{error}"
+        #TODO to_h here ?????????
+        forest_authorize!(
+          'action',
+          forest_user,
+          @resource.name,
+          {request: smart_action_request.permit!.to_h, endpoint: request.fullpath.split('?').first, http_method: request.request_method}
+        )
+      #   checker = ForestLiana::PermissionsChecker.new(
+      #     find_resource(smart_action_request[:collection_name]),
+      #     'actions',
+      #     @rendering_id,
+      #     user: forest_user,
+      #     smart_action_request_info: get_smart_action_request_info
+      #   )
+      #   return head :forbidden unless checker.is_authorized?
+      else
+        FOREST_LOGGER.error 'Smart action execution error: Unable to retrieve the smart action id.'
         render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end

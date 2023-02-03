@@ -31,42 +31,6 @@ module ForestLiana
           {}
         end
 
-
-        #if collections_data.has_key? collection
-        #  collections_data[collection][action].include? user_data['roleId']
-        #end
-
-        #crud: action,user,collection
-        #smartaction: action, smartaction_id, user, collection
-
-
-        #debugger
-        # cache commun 1
-        #   collections:
-        #     address
-        #       browse 4,5,6
-        #       read
-        #       edit
-        #       add
-        #       delete
-        #       export
-        #       actions
-        #         triggerEnabled
-        #         triggerConditions
-        #         approvalRequired
-        #         approvalRequiredConditions
-        #         userApprovalEnabled
-        #         userApprovalConditions
-        #         selfApprovalEnabled
-        #
-        # cache commun 2
-        #   users
-        #   [
-        #       id => user
-        #   ]
-        #
-        #
-        # cache by user
         false
       end
 
@@ -75,7 +39,9 @@ module ForestLiana
         collections_data = get_collections_permissions_data
         action = find_action_from_endpoint(collection, endpoint, http_method).name
 
-        #debugger
+        smart_action_approval = SmartActionApproval.new(request, collections_data[collection][:actions][action], user_data)
+        smart_action_approval.can_trigger?
+
 
         # begin
         #   allowed = collections_data[collection][action].include? user_data['roleId']
@@ -193,54 +159,6 @@ module ForestLiana
 
         collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
       end
-
-    # {
-    #   "collections"=>
-    #    {
-    #       "Address"=>{
-    #           "collection"=>
-    #             {
-    #               "browseEnabled"=>{"roles"=>[4]},
-    #               "readEnabled"=>{"roles"=>[4]},
-    #               "editEnabled"=>{"roles"=>[4]},
-    #               "addEnabled"=>{"roles"=>[4]},
-    #               "deleteEnabled"=>{"roles"=>[4]},
-    #               "exportEnabled"=>{"roles"=>[4]}
-    #             },
-    #           "actions"=>{
-    #           }
-    #         },
-    #       "Customer"=>{"collection"=>{"browseEnabled"=>{"roles"=>[4]}, "readEnabled"=>{"roles"=>[4]}, "editEnabled"=>{"roles"=>[4]}, "addEnabled"=>{"roles"=>[4]}, "deleteEnabled"=>{"roles"=>[4]}, "exportEnabled"=>{"roles"=>[4]}},
-    #               "actions"=>{
-    #                   "Mark as Live"=>{
-    #                       "triggerEnabled"=>{"roles"=>[4]}, "triggerConditions"=>[], "approvalRequired"=>{"roles"=>[4]}, "approvalRequiredConditions"=>[], "userApprovalEnabled"=>{"roles"=>[4]}, "userApprovalConditions"=>[], "selfApprovalEnabled"=>{"roles"=>[4]}}
-    #                   }
-    #               },
-    #       "CustomerStat"=>{"collection"=>{"browseEnabled"=>{"roles"=>[4]}, "readEnabled"=>{"roles"=>[4]}, "editEnabled"=>{"roles"=>[4]}, "addEnabled"=>{"roles"=>[4]}, "deleteEnabled"=>{"roles"=>[4]}, "exportEnabled"=>{"roles"=>[4]}}, "actions"=>{}},
-    #       "Order"=>{"collection"=>{"browseEnabled"=>{"roles"=>[4]}, "readEnabled"=>{"roles"=>[4]}, "editEnabled"=>{"roles"=>[4]}, "addEnabled"=>{"roles"=>[4]}, "deleteEnabled"=>{"roles"=>[4]}, "exportEnabled"=>{"roles"=>[4]}}, "actions"=>{}},
-    #       "Product"=>{"collection"=>{"browseEnabled"=>{"roles"=>[4]}, "readEnabled"=>{"roles"=>[4]}, "editEnabled"=>{"roles"=>[4]}, "addEnabled"=>{"roles"=>[4]}, "deleteEnabled"=>{"roles"=>[4]}, "exportEnabled"=>{"roles"=>[4]}}, "actions"=>{}},
-    #       "User"=>{"collection"=>{"browseEnabled"=>{"roles"=>[4]}, "readEnabled"=>{"roles"=>[4]}, "editEnabled"=>{"roles"=>[4]}, "addEnabled"=>{"roles"=>[4]}, "deleteEnabled"=>{"roles"=>[4]}, "exportEnabled"=>{"roles"=>[4]}}, "actions"=>{"Change password"=>{"triggerEnabled"=>{"roles"=>[4]}, "triggerConditions"=>[], "approvalRequired"=>{"roles"=>[4]}, "approvalRequiredConditions"=>[], "userApprovalEnabled"=>{"roles"=>[]}, "userApprovalConditions"=>[], "selfApprovalEnabled"=>{"roles"=>[]}}}}
-    #    }
-    # }
-    # [
-    #   {
-    #     "id"=>1, "firstName"=>"Matthieu", "lastName"=>"Videaud", "fullName"=>"Matthieu Videaud", "email"=>"matthieuv@forestadmin.com", "tags"=>{}, "roleId"=>4, "permissionLevel"=>"admin"
-    #   }
-    # ]
-    # {
-    #   "collections"=>
-    #     {
-    #       "Product"=>{"scope"=>nil, "segments"=>[]},
-    #       "Address"=>{"scope"=>nil, "segments"=>[]},
-    #       "Order"=>{"scope"=>nil, "segments"=>[]},
-    #       "User"=>{"scope"=>nil, "segments"=>[]},
-    #       "CustomerStat"=>{"scope"=>nil, "segments"=>[]},
-    #       "Customer"=>{"scope"=>nil, "segments"=>[]}
-    #     },
-    #     "stats"=>[{"type"=>"Pie", "filter"=>nil, "aggregator"=>"Count", "groupByFieldName"=>"customer:id", "aggregateFieldName"=>nil, "sourceCollectionName"=>"Order"}],
-    #     "team"=>{"id"=>43, "name"=>"Operations"}
-    # }
-    #
   end
 end
 end
