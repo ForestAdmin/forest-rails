@@ -1,6 +1,7 @@
 module ForestLiana
   class SmartActionsController < ForestLiana::ApplicationController
     rescue_from ForestLiana::Ability::Exceptions::TriggerForbidden, with: :access_denied
+    rescue_from ForestLiana::Ability::Exceptions::RequireApproval, with: :access_denied
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
       before_filter :smart_action_pre_perform_checks
@@ -18,13 +19,15 @@ module ForestLiana
     end
 
     def access_denied(exception)
-      render json: {
-        errors: [{
-                  status: exception.error_code,
-                  detail: exception.message,
-                  name: exception.name
-                }]
-      }, status: exception.status
+      errors = {
+        status: exception.error_code,
+        detail: exception.message,
+        name: exception.name
+      }
+
+      errors['data'] = exception.data if exception.data.present?
+
+      render json: { errors: [errors] }, status: exception.status
     end
 
     def get_smart_action_request

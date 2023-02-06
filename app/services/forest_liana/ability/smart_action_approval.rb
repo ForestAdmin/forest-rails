@@ -18,18 +18,18 @@ module ForestLiana
         # 3 pas de droit --> HTTP403Error
         #
 
-        # if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
-        #   return true if @smart_action['triggerConditions'].empty
-        #
-        #
-        #   # gérer cas trigger conditions
-        # elsif @smart_action['approvalRequired'].include?(@user['roleId'])
-        #
-        #   # gérer cas trigger conditions
-        # else
-        #debugger
-        raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
-        # end
+        if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
+          return true if @smart_action['triggerConditions'].empty
+
+
+          # gérer cas trigger conditions
+        elsif @smart_action['approvalRequired'].include?(@user['roleId'])
+          # if approval condition
+          # gérer cas trigger conditions
+          raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
+        else
+          raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
+        end
       end
 
 
