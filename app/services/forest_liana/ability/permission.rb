@@ -18,28 +18,28 @@ module ForestLiana
         collections_data = get_collections_permissions_data
 
         begin
-          allowed = collections_data[collection][action].include? user_data['roleId']
+          allowed = collections_data[collection.name][action].include? user_data['roleId']
           # re-fetch if user permission is not allowed (may have been changed)
           unless allowed
             collections_data = get_collections_permissions_data(true)
-            allowed = collections_data[collection][action].include? user_data['roleId']
+            allowed = collections_data[collection.name][action].include? user_data['roleId']
           end
           allowed
         rescue => error
           FOREST_REPORTER.report error
-          FOREST_LOGGER.error "The collection #{collection} doesn't exist"
+          FOREST_LOGGER.error "The collection #{collection.name} doesn't exist"
           {}
         end
 
         false
       end
 
-      def is_smart_action_authorized?(user, collection, request, endpoint, http_method)
+      def is_smart_action_authorized?(user, collection, parameters, endpoint, http_method)
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
-        action = find_action_from_endpoint(collection, endpoint, http_method).name
+        action = find_action_from_endpoint(collection.name, endpoint, http_method).name
 
-        smart_action_approval = SmartActionApproval.new(request, collections_data[collection][:actions][action], user_data)
+        smart_action_approval = SmartActionApproval.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
         smart_action_approval.can_trigger?
 
 
@@ -58,15 +58,16 @@ module ForestLiana
         # end
       end
 
-      def is_chart_authorized?(user, request)
-        request.delete('timezone')
-        request.delete('controller')
-        request.delete('action')
-        request.delete('collection')
-        request.delete('contextVariables')
+      def is_chart_authorized?(user, parameters)
+        parameters = parameters.to_h
+        parameters.delete('timezone')
+        parameters.delete('controller')
+        parameters.delete('action')
+        parameters.delete('collection')
+        parameters.delete('contextVariables')
 
 
-        hash_request = "#{request['type']}:#{Digest::SHA1.hexdigest(request.deep_sort.to_s)}"
+        hash_request = "#{parameters['type']}:#{Digest::SHA1.hexdigest(parameters.deep_sort.to_s)}"
         allowed = get_chart_data(user['rendering_id']).to_s.include? hash_request
 
         unless allowed

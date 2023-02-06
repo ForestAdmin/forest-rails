@@ -79,7 +79,7 @@ module ForestLiana
 
     def check_permission
       begin
-        forest_authorize!('chart', forest_user, nil, {request: params.to_h})
+        forest_authorize!('chart', forest_user, nil, {parameters: params})
         #todo traitement sur contextVariables
       rescue => error
         FOREST_REPORTER.report error

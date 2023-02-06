@@ -16,7 +16,7 @@ module ForestLiana
 
     def index
       action = request.format == 'csv' ? 'export' : 'browse'
-      forest_authorize!(action, forest_user, @resource.name)
+      forest_authorize!(action, forest_user, @resource)
       begin
         getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.perform
@@ -43,7 +43,7 @@ module ForestLiana
 
     def count
       find_resource
-      forest_authorize!('browse', forest_user, @resource.name)
+      forest_authorize!('browse', forest_user, @resource)
       begin
         getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.count
@@ -68,7 +68,7 @@ module ForestLiana
     end
 
     def show
-      forest_authorize!('read', forest_user, @resource.name)
+      forest_authorize!('read', forest_user, @resource)
       begin
         getter = ForestLiana::ResourceGetter.new(@resource, params, forest_user)
         getter.perform
@@ -84,7 +84,7 @@ module ForestLiana
     end
 
     def create
-      forest_authorize!('add', forest_user, @resource.name)
+      forest_authorize!('add', forest_user, @resource)
       begin
         creator = ForestLiana::ResourceCreator.new(@resource, params)
         creator.perform
@@ -106,7 +106,7 @@ module ForestLiana
     end
 
     def update
-      forest_authorize!('edit', forest_user, @resource.name)
+      forest_authorize!('edit', forest_user, @resource)
       begin
         updater = ForestLiana::ResourceUpdater.new(@resource, params, forest_user)
         updater.perform
@@ -128,7 +128,7 @@ module ForestLiana
     end
 
     def destroy
-      forest_authorize!('delete', forest_user, @resource.name)
+      forest_authorize!('delete', forest_user, @resource)
         begin
         collection_name = ForestLiana.name_for(@resource)
         scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, forest_user, collection_name, params[:timezone])
@@ -148,7 +148,7 @@ module ForestLiana
     end
 
     def destroy_bulk
-      forest_authorize!('delete', forest_user, @resource.name)
+      forest_authorize!('delete', forest_user, @resource)
       begin
         checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user: forest_user)
         return head :forbidden unless checker.is_authorized?

@@ -72,13 +72,11 @@ module ForestLiana
     def check_permission_for_smart_route
       smart_action_request = params[:data][:attributes]
       if !smart_action_request.nil? && smart_action_request.has_key?(:smart_action_id)
-
-        #TODO to_h here ?????????
         forest_authorize!(
           'action',
           forest_user,
-          @resource.name,
-          {request: smart_action_request.permit!.to_h, endpoint: request.fullpath.split('?').first, http_method: request.request_method}
+          @resource,
+          {parameters: params.permit!, endpoint: request.fullpath.split('?').first, http_method: request.request_method}
         )
       #   checker = ForestLiana::PermissionsChecker.new(
       #     find_resource(smart_action_request[:collection_name]),
