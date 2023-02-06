@@ -1,3 +1,4 @@
+require 'jwt'
 # frozen_string_literal: true
 module ForestLiana
   module Ability
@@ -20,6 +21,9 @@ module ForestLiana
           if @smart_action['approvalRequiredConditions'].empty? || match_conditions('approvalRequiredConditions')
             raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
           end
+        elsif @parameters[:data][:attributes][:signed_approval_request].present? && @smart_action['userApprovalEnabled'].include?(@user['roleId'])
+          deserialize
+          return true if @smart_action['userApprovalConditions'].empty? || match_conditions('userApprovalConditions')
         end
 
         raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
@@ -45,8 +49,9 @@ module ForestLiana
       end
 
 
-      def self.deserialize(body_params)
-
+      def deserialize
+        decode_parameters = JWT.decode(@parameters[:data][:attributes][:signed_approval_request], ForestLiana.env_secret, true, { algorithm: 'HS256' }).try(:first)
+        @parameters = ActionController::Parameters.new(decode_parameters)
       end
 
       def override_body_params
