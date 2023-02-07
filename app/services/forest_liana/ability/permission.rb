@@ -41,21 +41,6 @@ module ForestLiana
 
         smart_action_approval = SmartActionApproval.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
         smart_action_approval.can_trigger?
-
-
-        # begin
-        #   allowed = collections_data[collection][action].include? user_data['roleId']
-        #   # re-fetch if user permission is not allowed (may have been changed)
-        #   unless allowed
-        #     collections_data = get_collections_permissions_data(true)
-        #     allowed = collections_data[collection][action].include? user_data['roleId']
-        #   end
-        #   allowed
-        # rescue => error
-        #   FOREST_REPORTER.report error
-        #   FOREST_LOGGER.error "The collection #{collection} doesn't exist"
-        #   {}
-        # end
       end
 
       def is_chart_authorized?(user, parameters)
