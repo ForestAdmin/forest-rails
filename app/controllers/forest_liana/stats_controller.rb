@@ -69,8 +69,7 @@ module ForestLiana
     private
 
     def find_resource
-      @resource = SchemaUtils.find_model_from_collection_name(
-        params[:collection])
+      @resource = SchemaUtils.find_model_from_collection_name(params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
         render json: {status: 404}, status: :not_found, serializer: nil
@@ -80,11 +79,9 @@ module ForestLiana
     def check_permission
       begin
         forest_authorize!('chart', forest_user, nil, {parameters: params})
-        #todo traitement sur contextVariables
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Stats execution error: #{error}"
-        render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end
   end

@@ -150,9 +150,6 @@ module ForestLiana
     def destroy_bulk
       forest_authorize!('delete', forest_user, @resource)
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user: forest_user)
-        return head :forbidden unless checker.is_authorized?
-
         ids = ForestLiana::ResourcesGetter.get_ids_from_request(params, forest_user)
         @resource.destroy(ids) if ids&.any?
 

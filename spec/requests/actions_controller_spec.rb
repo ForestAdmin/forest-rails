@@ -171,10 +171,9 @@ describe 'Requesting Actions routes', :type => :request  do
         expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
       end
 
-      it 'should respond 500 with bad params' do
+      it 'should respond 422 with bad params' do
         post '/forest/actions/my_action/hooks/load', params: {}, headers: headers
-        expect(response.status).to eq(500)
-        expect(JSON.parse(response.body)).to eq({'error' => 'Error in smart action load hook: cannot retrieve action from collection'})
+        expect(response.status).to eq(422)
       end
 
       it 'should respond 500 with bad hook result type' do
@@ -315,7 +314,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
   describe 'calling the action' do
     before(:each) do
-      allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
+      allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
     end
 
     let(:all_records) { false }

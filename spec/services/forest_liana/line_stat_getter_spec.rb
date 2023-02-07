@@ -7,6 +7,9 @@ module ForestLiana
     before(:each) do
       ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+    end
+
+    after(:each) do
       Owner.delete_all
     end
 

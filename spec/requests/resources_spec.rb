@@ -16,7 +16,7 @@ describe 'Requesting Tree resources', :type => :request  do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
 
-    allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
+    allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
 
     allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({})
   end
