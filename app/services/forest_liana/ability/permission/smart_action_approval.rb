@@ -60,11 +60,6 @@ module ForestLiana
         decode_parameters = JWT.decode(@parameters[:data][:attributes][:signed_approval_request], ForestLiana.env_secret, true, { algorithm: 'HS256' }).try(:first)
         @parameters = ActionController::Parameters.new(decode_parameters)
       end
-
-      def override_body_params
-
-      end
-
     end
     end
   end
