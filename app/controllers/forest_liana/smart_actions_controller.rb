@@ -79,14 +79,6 @@ module ForestLiana
           @resource,
           {parameters: params.permit!, endpoint: request.fullpath.split('?').first, http_method: request.request_method}
         )
-      #   checker = ForestLiana::PermissionsChecker.new(
-      #     find_resource(smart_action_request[:collection_name]),
-      #     'actions',
-      #     @rendering_id,
-      #     user: forest_user,
-      #     smart_action_request_info: get_smart_action_request_info
-      #   )
-      #   return head :forbidden unless checker.is_authorized?
       else
         FOREST_LOGGER.error 'Smart action execution error: Unable to retrieve the smart action id.'
         render serializer: nil, json: { status: 400 }, status: :bad_request
@@ -108,14 +100,5 @@ module ForestLiana
         render serializer: nil, json: { status: 404 }, status: :not_found
       end
     end
-
-    # smart action permissions are retrieved from the action's endpoint and http_method
-    # def get_smart_action_request_info
-    #   {
-    #     # trim query params to get the endpoint
-    #     endpoint: request.fullpath.split('?').first,
-    #     http_method: request.request_method
-    #   }
-    # end
   end
 end

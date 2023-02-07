@@ -6,10 +6,7 @@ module ForestLiana
     module Permission
       include Fetch
 
-      TTL = 5.second
-      # environment_permission = get_permissions('/liana/v4/permissions/environment')
-      # user_permission = get_permissions('/liana/v4/permissions/users')
-      # rendering_permission = get_permissions('/liana/v4/permissions/renderings/' + user.rendering_id)
+      TTL = 300.second
 
       def is_crud_authorized?(action, user, collection)
         return true unless has_permission_system?
