@@ -1,10 +1,5 @@
 module ForestLiana
   class ActionsController < ApplicationController
-    rescue_from ForestLiana::Errors::HTTP422Error, with: :unprocessable
-
-    def unprocessable(exception)
-      render json: { error: exception.message }, status: 422
-    end
 
     def get_smart_action_hook_request
       if params[:data] && params[:data][:attributes] && params[:data][:attributes][:collection_name]

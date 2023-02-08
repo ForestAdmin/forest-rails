@@ -3,7 +3,8 @@ require 'csv'
 
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
-    rescue_from ForestLiana::Ability::Exceptions::AccessDenied, with: :access_denied
+    rescue_from ForestLiana::Ability::Exceptions::AccessDenied, with: :render_error
+    rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
 
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
@@ -98,8 +99,8 @@ module ForestLiana
 
     private
 
-    def access_denied(exception)
-      render json: { error: exception.message }, status: :forbidden
+    def render_error(exception)
+      render json: { error: exception.message }, status: exception.status
     end
 
     def force_utf8_encoding(json)
