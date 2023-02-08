@@ -14,6 +14,7 @@
 /spec/dummy/tmp/
 /tmp/
 .byebug_history
+/out
 
 ## Specific to RubyMotion:
 .dat*

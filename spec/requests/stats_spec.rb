@@ -78,7 +78,7 @@ describe "Stats", type: :request do
       allow_any_instance_of(ForestLiana::StatsController).to receive(:check_permission).and_raise(ForestLiana::Ability::Exceptions::AccessDenied)
 
       post '/forest/stats/Products', params: JSON.dump(params), headers: headers
-      puts response.body
+
       expect(response.status).to eq(403)
     end
   end

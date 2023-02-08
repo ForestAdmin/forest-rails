@@ -21,7 +21,8 @@ module ForestLiana
             collections_data = get_collections_permissions_data(true)
             allowed = collections_data[collection.name][action].include? user_data['roleId']
           end
-          allowed
+
+          return allowed
         rescue => error
           FOREST_REPORTER.report error
           FOREST_LOGGER.error "The collection #{collection.name} doesn't exist"
