@@ -18,10 +18,10 @@ module ForestLiana
     let(:params) {
       {
         type: "Value",
-        collection: collection,
+        sourceCollectionName: sourceCollectionName,
         timezone: "Europe/Paris",
-        aggregate: "Count",
-        filters: filters
+        aggregator: "Count",
+        filter: filter
       }
     }
 
@@ -32,8 +32,8 @@ module ForestLiana
 
       describe 'with a simple filter matching no entries' do
         let(:model) { User }
-        let(:collection) { 'users' }
-        let(:filters) { { field: 'name', operator: 'in', value: ['Merry', 'Pippin'] }.to_json }
+        let(:sourceCollectionName) { 'users' }
+        let(:filter) { { field: 'name', operator: 'in', value: ['Merry', 'Pippin'] }.to_json }
 
         it 'should have a countCurrent of 0' do
           subject.perform
@@ -43,8 +43,8 @@ module ForestLiana
 
       describe 'with a filter on a belongs_to string field' do
         let(:model) { Tree }
-        let(:collection) { 'trees' }
-        let(:filters) { { field: 'owner:name', operator: 'equal', value: 'Aragorn' }.to_json }
+        let(:sourceCollectionName) { 'trees' }
+        let(:filter) { { field: 'owner:name', operator: 'equal', value: 'Aragorn' }.to_json }
 
         it 'should have a countCurrent of 2' do
           subject.perform
@@ -54,8 +54,8 @@ module ForestLiana
 
       describe 'with a filter on a belongs_to enum field' do
         let(:model) { Tree }
-        let(:collection) { 'trees' }
-        let(:filters) { { field: 'owner:title', operator: 'equal', value: 'villager' }.to_json }
+        let(:sourceCollectionName) { 'trees' }
+        let(:filter) { { field: 'owner:title', operator: 'equal', value: 'villager' }.to_json }
 
         it 'should have a countCurrent of 1' do
           subject.perform
@@ -83,8 +83,8 @@ module ForestLiana
 
       describe 'with a filter on a belongs_to enum field' do
         let(:model) { User }
-        let(:collection) { 'users' }
-        let(:filters) { { field: 'title', operator: 'equal', value: 'villager' }.to_json }
+        let(:sourceCollectionName) { 'users' }
+        let(:filter) { { field: 'title', operator: 'equal', value: 'villager' }.to_json }
 
         it 'should have a countCurrent of 0' do
           subject.perform

@@ -39,7 +39,7 @@ describe "Stats", type: :request do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
 
-    allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { true }
+    allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
 
     allow_any_instance_of(ForestLiana::ValueStatGetter).to receive(:perform) { true }
     allow_any_instance_of(ForestLiana::QueryStatGetter).to receive(:perform) { true }
@@ -48,7 +48,7 @@ describe "Stats", type: :request do
 
 
   describe 'POST /stats/:collection' do
-    params = { type: 'Value', collection: 'User', aggregate: 'Count' }
+    params = { type: 'Value', collection: 'Product', aggregate: 'Count' }
 
     it 'should respond 200' do
       data = ForestLiana::Model::Stat.new(value: { countCurrent: 0, countPrevious: 0 })
@@ -74,11 +74,11 @@ describe "Stats", type: :request do
     end
 
     it 'should respond 403 Forbidden' do
-      allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { false }
-      # NOTICE: bypass : find_resource error
-      allow_any_instance_of(ForestLiana::StatsController).to receive(:find_resource) { true }
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:find_resource).and_return(Product)
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:check_permission).and_raise(ForestLiana::Ability::Exceptions::AccessDenied)
 
       post '/forest/stats/Products', params: JSON.dump(params), headers: headers
+      puts response.body
       expect(response.status).to eq(403)
     end
   end
@@ -87,6 +87,7 @@ describe "Stats", type: :request do
     params = { query: 'SELECT COUNT(*) AS value FROM products;' }
 
     it 'should respond 200' do
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:find_resource).and_return(Product)
       data = ForestLiana::Model::Stat.new(value: { value: 0, objective: 0 })
       allow_any_instance_of(ForestLiana::QueryStatGetter).to receive(:record) { data }
 
@@ -100,13 +101,15 @@ describe "Stats", type: :request do
     end
 
     it 'should respond 403 Forbidden' do
-      allow_any_instance_of(ForestLiana::PermissionsChecker).to receive(:is_authorized?) { false }
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:find_resource).and_return(Product)
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:check_permission).and_raise(ForestLiana::Ability::Exceptions::AccessDenied)
 
       post '/forest/stats', params: JSON.dump(params), headers: headers
       expect(response.status).to eq(403)
     end
 
     it 'should respond 422 with unprocessable query' do
+      allow_any_instance_of(ForestLiana::StatsController).to receive(:find_resource).and_return(Product)
       allow_any_instance_of(ForestLiana::QueryStatGetter).to receive(:perform) { raise ForestLiana::Errors::LiveQueryError.new }
 
       post '/forest/stats', params: JSON.dump(params), headers: headers

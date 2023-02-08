@@ -28,10 +28,10 @@ module ForestLiana
     let(:params) {
       {
         type: 'Pie',
-        collection: collection,
+        sourceCollectionName: collection,
         timezone: 'Europe/Paris',
-        aggregate: 'Count',
-        group_by_field: group_by_field
+        aggregator: 'Count',
+        groupByFieldName: groupByFieldName
       }
     }
 
@@ -41,7 +41,7 @@ module ForestLiana
       let(:scopes) { { } }
 
       describe 'with an aggregate on the name field' do
-        let(:group_by_field) { 'name' }
+        let(:groupByFieldName) { 'name' }
 
         it 'should be as many categories as records count' do
           subject.perform
@@ -60,7 +60,7 @@ module ForestLiana
       end
 
       describe 'with an aggregate on the age field' do
-        let(:group_by_field) { 'age' }
+        let(:groupByFieldName) { 'age' }
 
         it 'should be as many categories as different ages among records' do
           subject.perform
@@ -87,7 +87,7 @@ module ForestLiana
       }
 
       describe 'with an aggregate on the name field' do
-        let(:group_by_field) { 'name' }
+        let(:groupByFieldName) { 'name' }
 
         it 'should be as many categories as records inside the scope' do
           subject.perform
@@ -102,7 +102,7 @@ module ForestLiana
       end
 
       describe 'with an aggregate on the age field' do
-        let(:group_by_field) { 'age' }
+        let(:groupByFieldName) { 'age' }
 
         it 'should be only one category' do
           subject.perform
