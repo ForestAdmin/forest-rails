@@ -6,8 +6,10 @@ module ForestLiana
       if %w[browse read edit add delete export].include? action
         is_crud_authorized?(action, user, collection)
       elsif action == 'chart'
+        raise ForestLiana::Errors::HTTP422Error.new('The argument parameters is missing') if args[:parameters].nil?
         is_chart_authorized?(user, args[:parameters])
       elsif action == 'action'
+        raise ForestLiana::Errors::HTTP422Error.new('You must implement the arguments : parameters, endpoint & http_method') if args[:parameters].nil? || args[:endpoint].nil? || args[:http_method].nil?
         is_smart_action_authorized?(user, collection, args[:parameters], args[:endpoint], args[:http_method])
       else
         raise ForestLiana::Ability::Exceptions::AccessDenied.new

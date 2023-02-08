@@ -1,9 +1,14 @@
 module ForestLiana
   module Ability
     module Exceptions
-      class AccessDenied < StandardError
-        def message
-          "You are not authorized to this resource"
+      class AccessDenied < ForestLiana::Errors::ExpectedError
+        def initialize
+          super(
+            403,
+            :forbidden,
+            'You are not authorized to this resource',
+            'AccessDenied'
+          )
         end
       end
     end
