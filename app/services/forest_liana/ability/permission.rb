@@ -6,7 +6,7 @@ module ForestLiana
     module Permission
       include Fetch
 
-      TTL = 300.second
+      TTL = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 300).to_i.second
 
       def is_crud_authorized?(action, user, collection)
         return true unless has_permission_system?
