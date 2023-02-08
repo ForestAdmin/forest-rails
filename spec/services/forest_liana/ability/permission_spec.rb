@@ -13,43 +13,42 @@ module ForestLiana
             'add' => [1],
             'delete' => [1],
             'export' => [1],
-            'actions' =>
-              {
-                'Mark as Live' => { 'triggerEnabled' => [10, 8, 9],
-                                    'triggerConditions' => [],
-                                    'approvalRequired' => [10, 8],
-                                    'approvalRequiredConditions' =>
-                                      [
-                                        { 'filter' =>
-                                            { 'aggregator' => 'and',
-                                              'conditions' =>
-                                                [
-                                                  { 'field' => 'price',
-                                                    'value' => 1,
-                                                    'source' => 'data',
-                                                    'operator' => 'greater_than' }
-                                                ]
-                                            },
-                                          'roleId' => 10
-                                        }
-                                      ],
-                                    'userApprovalEnabled' => [10, 8, 11],
-                                    'userApprovalConditions' =>
-                                      [
-                                        { 'filter' =>
-                                            { 'aggregator' => 'and',
-                                              'conditions' =>
-                                                [
-                                                  { 'field' => 'price',
-                                                    'value' => 1,
-                                                    'source' => 'data',
-                                                    'operator' => 'greater_than'
-                                                  }
-                                                ]
-                                            },
-                                          'roleId' => 11 }
-                                      ],
-                                    'selfApprovalEnabled' => [8]
+            :actions => {
+                'my_action' => {
+                    'triggerEnabled' => [1],
+                    'triggerConditions' => [],
+                    'approvalRequired' => [1],
+                    'approvalRequiredConditions' => [
+                        { 'filter' =>
+                            { 'aggregator' => 'and',
+                              'conditions' =>
+                                [
+                                  { 'field' => 'price',
+                                    'value' => 1,
+                                    'source' => 'data',
+                                    'operator' => 'greater_than' }
+                                ]
+                            },
+                          'roleId' => 10
+                        }
+                    ],
+                    'userApprovalEnabled' => [1],
+                    'userApprovalConditions' =>
+                      [
+                        { 'filter' =>
+                            { 'aggregator' => 'and',
+                              'conditions' =>
+                                [
+                                  { 'field' => 'price',
+                                    'value' => 1,
+                                    'source' => 'data',
+                                    'operator' => 'greater_than'
+                                  }
+                                ]
+                            },
+                          'roleId' => 11 }
+                      ],
+                    'selfApprovalEnabled' => [1]
                 }
               }
           }
@@ -266,6 +265,40 @@ module ForestLiana
                   )
 
           expect(dummy_class.is_chart_authorized?(user, parameters)).to equal false
+        end
+      end
+
+      describe 'is_smart_action_authorized?' do
+        it 'should return true' do
+          parameters = ActionController::Parameters.new(
+            {
+              "values": {},
+              "ids": [
+                "1"
+              ],
+              "collection_name": "Island",
+              "parent_collection_name": nil,
+              "parent_collection_id": nil,
+              "parent_association_name": nil,
+              "all_records": false,
+              "all_records_subset_query": {
+                "fields[Island]": "is,name",
+                "fields[file_attachment]": "name",
+                "fields[file_blob]": "id",
+                "page[number]": 1,
+                "page[size]": 15,
+                "sort": "-id",
+                "timezone": "Europe/Paris"
+              },
+              "all_records_ids_excluded": ["3", "2"],
+              "smart_action_id": "Island-my_action",
+              "signed_approval_request": nil
+            },
+          ).permit!
+          allow_any_instance_of(ForestLiana::Ability).to receive(:find_action_from_endpoint).and_return(ForestLiana::Model::Action.new({ name: 'my_action', }))
+          allow_any_instance_of(ForestLiana::Ability::Permission::SmartActionApproval).to receive(:can_trigger?).and_return(true)
+
+          expect(dummy_class.is_smart_action_authorized?(user, Island,  parameters, '/forest/actions/my-action', 'get')).to equal true
         end
       end
     end

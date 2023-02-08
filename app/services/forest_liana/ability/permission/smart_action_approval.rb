@@ -1,5 +1,5 @@
 require 'jwt'
-# frozen_string_literal: true
+
 module ForestLiana
   module Ability
     module Permission
@@ -16,7 +16,6 @@ module ForestLiana
         if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
           return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
 
-          raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
         elsif @parameters[:data][:attributes][:signed_approval_request].present? && @smart_action['userApprovalEnabled'].include?(@user['roleId'])
           deserialize
           if ((@smart_action['userApprovalConditions'].empty? || match_conditions('userApprovalConditions')) &&
@@ -28,10 +27,12 @@ module ForestLiana
           if @smart_action['approvalRequiredConditions'].empty? || match_conditions('approvalRequiredConditions')
             raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
           end
-
         end
+
         raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
       end
+
+      private
 
       def match_conditions(condition_name)
         begin
