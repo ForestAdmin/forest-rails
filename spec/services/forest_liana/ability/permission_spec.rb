@@ -2,8 +2,7 @@ module ForestLiana
   module Ability
     describe Ability do
       let(:dummy_class) { Class.new { extend ForestLiana::Ability } }
-      let(:user) { { 'id' => 1, 'roleId' => 1, 'rendering_id' => 1 } }
-      let(:cache) { Rails.cache }
+      let(:user) { { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' } }
       let(:permission) {
         {
           'Island' => {
@@ -17,14 +16,14 @@ module ForestLiana
                 'my_action' => {
                     'triggerEnabled' => [1],
                     'triggerConditions' => [],
-                    'approvalRequired' => [1],
+                    'approvalRequired' => [],
                     'approvalRequiredConditions' => [
                         { 'filter' =>
                             { 'aggregator' => 'and',
                               'conditions' =>
                                 [
                                   { 'field' => 'price',
-                                    'value' => 1,
+                                    'value' => '1',
                                     'source' => 'data',
                                     'operator' => 'greater_than' }
                                 ]
@@ -40,7 +39,7 @@ module ForestLiana
                               'conditions' =>
                                 [
                                   { 'field' => 'price',
-                                    'value' => 1,
+                                    'value' => '1',
                                     'source' => 'data',
                                     'operator' => 'greater_than'
                                   }
@@ -49,8 +48,8 @@ module ForestLiana
                           'roleId' => 11 }
                       ],
                     'selfApprovalEnabled' => [1]
-                }
-              }
+                  }
+            }
           }
         }
       }
@@ -59,10 +58,7 @@ module ForestLiana
         Rails.cache.clear
         Rails.cache.write('forest.users', {'1' => user})
         Rails.cache.write('forest.has_permission', true)
-        Rails.cache.write(
-          'forest.collections',
-          permission
-        )
+        Rails.cache.write('forest.collections',permission)
         Rails.cache.write('forest.stats', ['Leaderboard:b47e6fea7f7b9e2c7496d0c9399591f289552de6', 'Objective:fb40159a0cf0025de5fddf9a565e7ba2fef2c2b5', 'Value:b9a64a2ce88cb59ab5e2d5f5b25c6cfe35bf9350'])
         Island.create!(name: "L'île de la muerta")
       end
@@ -70,7 +66,9 @@ module ForestLiana
       describe 'is_crud_authorized' do
         it 'should return true when has_permission is false' do
           Rails.cache.clear
-          allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions).and_return(true)
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .and_return(true)
 
           expect(dummy_class.is_crud_authorized?('browse', user, Island.first)).to equal true
         end
@@ -79,6 +77,10 @@ module ForestLiana
           %w[browse read edit add delete export].each do |action|
             expect(dummy_class.is_crud_authorized?(action, user, Island)).to equal true
           end
+        end
+
+        it 'should throw an exception when the collection doesn\'t exist' do
+            expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
         end
 
         it 'should re-fetch the permission once when user permission is not allowed' do
@@ -106,7 +108,8 @@ module ForestLiana
                                                       { 'field' => 'price',
                                                         'value' => 1,
                                                         'source' => 'data',
-                                                        'operator' => 'greater_than' }
+                                                        'operator' => 'greater_than'
+                                                      }
                                                     ]
                                                 },
                                               'roleId' => 10
@@ -149,7 +152,9 @@ module ForestLiana
                             "deleteEnabled" => { "roles" => [1] },
                             "exportEnabled" => { "roles" => [1] }
                           },
-                        "actions" => {}
+                        "actions" => {
+
+                        }
                       }
                   }
               }
@@ -159,29 +164,51 @@ module ForestLiana
         end
 
         it 'should return false when user permission is not allowed' do
-          user = { 'id' => 1, 'roleId' => 2 }
-          Rails.cache.write('forest.users', {'1' => user})
+          Rails.cache.delete('forest.users')
+
           allow_any_instance_of(ForestLiana::Ability::Fetch)
             .to receive(:get_permissions)
-                  .and_return(
-                    {
-                      "collections" => {
-                        "Island" => {
-                          "collection" => {
-                            "browseEnabled" => { "roles" => [1] },
-                            "readEnabled" => { "roles" => [1] },
-                            "editEnabled" => { "roles" => [1] },
-                            "addEnabled" => { "roles" => [1] },
-                            "deleteEnabled" => { "roles" => [1] },
-                            "exportEnabled" => { "roles" => [1] }
-                          },
-                          "actions" => {}
-                        }
-                      }
-                    }
-                  )
+            .with('/liana/v4/permissions/users')
+            .and_return(
+              [
+                {"id"=>1, "firstName"=>"John", "lastName"=>"Doe", "email"=>"jd@forestadmin.com", "tags"=>{}, "roleId"=>'2', "permissionLevel"=>"admin"}
+              ]
+            )
 
-          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to equal false
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .with('/liana/v4/permissions/environment')
+            .and_return(
+              {
+                "collections" => {
+                  "Island" => {
+                    "collection" => {
+                      "browseEnabled" => { "roles" => [1] },
+                      "readEnabled" => { "roles" => [1] },
+                      "editEnabled" => { "roles" => [1] },
+                      "addEnabled" => { "roles" => [1] },
+                      "deleteEnabled" => { "roles" => [1] },
+                      "exportEnabled" => { "roles" => [1] }
+                    },
+                    "actions"=>
+                      {
+                        "Mark as Live"=>
+                          {
+                            "triggerEnabled" => {"roles"=>[1]},
+                            "triggerConditions" => [],
+                            "approvalRequired" => {"roles" => [1]},
+                            "approvalRequiredConditions" => [],
+                            "userApprovalEnabled" => {"roles" => [1]},
+                            "userApprovalConditions" => [],
+                            "selfApprovalEnabled" => {"roles" => [1]}
+                          }
+                      }
+                  }
+                }
+              }
+            )
+
+          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to be false
         end
       end
 
@@ -219,58 +246,49 @@ module ForestLiana
             collection: 'Customer'
           ).permit!
 
-
-          allow_any_instance_of(ForestLiana::Ability)
-            .to receive(:get_chart_data)
-                  .and_return(
-                    {
-                      "collections" => {
-                        "Product" => {
-                          "scope" => nil, "segments" => []
-                        },
-                      },
-                      "stats" => [{
-                                    "type" => "Leaderboard",
-                                    "limit" => 1,
-                                    "aggregator" => "Count",
-                                    "labelFieldName" => "label",
-                                    "aggregateFieldName" => nil,
-                                    "relationshipFieldName" => "orders",
-                                    "sourceCollectionName" => "Product"
-                                  }, {
-                                    "type" => "Objective",
-                                    "filter" => nil,
-                                    "objective" => 20,
-                                    "aggregator" => "Sum",
-                                    "aggregateFieldName" => "id",
-                                    "sourceCollectionName" => "Customer"
-                                  }, {
-                                    "type" => "Value",
-                                    "filter" => {
-                                      "aggregator" => "and",
-                                      "conditions" => [{
-                                                         "field" => "price",
-                                                         "operator" => "greater_than",
-                                                         "value" => "{{dropdown1.selectedValue}}"
-                                                       }]
-                                    },
-                                    "aggregator" => "Count",
-                                    "aggregateFieldName" => nil,
-                                    "sourceCollectionName" => "Product"
-                                  }],
-                      "team" => {
-                        "id" => 43, "name" => "Operations"
-                      }
-                    }
-                  )
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .and_return(
+              {
+                "stats" => [{
+                  "type" => "Leaderboard",
+                  "limit" => '1',
+                  "aggregator" => "Count",
+                  "labelFieldName" => "label",
+                  "aggregateFieldName" => nil,
+                  "relationshipFieldName" => "orders",
+                  "sourceCollectionName" => "Product"
+                }, {
+                  "type" => "Objective",
+                  "filter" => nil,
+                  "objective" => '20',
+                  "aggregator" => "Sum",
+                  "aggregateFieldName" => "id",
+                  "sourceCollectionName" => "Customer"
+                }, {
+                  "type" => "Value",
+                  "filter" => {
+                    "aggregator" => "and",
+                    "conditions" => [{
+                                       "field" => "price",
+                                       "operator" => "greater_than",
+                                       "value" => "{{dropdown1.selectedValue}}"
+                                     }]
+                  },
+                  "aggregator" => "Count",
+                  "aggregateFieldName" => nil,
+                  "sourceCollectionName" => "Product"
+                }],
+              }
+            )
 
           expect(dummy_class.is_chart_authorized?(user, parameters)).to equal false
         end
       end
 
       describe 'is_smart_action_authorized?' do
-        it 'should return true' do
-          parameters = ActionController::Parameters.new(
+        let(:parameters)  {
+            ActionController::Parameters.new(
             {
               "values": {},
               "ids": [
@@ -282,7 +300,7 @@ module ForestLiana
               "parent_association_name": nil,
               "all_records": false,
               "all_records_subset_query": {
-                "fields[Island]": "is,name",
+                "fields[Island]": "id,name",
                 "fields[file_attachment]": "name",
                 "fields[file_blob]": "id",
                 "page[number]": 1,
@@ -291,14 +309,18 @@ module ForestLiana
                 "timezone": "Europe/Paris"
               },
               "all_records_ids_excluded": ["3", "2"],
-              "smart_action_id": "Island-my_action",
+              "smart_action_id": "my_action",
               "signed_approval_request": nil
             },
           ).permit!
-          allow_any_instance_of(ForestLiana::Ability).to receive(:find_action_from_endpoint).and_return(ForestLiana::Model::Action.new({ name: 'my_action', }))
-          allow_any_instance_of(ForestLiana::Ability::Permission::SmartActionApproval).to receive(:can_trigger?).and_return(true)
+        }
 
-          expect(dummy_class.is_smart_action_authorized?(user, Island,  parameters, '/forest/actions/my-action', 'get')).to equal true
+        it 'should return true' do
+          expect(dummy_class.is_smart_action_authorized?(user, Island,  parameters, '/forest/actions/my_action', 'POST')).to equal true
+        end
+
+        it 'should throw an exception when the collection doesn\'t exist' do
+          expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
         end
       end
     end
