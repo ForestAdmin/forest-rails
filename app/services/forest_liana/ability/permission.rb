@@ -6,7 +6,7 @@ module ForestLiana
     module Permission
       include Fetch
 
-      TTL = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 300).to_i.second
+      TTL = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 1).to_i.second
 
       def is_crud_authorized?(action, user, collection)
         return true unless has_permission_system?
@@ -15,30 +15,30 @@ module ForestLiana
         collections_data = get_collections_permissions_data
 
         begin
-          allowed = collections_data[collection.name][action].include? user_data['roleId']
+          is_allowed = collections_data[collection.name][action].include? user_data['roleId']
           # re-fetch if user permission is not allowed (may have been changed)
-          unless allowed
+          unless is_allowed
             collections_data = get_collections_permissions_data(true)
-            allowed = collections_data[collection.name][action].include? user_data['roleId']
+            is_allowed = collections_data[collection.name][action].include? user_data['roleId']
           end
 
-          return allowed
-        rescue => error
-          FOREST_REPORTER.report error
-          FOREST_LOGGER.error "The collection #{collection.name} doesn't exist"
-          {}
+          is_allowed
+        rescue
+          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
         end
-
-        false
       end
 
       def is_smart_action_authorized?(user, collection, parameters, endpoint, http_method)
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
-        action = find_action_from_endpoint(collection.name, endpoint, http_method).name
+        begin
+          action = find_action_from_endpoint(collection.name, endpoint, http_method).name
 
-        smart_action_approval = SmartActionApproval.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
-        smart_action_approval.can_trigger?
+          smart_action_approval = SmartActionApproval.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
+          smart_action_approval.can_trigger?
+        rescue
+          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
+        end
       end
 
       def is_chart_authorized?(user, parameters)
@@ -143,6 +143,6 @@ module ForestLiana
 
         collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
       end
+    end
   end
-end
 end
