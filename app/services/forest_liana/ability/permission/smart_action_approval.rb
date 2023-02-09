@@ -45,7 +45,7 @@ module ForestLiana
           ).apply_filters
 
           if attributes[:all_records]
-            records = filter_parser.where.not(id: attributes[:all_records_ids_excluded])
+            records = records.where.not(id: attributes[:all_records_ids_excluded])
           else
             # check if the ids are present into the request of activeRecord
             records = records.where(id: attributes[:ids])

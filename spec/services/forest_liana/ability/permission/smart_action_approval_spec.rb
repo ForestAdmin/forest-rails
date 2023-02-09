@@ -37,7 +37,7 @@ module ForestLiana
                 'sort': '-id',
                 'timezone': 'Europe/Paris'
               },
-              'all_records_ids_excluded': ['3', '2'],
+              'all_records_ids_excluded': [],
               'smart_action_id': 'Island-my_action',
               'signed_approval_request': nil
             }
@@ -59,6 +59,31 @@ module ForestLiana
         end
 
         it 'should return true if match triggerConditions and user can trigger' do
+          parameters = ActionController::Parameters.new(params).permit!
+          action['triggerEnabled'] = [1]
+          action['triggerConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'foo',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect(smart_action_approval.can_trigger?).to equal true
+        end
+
+        it 'should return true if match triggerConditions on allRecords and user can trigger' do
+          params['data']['attributes']['all_records'] = true
           parameters = ActionController::Parameters.new(params).permit!
           action['triggerEnabled'] = [1]
           action['triggerConditions'] = [
@@ -112,6 +137,30 @@ module ForestLiana
           smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
 
           expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::TriggerForbidden
+        end
+
+        it 'should raise error when conditions is on an unknown field' do
+          parameters = ActionController::Parameters.new(params).permit!
+          action['triggerEnabled'] = [1]
+          action['triggerConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'unknown-field',
+                        'value' => 'fake island',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::ActionConditionError
         end
       end
 
@@ -178,6 +227,129 @@ module ForestLiana
           smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
 
           expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::TriggerForbidden
+        end
+      end
+
+      describe 'can_trigger with userApproval' do
+        before do
+          params['data']['attributes']['requester_id'] = 2
+          request = params
+          params['data']['attributes']['signed_approval_request'] = JWT::encode(request, ForestLiana.env_secret)
+          action['userApprovalEnabled'] = [1]
+        end
+
+        it 'should return true if userApprovalConditions is empty and user has userApprovalEnabled permission' do
+          parameters = ActionController::Parameters.new(params).permit!
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect(smart_action_approval.can_trigger?).to equal true
+        end
+
+        it 'should return true when record match userApprovalConditions and requester_id different of current user id' do
+          action['userApprovalConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'foo',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          parameters = ActionController::Parameters.new(params).permit!
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect(smart_action_approval.can_trigger?).to equal true
+        end
+
+        it 'should return true when record match userApprovalConditions and user can self approve' do
+          action['userApprovalConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'foo',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          action['selfApprovalEnabled'] = [1]
+          params['data']['attributes']['requester_id'] = 2
+          request = params
+          params['data']['attributes']['signed_approval_request'] = JWT::encode(request, ForestLiana.env_secret)
+          parameters = ActionController::Parameters.new(params).permit!
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect(smart_action_approval.can_trigger?).to equal true
+        end
+
+        it 'should raise error when user has userApprovalEnabled permission' do
+          parameters = ActionController::Parameters.new(params).permit!
+          action['userApprovalEnabled'] = [2]
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+        end
+
+        it 'should raise error when triggerConditions not match' do
+          parameters = ActionController::Parameters.new(params).permit!
+          action['userApprovalConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'fake island',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+        end
+
+        it 'should raise error when requester_id equal to current user id without selfApprove permission' do
+          action['userApprovalConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'foo',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          params['data']['attributes']['requester_id'] = 1
+          request = params
+          params['data']['attributes']['signed_approval_request'] = JWT::encode(request, ForestLiana.env_secret)
+          parameters = ActionController::Parameters.new(params).permit!
+          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+
+          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
       end
     end
