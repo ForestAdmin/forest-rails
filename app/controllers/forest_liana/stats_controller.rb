@@ -1,17 +1,6 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
     include ForestLiana::Ability
-    if Rails::VERSION::MAJOR < 4
-      before_filter do
-        find_resource
-        check_permission
-      end
-    else
-      before_action do
-        find_resource
-        check_permission
-      end
-    end
 
     CHART_TYPE_VALUE = 'Value'
     CHART_TYPE_PIE = 'Pie'
@@ -20,6 +9,8 @@ module ForestLiana
     CHART_TYPE_OBJECTIVE = 'Objective'
 
     def get
+      find_resource
+      forest_authorize!('chart', forest_user, nil, {parameters: params})
       case params[:type]
       when CHART_TYPE_VALUE
         stat = ValueStatGetter.new(@resource, params, forest_user)
@@ -42,6 +33,7 @@ module ForestLiana
     end
 
     def get_with_live_query
+      forest_authorize!('chart', forest_user, nil, {parameters: params})
       begin
         stat = QueryStatGetter.new(params)
         stat.perform
@@ -73,15 +65,6 @@ module ForestLiana
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
         render json: {status: 404}, status: :not_found, serializer: nil
-      end
-    end
-
-    def check_permission
-      begin
-        forest_authorize!('chart', forest_user, nil, {parameters: params})
-      rescue => error
-        FOREST_REPORTER.report error
-        FOREST_LOGGER.error "Stats execution error: #{error}"
       end
     end
   end

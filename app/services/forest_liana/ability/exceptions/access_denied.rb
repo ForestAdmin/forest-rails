@@ -6,7 +6,7 @@ module ForestLiana
           super(
             403,
             :forbidden,
-            'You are not authorized to this resource',
+            'You don\'t have permission to access this resource',
             'AccessDenied'
           )
         end
