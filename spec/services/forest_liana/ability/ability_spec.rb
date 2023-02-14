@@ -12,13 +12,13 @@ module ForestLiana
         it 'should call is_crud_authorized? when the action is in [browse read edit add delete export] list' do
           allow_any_instance_of(ForestLiana::Ability::Permission).to receive(:is_crud_authorized?).and_return(true)
           %w[browse read edit add delete export].each do |action|
-            expect(dummy_class.forest_authorize!(action, :user, Island.first)).to equal true
+            expect(dummy_class.forest_authorize!(action, :user, Island.first)).to equal nil
           end
         end
 
         it 'should call is_chart_authorized? when the action equal chart' do
           allow_any_instance_of(ForestLiana::Ability::Permission).to receive(:is_chart_authorized?).and_return(true)
-          expect(dummy_class.forest_authorize!('chart', :user, Island.first, {parameters: []})).to equal true
+          expect(dummy_class.forest_authorize!('chart', :user, Island.first, {parameters: []})).to equal nil
         end
 
         it 'should raise error 422 on a chart action when the argument parameter is nil' do
@@ -35,7 +35,12 @@ module ForestLiana
         end
 
         it 'should raise access denied when the action is unknown' do
-          expect { dummy_class.forest_authorize!('unknown', :user, Island.first) }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied, "You are not authorized to this resource")
+          expect { dummy_class.forest_authorize!('unknown', :user, Island.first) }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied, "You don't have permission to access this resource")
+        end
+
+        it 'should authorized user with correct permission_level to access charts' do
+          user['permission_level'] = 'admin'
+          expect(dummy_class.forest_authorize!('chart', user, Island.first, {parameters: []})).to equal nil
         end
       end
     end
