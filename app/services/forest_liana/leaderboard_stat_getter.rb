@@ -8,7 +8,7 @@ module ForestLiana
       @aggregate = params[:aggregator].downcase
       @aggregate_field = params[:aggregateFieldName]
       @limit = params[:limit]
-      @groub_by = "#{@scoped_parent_model.table_name}.#{@label_field}"
+      @group_by = "#{@scoped_parent_model.table_name}.#{@label_field}"
     end
 
     def perform
@@ -17,7 +17,7 @@ module ForestLiana
       result = @scoped_child_model
         .joins(includes)
         .where({ @scoped_parent_model.name.downcase.to_sym => @scoped_parent_model })
-        .group(@groub_by)
+        .group(@group_by)
         .order(order)
         .limit(@limit)
         .send(@aggregate, @aggregate_field)

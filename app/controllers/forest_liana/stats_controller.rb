@@ -8,8 +8,13 @@ module ForestLiana
     CHART_TYPE_LEADERBOARD = 'Leaderboard'
     CHART_TYPE_OBJECTIVE = 'Objective'
 
+    if Rails::VERSION::MAJOR < 4
+      before_filter :find_resource, only: :get
+    else
+      before_action :find_resource, only: :get
+    end
+
     def get
-      find_resource
       forest_authorize!('chart', forest_user, nil, {parameters: params})
       case params[:type]
       when CHART_TYPE_VALUE
