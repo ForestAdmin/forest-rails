@@ -1,6 +1,8 @@
 ForestLiana::Engine.routes.draw do
   router = ForestLiana::Router.new
 
+  draw(:actions)
+
   # Onboarding
   get '/' => 'apimaps#index'
 
@@ -58,8 +60,4 @@ ForestLiana::Engine.routes.draw do
   put ':collection/:id', to: router
   delete ':collection/:id', to: router
   delete ':collection', to: router
-
-  # Smart Actions forms value
-  post 'actions/:action_name/hooks/load' => 'actions#load'
-  post 'actions/:action_name/hooks/change' => 'actions#change'
 end
