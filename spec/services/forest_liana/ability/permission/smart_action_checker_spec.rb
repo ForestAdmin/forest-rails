@@ -49,13 +49,13 @@ module ForestLiana
         Island.create!(name: "foo")
       end
 
-      describe 'can_trigger with triggerEnabled' do
+      describe 'can_execute with triggerEnabled' do
         it 'should return true if triggerConditions is empty and user can trigger' do
           parameters = ActionController::Parameters.new(params).permit!
           action['triggerEnabled'] = [1]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect(smart_action_approval.can_trigger?).to equal true
+          expect(smart_action_checker.can_execute?).to equal true
         end
 
         it 'should return true if match triggerConditions and user can trigger' do
@@ -77,9 +77,9 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect(smart_action_approval.can_trigger?).to equal true
+          expect(smart_action_checker.can_execute?).to equal true
         end
 
         it 'should return true if match triggerConditions on allRecords and user can trigger' do
@@ -102,17 +102,17 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect(smart_action_approval.can_trigger?).to equal true
+          expect(smart_action_checker.can_execute?).to equal true
         end
 
         it 'should raise error when user can not trigger' do
           parameters = ActionController::Parameters.new(params).permit!
           action['triggerEnabled'] = [2]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
 
         it 'should raise error when triggerConditions not match' do
@@ -134,9 +134,9 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::TriggerForbidden
+          expect{smart_action_checker.can_execute?}.to raise_error ForestLiana::Ability::Exceptions::TriggerForbidden
         end
 
         it 'should raise error when conditions is on an unknown field' do
@@ -158,19 +158,19 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::ActionConditionError
+          expect{smart_action_checker.can_execute?}.to raise_error ForestLiana::Ability::Exceptions::ActionConditionError
         end
       end
 
-      describe 'can_trigger with approvalRequired' do
+      describe 'can_execute with approvalRequired' do
         it 'should raise RequireApproval error if approvalRequiredConditions is empty' do
           parameters = ActionController::Parameters.new(params).permit!
           action['approvalRequired'] = [1]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::RequireApproval
+          expect{smart_action_checker.can_execute?}.to raise_error ForestLiana::Ability::Exceptions::RequireApproval
         end
 
         it 'should raise RequireApproval error if match approvalRequiredConditions' do
@@ -192,17 +192,17 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::RequireApproval
+          expect{smart_action_checker.can_execute?}.to raise_error ForestLiana::Ability::Exceptions::RequireApproval
         end
 
         it 'should raise error when user can not trigger' do
           parameters = ActionController::Parameters.new(params).permit!
           action['approvalRequired'] = [2]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
 
         it 'should raise error when triggerConditions not match' do
@@ -224,13 +224,13 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error ForestLiana::Ability::Exceptions::TriggerForbidden
+          expect{smart_action_checker.can_execute?}.to raise_error ForestLiana::Ability::Exceptions::TriggerForbidden
         end
       end
 
-      describe 'can_trigger with userApproval' do
+      describe 'can_execute with userApproval' do
         before do
           params['data']['attributes']['requester_id'] = 2
           request = params
@@ -240,9 +240,9 @@ module ForestLiana
 
         it 'should return true if userApprovalConditions is empty and user has userApprovalEnabled permission' do
           parameters = ActionController::Parameters.new(params).permit!
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect(smart_action_approval.can_trigger?).to equal true
+          expect(smart_action_checker.can_execute?).to equal true
         end
 
         it 'should return true when record match userApprovalConditions and requester_id different of current user id' do
@@ -263,9 +263,9 @@ module ForestLiana
             }
           ]
           parameters = ActionController::Parameters.new(params).permit!
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect(smart_action_approval.can_trigger?).to equal true
+          expect(smart_action_checker.can_execute?).to equal true
         end
 
         it 'should return true when record match userApprovalConditions and user can self approve' do
@@ -290,17 +290,17 @@ module ForestLiana
           request = params
           params['data']['attributes']['signed_approval_request'] = JWT::encode(request, ForestLiana.env_secret)
           parameters = ActionController::Parameters.new(params).permit!
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect(smart_action_approval.can_trigger?).to equal true
+          expect(smart_action_checker.can_execute?).to equal true
         end
 
         it 'should raise error when user has userApprovalEnabled permission' do
           parameters = ActionController::Parameters.new(params).permit!
           action['userApprovalEnabled'] = [2]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
 
         it 'should raise error when triggerConditions not match' do
@@ -321,9 +321,9 @@ module ForestLiana
               'roleId' => 1
             }
           ]
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
 
         it 'should raise error when requester_id equal to current user id without selfApprove permission' do
@@ -347,9 +347,9 @@ module ForestLiana
           request = params
           params['data']['attributes']['signed_approval_request'] = JWT::encode(request, ForestLiana.env_secret)
           parameters = ActionController::Parameters.new(params).permit!
-          smart_action_approval = ForestLiana::Ability::Permission::SmartActionApproval.new(parameters, Island, action, user)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
 
-          expect{smart_action_approval.can_trigger?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
       end
     end
