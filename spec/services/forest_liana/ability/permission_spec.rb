@@ -289,29 +289,33 @@ module ForestLiana
       describe 'is_smart_action_authorized?' do
         let(:parameters)  {
             ActionController::Parameters.new(
-            {
-              "values": {},
-              "ids": [
-                "1"
-              ],
-              "collection_name": "Island",
-              "parent_collection_name": nil,
-              "parent_collection_id": nil,
-              "parent_association_name": nil,
-              "all_records": false,
-              "all_records_subset_query": {
-                "fields[Island]": "id,name",
-                "fields[file_attachment]": "name",
-                "fields[file_blob]": "id",
-                "page[number]": 1,
-                "page[size]": 15,
-                "sort": "-id",
-                "timezone": "Europe/Paris"
-              },
-              "all_records_ids_excluded": ["3", "2"],
-              "smart_action_id": "my_action",
-              "signed_approval_request": nil
-            },
+              {
+                "data": {
+                  "attributes": {
+                    "values": {},
+                    "ids": [
+                      "1"
+                    ],
+                    "collection_name": "Island",
+                    "parent_collection_name": nil,
+                    "parent_collection_id": nil,
+                    "parent_association_name": nil,
+                    "all_records": false,
+                    "all_records_subset_query": {
+                      "fields[Island]": "id,name",
+                      "fields[file_attachment]": "name",
+                      "fields[file_blob]": "id",
+                      "page[number]": 1,
+                      "page[size]": 15,
+                      "sort": "-id",
+                      "timezone": "Europe/Paris"
+                    },
+                    "all_records_ids_excluded": ["3", "2"],
+                    "smart_action_id": "my_action",
+                    "signed_approval_request": nil
+                  }
+                }
+              }
           ).permit!
         }
 
