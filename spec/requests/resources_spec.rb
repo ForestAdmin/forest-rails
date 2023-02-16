@@ -94,7 +94,7 @@ describe 'Requesting Tree resources', :type => :request  do
         get '/forest/Tree', params: params, headers: headers
 
         expect(response.status).to eq(403)
-        expect(JSON.parse(response.body)['error']).to eq 'You don\'t have permission to access this resource'
+        expect(JSON.parse(response.body)['errors'][0]['detail']).to eq 'You don\'t have permission to access this resource'
       end
 
       it 'should respond the tree data' do

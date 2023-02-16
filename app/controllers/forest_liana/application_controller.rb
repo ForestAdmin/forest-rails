@@ -100,7 +100,15 @@ module ForestLiana
     private
 
     def render_error(exception)
-      render json: { error: exception.message }, status: exception.status
+      errors = {
+        status: exception.error_code,
+        detail: exception.message,
+      }
+
+      errors['name'] = exception.name if exception.try(:name)
+      errors['data'] = exception.data if exception.try(:data)
+
+      render json: { errors: [errors] }, status: exception.status
     end
 
     def force_utf8_encoding(json)
