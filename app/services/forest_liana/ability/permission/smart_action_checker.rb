@@ -3,7 +3,7 @@ require 'jwt'
 module ForestLiana
   module Ability
     module Permission
-    class SmartActionApproval
+    class SmartActionChecker
 
       def initialize(parameters, collection, smart_action, user)
         @parameters = parameters
@@ -12,12 +12,12 @@ module ForestLiana
         @user = user
       end
 
-      def can_trigger?
+      def can_execute?
         if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
           return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
 
         elsif @parameters[:data][:attributes][:signed_approval_request].present? && @smart_action['userApprovalEnabled'].include?(@user['roleId'])
-          deserialize
+          decodeSignedApprovalRequest
           if ((@smart_action['userApprovalConditions'].empty? || match_conditions('userApprovalConditions')) &&
             (@parameters[:data][:attributes][:requester_id] != @user['id'] || @smart_action['selfApprovalEnabled'].include?(@user['roleId']))
           )
@@ -57,7 +57,7 @@ module ForestLiana
         end
       end
 
-      def deserialize
+      def decodeSignedApprovalRequest
         decode_parameters = JWT.decode(@parameters[:data][:attributes][:signed_approval_request], ForestLiana.env_secret, true, { algorithm: 'HS256' }).try(:first)
         @parameters = ActionController::Parameters.new(decode_parameters)
       end
