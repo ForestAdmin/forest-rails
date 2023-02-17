@@ -1,5 +1,6 @@
 module ForestLiana
   class ResourcesController < ForestLiana::ApplicationController
+    include ForestLiana::Ability
     begin
       prepend ResourcesExtensions
     rescue NameError
@@ -14,24 +15,11 @@ module ForestLiana
     end
 
     def index
+      action = request.format == 'csv' ? 'export' : 'browse'
+      forest_authorize!(action, forest_user, @resource)
       begin
-        if request.format == 'csv'
-          checker = ForestLiana::PermissionsChecker.new(@resource, 'exportEnabled', @rendering_id, user: forest_user)
-          return head :forbidden unless checker.is_authorized?
-        else
-          checker = ForestLiana::PermissionsChecker.new(
-            @resource,
-            'browseEnabled',
-            @rendering_id,
-            user: forest_user,
-            collection_list_parameters: get_collection_list_permission_info(forest_user, request)
-          )
-          return head :forbidden unless checker.is_authorized?
-        end
-
         getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.perform
-
         respond_to do |format|
           format.json { render_jsonapi(getter) }
           format.csv { render_csv(getter, @resource) }
@@ -55,16 +43,8 @@ module ForestLiana
 
     def count
       find_resource
+      forest_authorize!('browse', forest_user, @resource)
       begin
-        checker = ForestLiana::PermissionsChecker.new(
-          @resource,
-          'browseEnabled',
-          @rendering_id,
-          user: forest_user,
-          collection_list_parameters: get_collection_list_permission_info(forest_user, request)
-        )
-        return head :forbidden unless checker.is_authorized?
-
         getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.count
 
@@ -88,10 +68,8 @@ module ForestLiana
     end
 
     def show
+      forest_authorize!('read', forest_user, @resource)
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'readEnabled', @rendering_id, user: forest_user)
-        return head :forbidden unless checker.is_authorized?
-
         getter = ForestLiana::ResourceGetter.new(@resource, params, forest_user)
         getter.perform
 
@@ -106,10 +84,8 @@ module ForestLiana
     end
 
     def create
+      forest_authorize!('add', forest_user, @resource)
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'addEnabled', @rendering_id, user: forest_user)
-        return head :forbidden unless checker.is_authorized?
-
         creator = ForestLiana::ResourceCreator.new(@resource, params)
         creator.perform
 
@@ -130,10 +106,8 @@ module ForestLiana
     end
 
     def update
+      forest_authorize!('edit', forest_user, @resource)
       begin
-        checker = ForestLiana::PermissionsChecker.new(@resource, 'editEnabled', @rendering_id, user: forest_user)
-        return head :forbidden unless checker.is_authorized?
-
         updater = ForestLiana::ResourceUpdater.new(@resource, params, forest_user)
         updater.perform
 
@@ -154,37 +128,37 @@ module ForestLiana
     end
 
     def destroy
-      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user: forest_user)
-      return head :forbidden unless checker.is_authorized?
+      forest_authorize!('delete', forest_user, @resource)
+        begin
+        collection_name = ForestLiana.name_for(@resource)
+        scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, forest_user, collection_name, params[:timezone])
 
-      collection_name = ForestLiana.name_for(@resource)
-      scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, forest_user, collection_name, params[:timezone])
+        unless scoped_records.exists?(params[:id])
+          return render serializer: nil, json: { status: 404 }, status: :not_found
+        end
 
-      unless scoped_records.exists?(params[:id])
-        return render serializer: nil, json: { status: 404 }, status: :not_found
+        scoped_records.destroy(params[:id])
+
+        head :no_content
+      rescue => error
+        FOREST_REPORTER.report error
+        FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
+        internal_server_error
       end
-
-      scoped_records.destroy(params[:id])
-
-      head :no_content
-    rescue => error
-      FOREST_REPORTER.report error
-      FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
-      internal_server_error
     end
 
     def destroy_bulk
-      checker = ForestLiana::PermissionsChecker.new(@resource, 'deleteEnabled', @rendering_id, user: forest_user)
-      return head :forbidden unless checker.is_authorized?
+      forest_authorize!('delete', forest_user, @resource)
+      begin
+        ids = ForestLiana::ResourcesGetter.get_ids_from_request(params, forest_user)
+        @resource.destroy(ids) if ids&.any?
 
-      ids = ForestLiana::ResourcesGetter.get_ids_from_request(params, forest_user)
-      @resource.destroy(ids) if ids&.any?
-
-      head :no_content
-    rescue => error
-      FOREST_REPORTER.report error
-      FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"
-      internal_server_error
+        head :no_content
+      rescue => error
+        FOREST_REPORTER.report error
+        FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"
+        internal_server_error
+      end
     end
 
     private

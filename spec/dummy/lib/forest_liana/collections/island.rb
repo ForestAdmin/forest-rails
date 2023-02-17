@@ -3,5 +3,5 @@ class Forest::Island
 
   collection :Island
 
-  action 'Test'
+  action 'my_action'
 end

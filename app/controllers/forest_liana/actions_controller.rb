@@ -2,12 +2,14 @@ module ForestLiana
   class ActionsController < ApplicationController
 
     def get_smart_action_hook_request
-      begin
+      if params[:data] && params[:data][:attributes] && params[:data][:attributes][:collection_name]
         params[:data][:attributes]
-      rescue => error
+      else
+        error = 'parameters data attributes missing'
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action hook request error: #{error}"
-        {}
+
+        raise ForestLiana::Errors::HTTP422Error.new("Error in smart action load hook: cannot retrieve action from collection")
       end
     end
 

@@ -1,22 +1,6 @@
 module ForestLiana
   class StatsController < ForestLiana::ApplicationController
-    if Rails::VERSION::MAJOR < 4
-      before_filter only: [:get] do
-        find_resource()
-        check_permission('statWithParameters')
-      end
-      before_filter only: [:get_with_live_query] do
-        check_permission('liveQueries')
-      end
-    else
-      before_action only: [:get] do
-        find_resource()
-        check_permission('statWithParameters')
-      end
-      before_action only: [:get_with_live_query] do
-        check_permission('liveQueries')
-      end
-    end
+    include ForestLiana::Ability
 
     CHART_TYPE_VALUE = 'Value'
     CHART_TYPE_PIE = 'Pie'
@@ -24,7 +8,14 @@ module ForestLiana
     CHART_TYPE_LEADERBOARD = 'Leaderboard'
     CHART_TYPE_OBJECTIVE = 'Objective'
 
+    if Rails::VERSION::MAJOR < 4
+      before_filter :find_resource, only: :get
+    else
+      before_action :find_resource, only: :get
+    end
+
     def get
+      forest_authorize!('chart', forest_user, nil, {parameters: params})
       case params[:type]
       when CHART_TYPE_VALUE
         stat = ValueStatGetter.new(@resource, params, forest_user)
@@ -47,6 +38,7 @@ module ForestLiana
     end
 
     def get_with_live_query
+      forest_authorize!('chart', forest_user, nil, {parameters: params})
       begin
         stat = QueryStatGetter.new(params)
         stat.perform
@@ -67,53 +59,17 @@ module ForestLiana
       end
     end
 
+    def params
+      super.permit!
+    end
+
     private
 
     def find_resource
-      @resource = SchemaUtils.find_model_from_collection_name(
-        params[:collection])
+      @resource = SchemaUtils.find_model_from_collection_name(params[:collection])
 
       if @resource.nil? || !@resource.ancestors.include?(ActiveRecord::Base)
         render json: {status: 404}, status: :not_found, serializer: nil
-      end
-    end
-
-    def get_live_query_request_info
-      params['query']
-    end
-
-    def get_stat_parameter_request_info
-      parameters = Rails::VERSION::MAJOR < 5 ? params.dup : params.permit(params.keys).to_h;
-
-      # Notice: Removes useless properties
-      parameters.delete('timezone');
-      parameters.delete('controller');
-      parameters.delete('action');
-
-      # NOTICE: Remove the field information from group_by_field => collection:id
-      if parameters['group_by_field']
-        parameters['group_by_field'] = parameters['group_by_field'].split(':').first
-      end
-
-      return parameters;
-    end
-
-    def check_permission(permission_name)
-      begin
-        query_request = permission_name == 'liveQueries' ? get_live_query_request_info : get_stat_parameter_request_info;
-        checker = ForestLiana::PermissionsChecker.new(
-          nil,
-          permission_name,
-          @rendering_id,
-          user: forest_user,
-          query_request_info: query_request
-        )
-
-        return head :forbidden unless checker.is_authorized?
-      rescue => error
-        FOREST_REPORTER.report error
-        FOREST_LOGGER.error "Stats execution error: #{error}"
-        render serializer: nil, json: { status: 400 }, status: :bad_request
       end
     end
   end
