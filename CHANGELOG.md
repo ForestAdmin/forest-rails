@@ -1,3 +1,15 @@
+# [8.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v8.0.0-beta.1) (2023-02-17)
+
+
+### Features
+
+* **conditional-approval:** users want conditional triggers of conditional approval ([#600](https://github.com/ForestAdmin/forest-rails/issues/600)) ([ca99939](https://github.com/ForestAdmin/forest-rails/commit/ca99939647d20c0a223f9f4f1d1d75bede1128b1))
+
+
+### BREAKING CHANGES
+
+* **conditional-approval:** Introduction of a new permission module call Ability. The previous permission system PermissionChecker doesn't exist anymore.
+
 ## [7.8.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v7.8.1) (2023-02-28)
 
 # [7.8.0](https://github.com/ForestAdmin/forest-rails/compare/v7.7.3...v7.8.0) (2023-01-24)
