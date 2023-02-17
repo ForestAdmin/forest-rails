@@ -30,4 +30,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "json"
   s.add_runtime_dependency "json-jwt", "~> 1.15.0"
   s.add_runtime_dependency "openid_connect", "1.4.2"
+  s.add_runtime_dependency "deepsort"
 end
