@@ -1,3 +1,10 @@
+# [8.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.1...v8.0.0-beta.2) (2023-02-21)
+
+
+### Bug Fixes
+
+* **apimap:** format apimap liana version ([#603](https://github.com/ForestAdmin/forest-rails/issues/603)) ([37fc823](https://github.com/ForestAdmin/forest-rails/commit/37fc82346870ab367a130c750256d5e37f1de4fd))
+
 # [8.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v8.0.0-beta.1) (2023-02-17)
 
 
