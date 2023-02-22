@@ -205,9 +205,67 @@ module ForestLiana
           expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::TriggerForbidden)
         end
 
-        it 'should raise error when triggerConditions not match' do
+        it 'should trigger action when approvalRequiredCondition not match but with triggerConditions matched' do
           parameters = ActionController::Parameters.new(params).permit!
           action['approvalRequired'] = [1]
+          action['triggerEnabled'] = [1]
+          action['triggerConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'foo',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          action['approvalRequiredConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'fake island',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
+
+          expect(smart_action_checker.can_execute?).to equal true
+        end
+
+        it 'should raise error when approvalRequiredConditions and triggerConditions not match' do
+          parameters = ActionController::Parameters.new(params).permit!
+          action['approvalRequired'] = [1]
+          action['triggerEnabled'] = [1]
+          action['triggerConditions'] = [
+            { 'filter' =>
+                { 'aggregator' => 'and',
+                  'conditions' =>
+                    [
+                      {
+                        'field' => 'name',
+                        'value' => 'fake island',
+                        'source' => 'data',
+                        'operator' => 'equal'
+                      }
+                    ]
+                },
+              'roleId' => 1
+            }
+          ]
           action['approvalRequiredConditions'] = [
             { 'filter' =>
                 { 'aggregator' => 'and',

@@ -37,6 +37,8 @@ module ForestLiana
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
             if @smart_action['approvalRequiredConditions'].empty? || match_conditions('approvalRequiredConditions')
               raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
+            else
+              return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
             end
           end
 
