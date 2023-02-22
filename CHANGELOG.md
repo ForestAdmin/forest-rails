@@ -1,3 +1,10 @@
+# [8.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.2...v8.0.0-beta.3) (2023-02-22)
+
+
+### Bug Fixes
+
+* **conditional-approval:** update condition to check if user can trigger the action ([#604](https://github.com/ForestAdmin/forest-rails/issues/604)) ([d55db18](https://github.com/ForestAdmin/forest-rails/commit/d55db187ea6c12d6aa24e10a509983b0940bc21e))
+
 # [8.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.1...v8.0.0-beta.2) (2023-02-21)
 
 
