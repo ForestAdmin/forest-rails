@@ -5,19 +5,18 @@ module ForestLiana
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
-      before_filter :smart_action_pre_perform_checks
+      before_filter :get_smart_action_request
+      before_filter :find_resource
+      before_filter :check_permission_for_smart_route
+      before_filter :ensure_record_ids_in_scope
     else
-      before_action :smart_action_pre_perform_checks
+      before_action :get_smart_action_request
+      before_action :find_resource
+      before_action :check_permission_for_smart_route
+      before_action :ensure_record_ids_in_scope
     end
 
     private
-
-    def smart_action_pre_perform_checks
-      get_smart_action_request
-      find_resource
-      check_permission_for_smart_route
-      ensure_record_ids_in_scope
-    end
 
     def get_smart_action_request
       begin
@@ -31,18 +30,11 @@ module ForestLiana
     end
 
     def find_resource
-      begin
         @resource = SchemaUtils.find_model_from_collection_name(@parameters[:data][:attributes][:collection_name])
-        if @resource.nil? || !SchemaUtils.model_included?(@resource) ||
-          !@resource.ancestors.include?(ActiveRecord::Base)
-          render serializer: nil, json: { status: 404 }, status: :not_found
+        if @resource.nil? || !SchemaUtils.model_included?(@resource) || !@resource.ancestors.include?(ActiveRecord::Base)
+          raise ForestLiana::Errors::HTTP422Error.new('The conditional smart actions are not supported with Smart Collection. Please contact an administrator.')
         end
         @resource
-      rescue => error
-        FOREST_REPORTER.report error
-        FOREST_LOGGER.error "Find Collection error: #{error}\n#{format_stacktrace(error)}"
-        render serializer: nil, json: { status: 404 }, status: :not_found
-      end
     end
 
     def check_permission_for_smart_route

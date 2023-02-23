@@ -32,7 +32,6 @@ module ForestLiana
 
     def self.find_model_from_collection_name(collection_name, logs = false)
       model_found = nil
-
       ForestLiana.models.each do |model|
         if model.abstract_class?
           model_found = self.find_model_from_abstract_class(model, collection_name)
