@@ -1,3 +1,10 @@
+# [8.0.0-beta.4](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.3...v8.0.0-beta.4) (2023-02-23)
+
+
+### Bug Fixes
+
+* raise error when an action is call on a smartcollection ([#605](https://github.com/ForestAdmin/forest-rails/issues/605)) ([c98ac23](https://github.com/ForestAdmin/forest-rails/commit/c98ac238d55bef201945b1cd3cfcea806d4c2d26))
+
 # [8.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.2...v8.0.0-beta.3) (2023-02-22)
 
 
