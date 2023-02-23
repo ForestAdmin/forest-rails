@@ -43,12 +43,12 @@ module ForestLiana
           expect(dummy_class.forest_authorize!('chart', user, Island.first, {parameters: []})).to equal nil
         end
 
-        it 'should raise error 422 when the collection is nil' do
-          expect { dummy_class.forest_authorize!('chart', :user, nil) }.to raise_error(ForestLiana::Errors::HTTP422Error, "The conditional smart actions are not supported with Smart Collection. Please contact an administrator.")
+        it 'should raise error 422 when the collection is nil on action ability' do
+          expect { dummy_class.forest_authorize!('action', :user, nil) }.to raise_error(ForestLiana::Errors::HTTP422Error, "The conditional smart actions are not supported with Smart Collection. Please contact an administrator.")
         end
 
-        it 'should raise error 422 when the collection is not a ActiveRecord children' do
-          expect { dummy_class.forest_authorize!('chart', :user, class Example; end ) }.to raise_error(ForestLiana::Errors::HTTP422Error, "The conditional smart actions are not supported with Smart Collection. Please contact an administrator.")
+        it 'should raise error 422 when the collection is not a ActiveRecord children on action ability' do
+          expect { dummy_class.forest_authorize!('action', :user, class Example; end ) }.to raise_error(ForestLiana::Errors::HTTP422Error, "The conditional smart actions are not supported with Smart Collection. Please contact an administrator.")
         end
       end
     end
