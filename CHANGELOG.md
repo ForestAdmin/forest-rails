@@ -1,3 +1,5 @@
+## [7.8.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v7.8.1) (2023-02-28)
+
 # [7.8.0](https://github.com/ForestAdmin/forest-rails/compare/v7.7.3...v7.8.0) (2023-01-24)
 
 
