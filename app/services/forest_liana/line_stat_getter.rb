@@ -10,7 +10,7 @@ module ForestLiana
     end
 
     def get_format
-      case @params[:time_range].try(:downcase)
+      case @params[:timeRange].try(:downcase)
         when 'day'
           '%d/%m/%Y'
         when 'week'
@@ -25,17 +25,17 @@ module ForestLiana
     def perform
       value = get_resource()
 
-      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @resource.name)
+      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name)
 
       unless filters.blank?
-        value = FiltersParser.new(filters, @resource, @params[:timezone]).apply_filters
+        value = FiltersParser.new(filters, @resource, @params[:timezone], @params).apply_filters
       end
 
       Groupdate.week_start = :monday
 
-      value = value.send(time_range, group_by_date_field, time_zone: client_timezone)
+      value = value.send(timeRange, group_by_date_field, time_zone: client_timezone)
 
-      value = value.send(@params[:aggregate].downcase, @params[:aggregate_field])
+      value = value.send(@params[:aggregator].downcase, @params[:aggregateFieldName])
         .map do |k, v|
           { label: k.strftime(get_format), values: { value: v }}
         end
@@ -46,11 +46,11 @@ module ForestLiana
     private
 
     def group_by_date_field
-      "#{@resource.table_name}.#{@params[:group_by_date_field]}"
+      "#{@resource.table_name}.#{@params[:groupByFieldName]}"
     end
 
-    def time_range
-      "group_by_#{@params[:time_range].try(:downcase) || 'month'}"
+    def timeRange
+      "group_by_#{@params[:timeRange].try(:downcase) || 'month'}"
     end
 
   end

@@ -2,13 +2,9 @@ module ForestLiana
   class FiltersParser
     AGGREGATOR_OPERATOR = %w(and or)
 
-    def initialize(filters, resource, timezone)
-      begin
-        @filters = JSON.parse(filters)
-      rescue JSON::ParserError
-        raise ForestLiana::Errors::HTTP422Error.new('Invalid filters JSON format')
-      end
-
+    def initialize(filters, resource, timezone, params = nil)
+      @filters = filters.instance_of?(ActionController::Parameters) ? filters.to_h : JSON.parse(filters)
+      @params = params
       @resource = resource
       @operator_date_parser = OperatorDateIntervalParser.new(timezone)
       @joins = []
@@ -90,6 +86,10 @@ module ForestLiana
       operator = condition['operator']
       value = condition['value']
       field_name = condition['field']
+
+      if value.is_a?(String) && value.start_with?('{{')
+        value = @params[:contextVariables][value.gsub(/[{}]/, '')]
+      end
 
       if @operator_date_parser.is_date_operator?(operator)
         condition = @operator_date_parser.get_date_filter(operator, value)

@@ -1,9 +1,10 @@
 PATH
   remote: .
   specs:
-    forest_liana (7.8.1)
+    forest_liana (8.0.0-beta.1)
       arel-helpers
       bcrypt
+      deepsort
       forestadmin-jsonapi-serializers (>= 0.14.0)
       groupdate (>= 5.0.0)
       httparty
@@ -89,6 +90,7 @@ GEM
     concurrent-ruby (1.1.10)
     crass (1.0.6)
     date (3.3.3)
+    deepsort (0.4.5)
     diff-lcs (1.5.0)
     docile (1.4.0)
     erubi (1.12.0)
@@ -254,6 +256,7 @@ DEPENDENCIES
   arel-helpers (= 2.14.0)
   bcrypt
   byebug
+  deepsort
   forest_liana!
   forestadmin-jsonapi-serializers
   groupdate (= 5.2.2)

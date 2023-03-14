@@ -1,3 +1,74 @@
+# [8.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.1...v8.0.0-beta.1) (2023-03-14)
+
+
+### Bug Fixes
+
+* raise error when an action is call on a smartcollection ([#605](https://github.com/ForestAdmin/forest-rails/issues/605)) ([675821e](https://github.com/ForestAdmin/forest-rails/commit/675821e086137cf7413a1e328b71a9c836d8c21a))
+* **apimap:** format apimap liana version ([#603](https://github.com/ForestAdmin/forest-rails/issues/603)) ([b8a83bb](https://github.com/ForestAdmin/forest-rails/commit/b8a83bb6a4edf229ca788227cac2a917dc4fd204))
+* **conditional-approval:** update condition to check if user can trigger the action ([#604](https://github.com/ForestAdmin/forest-rails/issues/604)) ([36f55b3](https://github.com/ForestAdmin/forest-rails/commit/36f55b3bfeb992831c10238264af2931448ccae8))
+
+
+### Features
+
+* **conditional-approval:** users want conditional triggers of conditional approval ([#600](https://github.com/ForestAdmin/forest-rails/issues/600)) ([062bcac](https://github.com/ForestAdmin/forest-rails/commit/062bcace329f302f238324fb0f1db2f00331978e))
+
+
+### BREAKING CHANGES
+
+* **conditional-approval:** Introduction of a new permission module call Ability. The previous permission system PermissionChecker doesn't exist anymore.
+
+## [7.8.2-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.1...v7.8.2-beta.1) (2023-03-14)
+
+
+### Bug Fixes
+
+* raise error when an action is call on a smartcollection ([#605](https://github.com/ForestAdmin/forest-rails/issues/605)) ([675821e](https://github.com/ForestAdmin/forest-rails/commit/675821e086137cf7413a1e328b71a9c836d8c21a))
+* **apimap:** format apimap liana version ([#603](https://github.com/ForestAdmin/forest-rails/issues/603)) ([b8a83bb](https://github.com/ForestAdmin/forest-rails/commit/b8a83bb6a4edf229ca788227cac2a917dc4fd204))
+* **conditional-approval:** update condition to check if user can trigger the action ([#604](https://github.com/ForestAdmin/forest-rails/issues/604)) ([36f55b3](https://github.com/ForestAdmin/forest-rails/commit/36f55b3bfeb992831c10238264af2931448ccae8))
+
+
+### Features
+
+* **conditional-approval:** users want conditional triggers of conditional approval ([#600](https://github.com/ForestAdmin/forest-rails/issues/600)) ([062bcac](https://github.com/ForestAdmin/forest-rails/commit/062bcace329f302f238324fb0f1db2f00331978e))
+
+
+### BREAKING CHANGES
+
+* **conditional-approval:** Introduction of a new permission module call Ability. The previous permission system PermissionChecker doesn't exist anymore.
+
+# [8.0.0-beta.4](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.3...v8.0.0-beta.4) (2023-02-23)
+
+
+### Bug Fixes
+
+* raise error when an action is call on a smartcollection ([#605](https://github.com/ForestAdmin/forest-rails/issues/605)) ([c98ac23](https://github.com/ForestAdmin/forest-rails/commit/c98ac238d55bef201945b1cd3cfcea806d4c2d26))
+
+# [8.0.0-beta.3](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.2...v8.0.0-beta.3) (2023-02-22)
+
+
+### Bug Fixes
+
+* **conditional-approval:** update condition to check if user can trigger the action ([#604](https://github.com/ForestAdmin/forest-rails/issues/604)) ([d55db18](https://github.com/ForestAdmin/forest-rails/commit/d55db187ea6c12d6aa24e10a509983b0940bc21e))
+
+# [8.0.0-beta.2](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0-beta.1...v8.0.0-beta.2) (2023-02-21)
+
+
+### Bug Fixes
+
+* **apimap:** format apimap liana version ([#603](https://github.com/ForestAdmin/forest-rails/issues/603)) ([37fc823](https://github.com/ForestAdmin/forest-rails/commit/37fc82346870ab367a130c750256d5e37f1de4fd))
+
+# [8.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v8.0.0-beta.1) (2023-02-17)
+
+
+### Features
+
+* **conditional-approval:** users want conditional triggers of conditional approval ([#600](https://github.com/ForestAdmin/forest-rails/issues/600)) ([ca99939](https://github.com/ForestAdmin/forest-rails/commit/ca99939647d20c0a223f9f4f1d1d75bede1128b1))
+
+
+### BREAKING CHANGES
+
+* **conditional-approval:** Introduction of a new permission module call Ability. The previous permission system PermissionChecker doesn't exist anymore.
+
 ## [7.8.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v7.8.1) (2023-02-28)
 
 # [7.8.0](https://github.com/ForestAdmin/forest-rails/compare/v7.7.3...v7.8.0) (2023-01-24)

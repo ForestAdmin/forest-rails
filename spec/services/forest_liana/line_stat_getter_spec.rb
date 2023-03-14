@@ -7,7 +7,6 @@ module ForestLiana
     before(:each) do
       ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
-      Owner.delete_all
     end
 
     describe 'Check client_timezone function' do
@@ -15,7 +14,7 @@ module ForestLiana
         it 'should return false' do
           expect(LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
-            aggregate: "Count",
+            aggregator: "Count",
           }, user).client_timezone).to eq(false)
         end
       end
@@ -28,7 +27,7 @@ module ForestLiana
         it 'should return the timezone' do
           expect(LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
-            aggregate: "Count",
+            aggregator: "Count",
           }, user).client_timezone).to eq('Europe/Paris')
         end
       end
@@ -40,6 +39,7 @@ module ForestLiana
           it 'should return consistent data based on monday as week_start ' do
             # Week should start on monday
             # 08-05-2021 was a Saturday
+            Owner.delete_all
             Owner.create(name: 'Michel', hired_at: Date.parse('08-05-2021'));
             Owner.create(name: 'Robert', hired_at: Date.parse('09-05-2021'));
             Owner.create(name: 'José', hired_at: Date.parse('10-05-2021'));
@@ -47,9 +47,9 @@ module ForestLiana
 
             stat = LineStatGetter.new(Owner, {
               timezone: "Europe/Paris",
-              aggregate: "Count",
-              time_range: "Week",
-              group_by_date_field: "hired_at",
+              aggregator: "Count",
+              timeRange: "Week",
+              groupByFieldName: "hired_at",
             }, user).perform
 
             expect(stat.value.find { |item| item[:label] == "W18-2021" }[:values][:value]).to eq(2)
@@ -65,9 +65,9 @@ module ForestLiana
           Owner.create(name: 'Shuri', hired_at: Date.parse('09-11-2022'));
           stat = LineStatGetter.new(Owner, {
             timezone: "Europe/Paris",
-            aggregate: "Count",
-            time_range: "Day",
-            group_by_date_field: "hired_at",
+            aggregator: "Count",
+            timeRange: "Day",
+            groupByFieldName: "hired_at",
           }, user)
 
           expect(stat.get_resource.where(name: "Shuri").to_sql.downcase.exclude? "order by").to be true
