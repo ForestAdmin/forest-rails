@@ -6,7 +6,7 @@ module.exports = {
         preset: 'angular',
         releaseRules: [
           // Example: `type(scope): subject [force release]`
-          { subject: '*[force release]*', release: 'patch' },
+          { subject: '*\\[force release\\]*', release: 'patch' },
         ],
       },
     ],
