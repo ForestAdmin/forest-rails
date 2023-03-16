@@ -202,7 +202,7 @@ module ForestLiana
     def setup_forest_liana_meta
       ForestLiana.meta = {
         liana: 'forest-rails',
-        liana_version: ForestLiana::VERSION.sub!('.beta', '-beta'),
+        liana_version: ForestLiana::VERSION.sub('.beta', '-beta'),
         stack: {
            database_type: database_type,
            orm_version: Gem.loaded_specs["activerecord"].version.version,
