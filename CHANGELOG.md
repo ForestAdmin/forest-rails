@@ -1,3 +1,10 @@
+## [8.0.1](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0...v8.0.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* schema version generation for all versions ([#613](https://github.com/ForestAdmin/forest-rails/issues/613)) ([de72c6e](https://github.com/ForestAdmin/forest-rails/commit/de72c6e514ebb3483ffaf0fbc739acfeae0a56e7))
+
 # [8.0.0](https://github.com/ForestAdmin/forest-rails/compare/v7.8.1...v8.0.0) (2023-03-14)
 
 
