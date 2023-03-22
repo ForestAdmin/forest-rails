@@ -8,37 +8,29 @@ module ForestLiana
 
       TTL = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 1).to_i.second
 
-      def is_crud_authorized?(action, user, collection)
+      def is_crud_authorized?(action, user, model)
         return true unless has_permission_system?
 
-        user_data = get_user_data(user['id'])
-        collections_data = get_collections_permissions_data
+        collection = find_collection!(model)
+        permissions = get_collections_permissions_data
 
-        begin
-          is_allowed = collections_data[collection.name][action].include? user_data['roleId']
-          # re-fetch if user permission is not allowed (may have been changed)
-          unless is_allowed
-            collections_data = get_collections_permissions_data(true)
-            is_allowed = collections_data[collection.name][action].include? user_data['roleId']
-          end
+        return true if user_authorised?(user, collection, action, permissions)
 
-          is_allowed
-        rescue
-          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
-        end
+        permissions = get_collections_permissions_data(true)
+        user_authorised?(user, collection, action, permissions)
       end
 
-      def is_smart_action_authorized?(user, collection, parameters, endpoint, http_method)
+      def is_smart_action_authorized?(user, model, parameters, endpoint, http_method)
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
-        begin
-          action = find_action_from_endpoint(collection.name, endpoint, http_method).name
 
-          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
-          smart_action_approval.can_execute?
-        rescue
-          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
-        end
+        collection = find_collection!(model)
+        action = find_action_from_endpoint(collection, endpoint, http_method)&.name
+        smart_action = collections_data.dig(collection.name, :actions, action)
+        return false unless smart_action
+
+        smart_action_approval = SmartActionChecker.new(parameters, collection, smart_action, user_data)
+        smart_action_approval.can_execute?
       end
 
       def is_chart_authorized?(user, parameters)
@@ -136,12 +128,26 @@ module ForestLiana
         actions
       end
 
-      def find_action_from_endpoint(collection_name, endpoint, http_method)
-        collection = ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+      def find_collection!(model)
+        collection_name = ForestLiana.name_for(model)
+        result = ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
 
-        return nil unless collection
+        unless result
+          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection for model #{model} doesn't exist", 'collection not found')
+        end
 
+        result
+      end
+
+      def find_action_from_endpoint(collection, endpoint, http_method)
         collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
+      end
+
+      def user_authorised?(user, collection, action, permissions)
+        user_data = get_user_data(user['id'])
+
+        collection_permission = permissions.dig(collection.name, action)
+        collection_permission.present? && collection_permission.include?(user_data['roleId'])
       end
     end
   end

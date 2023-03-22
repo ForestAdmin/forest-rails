@@ -3,9 +3,10 @@ module ForestLiana
     describe Ability do
       let(:dummy_class) { Class.new { extend ForestLiana::Ability } }
       let(:user) { { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' } }
+      let(:collection_name) { 'Island' }
       let(:permission) {
         {
-          'Island' => {
+          collection_name => {
             'browse' => [1],
             'read' => [1],
             'edit' => [1],
@@ -58,158 +59,193 @@ module ForestLiana
         Rails.cache.clear
         Rails.cache.write('forest.users', {'1' => user})
         Rails.cache.write('forest.has_permission', true)
-        Rails.cache.write('forest.collections',permission)
+        Rails.cache.write('forest.collections', permission)
         Rails.cache.write('forest.stats', ['Leaderboard:b47e6fea7f7b9e2c7496d0c9399591f289552de6', 'Objective:fb40159a0cf0025de5fddf9a565e7ba2fef2c2b5', 'Value:b9a64a2ce88cb59ab5e2d5f5b25c6cfe35bf9350'])
         Island.create!(name: "L'île de la muerta")
+        Cars::Motor.create!(description: 'Single phase motor', voltage: 230)
       end
 
       describe 'is_crud_authorized' do
-        it 'should return true when has_permission is false' do
-          Rails.cache.clear
-          allow_any_instance_of(ForestLiana::Ability::Fetch)
-            .to receive(:get_permissions)
-            .and_return(true)
+        subject { dummy_class.is_crud_authorized?('browse', user, model) }
 
-          expect(dummy_class.is_crud_authorized?('browse', user, Island.first)).to equal true
+        context 'when the permission system is not required' do
+          let(:model) { Driver }
+
+          before do
+            Rails.cache.clear
+            allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions).and_return(true)
+          end
+
+          it { is_expected.to eq(true) }
         end
 
-        it 'should return true when the action is in [browse read edit add delete export] list' do
-          %w[browse read edit add delete export].each do |action|
-            expect(dummy_class.is_crud_authorized?(action, user, Island)).to equal true
+        context 'when the model has permissions for the built-in actions' do
+          let(:model) { Island }
+
+          it 'returns true for all of them' do
+            %w[browse read edit add delete export].each do |action|
+              expect(dummy_class.is_crud_authorized?(action, user, model)).to eq(true)
+            end
           end
         end
 
-        it 'should throw an exception when the collection doesn\'t exist' do
-            expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
+        context 'when the model has permissions for the built-in actions under a different collection name' do
+          let(:model) { Cars::Motor }
+          let(:collection_name) { 'Cars__Motor' }
+
+          it 'returns true for all of them' do
+            %w[browse read edit add delete export].each do |action|
+              expect(dummy_class.is_crud_authorized?(action, user, model)).to eq(true)
+            end
+          end
         end
 
-        it 'should re-fetch the permission once when user permission is not allowed' do
-          Rails.cache.write(
-            'forest.collections',
-            {
-              'Island' => {
-                'browse' => [2],
-                'read' => [1],
-                'edit' => [1],
-                'add' => [1],
-                'delete' => [1],
-                'export' => [1],
-                'actions' =>
-                  {
-                    'Mark as Live' => { 'triggerEnabled' => [10, 8, 9],
-                                        'triggerConditions' => [],
-                                        'approvalRequired' => [10, 8],
-                                        'approvalRequiredConditions' =>
-                                          [
-                                            { 'filter' =>
-                                                { 'aggregator' => 'and',
-                                                  'conditions' =>
-                                                    [
-                                                      { 'field' => 'price',
-                                                        'value' => 1,
-                                                        'source' => 'data',
-                                                        'operator' => 'greater_than'
-                                                      }
-                                                    ]
-                                                },
-                                              'roleId' => 10
-                                            }
-                                          ],
-                                        'userApprovalEnabled' => [10, 8, 11],
-                                        'userApprovalConditions' =>
-                                          [
-                                            { 'filter' =>
-                                                { 'aggregator' => 'and',
-                                                  'conditions' =>
-                                                    [
-                                                      { 'field' => 'price',
-                                                        'value' => 1,
-                                                        'source' => 'data',
-                                                        'operator' => 'greater_than'
-                                                      }
-                                                    ]
-                                                },
-                                              'roleId' => 11 }
-                                          ],
-                                        'selfApprovalEnabled' => [8]
+        context 'when there is no collection for the given model' do
+          let(:model) { String }
+
+          it 'raises an error' do
+            expect { subject }.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection for model String doesn\'t exist')
+          end
+        end
+
+        context 'when user permission is not allowed' do
+          let(:model) { Island }
+
+          before do
+            Rails.cache.write(
+              'forest.collections',
+              {
+                'Island' => {
+                  'browse' => [2],
+                  'read' => [1],
+                  'edit' => [1],
+                  'add' => [1],
+                  'delete' => [1],
+                  'export' => [1],
+                  'actions' =>
+                    {
+                      'Mark as Live' => { 'triggerEnabled' => [10, 8, 9],
+                        'triggerConditions' => [],
+                        'approvalRequired' => [10, 8],
+                        'approvalRequiredConditions' =>
+                          [
+                            { 'filter' =>
+                              { 'aggregator' => 'and',
+                                'conditions' =>
+                                  [
+                                    { 'field' => 'price',
+                                      'value' => 1,
+                                      'source' => 'data',
+                                      'operator' => 'greater_than'
+                                    }
+                                  ]
+                              },
+                              'roleId' => 10
+                            }
+                          ],
+                        'userApprovalEnabled' => [10, 8, 11],
+                        'userApprovalConditions' =>
+                          [
+                            { 'filter' =>
+                              { 'aggregator' => 'and',
+                                'conditions' =>
+                                  [
+                                    { 'field' => 'price',
+                                      'value' => 1,
+                                      'source' => 'data',
+                                      'operator' => 'greater_than'
+                                    }
+                                  ]
+                              },
+                              'roleId' => 11 }
+                          ],
+                        'selfApprovalEnabled' => [8]
+                      }
                     }
-                  }
-              }
-            }
-          )
-
-          allow_any_instance_of(ForestLiana::Ability::Fetch)
-            .to receive(:get_permissions)
-            .and_return(
-              {
-                "collections" => {
-                    "Island" => {
-                        "collection" => {
-                            "browseEnabled" => { "roles" => [1] },
-                            "readEnabled" => { "roles" => [1] },
-                            "editEnabled" => { "roles" => [1] },
-                            "addEnabled" => { "roles" => [1] },
-                            "deleteEnabled" => { "roles" => [1] },
-                            "exportEnabled" => { "roles" => [1] }
-                          },
-                        "actions" => {
-
-                        }
-                      }
-                  }
-              }
-            )
-
-          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to equal true
-        end
-
-        it 'should return false when user permission is not allowed' do
-          Rails.cache.delete('forest.users')
-
-          allow_any_instance_of(ForestLiana::Ability::Fetch)
-            .to receive(:get_permissions)
-            .with('/liana/v4/permissions/users')
-            .and_return(
-              [
-                {"id"=>1, "firstName"=>"John", "lastName"=>"Doe", "email"=>"jd@forestadmin.com", "tags"=>{}, "roleId"=>'2', "permissionLevel"=>"admin"}
-              ]
-            )
-
-          allow_any_instance_of(ForestLiana::Ability::Fetch)
-            .to receive(:get_permissions)
-            .with('/liana/v4/permissions/environment')
-            .and_return(
-              {
-                "collections" => {
-                  "Island" => {
-                    "collection" => {
-                      "browseEnabled" => { "roles" => [1] },
-                      "readEnabled" => { "roles" => [1] },
-                      "editEnabled" => { "roles" => [1] },
-                      "addEnabled" => { "roles" => [1] },
-                      "deleteEnabled" => { "roles" => [1] },
-                      "exportEnabled" => { "roles" => [1] }
-                    },
-                    "actions"=>
-                      {
-                        "Mark as Live"=>
-                          {
-                            "triggerEnabled" => {"roles"=>[1]},
-                            "triggerConditions" => [],
-                            "approvalRequired" => {"roles" => [1]},
-                            "approvalRequiredConditions" => [],
-                            "userApprovalEnabled" => {"roles" => [1]},
-                            "userApprovalConditions" => [],
-                            "selfApprovalEnabled" => {"roles" => [1]}
-                          }
-                      }
-                  }
                 }
               }
             )
 
-          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to be false
+            allow_any_instance_of(ForestLiana::Ability::Fetch)
+              .to receive(:get_permissions)
+                .and_return(
+                  {
+                    "collections" => {
+                      "Island" => {
+                        "collection" => {
+                          "browseEnabled" => { "roles" => [1] },
+                          "readEnabled" => { "roles" => [1] },
+                          "editEnabled" => { "roles" => [1] },
+                          "addEnabled" => { "roles" => [1] },
+                          "deleteEnabled" => { "roles" => [1] },
+                          "exportEnabled" => { "roles" => [1] }
+                        },
+                        "actions" => {
+
+                        }
+                      }
+                    }
+                  }
+                )
+          end
+
+          it 're-fetches the permissions once' do
+            is_expected.to eq(true)
+          end
         end
+
+        context 'when the user does not have permission' do
+          let(:model) { Island }
+
+          before do
+            Rails.cache.delete('forest.users')
+
+            allow_any_instance_of(ForestLiana::Ability::Fetch)
+              .to receive(:get_permissions)
+                .with('/liana/v4/permissions/users')
+                .and_return(
+                  [
+                    {"id"=>1, "firstName"=>"John", "lastName"=>"Doe", "email"=>"jd@forestadmin.com", "tags"=>{}, "roleId"=>'2', "permissionLevel"=>"admin"}
+                  ]
+                )
+
+            allow_any_instance_of(ForestLiana::Ability::Fetch)
+              .to receive(:get_permissions)
+                .with('/liana/v4/permissions/environment')
+                .and_return(
+                  {
+                    "collections" => {
+                      "Island" => {
+                        "collection" => {
+                          "browseEnabled" => { "roles" => [1] },
+                          "readEnabled" => { "roles" => [1] },
+                          "editEnabled" => { "roles" => [1] },
+                          "addEnabled" => { "roles" => [1] },
+                          "deleteEnabled" => { "roles" => [1] },
+                          "exportEnabled" => { "roles" => [1] }
+                        },
+                        "actions"=>
+                          {
+                            "Mark as Live"=>
+                              {
+                                "triggerEnabled" => {"roles"=>[1]},
+                                "triggerConditions" => [],
+                                "approvalRequired" => {"roles" => [1]},
+                                "approvalRequiredConditions" => [],
+                                "userApprovalEnabled" => {"roles" => [1]},
+                                "userApprovalConditions" => [],
+                                "selfApprovalEnabled" => {"roles" => [1]}
+                              }
+                          }
+                      }
+                    }
+                  }
+                )
+          end
+
+          it { is_expected.to eq(false) }
+        end
+
       end
 
       describe 'is_chart_authorized?' do
@@ -287,6 +323,8 @@ module ForestLiana
       end
 
       describe 'is_smart_action_authorized?' do
+        subject { dummy_class.is_smart_action_authorized?(user, model,  parameters, '/forest/actions/my_action', 'POST') }
+
         let(:parameters)  {
             ActionController::Parameters.new(
               {
@@ -296,13 +334,13 @@ module ForestLiana
                     "ids": [
                       "1"
                     ],
-                    "collection_name": "Island",
+                    "collection_name": collection_name,
                     "parent_collection_name": nil,
                     "parent_collection_id": nil,
                     "parent_association_name": nil,
                     "all_records": false,
                     "all_records_subset_query": {
-                      "fields[Island]": "id,name",
+                      "fields[#{collection_name}]": "id,name",
                       "fields[file_attachment]": "name",
                       "fields[file_blob]": "id",
                       "page[number]": 1,
@@ -319,12 +357,31 @@ module ForestLiana
           ).permit!
         }
 
-        it 'should return true' do
-          expect(dummy_class.is_smart_action_authorized?(user, Island,  parameters, '/forest/actions/my_action', 'POST')).to equal true
+        context 'when the smart action is authorized for the given model' do
+          let(:model) { Island }
+
+          it { is_expected.to eq(true) }
         end
 
-        it 'should throw an exception when the collection doesn\'t exist' do
-          expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
+        context 'when the smart action is not authorized for the given model' do
+          let(:model) { Driver }
+
+          it { is_expected.to eq(false) }
+        end
+
+        context 'when the smart action is authorized for a model that has a different collection name' do
+          let(:model) { Cars::Motor }
+          let(:collection_name) { 'Cars__Motor' }
+
+          it { is_expected.to eq(true) }
+        end
+
+        context 'when there is no collection for the given model' do
+          let(:model) { String }
+
+          it 'raises an error' do
+            expect { subject }.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection for model String doesn\'t exist')
+          end
         end
       end
     end

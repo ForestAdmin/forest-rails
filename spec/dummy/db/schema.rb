@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_07_27_114930) do
+ActiveRecord::Schema.define(version: 2023_03_22_104323) do
 
   create_table "isle", force: :cascade do |t|
     t.string "name"
@@ -29,6 +29,11 @@ ActiveRecord::Schema.define(version: 2022_07_27_114930) do
 
   create_table "manufacturers", force: :cascade do |t|
     t.string "name"
+  end
+
+  create_table "motors", force: :cascade do |t|
+    t.string "description"
+    t.string "voltage"
   end
 
   create_table "owners", force: :cascade do |t|
