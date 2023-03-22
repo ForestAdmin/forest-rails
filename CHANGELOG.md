@@ -1,3 +1,10 @@
+## [8.0.2](https://github.com/ForestAdmin/forest-rails/compare/v8.0.1...v8.0.2) (2023-03-22)
+
+
+### Bug Fixes
+
+* developers can disable automatic schema send ([#614](https://github.com/ForestAdmin/forest-rails/issues/614)) ([97e1f06](https://github.com/ForestAdmin/forest-rails/commit/97e1f06d9442ed8faf8b22504caf76c8a4b50fe1))
+
 ## [8.0.1](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0...v8.0.1) (2023-03-16)
 
 
