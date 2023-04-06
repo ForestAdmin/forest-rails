@@ -1,3 +1,10 @@
+## [8.0.3](https://github.com/ForestAdmin/forest-rails/compare/v8.0.2...v8.0.3) (2023-04-06)
+
+
+### Bug Fixes
+
+* **permissions:** use forest collection name for check the permission ([#616](https://github.com/ForestAdmin/forest-rails/issues/616)) ([a35646f](https://github.com/ForestAdmin/forest-rails/commit/a35646f4c39cb151aed14e52e1be1099b1946fd9))
+
 ## [8.0.2](https://github.com/ForestAdmin/forest-rails/compare/v8.0.1...v8.0.2) (2023-03-22)
 
 
