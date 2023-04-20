@@ -312,6 +312,39 @@ describe 'Requesting Actions routes', :type => :request  do
     end
   end
 
+  describe 'calling the action on development environment' do
+    let(:all_records) { false }
+    let(:params) {
+      {
+        data: {
+          attributes: {
+            collection_name: 'Island',
+            ids: ['1'],
+            all_records: all_records,
+            smart_action_id: 'Island-Test'
+          },
+          type: 'custom-action-requests'
+        },
+        timezone: 'Europe/Paris'
+      }
+    }
+
+    it 'should respond 200 and perform the action' do
+      Rails.cache.delete('forest.has_permission')
+      Rails.cache.delete('forest.users')
+      Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 2, 'rendering_id' => '1' }})
+      allow_any_instance_of(ForestLiana::Ability::Fetch)
+        .to receive(:get_permissions)
+              .with('/liana/v4/permissions/environment')
+              .and_return(true)
+
+      post '/forest/actions/test', params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(200)
+      expect(JSON.parse(response.body)).to eq({'success' => 'You are OK.'})
+    end
+  end
+
   describe 'calling the action' do
     before(:each) do
       allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
