@@ -1,3 +1,10 @@
+## [8.0.4](https://github.com/ForestAdmin/forest-rails/compare/v8.0.3...v8.0.4) (2023-04-21)
+
+
+### Bug Fixes
+
+* **action:** authorize all actions on development environment ([#617](https://github.com/ForestAdmin/forest-rails/issues/617)) ([72bec24](https://github.com/ForestAdmin/forest-rails/commit/72bec24fee8b0397c80a93654d28f52d9c20cc15))
+
 ## [8.0.3](https://github.com/ForestAdmin/forest-rails/compare/v8.0.2...v8.0.3) (2023-04-06)
 
 
