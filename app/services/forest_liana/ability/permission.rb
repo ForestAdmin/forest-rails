@@ -30,6 +30,8 @@ module ForestLiana
       end
 
       def is_smart_action_authorized?(user, collection, parameters, endpoint, http_method)
+        return true unless has_permission_system?
+
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
         begin
