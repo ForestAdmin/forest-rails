@@ -1,12 +1,12 @@
 module ForestLiana
   class HasManyDissociator
-    def initialize(resource, association, params, fores_user)
+    def initialize(resource, association, params, forest_user)
       @resource = resource
       @association = association
       @params = params
       @with_deletion = @params[:delete].to_s == 'true'
       @data = params['data']
-      @forest_user = fores_user
+      @forest_user = forest_user
     end
 
     def perform
