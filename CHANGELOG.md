@@ -1,3 +1,10 @@
+## [8.0.5](https://github.com/ForestAdmin/forest-rails/compare/v8.0.4...v8.0.5) (2023-05-04)
+
+
+### Bug Fixes
+
+* **relation:** fix dissociate all records of relationship ([#618](https://github.com/ForestAdmin/forest-rails/issues/618)) ([861d76f](https://github.com/ForestAdmin/forest-rails/commit/861d76f2606f66d81df0cd31581950744a4b67a9))
+
 ## [8.0.4](https://github.com/ForestAdmin/forest-rails/compare/v8.0.3...v8.0.4) (2023-04-21)
 
 
