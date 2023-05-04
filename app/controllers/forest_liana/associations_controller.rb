@@ -72,7 +72,7 @@ module ForestLiana
 
     def dissociate
       begin
-        dissociator = HasManyDissociator.new(@resource, @association, params)
+        dissociator = HasManyDissociator.new(@resource, @association, params, forest_user)
         dissociator.perform
 
         head :no_content
