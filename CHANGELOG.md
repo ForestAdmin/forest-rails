@@ -1,3 +1,10 @@
+## [8.0.6](https://github.com/ForestAdmin/forest-rails/compare/v8.0.5...v8.0.6) (2023-05-05)
+
+
+### Bug Fixes
+
+* **hooks:** use exact namespace to prevent controller conflict ([#620](https://github.com/ForestAdmin/forest-rails/issues/620)) ([3e4e7d6](https://github.com/ForestAdmin/forest-rails/commit/3e4e7d64dcbe22f981ef21d82076765fd8a12ed3))
+
 ## [8.0.5](https://github.com/ForestAdmin/forest-rails/compare/v8.0.4...v8.0.5) (2023-05-04)
 
 
