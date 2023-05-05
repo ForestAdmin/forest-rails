@@ -1,5 +1,5 @@
 module ForestLiana
-  class ActionsController < ApplicationController
+  class ActionsController < ForestLiana::ApplicationController
 
     def get_smart_action_hook_request
       if params[:data] && params[:data][:attributes] && params[:data][:attributes][:collection_name]
