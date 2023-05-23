@@ -231,6 +231,7 @@ GEM
       attr_required (>= 0.0.5)
       httpclient (>= 2.4)
     thor (1.2.1)
+    timecop (0.9.6)
     timeout (0.3.1)
     tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
@@ -272,6 +273,7 @@ DEPENDENCIES
   rspec-rails
   simplecov (~> 0.17.0)
   sqlite3 (~> 1.4)
+  timecop
   useragent
 
 BUNDLED WITH

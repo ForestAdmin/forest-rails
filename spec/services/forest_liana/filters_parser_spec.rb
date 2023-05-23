@@ -1,4 +1,6 @@
 module ForestLiana
+  include ActiveSupport::Testing::TimeHelpers
+
   describe FiltersParser do
     let(:timezone) { 'Europe/Paris' }
     let(:resource) { Tree }
@@ -487,6 +489,23 @@ module ForestLiana
       let(:filters) { { 'aggregator' => 'and', 'conditions' => [date_condition_3, simple_condition_1] } }
 
       it { expect(filter_parser.apply_filters_on_previous_interval(date_condition_3).count).to eq 1 }
+    end
+
+    describe 'parse_condition with time operator' do
+      let(:freeze_time) { Time.utc(2022, 5, 22, 0, 0, 0) }
+      before do
+        Timecop.freeze freeze_time
+      end
+
+      after do
+        Timecop.return
+      end
+
+      it 'parse_condition should return the correct query interval' do
+        res = filter_parser.parse_condition({ 'field' => 'created_at', 'operator' => 'previous_quarter', 'value' => nil })
+
+        expect(res[res.index('BETWEEN')..-1]).to eq "BETWEEN '2021-12-31 22:00:00 UTC' AND '2022-03-31 21:59:59 UTC'"
+      end
     end
   end
 end

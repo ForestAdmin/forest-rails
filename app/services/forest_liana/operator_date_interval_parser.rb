@@ -114,9 +114,10 @@ module ForestLiana
       else
         from = to_client_timezone(duration.send(period).ago
           .send("beginning_of_#{period_of_time}"))
-        to = to_client_timezone(1.send(period).ago
+        to = to_client_timezone(duration.send(period).ago
           .send("end_of_#{period_of_time}"))
       end
+
       "BETWEEN '#{from}' AND '#{to}'"
     end
 
@@ -151,9 +152,10 @@ module ForestLiana
       else
         from = to_client_timezone((duration * 2).send(period).ago
           .send("beginning_of_#{period_of_time}"))
-        to = to_client_timezone((1 + duration).send(period).ago
+        to = to_client_timezone((duration * 2).send(period).ago
           .send("end_of_#{period_of_time}"))
       end
+
       "BETWEEN '#{from}' AND '#{to}'"
     end
 
