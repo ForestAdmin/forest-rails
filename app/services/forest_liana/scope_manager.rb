@@ -13,6 +13,7 @@ module ForestLiana
     end
 
     def self.append_scope_for_user(existing_filter, user, collection_name)
+      existing_filter = existing_filter.to_json if existing_filter.is_a?(ActionController::Parameters)
       scope_filter = get_scope_for_user(user, collection_name, as_string: true)
       filters = [existing_filter, scope_filter].compact
 
