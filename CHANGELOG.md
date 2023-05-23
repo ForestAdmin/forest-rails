@@ -1,3 +1,10 @@
+## [8.0.7](https://github.com/ForestAdmin/forest-rails/compare/v8.0.6...v8.0.7) (2023-05-23)
+
+
+### Bug Fixes
+
+* **operator:** replace the hard-coded duration by the duration variable ([#621](https://github.com/ForestAdmin/forest-rails/issues/621)) ([776f23d](https://github.com/ForestAdmin/forest-rails/commit/776f23d4afe47a0d41ca65abf9762e1c86504b3e))
+
 ## [8.0.6](https://github.com/ForestAdmin/forest-rails/compare/v8.0.5...v8.0.6) (2023-05-05)
 
 
