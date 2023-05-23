@@ -1,3 +1,10 @@
+## [8.0.8](https://github.com/ForestAdmin/forest-rails/compare/v8.0.7...v8.0.8) (2023-05-23)
+
+
+### Bug Fixes
+
+* **scope:** cast filters to json before merge with scope ([#622](https://github.com/ForestAdmin/forest-rails/issues/622)) ([b0e0196](https://github.com/ForestAdmin/forest-rails/commit/b0e01966158a37cadb2de7bf6ac177e53912d437))
+
 ## [8.0.7](https://github.com/ForestAdmin/forest-rails/compare/v8.0.6...v8.0.7) (2023-05-23)
 
 
