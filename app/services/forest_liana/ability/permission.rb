@@ -35,9 +35,10 @@ module ForestLiana
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
         begin
-          action = find_action_from_endpoint(collection.name, endpoint, http_method).name
+          puts collection.name.gsub('::', '__')
+          action = find_action_from_endpoint(collection.name.gsub('::', '__'), endpoint, http_method).name
 
-          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
+          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection.name.gsub('::', '__')][:actions][action], user_data)
           smart_action_approval.can_execute?
         rescue
           raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
