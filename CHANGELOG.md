@@ -1,3 +1,10 @@
+## [8.0.9](https://github.com/ForestAdmin/forest-rails/compare/v8.0.8...v8.0.9) (2023-06-13)
+
+
+### Bug Fixes
+
+* **permissions:** use correct collection name for model under module ([#624](https://github.com/ForestAdmin/forest-rails/issues/624)) ([e896763](https://github.com/ForestAdmin/forest-rails/commit/e8967631d93a8375de26f7707f8acba93f6ecc5c))
+
 ## [8.0.8](https://github.com/ForestAdmin/forest-rails/compare/v8.0.7...v8.0.8) (2023-05-23)
 
 
