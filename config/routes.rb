@@ -1,8 +1,6 @@
 ForestLiana::Engine.routes.draw do
   router = ForestLiana::Router.new
 
-  draw(:actions)
-
   # Onboarding
   get '/' => 'apimaps#index'
 
@@ -60,4 +58,7 @@ ForestLiana::Engine.routes.draw do
   put ':collection/:id', to: router
   delete ':collection/:id', to: router
   delete ':collection', to: router
+
+  draw(:actions)
+
 end
