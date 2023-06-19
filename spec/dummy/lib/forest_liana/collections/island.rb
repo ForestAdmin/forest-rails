@@ -69,6 +69,7 @@ class Forest::Island
     }
 
   action 'enums_action',
+    endpoint: 'forest/custom/islands/enums_action',
     fields: [foo, enum],
     hooks: {
       :change => {

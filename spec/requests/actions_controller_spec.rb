@@ -151,7 +151,8 @@ describe 'Requesting Actions routes', :type => :request  do
             }
           }
         }
-        post '/forest/actions/enums_action/hooks/change', params: JSON.dump(p), headers: headers
+
+        post '/forest/custom/islands/enums_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
 
         expected_enum = updated_enum.clone.merge({ :enums => %w[c d e], :value => nil, :widgetEdit => nil})
