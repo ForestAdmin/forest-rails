@@ -1,3 +1,10 @@
+## [8.0.10](https://github.com/ForestAdmin/forest-rails/compare/v8.0.9...v8.0.10) (2023-06-19)
+
+
+### Bug Fixes
+
+* **smartaction:**  register custom endpoint for load/changes hooks ([#626](https://github.com/ForestAdmin/forest-rails/issues/626)) ([3d66b3b](https://github.com/ForestAdmin/forest-rails/commit/3d66b3bff1ddfb3476af3b6f54bcef6f15d79247))
+
 ## [8.0.9](https://github.com/ForestAdmin/forest-rails/compare/v8.0.8...v8.0.9) (2023-06-13)
 
 
