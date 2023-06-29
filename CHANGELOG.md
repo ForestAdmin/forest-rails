@@ -1,3 +1,10 @@
+## [8.0.11](https://github.com/ForestAdmin/forest-rails/compare/v8.0.10...v8.0.11) (2023-06-29)
+
+
+### Bug Fixes
+
+* reporter error on dissociate action ([#627](https://github.com/ForestAdmin/forest-rails/issues/627)) ([edc45aa](https://github.com/ForestAdmin/forest-rails/commit/edc45aa0d09f06d89acec3ac835347129aa35d7c))
+
 ## [8.0.10](https://github.com/ForestAdmin/forest-rails/compare/v8.0.9...v8.0.10) (2023-06-19)
 
 
