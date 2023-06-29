@@ -353,7 +353,7 @@ module ForestLiana
         type = 'Number'
       when :json, :jsonb, :hstore
         type = 'Json'
-      when :string, :text, :citext
+      when :string, :text, :citext, :xml
         type = 'String'
       when :time
         type = 'Time'
