@@ -51,7 +51,7 @@ module ForestLiana
         parameters.delete('action')
         parameters.delete('collection')
         parameters.delete('contextVariables')
-
+        parameters.delete('record_id')
 
         hash_request = "#{parameters['type']}:#{Digest::SHA1.hexdigest(parameters.deep_sort.to_s)}"
         allowed = get_chart_data(user['rendering_id']).to_s.include? hash_request
