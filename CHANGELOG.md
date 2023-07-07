@@ -1,3 +1,10 @@
+## [8.0.12](https://github.com/ForestAdmin/forest-rails/compare/v8.0.11...v8.0.12) (2023-07-07)
+
+
+### Bug Fixes
+
+* allow charts with dynamic query using record id ([#628](https://github.com/ForestAdmin/forest-rails/issues/628)) ([ff2e1b5](https://github.com/ForestAdmin/forest-rails/commit/ff2e1b5231393a8adfbef3b9c4abb135999e73ad))
+
 ## [8.0.11](https://github.com/ForestAdmin/forest-rails/compare/v8.0.10...v8.0.11) (2023-06-29)
 
 
