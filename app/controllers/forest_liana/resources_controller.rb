@@ -129,7 +129,7 @@ module ForestLiana
 
     def destroy
       forest_authorize!('delete', forest_user, @resource)
-        begin
+      begin
         collection_name = ForestLiana.name_for(@resource)
         scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, forest_user, collection_name, params[:timezone])
 
@@ -137,9 +137,12 @@ module ForestLiana
           return render serializer: nil, json: { status: 404 }, status: :not_found
         end
 
-        scoped_records.destroy(params[:id])
-
-        head :no_content
+        if scoped_records.destroy(params[:id])
+          head :no_content
+        else
+          restrict_error = ActiveRecord::DeleteRestrictionError.new
+          render json: { errors: [{ status: :bad_request, detail: restrict_error.message }] }, status: :bad_request
+        end
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Destroy error: #{error}\n#{format_stacktrace(error)}"
