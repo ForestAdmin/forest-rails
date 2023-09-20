@@ -154,9 +154,14 @@ module ForestLiana
       forest_authorize!('delete', forest_user, @resource)
       begin
         ids = ForestLiana::ResourcesGetter.get_ids_from_request(params, forest_user)
-        @resource.destroy(ids) if ids&.any?
-
-        head :no_content
+        @resource.transaction do
+          ids.each do |id|
+            record = @resource.find(id)
+            record.destroy!
+          end
+        end
+      rescue ActiveRecord::RecordNotDestroyed => error
+        render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"
