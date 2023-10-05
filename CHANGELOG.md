@@ -1,3 +1,10 @@
+## [8.0.13](https://github.com/ForestAdmin/forest-rails/compare/v8.0.12...v8.0.13) (2023-10-05)
+
+
+### Bug Fixes
+
+* destroy record with restriction on children ([#632](https://github.com/ForestAdmin/forest-rails/issues/632)) ([da1f8b6](https://github.com/ForestAdmin/forest-rails/commit/da1f8b6cf22d1701a83c40e2a79d056622566715)), closes [#630](https://github.com/ForestAdmin/forest-rails/issues/630)
+
 ## [8.0.12](https://github.com/ForestAdmin/forest-rails/compare/v8.0.11...v8.0.12) (2023-07-07)
 
 
