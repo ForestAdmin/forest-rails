@@ -21,8 +21,8 @@ module ForestLiana
 
           expect(Logger.log.is_a?(::Logger)).to be_truthy
           # RegExp is used to check for the forestadmin logger format
-          expect { Logger.log.error "[error] default logger" }.to output(/\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] Forest .* \[error\]/).to_stdout_from_any_process
-          expect { Logger.log.info "[info] default logger" }.to output(/\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] Forest .* \[info\]/).to_stdout_from_any_process
+          expect { Logger.log.error "[error] default logger" }.to output(/\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} (\+|\-)(\d{4})\] Forest .* \[error\]/).to_stdout_from_any_process
+          expect { Logger.log.info "[info] default logger" }.to output(/\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} (\+|\-)(\d{4})\] Forest .* \[info\]/).to_stdout_from_any_process
         end
       end
     end
