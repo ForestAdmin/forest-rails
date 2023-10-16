@@ -14,9 +14,8 @@ module ForestLiana
             INFO: 37
           }
 
-          logger.datetime_format = '%Y-%m-%d %H:%M:%S'
           logger.formatter = proc do |severity, datetime, progname, message|
-            displayed_message = "[#{datetime}] Forest 🌳🌳🌳  " \
+            displayed_message = "[#{datetime.to_s}] Forest 🌳🌳🌳  " \
                   "#{message}\n"
                 "\e[#{logger_colors[severity.to_sym]}m#{displayed_message}\033[0m"
           end
