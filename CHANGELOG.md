@@ -1,3 +1,10 @@
+## [8.0.14](https://github.com/ForestAdmin/forest-rails/compare/v8.0.13...v8.0.14) (2023-10-16)
+
+
+### Bug Fixes
+
+* **logger:** format of the datetime ([#634](https://github.com/ForestAdmin/forest-rails/issues/634)) ([e356b83](https://github.com/ForestAdmin/forest-rails/commit/e356b838ebd8b426d189f076414841216b5198ab)), closes [#633](https://github.com/ForestAdmin/forest-rails/issues/633)
+
 ## [8.0.13](https://github.com/ForestAdmin/forest-rails/compare/v8.0.12...v8.0.13) (2023-10-05)
 
 
