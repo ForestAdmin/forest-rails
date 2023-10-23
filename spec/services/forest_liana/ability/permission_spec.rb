@@ -335,7 +335,7 @@ module ForestLiana
 
         it 'should return an exception' do
           allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(instance_double(HTTParty::Response, code: 500, body: nil))
-          expect { dummy_class.is_crud_authorized?('browse', user, Island.first) }.to raise_error(ForestLiana::Errors::HTTP403Error, 'Request approval not retrieved')
+          expect { dummy_class.is_crud_authorized?('browse', user, Island.first) }.to raise_error(ForestLiana::Errors::HTTP403Error, 'Permission could not be retrieved')
         end
       end
     end
