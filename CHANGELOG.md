@@ -1,3 +1,10 @@
+## [8.0.15](https://github.com/ForestAdmin/forest-rails/compare/v8.0.14...v8.0.15) (2023-10-23)
+
+
+### Bug Fixes
+
+* **permissions:** fetch permissions return an exception when the server doesn't return an 200 response ([#635](https://github.com/ForestAdmin/forest-rails/issues/635)) ([9a7590b](https://github.com/ForestAdmin/forest-rails/commit/9a7590b5084ed4588fab09bd903822d05a0930fc))
+
 ## [8.0.14](https://github.com/ForestAdmin/forest-rails/compare/v8.0.13...v8.0.14) (2023-10-16)
 
 
