@@ -38,8 +38,6 @@ module ForestLiana
         raise ForestLiana::MESSAGES[:SERVER_TRANSACTION][:INVALID_STATE_MISSING]
       end
 
-      rendering_id = nil
-
       begin
         parsed_state = JSON.parse(state.gsub("'",'"').gsub('=>',':'))
         rendering_id = parsed_state["renderingId"].to_s
