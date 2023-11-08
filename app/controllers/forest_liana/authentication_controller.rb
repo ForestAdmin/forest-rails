@@ -39,7 +39,7 @@ module ForestLiana
     end
 
     def authentication_callback
-      return authentication_exception if request[:error].present?
+      return authentication_exception if params.key?(:error)
 
       begin
         token = @authentication_service.verify_code_and_generate_token(params)
