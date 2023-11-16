@@ -61,6 +61,9 @@ module ForestLiana
       begin
         raise ForestLiana::Errors::AuthenticationOpenIdClientException.new(params[:error], params[:error_description], params[:state])
       rescue => error
+        FOREST_REPORTER.report error
+        FOREST_LOGGER.error "AuthenticationOpenIdClientException: #{error.error_description}"
+
         render json: {
           error: error.error,
           error_description: error.error_description,
