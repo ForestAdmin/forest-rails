@@ -30,6 +30,17 @@ module ForestLiana
       end
     end
 
+    class AuthenticationOpenIdClientException < StandardError
+      attr_reader :error, :error_description, :state
+
+      def initialize(error, error_description, state)
+        super(error_description)
+        @error = error
+        @error_description = error_description
+        @state = state
+      end
+    end
+
     class ExpectedError < StandardError
       attr_reader :error_code, :status, :message, :name
 

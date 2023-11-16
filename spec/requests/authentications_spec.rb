@@ -44,44 +44,66 @@ describe "Authentications", type: :request do
   end
 
   describe "GET /authentication/callback" do
-    before() do
-      response = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3],"role":"Test","tags":[{"key":"city","value":"Paris"}]}}}'
-      allow(ForestLiana::ForestApiRequester).to receive(:get).with(
-        "/liana/v2/renderings/42/authorization", { :headers => { "forest-token" => "THE-ACCESS-TOKEN" }, :query => {} }
-      ).and_return(
-        instance_double(HTTParty::Response, :body => response, :code => 200)
-      )
+    context 'when the response is a 200' do
+      before() do
+        response = '{"data":{"id":666,"attributes":{"first_name":"Alice","last_name":"Doe","email":"alice@forestadmin.com","teams":[1,2,3],"role":"Test","tags":[{"key":"city","value":"Paris"}]}}}'
+        allow(ForestLiana::ForestApiRequester).to receive(:get).with(
+          "/liana/v2/renderings/42/authorization", { :headers => { "forest-token" => "THE-ACCESS-TOKEN" }, :query => {} }
+        ).and_return(
+          instance_double(HTTParty::Response, :body => response, :code => 200)
+        )
 
-      get ForestLiana::Engine.routes.url_helpers.authentication_callback_path + "?code=THE-CODE&state=#{CGI::escape('{"renderingId":42}')}"
+        get ForestLiana::Engine.routes.url_helpers.authentication_callback_path + "?code=THE-CODE&state=#{CGI::escape('{"renderingId":42}')}"
+      end
+
+      it "should respond with a 200 code" do
+        expect(response).to have_http_status(200)
+      end
+
+      it "should return a valid authentication token" do
+        body = JSON.parse(response.body, :symbolize_names => true);
+
+        token = body[:token]
+        decoded = JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
+
+        expected_token_data = {
+          "id" => 666,
+          "email" => 'alice@forestadmin.com',
+          "rendering_id" => "42",
+          "first_name" => 'Alice',
+          "last_name" => 'Doe',
+          "team" => 1,
+          "role" => "Test",
+        }
+
+        expect(decoded).to include(expected_token_data)
+        tags = decoded['tags']
+        expect(tags.length).to eq(1)
+        expect(tags[0]['key']).to eq("city")
+        expect(tags[0]['value']).to eq("Paris")
+        expect(body).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
+        expect(response).to have_http_status(200)
+      end
     end
 
-    it "should respond with a 200 code" do
-      expect(response).to have_http_status(200)
-    end
+    context 'when the response is not a 200' do
+      before() do
+        get ForestLiana::Engine.routes.url_helpers.authentication_callback_path,
+          params: {
+            error: 'TrialBlockedError',
+            error_description: 'Your free trial has ended. We hope you enjoyed your experience with Forest Admin.',
+            state: '{"renderingId":100}'
+          },
+          headers: {
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+          }
+      end
 
-    it "should return a valid authentication token" do
-      body = JSON.parse(response.body, :symbolize_names => true);
-
-      token = body[:token]
-      decoded = JWT.decode(token, ForestLiana.auth_secret, true, { algorithm: 'HS256' })[0]
-
-      expected_token_data = {
-        "id" => 666,
-        "email" => 'alice@forestadmin.com',
-        "rendering_id" => "42",
-        "first_name" => 'Alice',
-        "last_name" => 'Doe',
-        "team" => 1,
-        "role" => "Test",
-      }
-
-      expect(decoded).to include(expected_token_data)
-      tags = decoded['tags']
-      expect(tags.length).to eq(1)
-      expect(tags[0]['key']).to eq("city")
-      expect(tags[0]['value']).to eq("Paris")
-      expect(body).to eq({ token: token, tokenData: decoded.deep_symbolize_keys! })
-      expect(response).to have_http_status(200)
+      it "should respond with a 401 code" do
+        expect(response).to have_http_status(401)
+        expect(response.body).to eq('{"error":"TrialBlockedError","error_description":"Your free trial has ended. We hope you enjoyed your experience with Forest Admin.","state":"{\"renderingId\":100}"}')
+      end
     end
   end
 

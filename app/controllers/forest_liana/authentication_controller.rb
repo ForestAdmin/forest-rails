@@ -39,6 +39,8 @@ module ForestLiana
     end
 
     def authentication_callback
+      return authentication_exception if params.key?(:error)
+
       begin
         token = @authentication_service.verify_code_and_generate_token(params)
 
@@ -52,6 +54,21 @@ module ForestLiana
       rescue => error
         render json: { errors: [{ status: error.try(:error_code) || 500, detail: error.try(:message) }] },
           status: error.try(:status) || :internal_server_error, serializer: nil
+      end
+    end
+
+    def authentication_exception
+      begin
+        raise ForestLiana::Errors::AuthenticationOpenIdClientException.new(params[:error], params[:error_description], params[:state])
+      rescue => error
+        FOREST_REPORTER.report error
+        FOREST_LOGGER.error "AuthenticationOpenIdClientException: #{error.error_description}"
+
+        render json: {
+          error: error.error,
+          error_description: error.error_description,
+          state: error.state
+        }, status: :unauthorized
       end
     end
 
