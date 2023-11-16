@@ -1,3 +1,10 @@
+## [8.0.16](https://github.com/ForestAdmin/forest-rails/compare/v8.0.15...v8.0.16) (2023-11-16)
+
+
+### Bug Fixes
+
+* **authentication:** return errors detail instead of generic error 500 ([#636](https://github.com/ForestAdmin/forest-rails/issues/636)) ([1a69e2f](https://github.com/ForestAdmin/forest-rails/commit/1a69e2f0ce308b060454ca98ab0d08fd8f14a862))
+
 ## [8.0.15](https://github.com/ForestAdmin/forest-rails/compare/v8.0.14...v8.0.15) (2023-10-23)
 
 
