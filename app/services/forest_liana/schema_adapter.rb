@@ -241,8 +241,28 @@ module ForestLiana
     def add_associations
       SchemaUtils.associations(@model).each do |association|
         begin
+          if SchemaUtils.polymorphic?(association)
+            collection.fields << {
+              field: association.name.to_s,
+              type: get_type_for_association(association),
+              relationship: get_relationship_type(association),
+              reference: "#{association.name.to_s}.id",
+              inverse_of: '', # todo
+              is_filterable: !is_many_association(association),
+              is_sortable: true,
+              is_read_only: false,
+              is_required: false,
+              is_virtual: false,
+              default_value: nil,
+              integration: nil,
+              relationships: nil,
+              widget: nil,
+              validations: [],
+              is_polymorphic: true,
+              polymorphic_types: get_polymorphic_types(association)
+            }
           # NOTICE: Delete the association if the targeted model is excluded.
-          if !SchemaUtils.model_included?(association.klass)
+          elsif !SchemaUtils.model_included?(association.klass)
             field = collection.fields.find do |x|
               x[:field] == association.foreign_key
             end
@@ -275,6 +295,17 @@ module ForestLiana
         automatic_inverse_of(association)
     end
 
+    def get_polymorphic_types(relation)
+      types = []
+      ForestLiana.models.each do |model|
+        unless model.reflect_on_all_associations.select { |association| association.options[:as] == relation.name.to_sym }.empty?
+          types << model.name
+        end
+      end
+
+      types
+    end
+
     def automatic_inverse_of(association)
       name = association.active_record.name.demodulize.underscore
 
@@ -288,7 +319,7 @@ module ForestLiana
     def get_schema_for_column(column)
       column_type = get_type_for(column)
       return nil if column_type.nil?
-
+      
       schema = {
         field: column.name,
         type: column_type,

@@ -35,6 +35,8 @@ module ForestLiana
       'relationship',
       'widget',
       'validations',
+      'is_polymorphic',
+      'polymorphic_types',
     ]
     KEYS_VALIDATION = [
       'message',
