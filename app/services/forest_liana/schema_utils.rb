@@ -15,7 +15,6 @@ module ForestLiana
     def self.one_associations(active_record_class)
       self.associations(active_record_class).select do |x|
         [:has_one, :belongs_to].include?(x.macro)
-        # && !SchemaUtils.polymorphic?(x)
       end
     end
 
