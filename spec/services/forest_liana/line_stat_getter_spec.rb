@@ -10,6 +10,19 @@ module ForestLiana
       Owner.delete_all
     end
 
+    describe 'with not allowed aggregator' do
+      it 'should raise an error' do
+        expect {
+          LineStatGetter.new(Owner, {
+            timezone: "Europe/Paris",
+            aggregate: "eval",
+            time_range: "Week",
+            group_by_date_field: "`ls`",
+          }, user)
+        }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid aggregate function')
+      end
+    end
+
     describe 'Check client_timezone function' do
       describe 'with a SQLite database' do
         it 'should return false' do
