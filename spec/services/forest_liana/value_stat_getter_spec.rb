@@ -27,6 +27,26 @@ module ForestLiana
 
     subject { ValueStatGetter.new(model, params, user) }
 
+    describe 'with not allowed aggregator' do
+      let(:model) { User }
+      let(:collection) { 'users' }
+      let(:scopes) { { } }
+      let(:params) {
+        {
+          type: "Value",
+          collection: collection,
+          timezone: "Europe/Paris",
+          aggregate: "eval",
+          aggregate_field: "`ls`"
+        }
+      }
+
+      it 'should have a countCurrent of nil' do
+        subject.perform
+        expect(subject.record.value[:countCurrent]).to be_nil
+      end
+    end
+
     describe 'with empty scopes' do
       let(:scopes) { { } }
 
