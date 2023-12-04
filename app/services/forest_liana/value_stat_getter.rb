@@ -30,8 +30,6 @@ module ForestLiana
       aggregator = @params[:aggregate].downcase
       uniq = aggregator == 'count'
 
-      return if !%w[count sum avg max min].include? aggregator
-
       if Rails::VERSION::MAJOR >= 4
         if uniq
           # NOTICE: uniq is deprecated since Rails 5.0
