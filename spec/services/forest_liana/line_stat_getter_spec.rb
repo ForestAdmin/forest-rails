@@ -9,6 +9,19 @@ module ForestLiana
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
     end
 
+    describe 'with not allowed aggregator' do
+      it 'should raise an error' do
+        expect {
+          LineStatGetter.new(Owner, {
+            timezone: "Europe/Paris",
+            aggregator: "eval",
+            timeRange: "Week",
+            groupByFieldName: "`ls`",
+          }, user)
+        }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid aggregate function')
+      end
+    end
+
     describe 'Check client_timezone function' do
       describe 'with a SQLite database' do
         it 'should return false' do
