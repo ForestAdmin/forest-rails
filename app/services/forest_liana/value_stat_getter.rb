@@ -20,7 +20,7 @@ module ForestLiana
 
       @record = Model::Stat.new(value: {
         countCurrent: aggregate(resource),
-        countPrevious: previous_value ? count(previous_value) : nil
+        countPrevious: previous_value ? aggregate(previous_value) : nil
       })
     end
 
