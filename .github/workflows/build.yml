@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - beta
+      - 7.x.x
   pull_request:
 
 env:
