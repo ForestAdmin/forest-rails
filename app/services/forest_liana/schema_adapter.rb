@@ -247,8 +247,8 @@ module ForestLiana
               type: get_type_for_association(association),
               relationship: get_relationship_type(association),
               reference: "#{association.name.to_s}.id",
-              inverse_of: '', # todo
-              is_filterable: !is_many_association(association),
+              inverse_of: @model.name.demodulize.underscore,
+              is_filterable: false,
               is_sortable: true,
               is_read_only: false,
               is_required: false,
@@ -258,9 +258,12 @@ module ForestLiana
               relationships: nil,
               widget: nil,
               validations: [],
-              is_polymorphic: true,
-              polymorphic_types: get_polymorphic_types(association)
+              polymorphic_referenced_models: get_polymorphic_types(association)
             }
+
+            collection.fields = collection.fields.reject do |field|
+              field[:field] == association.foreign_key || field[:field] == association.foreign_type
+            end
           # NOTICE: Delete the association if the targeted model is excluded.
           elsif !SchemaUtils.model_included?(association.klass)
             field = collection.fields.find do |x|
@@ -319,7 +322,7 @@ module ForestLiana
     def get_schema_for_column(column)
       column_type = get_type_for(column)
       return nil if column_type.nil?
-      
+
       schema = {
         field: column.name,
         type: column_type,
