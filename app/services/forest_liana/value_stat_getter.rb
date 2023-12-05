@@ -19,24 +19,25 @@ module ForestLiana
       end
 
       @record = Model::Stat.new(value: {
-        countCurrent: count(resource),
-        countPrevious: previous_value ? count(previous_value) : nil
+        countCurrent: aggregate(resource),
+        countPrevious: previous_value ? aggregate(previous_value) : nil
       })
     end
 
     private
 
-    def count(value)
-      uniq = @params[:aggregate].downcase == 'count'
+    def aggregate(value)
+      aggregator = @params[:aggregate].downcase
+      uniq = aggregator == 'count'
 
       if Rails::VERSION::MAJOR >= 4
         if uniq
           # NOTICE: uniq is deprecated since Rails 5.0
           value = Rails::VERSION::MAJOR >= 5 ? value.distinct : value.uniq
         end
-        value.send(@params[:aggregate].downcase, aggregate_field)
+        value.send(aggregator, aggregate_field)
       else
-        value.send(@params[:aggregate].downcase, aggregate_field, distinct: uniq)
+        value.send(aggregator, aggregate_field, distinct: uniq)
       end
     end
 
