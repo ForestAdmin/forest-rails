@@ -1,3 +1,10 @@
+## [7.8.2](https://github.com/ForestAdmin/forest-rails/compare/v7.8.1...v7.8.2) (2023-12-05)
+
+
+### Bug Fixes
+
+* security vulnerabilities RCE ([#637](https://github.com/ForestAdmin/forest-rails/issues/637)) ([d64b390](https://github.com/ForestAdmin/forest-rails/commit/d64b39075e3e28313b833a4d761080788f991ebd))
+
 ## [7.8.1](https://github.com/ForestAdmin/forest-rails/compare/v7.8.0...v7.8.1) (2023-02-28)
 
 # [7.8.0](https://github.com/ForestAdmin/forest-rails/compare/v7.7.3...v7.8.0) (2023-01-24)
