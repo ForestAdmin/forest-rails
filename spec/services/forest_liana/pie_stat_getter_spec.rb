@@ -23,90 +23,113 @@ module ForestLiana
       }
     end
 
-    let(:model) { Tree }
-    let(:collection) { 'trees' }
-    let(:params) {
-      {
-        type: 'Pie',
-        sourceCollectionName: collection,
-        timezone: 'Europe/Paris',
-        aggregator: 'Count',
-        groupByFieldName: groupByFieldName
-      }
-    }
-
-    subject { PieStatGetter.new(model, params, user) }
-
-    describe 'with empty scopes' do
+    describe 'with not allowed aggregator' do
       let(:scopes) { { } }
-
-      describe 'with an aggregate on the name field' do
-        let(:groupByFieldName) { 'name' }
-
-        it 'should be as many categories as records count' do
-          subject.perform
-          expect(subject.record.value).to match_array([
-            {:key => "Old Tree n1", :value => 1},
-            {:key => "Old Tree n2", :value => 1},
-            {:key => "Old Tree n3", :value => 1},
-            {:key => "Old Tree n4", :value => 1},
-            {:key => "Young Tree n1", :value => 1},
-            {:key => "Young Tree n2", :value => 1},
-            {:key => "Young Tree n3", :value => 1},
-            {:key => "Young Tree n4", :value => 1},
-            {:key => "Young Tree n5", :value => 1}
-          ])
-        end
-      end
-
-      describe 'with an aggregate on the age field' do
-        let(:groupByFieldName) { 'age' }
-
-        it 'should be as many categories as different ages among records' do
-          subject.perform
-          expect(subject.record.value).to eq [{ :key => 3, :value => 5}, { :key => 15, :value => 4 }]
-        end
-      end
-    end
-
-    describe 'with scopes' do
-      let(:scopes) {
+      let(:model) { Tree }
+      let(:collection) { 'trees' }
+      let(:params) {
         {
-          'Tree' => {
-            'scope'=> {
-              'filter'=> {
-                'aggregator' => 'and',
-                'conditions' => [
-                  { 'field' => 'age', 'operator' => 'less_than', 'value' => 10 }
-                ]
-              },
-              'dynamicScopesValues' => { }
-            }
-          }
+          type: 'Pie',
+          sourceCollectionName: collection,
+          timezone: 'Europe/Paris',
+          aggregator: 'eval',
+          groupByFieldName: '`ls`'
         }
       }
 
-      describe 'with an aggregate on the name field' do
-        let(:groupByFieldName) { 'name' }
+      it 'should raise an error' do
+        expect {
+          PieStatGetter.new(model, params, user)
+        }.to raise_error(ForestLiana::Errors::HTTP422Error, 'Invalid aggregate function')
+      end
+    end
 
-        it 'should be as many categories as records inside the scope' do
-          subject.perform
-          expect(subject.record.value).to match_array([
-            {:key => "Young Tree n1", :value => 1},
-            {:key => "Young Tree n2", :value => 1},
-            {:key => "Young Tree n3", :value => 1},
-            {:key => "Young Tree n4", :value => 1},
-            {:key => "Young Tree n5", :value => 1}
-          ])
+    describe 'with valid aggregate function' do
+      let(:model) { Tree }
+      let(:collection) { 'trees' }
+      let(:params) {
+        {
+          type: 'Pie',
+          sourceCollectionName: collection,
+          timezone: 'Europe/Paris',
+          aggregator: 'Count',
+          groupByFieldName: groupByFieldName
+        }
+      }
+
+      subject { PieStatGetter.new(model, params, user) }
+
+      describe 'with empty scopes' do
+        let(:scopes) { { } }
+
+        describe 'with an aggregate on the name field' do
+          let(:groupByFieldName) { 'name' }
+
+          it 'should be as many categories as records count' do
+            subject.perform
+            expect(subject.record.value).to match_array([
+              {:key => "Old Tree n1", :value => 1},
+              {:key => "Old Tree n2", :value => 1},
+              {:key => "Old Tree n3", :value => 1},
+              {:key => "Old Tree n4", :value => 1},
+              {:key => "Young Tree n1", :value => 1},
+              {:key => "Young Tree n2", :value => 1},
+              {:key => "Young Tree n3", :value => 1},
+              {:key => "Young Tree n4", :value => 1},
+              {:key => "Young Tree n5", :value => 1}
+            ])
+          end
+        end
+
+        describe 'with an aggregate on the age field' do
+          let(:groupByFieldName) { 'age' }
+
+          it 'should be as many categories as different ages among records' do
+            subject.perform
+            expect(subject.record.value).to eq [{ :key => 3, :value => 5}, { :key => 15, :value => 4 }]
+          end
         end
       end
 
-      describe 'with an aggregate on the age field' do
-        let(:groupByFieldName) { 'age' }
+      describe 'with scopes' do
+        let(:scopes) {
+          {
+            'Tree' => {
+              'scope'=> {
+                'filter'=> {
+                  'aggregator' => 'and',
+                  'conditions' => [
+                    { 'field' => 'age', 'operator' => 'less_than', 'value' => 10 }
+                  ]
+                },
+                'dynamicScopesValues' => { }
+              }
+            }
+          }
+        }
 
-        it 'should be only one category' do
-          subject.perform
-          expect(subject.record.value).to eq [{ :key => 3, :value => 5}]
+        describe 'with an aggregate on the name field' do
+          let(:groupByFieldName) { 'name' }
+
+          it 'should be as many categories as records inside the scope' do
+            subject.perform
+            expect(subject.record.value).to match_array([
+              {:key => "Young Tree n1", :value => 1},
+              {:key => "Young Tree n2", :value => 1},
+              {:key => "Young Tree n3", :value => 1},
+              {:key => "Young Tree n4", :value => 1},
+              {:key => "Young Tree n5", :value => 1}
+            ])
+          end
+        end
+
+        describe 'with an aggregate on the age field' do
+          let(:groupByFieldName) { 'age' }
+
+          it 'should be only one category' do
+            subject.perform
+            expect(subject.record.value).to eq [{ :key => 3, :value => 5}]
+          end
         end
       end
     end
