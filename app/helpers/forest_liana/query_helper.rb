@@ -4,16 +4,13 @@ module ForestLiana
       associations = SchemaUtils.one_associations(resource)
         .select do |association|
           if SchemaUtils.polymorphic?(association)
-            # models =
-             true
+            SchemaUtils.polymorphic_models(association).all? { |model| SchemaUtils.model_included?(model) }
           else
             SchemaUtils.model_included?(association.klass)
           end
         end
-        # .select { |association| SchemaUtils.model_included?(association.klass) }
 
       associations
-      #add polymorphics
     end
 
     def self.get_one_association_names_symbol(resource)
