@@ -6,6 +6,8 @@ module ForestLiana
     SCHEMA_FILENAME = File.join(Dir.pwd, '.forestadmin-schema.json')
 
     def initialize
+      ForestLiana.apimap = []
+      ForestLiana.models = []
       @integration_stripe_valid = false
       @integration_intercom_valid = false
 
