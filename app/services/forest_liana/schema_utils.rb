@@ -4,7 +4,12 @@ module ForestLiana
     def self.associations(active_record_class)
       active_record_class.reflect_on_all_associations.select do |association|
         begin
-          polymorphic?(association) ? true : !is_active_type?(association.klass)
+          if (ENV['ENABLE_SUPPORT_POLYMORPHISM'].present? && ENV['ENABLE_SUPPORT_POLYMORPHISM'].downcase == 'true')
+            polymorphic?(association) ? true : !is_active_type?(association.klass)
+          else
+            !polymorphic?(association) && !is_active_type?(association.klass)
+          end
+
         rescue
           FOREST_LOGGER.warn "Unknown association #{association.name} on class #{active_record_class.name}"
           false
