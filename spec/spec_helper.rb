@@ -19,6 +19,8 @@ SimpleCov.add_filter ['app/services/forest_liana/ability/fetch.rb', 'lib/forest_
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
   ENV['RAILS_ENV'] = 'test'
+  ENV['ENABLE_SUPPORT_POLYMORPHISM'] = 'true'
+
   require File.expand_path('../dummy/config/environment', __FILE__)
 
   # rspec-expectations config goes here. You can use an alternate
