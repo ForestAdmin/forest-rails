@@ -1,3 +1,10 @@
+# [8.1.0](https://github.com/ForestAdmin/forest-rails/compare/v8.0.17...v8.1.0) (2024-01-18)
+
+
+### Features
+
+* add polymorphic associations support ([#640](https://github.com/ForestAdmin/forest-rails/issues/640)) ([2d43bc3](https://github.com/ForestAdmin/forest-rails/commit/2d43bc35c9085555cb3625a4325e427e80a5ec6a))
+
 ## [8.0.17](https://github.com/ForestAdmin/forest-rails/compare/v8.0.16...v8.0.17) (2023-12-05)
 
 
