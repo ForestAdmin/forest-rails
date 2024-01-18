@@ -3,6 +3,7 @@ module ForestLiana
     before(:all) do
       Tree.connection
       User.connection
+      Address.connection
       Island.connection
     end
 
@@ -13,6 +14,21 @@ module ForestLiana
           expect(associations.length).to eq(0)
         end
       end
+
+      context 'on a model having 1 polymorphic association' do
+        it 'should return the association' do
+          associations = QueryHelper.get_one_associations(Address)
+          expect(associations).to eq(Address.reflect_on_all_associations(:belongs_to))
+        end
+
+        it 'should return 0 association when one of referenced model was excluded' do
+          allow(ForestLiana).to receive(:excluded_models).and_return(['User'])
+          associations = QueryHelper.get_one_associations(Address)
+
+          expect(associations.length).to eq(0)
+        end
+      end
+
 
       context 'on a model having some belongsTo associations' do
         let(:expected_association_attributes) do
@@ -75,7 +91,15 @@ module ForestLiana
           expect(tables_associated_to_relations_name['isle'].second).to eq(:eponymous_island)
         end
       end
-    end
 
+      context 'on a model having polymorphic association' do
+        tables_associated_to_relations_name =
+          QueryHelper.get_tables_associated_to_relations_name(Address)
+
+        it 'should return the one-one associations' do
+          expect(tables_associated_to_relations_name.keys.length).to eq(1)
+        end
+      end
+    end
   end
 end

@@ -265,7 +265,19 @@ module ForestLiana
 
         SchemaUtils.associations(active_record_class).each do |a|
           begin
-            if SchemaUtils.model_included?(a.klass)
+            if SchemaUtils.polymorphic?(a)
+              serializer.send(serializer_association(a), a.name) {
+                if [:has_one, :belongs_to].include?(a.macro)
+                  begin
+                    object.send(a.name)
+                  rescue ActiveRecord::RecordNotFound
+                    nil
+                  end
+                else
+                  []
+                end
+              }
+            elsif SchemaUtils.model_included?(a.klass)
               serializer.send(serializer_association(a), a.name) {
                 if [:has_one, :belongs_to].include?(a.macro)
                   begin
@@ -369,6 +381,7 @@ module ForestLiana
 
     def attributes(active_record_class)
       return [] if @is_smart_collection
+
       active_record_class.column_names.select do |column_name|
         !association?(active_record_class, column_name)
       end
@@ -410,6 +423,9 @@ module ForestLiana
     def foreign_keys(active_record_class)
       begin
         SchemaUtils.belongs_to_associations(active_record_class).map(&:foreign_key)
+        SchemaUtils.belongs_to_associations(active_record_class)
+                   .select { |association| !SchemaUtils.polymorphic?(association) }
+                   .map(&:foreign_key)
       rescue => err
         # Association foreign_key triggers an error. Put the stacktrace and
         # returns no foreign keys.

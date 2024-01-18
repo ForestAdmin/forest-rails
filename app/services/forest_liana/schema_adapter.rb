@@ -241,8 +241,33 @@ module ForestLiana
     def add_associations
       SchemaUtils.associations(@model).each do |association|
         begin
+          if SchemaUtils.polymorphic?(association) &&
+            (ENV['ENABLE_SUPPORT_POLYMORPHISM'].present? && ENV['ENABLE_SUPPORT_POLYMORPHISM'].downcase == 'true')
+            
+            collection.fields << {
+              field: association.name.to_s,
+              type: get_type_for_association(association),
+              relationship: get_relationship_type(association),
+              reference: "#{association.name.to_s}.id",
+              inverse_of: @model.name.demodulize.underscore,
+              is_filterable: false,
+              is_sortable: true,
+              is_read_only: false,
+              is_required: false,
+              is_virtual: false,
+              default_value: nil,
+              integration: nil,
+              relationships: nil,
+              widget: nil,
+              validations: [],
+              polymorphic_referenced_models: get_polymorphic_types(association)
+            }
+
+            collection.fields = collection.fields.reject do |field|
+              field[:field] == association.foreign_key || field[:field] == association.foreign_type
+            end
           # NOTICE: Delete the association if the targeted model is excluded.
-          if !SchemaUtils.model_included?(association.klass)
+          elsif !SchemaUtils.model_included?(association.klass)
             field = collection.fields.find do |x|
               x[:field] == association.foreign_key
             end
@@ -273,6 +298,17 @@ module ForestLiana
     def inverse_of(association)
       association.inverse_of.try(:name).try(:to_s) ||
         automatic_inverse_of(association)
+    end
+
+    def get_polymorphic_types(relation)
+      types = []
+      ForestLiana.models.each do |model|
+        unless model.reflect_on_all_associations.select { |association| association.options[:as] == relation.name.to_sym }.empty?
+          types << model.name
+        end
+      end
+
+      types
     end
 
     def automatic_inverse_of(association)

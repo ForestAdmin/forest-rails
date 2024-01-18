@@ -5,7 +5,12 @@ module ForestLiana
   class Bootstrapper
     SCHEMA_FILENAME = File.join(Dir.pwd, '.forestadmin-schema.json')
 
-    def initialize
+    def initialize(reset_api_map = false)
+      if reset_api_map
+        ForestLiana.apimap = []
+        ForestLiana.models = []
+      end
+
       @integration_stripe_valid = false
       @integration_intercom_valid = false
 
