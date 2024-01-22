@@ -43,7 +43,6 @@ module ForestLiana
 
         context 'when the polymorphic support was disabled' do
           it 'should not define the association' do
-            ENV['ENABLE_SUPPORT_POLYMORPHISM'] = 'false'
             Bootstrapper.new(true)
             collection = ForestLiana.apimap.find do |object|
               object.name.to_s == ForestLiana.name_for(Address)
