@@ -23,6 +23,7 @@ module ForestLiana
 
       let(:expected_application_models) do
         [
+          Address,
           Island,
           Location,
           Manufacturer,

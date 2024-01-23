@@ -33,16 +33,23 @@ module ForestLiana
     def optimize_record_loading(resource, records)
       instance_dependent_associations = instance_dependent_associations(resource)
 
+      polymorphic = []
       preload_loads = @includes.select do |name|
-        targetModelConnection = resource.reflect_on_association(name).klass.connection
-        targetModelDatabase = targetModelConnection.current_database if targetModelConnection.respond_to? :current_database
-        resourceConnection = resource.connection
-        resourceDatabase = resourceConnection.current_database if resourceConnection.respond_to? :current_database
+        association = resource.reflect_on_association(name)
+        if SchemaUtils.polymorphic?(association)
+          polymorphic << association.name
+          false
+        else
+          targetModelConnection = association.klass.connection
+          targetModelDatabase = targetModelConnection.current_database if targetModelConnection.respond_to? :current_database
+          resourceConnection = resource.connection
+          resourceDatabase = resourceConnection.current_database if resourceConnection.respond_to? :current_database
 
-        targetModelDatabase != resourceDatabase
+          targetModelDatabase != resourceDatabase
+        end
       end + instance_dependent_associations
 
-      result = records.eager_load(@includes - preload_loads)
+      result = records.eager_load(@includes - preload_loads - polymorphic)
 
       # Rails 7 can mix `eager_load` and `preload` in the same scope
       # Rails 6 cannot mix `eager_load` and `preload` in the same scope

@@ -327,6 +327,17 @@ module ForestLiana
           expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
         end
       end
+
+      describe 'when the server doesn\'t return an success response' do
+        before do
+          Rails.cache.clear
+        end
+
+        it 'should return an exception' do
+          allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(instance_double(HTTParty::Response, code: 500, body: nil))
+          expect { dummy_class.is_crud_authorized?('browse', user, Island.first) }.to raise_error(ForestLiana::Errors::HTTP403Error, 'Permission could not be retrieved')
+        end
+      end
     end
   end
 end

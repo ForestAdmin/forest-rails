@@ -6,20 +6,21 @@ module ForestLiana
     module Permission
       include Fetch
 
-      TTL = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 1).to_i.second
+      TTL = (ENV['FOREST_PERMISSIONS_EXPIRATION_IN_SECONDS'] || 900).to_i.second
 
       def is_crud_authorized?(action, user, collection)
         return true unless has_permission_system?
 
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
+        collection_name = ForestLiana.name_for(collection)
 
         begin
-          is_allowed = collections_data[collection.name][action].include? user_data['roleId']
+          is_allowed = collections_data[collection_name][action].include? user_data['roleId']
           # re-fetch if user permission is not allowed (may have been changed)
           unless is_allowed
             collections_data = get_collections_permissions_data(true)
-            is_allowed = collections_data[collection.name][action].include? user_data['roleId']
+            is_allowed = collections_data[collection_name][action].include? user_data['roleId']
           end
 
           is_allowed
@@ -29,12 +30,14 @@ module ForestLiana
       end
 
       def is_smart_action_authorized?(user, collection, parameters, endpoint, http_method)
+        return true unless has_permission_system?
+
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
         begin
-          action = find_action_from_endpoint(collection.name, endpoint, http_method).name
+          action = find_action_from_endpoint(ForestLiana.name_for(collection), endpoint, http_method).name
 
-          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection.name][:actions][action], user_data)
+          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[ForestLiana.name_for(collection)][:actions][action], user_data)
           smart_action_approval.can_execute?
         rescue
           raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
@@ -48,7 +51,7 @@ module ForestLiana
         parameters.delete('action')
         parameters.delete('collection')
         parameters.delete('contextVariables')
-
+        parameters.delete('record_id')
 
         hash_request = "#{parameters['type']}:#{Digest::SHA1.hexdigest(parameters.deep_sort.to_s)}"
         allowed = get_chart_data(user['rendering_id']).to_s.include? hash_request

@@ -72,12 +72,13 @@ module ForestLiana
 
     def dissociate
       begin
-        dissociator = HasManyDissociator.new(@resource, @association, params)
+        dissociator = HasManyDissociator.new(@resource, @association, params, forest_user)
         dissociator.perform
 
         head :no_content
       rescue => error
-        FOREST_LOGGER.error "Association Associate error: #{error}\n#{format_stacktrace(error)}"
+        FOREST_REPORTER.report error
+        FOREST_LOGGER.error "Association Dissociate error: #{error}\n#{format_stacktrace(error)}"
         internal_server_error
       end
     end

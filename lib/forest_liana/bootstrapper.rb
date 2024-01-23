@@ -5,7 +5,12 @@ module ForestLiana
   class Bootstrapper
     SCHEMA_FILENAME = File.join(Dir.pwd, '.forestadmin-schema.json')
 
-    def initialize
+    def initialize(reset_api_map = false)
+      if reset_api_map
+        ForestLiana.apimap = []
+        ForestLiana.models = []
+      end
+
       @integration_stripe_valid = false
       @integration_intercom_valid = false
 
@@ -202,7 +207,7 @@ module ForestLiana
     def setup_forest_liana_meta
       ForestLiana.meta = {
         liana: 'forest-rails',
-        liana_version: ForestLiana::VERSION.sub!('.beta', '-beta'),
+        liana_version: ForestLiana::VERSION.sub('.beta', '-beta'),
         stack: {
            database_type: database_type,
            orm_version: Gem.loaded_specs["activerecord"].version.version,

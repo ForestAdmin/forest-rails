@@ -10,6 +10,41 @@ module ForestLiana
       end
 
       describe "with a given collection" do
+        describe "when the collection has a polymorphic relation" do
+          it "should save the relation" do
+            collections = [
+              {
+                "name" => "Address",
+                "fields" => [
+                  {
+                    "field" => "addressable",
+                    "type" => "Number",
+                    "relationship" => "BelongsTo",
+                    "reference" => "addressable.id",
+                    "inverse_of" => "address",
+                    "is_filterable" => false,
+                    "is_sortable" => true,
+                    "is_read_only" => false,
+                    "is_required" => false,
+                    "is_virtual" => false,
+                    "default_value" => nil,
+                    "integration" => nil,
+                    "relationships" => nil,
+                    "widget" => nil,
+                    "validations" => [],
+                    "polymorphic_referenced_models" => ["User"]
+                  },
+                ],
+                "actions" => [],
+                "segments" => []
+              }
+            ]
+            schema_file_updater = ForestLiana::SchemaFileUpdater.new("test.txt", collections, {})
+            expect(schema_file_updater.instance_variable_get(:@collections))
+              .to eq(collections)
+          end
+        end
+
         describe "when the collection has a smart action action" do
           it "should save the smart action" do
             collections = [{

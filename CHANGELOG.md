@@ -1,3 +1,129 @@
+# [8.1.0](https://github.com/ForestAdmin/forest-rails/compare/v8.0.17...v8.1.0) (2024-01-18)
+
+
+### Features
+
+* add polymorphic associations support ([#640](https://github.com/ForestAdmin/forest-rails/issues/640)) ([2d43bc3](https://github.com/ForestAdmin/forest-rails/commit/2d43bc35c9085555cb3625a4325e427e80a5ec6a))
+
+## [8.0.17](https://github.com/ForestAdmin/forest-rails/compare/v8.0.16...v8.0.17) (2023-12-05)
+
+
+### Bug Fixes
+
+* security vulnerabilities RCE on 8.x.x ([#638](https://github.com/ForestAdmin/forest-rails/issues/638)) ([02679b5](https://github.com/ForestAdmin/forest-rails/commit/02679b584b84eda3d1f0be6e6482d130b53b4d19))
+
+## [8.0.16](https://github.com/ForestAdmin/forest-rails/compare/v8.0.15...v8.0.16) (2023-11-16)
+
+
+### Bug Fixes
+
+* **authentication:** return errors detail instead of generic error 500 ([#636](https://github.com/ForestAdmin/forest-rails/issues/636)) ([1a69e2f](https://github.com/ForestAdmin/forest-rails/commit/1a69e2f0ce308b060454ca98ab0d08fd8f14a862))
+
+## [8.0.15](https://github.com/ForestAdmin/forest-rails/compare/v8.0.14...v8.0.15) (2023-10-23)
+
+
+### Bug Fixes
+
+* **permissions:** fetch permissions return an exception when the server doesn't return an 200 response ([#635](https://github.com/ForestAdmin/forest-rails/issues/635)) ([9a7590b](https://github.com/ForestAdmin/forest-rails/commit/9a7590b5084ed4588fab09bd903822d05a0930fc))
+
+## [8.0.14](https://github.com/ForestAdmin/forest-rails/compare/v8.0.13...v8.0.14) (2023-10-16)
+
+
+### Bug Fixes
+
+* **logger:** format of the datetime ([#634](https://github.com/ForestAdmin/forest-rails/issues/634)) ([e356b83](https://github.com/ForestAdmin/forest-rails/commit/e356b838ebd8b426d189f076414841216b5198ab)), closes [#633](https://github.com/ForestAdmin/forest-rails/issues/633)
+
+## [8.0.13](https://github.com/ForestAdmin/forest-rails/compare/v8.0.12...v8.0.13) (2023-10-05)
+
+
+### Bug Fixes
+
+* destroy record with restriction on children ([#632](https://github.com/ForestAdmin/forest-rails/issues/632)) ([da1f8b6](https://github.com/ForestAdmin/forest-rails/commit/da1f8b6cf22d1701a83c40e2a79d056622566715)), closes [#630](https://github.com/ForestAdmin/forest-rails/issues/630)
+
+## [8.0.12](https://github.com/ForestAdmin/forest-rails/compare/v8.0.11...v8.0.12) (2023-07-07)
+
+
+### Bug Fixes
+
+* allow charts with dynamic query using record id ([#628](https://github.com/ForestAdmin/forest-rails/issues/628)) ([ff2e1b5](https://github.com/ForestAdmin/forest-rails/commit/ff2e1b5231393a8adfbef3b9c4abb135999e73ad))
+
+## [8.0.11](https://github.com/ForestAdmin/forest-rails/compare/v8.0.10...v8.0.11) (2023-06-29)
+
+
+### Bug Fixes
+
+* reporter error on dissociate action ([#627](https://github.com/ForestAdmin/forest-rails/issues/627)) ([edc45aa](https://github.com/ForestAdmin/forest-rails/commit/edc45aa0d09f06d89acec3ac835347129aa35d7c))
+
+## [8.0.10](https://github.com/ForestAdmin/forest-rails/compare/v8.0.9...v8.0.10) (2023-06-19)
+
+
+### Bug Fixes
+
+* **smartaction:**  register custom endpoint for load/changes hooks ([#626](https://github.com/ForestAdmin/forest-rails/issues/626)) ([3d66b3b](https://github.com/ForestAdmin/forest-rails/commit/3d66b3bff1ddfb3476af3b6f54bcef6f15d79247))
+
+## [8.0.9](https://github.com/ForestAdmin/forest-rails/compare/v8.0.8...v8.0.9) (2023-06-13)
+
+
+### Bug Fixes
+
+* **permissions:** use correct collection name for model under module ([#624](https://github.com/ForestAdmin/forest-rails/issues/624)) ([e896763](https://github.com/ForestAdmin/forest-rails/commit/e8967631d93a8375de26f7707f8acba93f6ecc5c))
+
+## [8.0.8](https://github.com/ForestAdmin/forest-rails/compare/v8.0.7...v8.0.8) (2023-05-23)
+
+
+### Bug Fixes
+
+* **scope:** cast filters to json before merge with scope ([#622](https://github.com/ForestAdmin/forest-rails/issues/622)) ([b0e0196](https://github.com/ForestAdmin/forest-rails/commit/b0e01966158a37cadb2de7bf6ac177e53912d437))
+
+## [8.0.7](https://github.com/ForestAdmin/forest-rails/compare/v8.0.6...v8.0.7) (2023-05-23)
+
+
+### Bug Fixes
+
+* **operator:** replace the hard-coded duration by the duration variable ([#621](https://github.com/ForestAdmin/forest-rails/issues/621)) ([776f23d](https://github.com/ForestAdmin/forest-rails/commit/776f23d4afe47a0d41ca65abf9762e1c86504b3e))
+
+## [8.0.6](https://github.com/ForestAdmin/forest-rails/compare/v8.0.5...v8.0.6) (2023-05-05)
+
+
+### Bug Fixes
+
+* **hooks:** use exact namespace to prevent controller conflict ([#620](https://github.com/ForestAdmin/forest-rails/issues/620)) ([3e4e7d6](https://github.com/ForestAdmin/forest-rails/commit/3e4e7d64dcbe22f981ef21d82076765fd8a12ed3))
+
+## [8.0.5](https://github.com/ForestAdmin/forest-rails/compare/v8.0.4...v8.0.5) (2023-05-04)
+
+
+### Bug Fixes
+
+* **relation:** fix dissociate all records of relationship ([#618](https://github.com/ForestAdmin/forest-rails/issues/618)) ([861d76f](https://github.com/ForestAdmin/forest-rails/commit/861d76f2606f66d81df0cd31581950744a4b67a9))
+
+## [8.0.4](https://github.com/ForestAdmin/forest-rails/compare/v8.0.3...v8.0.4) (2023-04-21)
+
+
+### Bug Fixes
+
+* **action:** authorize all actions on development environment ([#617](https://github.com/ForestAdmin/forest-rails/issues/617)) ([72bec24](https://github.com/ForestAdmin/forest-rails/commit/72bec24fee8b0397c80a93654d28f52d9c20cc15))
+
+## [8.0.3](https://github.com/ForestAdmin/forest-rails/compare/v8.0.2...v8.0.3) (2023-04-06)
+
+
+### Bug Fixes
+
+* **permissions:** use forest collection name for check the permission ([#616](https://github.com/ForestAdmin/forest-rails/issues/616)) ([a35646f](https://github.com/ForestAdmin/forest-rails/commit/a35646f4c39cb151aed14e52e1be1099b1946fd9))
+
+## [8.0.2](https://github.com/ForestAdmin/forest-rails/compare/v8.0.1...v8.0.2) (2023-03-22)
+
+
+### Bug Fixes
+
+* developers can disable automatic schema send ([#614](https://github.com/ForestAdmin/forest-rails/issues/614)) ([97e1f06](https://github.com/ForestAdmin/forest-rails/commit/97e1f06d9442ed8faf8b22504caf76c8a4b50fe1))
+
+## [8.0.1](https://github.com/ForestAdmin/forest-rails/compare/v8.0.0...v8.0.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* schema version generation for all versions ([#613](https://github.com/ForestAdmin/forest-rails/issues/613)) ([de72c6e](https://github.com/ForestAdmin/forest-rails/commit/de72c6e514ebb3483ffaf0fbc739acfeae0a56e7))
+
 # [8.0.0](https://github.com/ForestAdmin/forest-rails/compare/v7.8.1...v8.0.0) (2023-03-14)
 
 

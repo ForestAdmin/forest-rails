@@ -107,7 +107,7 @@ module ForestLiana
             if ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP']
               FOREST_LOGGER.warn "DEPRECATION WARNING: FOREST_DEACTIVATE_AUTOMATIC_APIMAP option has been renamed. Please use FOREST_DISABLE_AUTO_SCHEMA_APPLY instead."
             end
-            bootstrapper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY'] || Rails.env.test?
+            bootstrapper.synchronize unless ENV['FOREST_DEACTIVATE_AUTOMATIC_APIMAP'] == true || ENV['FOREST_DISABLE_AUTO_SCHEMA_APPLY'] == true || Rails.env.test?
           end
         end
       end
