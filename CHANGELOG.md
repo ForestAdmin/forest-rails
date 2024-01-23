@@ -1,3 +1,15 @@
+# [9.0.0-beta.1](https://github.com/ForestAdmin/forest-rails/compare/v8.1.0...v9.0.0-beta.1) (2024-01-23)
+
+
+### Features
+
+* **polymorphic:** enabled polymorphic associations support by default ([#644](https://github.com/ForestAdmin/forest-rails/issues/644)) ([92853a9](https://github.com/ForestAdmin/forest-rails/commit/92853a91ed23b8834f85582aef8f24c6b12f3cb0))
+
+
+### BREAKING CHANGES
+
+* **polymorphic:** polymorphic association support enabled by default. It is no longer necessary to define the env variable ENABLE_SUPPORT_POLYMORPHISM
+
 # [8.1.0](https://github.com/ForestAdmin/forest-rails/compare/v8.0.17...v8.1.0) (2024-01-18)
 
 
