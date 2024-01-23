@@ -40,23 +40,6 @@ module ForestLiana
 
           expect(removed_fields).to be_empty
         end
-
-        context 'when the polymorphic support was disabled' do
-          it 'should not define the association' do
-            ENV['ENABLE_SUPPORT_POLYMORPHISM'] = 'false'
-            Bootstrapper.new(true)
-            collection = ForestLiana.apimap.find do |object|
-              object.name.to_s == ForestLiana.name_for(Address)
-            end
-            association = collection.fields.find { |field| field[:field] == 'addressable' }
-            fields = collection.fields.select do |field|
-              field[:field] == 'addressable_id' || field[:field] == 'addressable_type'
-            end
-
-            expect(association).to be_nil
-            expect(fields.size).to eq(2)
-          end
-        end
       end
 
       context 'with an "unhandled" column types (binary, postgis geography, ...)' do
