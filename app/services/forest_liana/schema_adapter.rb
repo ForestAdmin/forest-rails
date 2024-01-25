@@ -242,8 +242,6 @@ module ForestLiana
       SchemaUtils.associations(@model).each do |association|
         begin
           if SchemaUtils.polymorphic?(association) &&
-            (ENV['ENABLE_SUPPORT_POLYMORPHISM'].present? && ENV['ENABLE_SUPPORT_POLYMORPHISM'].downcase == 'true')
-            
             collection.fields << {
               field: association.name.to_s,
               type: get_type_for_association(association),
