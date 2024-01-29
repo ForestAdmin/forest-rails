@@ -1,3 +1,10 @@
+# [9.1.0](https://github.com/ForestAdmin/forest-rails/compare/v9.0.0...v9.1.0) (2024-01-29)
+
+
+### Features
+
+* allow search on UUID v7 and v8  ([#647](https://github.com/ForestAdmin/forest-rails/issues/647)) ([c3be02a](https://github.com/ForestAdmin/forest-rails/commit/c3be02af69bcbbb6c2a21cbea19a228939383e55))
+
 # [9.0.0](https://github.com/ForestAdmin/forest-rails/compare/v8.1.0...v9.0.0) (2024-01-25)
 
 
