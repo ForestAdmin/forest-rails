@@ -6,6 +6,7 @@ on:
       - main
       - beta
       - 7.x.x
+      - 8.x.x
   pull_request:
 
 env:
@@ -73,7 +74,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [lint, test]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/7.x.x')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta' || github.ref == 'refs/heads/7.x.x' || github.ref == 'refs/heads/8.x.x')
     steps:
       - uses: actions/checkout@v2
         with:
