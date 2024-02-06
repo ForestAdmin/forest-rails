@@ -5,7 +5,8 @@ module ForestLiana
     @@scope_cache_expiration_delta = 300
 
     def self.apply_scopes_on_records(records, forest_user, collection_name, timezone)
-      scope_filters = get_scope_for_user(forest_user, collection_name, as_string: true)
+      #scope_filters = get_scope_for_user(forest_user, collection_name, as_string: true)
+      scope_filters = get_scope(collection_name, user, request_context_variables)
 
       return records if scope_filters.blank?
 
@@ -30,18 +31,18 @@ module ForestLiana
       end
     end
 
-    def self.get_scope_for_user(user, collection_name, as_string: false)
-      raise 'Missing required rendering_id' unless user['rendering_id']
-      raise 'Missing required collection_name' unless collection_name
-
-      collection_scope = get_scope(collection_name, user)
-
-      return nil unless collection_scope
-
-      filters = format_dynamic_values(user['id'], collection_scope)
-
-      as_string && filters ? JSON.generate(filters) : filters
-    end
+    # def self.get_scope_for_user(user, collection_name, as_string: false)
+    #   raise 'Missing required rendering_id' unless user['rendering_id']
+    #   raise 'Missing required collection_name' unless collection_name
+    #
+    #   collection_scope = get_scope(collection_name, user)
+    #
+    #   return nil unless collection_scope
+    #
+    #   filters = format_dynamic_values(user['id'], collection_scope)
+    #
+    #   as_string && filters ? JSON.generate(filters) : filters
+    # end
 
     #def self.get_collection_scope(rendering_id, collection_name)
       # if !@@scopes_cache[rendering_id]
