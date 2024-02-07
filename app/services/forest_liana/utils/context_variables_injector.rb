@@ -34,18 +34,19 @@ module ForestLiana
       def self.inject_context_in_filter(filter, context_variables)
         return nil unless filter
 
-        # if filter.is_a?(ConditionTreeBranch)
-        #   return ConditionTreeBranch.new(
-        #     filter.aggregator,
-        #     filter.conditions.map { |condition| inject_context_in_filter(condition, context_variables) }
-        #   )
-        # end
-        #
-        # ConditionTreeLeaf.new(
-        #   filter.field,
-        #   filter.operator,
-        #   inject_context_in_value(filter.value, context_variables)
-        # )
+        if filter.key? 'aggregator'
+          return {
+            'aggregator' => filter['aggregator'],
+            'conditions' => filter['conditions'].map { |condition| inject_context_in_filter(condition, context_variables) }
+          }
+        end
+
+        {
+          'field' => filter['field'],
+          'operator' => filter['operator'],
+          'value' => inject_context_in_value(filter['value'], context_variables)
+        }
+
       end
     end
   end

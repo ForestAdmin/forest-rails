@@ -10,8 +10,8 @@ module ForestLiana
       USER_VALUE_TEAM_PREFIX = 'currentUser.team.'.freeze
 
       def initialize(team, user, request_context_variables = nil)
-        @team = team  #.transform_keys(&:to_sym)
-        @user = user  #.transform_keys(&:to_sym)
+        @team = team
+        @user = user
         @request_context_variables = request_context_variables
       end
 
@@ -25,14 +25,14 @@ module ForestLiana
 
       def get_current_user_data(context_variable_key)
         if context_variable_key.start_with?(USER_VALUE_TEAM_PREFIX)
-          return team[context_variable_key[USER_VALUE_TEAM_PREFIX.length..].to_sym]
+          return team[context_variable_key[USER_VALUE_TEAM_PREFIX.length..]]
         end
 
         if context_variable_key.start_with?(USER_VALUE_TAG_PREFIX)
-          return user[:tags][context_variable_key[USER_VALUE_TAG_PREFIX.length..]]
+          return user['tags'][context_variable_key[USER_VALUE_TAG_PREFIX.length..]]
         end
 
-        user[context_variable_key[USER_VALUE_PREFIX.length..].to_sym]
+        user[context_variable_key[USER_VALUE_PREFIX.length..]]
       end
     end
   end
