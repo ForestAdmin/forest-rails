@@ -1,7 +1,7 @@
 module ForestLiana
   module Utils
     class ContextVariables
-      attr_reader :team, :user #, :request_context_variables
+      attr_reader :team, :user, :request_context_variables
 
       USER_VALUE_PREFIX = 'currentUser.'.freeze
 
@@ -18,7 +18,7 @@ module ForestLiana
       def get_value(context_variable_key)
         return get_current_user_data(context_variable_key) if context_variable_key.start_with?(USER_VALUE_PREFIX)
 
-        request_context_variables[context_variable_key]
+        request_context_variables[context_variable_key] if request_context_variables
       end
 
       private
