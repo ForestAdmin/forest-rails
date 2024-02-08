@@ -4,7 +4,7 @@ module ForestLiana
     @@scope_cache_expiration_delta = 300
 
     def self.apply_scopes_on_records(records, user, collection_name, timezone)
-      scope_filters = get_scope(collection_name, user, request_context_variables)
+      scope_filters = get_scope(collection_name, user)
 
       return records if scope_filters.blank?
 
@@ -36,6 +36,8 @@ module ForestLiana
     end
 
     def self.inject_context_variables(filter, user, request_context_variables = nil)
+      filter = JSON.parse(filter) if filter.is_a? String
+
       retrieve = get_scope_and_team_data(user['rendering_id'])
       context_variables = Utils::ContextVariables.new(retrieve['team'], user, request_context_variables)
 
