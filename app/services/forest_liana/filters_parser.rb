@@ -87,10 +87,6 @@ module ForestLiana
       value = condition['value']
       field_name = condition['field']
 
-      if value.is_a?(String) && value.start_with?('{{')
-        value = @params[:contextVariables][value.gsub(/[{}]/, '')]
-      end
-
       if @operator_date_parser.is_date_operator?(operator)
         condition = @operator_date_parser.get_date_filter(operator, value)
         return "#{parse_field_name(field_name)} #{condition}"
