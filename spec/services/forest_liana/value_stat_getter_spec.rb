@@ -18,7 +18,7 @@ module ForestLiana
     describe 'with not allowed aggregator' do
       let(:model) { User }
       let(:collection) { 'users' }
-      let(:scopes) { { } }
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
       let(:params) {
         {
           type: "Value",
@@ -50,7 +50,7 @@ module ForestLiana
       subject { ValueStatGetter.new(model, params, user) }
 
       describe 'with empty scopes' do
-        let(:scopes) { { } }
+        let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
 
         describe 'with a simple filter matching no entries' do
           let(:model) { User }
@@ -89,16 +89,16 @@ module ForestLiana
       describe 'with scopes' do
         let(:scopes) {
           {
-            'User' => {
-              'scope'=> {
-                'filter'=> {
+            'scopes' =>
+              {
+                'User' => {
                   'aggregator' => 'and',
-                  'conditions' => [
-                    { 'field' => 'title', 'operator' => 'not_equal', 'value' => 'villager' }
-                  ]
-                },
-                'dynamicScopesValues' => { }
-              }
+                  'conditions' => [{'field' => 'title', 'operator' => 'not_equal', 'value' => 'villager'}]
+                }
+              },
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
             }
           }
         }
