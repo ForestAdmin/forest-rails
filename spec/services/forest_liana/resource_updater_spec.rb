@@ -13,7 +13,7 @@ module ForestLiana
       }
       let(:rendering_id) { 13 }
       let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
-      let(:scopes) { { } }
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
 
       subject {
         described_class.new(User, params, user)
@@ -66,19 +66,21 @@ module ForestLiana
 
       describe 'with scope excluding target record' do
         let(:attributes) { { name: 'Gandalf' } }
-        let(:scopes) { {
-          'User' => {
-            'scope'=> {
-              'filter'=> {
-                'aggregator' => 'and',
-                'conditions' => [
-                  { 'field' => 'id', 'operator' => 'greater_than', 'value' => 2 }
-                ]
+        let(:scopes) {
+          {
+            'scopes' =>
+              {
+                'User' => {
+                  'aggregator' => 'and',
+                  'conditions' => [{'field' => 'id', 'operator' => 'greater_than', 'value' => 2}]
+                }
               },
-              'dynamicScopesValues' => { }
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
             }
           }
-        } }
+        }
 
         it 'should not update the record name' do
           subject.perform
@@ -90,19 +92,21 @@ module ForestLiana
 
       describe 'with scope including target record' do
         let(:attributes) { { name: 'Gandalf' } }
-        let(:scopes) { {
-          'User' => {
-            'scope'=> {
-              'filter'=> {
-                'aggregator' => 'and',
-                'conditions' => [
-                  { 'field' => 'id', 'operator' => 'less_than', 'value' => 2 }
-                ]
+        let(:scopes) {
+          {
+            'scopes' =>
+              {
+                'User' => {
+                  'aggregator' => 'and',
+                  'conditions' => [{'field' => 'id', 'operator' => 'less_than', 'value' => 2}]
+                }
               },
-              'dynamicScopesValues' => { }
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
             }
           }
-        } }
+        }
 
         it 'should not update the record name' do
           subject.perform
