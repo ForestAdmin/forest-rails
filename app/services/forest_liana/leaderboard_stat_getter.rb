@@ -27,7 +27,7 @@ module ForestLiana
     end
 
     def get_scoped_model(model, forest_user, timezone)
-      scope_filters = ForestLiana::ScopeManager.get_scope_for_user(forest_user, model.name, as_string: true)
+      scope_filters = ForestLiana::ScopeManager.get_scope(model.name, forest_user)
 
       return model.unscoped if scope_filters.blank?
 

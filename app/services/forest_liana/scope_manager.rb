@@ -27,7 +27,7 @@ module ForestLiana
     end
 
     def self.get_scope(collection_name, user, request_context_variables = nil)
-      retrieve = get_scope_and_team_data(user['rendering_id'])
+      retrieve = fetch_scopes(user['rendering_id'])
       scope = retrieve['scopes'][collection_name]
 
       return nil if scope.nil?
@@ -38,32 +38,21 @@ module ForestLiana
     def self.inject_context_variables(filter, user, request_context_variables = nil)
       filter = JSON.parse(filter) if filter.is_a? String
 
-      retrieve = get_scope_and_team_data(user['rendering_id'])
+      retrieve = fetch_scopes(user['rendering_id'])
       context_variables = Utils::ContextVariables.new(retrieve['team'], user, request_context_variables)
 
       Utils::ContextVariablesInjector.inject_context_in_filter(filter, context_variables).to_json
     end
 
-    def self.fetch_scopes(rendering_id)
-      query_parameters = { 'renderingId' => rendering_id }
-      response = ForestLiana::ForestApiRequester.get('/liana/scopes', query: query_parameters)
-
-      if response.is_a?(Net::HTTPOK)
-        JSON.parse(response.body)
-      else
-        raise 'Unable to fetch scopes'
-      end
-    end
-
     def self.invalidate_scope_cache(rendering_id)
-      Rails.cache.delete('forest.scopes')
+      Rails.cache.delete('forest.scopes.' + rendering_id.to_s)
     end
 
-    def self.get_scope_and_team_data(rendering_id)
+    def self.fetch_scopes(rendering_id)
       response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
 
       if response.is_a?(Net::HTTPOK)
-        Rails.cache.fetch('forest.scopes', expires_in: @@scope_cache_expiration_delta) do
+        Rails.cache.fetch('forest.scopes.' + rendering_id.to_s, expires_in: @@scope_cache_expiration_delta) do
           data = {}
           parse_response = JSON.parse(response.body)
 
@@ -73,7 +62,7 @@ module ForestLiana
           data
         end
       else
-        raise ForestLiana::Errors::HTTP403Error.new("Scope could not be retrieved")
+        raise 'Unable to fetch scopes'
       end
     end
 
