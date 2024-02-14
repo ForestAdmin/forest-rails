@@ -22,7 +22,7 @@ module ForestLiana
       when 1
         filters[0]
       else
-        "{\"aggregator\":\"and\",\"conditions\":[#{existing_filter},#{scope_filter}]}"
+        { 'aggregator' => 'and', 'conditions' => [existing_filter, scope_filter] }
       end
     end
 
@@ -41,7 +41,7 @@ module ForestLiana
       retrieve = fetch_scopes(user['rendering_id'])
       context_variables = Utils::ContextVariables.new(retrieve['team'], user, request_context_variables)
 
-      Utils::ContextVariablesInjector.inject_context_in_filter(filter, context_variables).to_json
+      Utils::ContextVariablesInjector.inject_context_in_filter(filter, context_variables)
     end
 
     def self.invalidate_scope_cache(rendering_id)

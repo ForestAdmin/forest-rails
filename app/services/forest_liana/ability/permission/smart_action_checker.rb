@@ -49,7 +49,7 @@ module ForestLiana
           begin
             attributes = @parameters[:data][:attributes]
             records = FiltersParser.new(
-              @smart_action[condition_name][0]['filter'].to_json,
+              @smart_action[condition_name][0]['filter'],
               @collection,
               @parameters[:timezone],
               @parameters

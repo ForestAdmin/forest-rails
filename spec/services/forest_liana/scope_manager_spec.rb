@@ -64,7 +64,7 @@ module ForestLiana
             {
               'aggregator' => 'and',
               'conditions' => [{'field' => 'id', 'operator' => 'greater_than', 'value' => '1'}]
-            }.to_json
+            }
           )
 
           expect(Rails.cache.read('forest.scopes.' + rendering_id.to_s)).to eq(
@@ -106,7 +106,7 @@ module ForestLiana
             {
               'aggregator' => 'and',
               'conditions' => [{'field' => 'email', 'operator' => 'equal', 'value' => 'jd@forestadmin.com'}]
-            }.to_json
+            }
           )
 
           expect(Rails.cache.read('forest.scopes.' + rendering_id.to_s)).to eq(
@@ -192,7 +192,7 @@ module ForestLiana
           let(:existing_filter) { {'aggregator' => 'and', 'conditions' => [{'field' => 'shipping_status', 'operator' => 'equal', 'value' => 'Shipped'}]} }
 
           it 'should return only the existing filters' do
-            expect(filters).to eq existing_filter.to_json
+            expect(filters).to eq existing_filter
           end
         end
       end
@@ -234,7 +234,15 @@ module ForestLiana
             let(:existing_filter) { {'aggregator' => 'and', 'conditions' => [{'field' => 'shipping_status', 'operator' => 'equal', 'value' => 'Shipped'}]} }
 
             it 'should return the aggregation between the existing filters and the scope filters' do
-              expect(filters).to eq "{\"aggregator\":\"and\",\"conditions\":[#{existing_filter.to_json},{\"aggregator\":\"and\",\"conditions\":[{\"field\":\"id\",\"operator\":\"greater_than\",\"value\":\"1\"}]}]}"
+              expect(filters).to eq(
+                {
+                  'aggregator' => 'and',
+                  'conditions' => [
+                    existing_filter,
+                    { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'id', 'operator' => 'greater_than', 'value' => '1' }] }
+                  ]
+                }
+              )
             end
           end
         end
@@ -303,7 +311,7 @@ module ForestLiana
           described_class.apply_scopes_on_records(resource, user, collection_name, nil)
 
           expect(ForestLiana::FiltersParser).to have_received(:new).with(
-            "{\"aggregator\":\"and\",\"conditions\":[{\"field\":\"id\",\"operator\":\"greater_than\",\"value\":\"1\"}]}",
+            {'aggregator' => 'and','conditions' => [{'field' => 'id', 'operator' => 'greater_than', 'value' => '1'}]},
             resource,
             nil
           ).once
