@@ -1,3 +1,10 @@
+## [9.1.7](https://github.com/ForestAdmin/forest-rails/compare/v9.1.6...v9.1.7) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch hosted-git-info dependency vulnerabilities ([#656](https://github.com/ForestAdmin/forest-rails/issues/656)) ([1ce4d5b](https://github.com/ForestAdmin/forest-rails/commit/1ce4d5b08196cff81a3f3cff31d13b7eb212f37c))
+
 ## [9.1.6](https://github.com/ForestAdmin/forest-rails/compare/v9.1.5...v9.1.6) (2024-02-28)
 
 
