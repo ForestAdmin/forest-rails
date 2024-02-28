@@ -1,3 +1,10 @@
+## [9.1.3](https://github.com/ForestAdmin/forest-rails/compare/v9.1.2...v9.1.3) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch ip dependency vulnerabilities ([#652](https://github.com/ForestAdmin/forest-rails/issues/652)) ([1b25da8](https://github.com/ForestAdmin/forest-rails/commit/1b25da850e43ae0cf03f569ea9b1d68142b81878))
+
 ## [9.1.2](https://github.com/ForestAdmin/forest-rails/compare/v9.1.1...v9.1.2) (2024-02-28)
 
 
