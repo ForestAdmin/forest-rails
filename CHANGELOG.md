@@ -1,3 +1,10 @@
+## [9.1.4](https://github.com/ForestAdmin/forest-rails/compare/v9.1.3...v9.1.4) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch lodash dependency vulnerabilities ([#653](https://github.com/ForestAdmin/forest-rails/issues/653)) ([e80e814](https://github.com/ForestAdmin/forest-rails/commit/e80e814a249f0e6929ada9f8c2da2e18fb985047))
+
 ## [9.1.3](https://github.com/ForestAdmin/forest-rails/compare/v9.1.2...v9.1.3) (2024-02-28)
 
 
