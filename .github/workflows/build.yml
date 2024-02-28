@@ -10,7 +10,7 @@ on:
   pull_request:
 
 env:
-  NODE_VERSION: 14.17.6
+  NODE_VERSION: 14.21.3
 
 jobs:
   lint:
