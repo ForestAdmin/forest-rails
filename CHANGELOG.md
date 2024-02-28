@@ -1,3 +1,10 @@
+## [9.1.1](https://github.com/ForestAdmin/forest-rails/compare/v9.1.0...v9.1.1) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch commitlint dependency vulnerabilities ([#650](https://github.com/ForestAdmin/forest-rails/issues/650)) ([1f71c65](https://github.com/ForestAdmin/forest-rails/commit/1f71c65cf9ff86c55a2b33a71445031d4bb7bff2))
+
 # [9.1.0](https://github.com/ForestAdmin/forest-rails/compare/v9.0.0...v9.1.0) (2024-01-29)
 
 
