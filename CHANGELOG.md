@@ -1,3 +1,10 @@
+## [9.1.6](https://github.com/ForestAdmin/forest-rails/compare/v9.1.5...v9.1.6) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch http-cache-semantics dependency vulnerabilities ([#655](https://github.com/ForestAdmin/forest-rails/issues/655)) ([9a7b7bc](https://github.com/ForestAdmin/forest-rails/commit/9a7b7bc0c68dc13210965b1a64be6b5bed594301))
+
 ## [9.1.5](https://github.com/ForestAdmin/forest-rails/compare/v9.1.4...v9.1.5) (2024-02-28)
 
 
