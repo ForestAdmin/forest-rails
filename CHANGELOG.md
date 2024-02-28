@@ -1,3 +1,10 @@
+## [9.1.9](https://github.com/ForestAdmin/forest-rails/compare/v9.1.8...v9.1.9) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch npm dependency vulnerabilities ([#658](https://github.com/ForestAdmin/forest-rails/issues/658)) ([169997a](https://github.com/ForestAdmin/forest-rails/commit/169997a0a4de9a91cca3cdb815e3e9624ee605be))
+
 ## [9.1.8](https://github.com/ForestAdmin/forest-rails/compare/v9.1.7...v9.1.8) (2024-02-28)
 
 
