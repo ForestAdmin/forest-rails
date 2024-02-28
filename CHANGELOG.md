@@ -1,3 +1,10 @@
+## [9.1.2](https://github.com/ForestAdmin/forest-rails/compare/v9.1.1...v9.1.2) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch semver dependency vulnerabilities ([#651](https://github.com/ForestAdmin/forest-rails/issues/651)) ([7ed497e](https://github.com/ForestAdmin/forest-rails/commit/7ed497e4db064945a0037ea52d7ea93a028703cf))
+
 ## [9.1.1](https://github.com/ForestAdmin/forest-rails/compare/v9.1.0...v9.1.1) (2024-02-28)
 
 
