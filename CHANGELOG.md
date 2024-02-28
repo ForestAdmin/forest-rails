@@ -1,3 +1,10 @@
+## [9.1.8](https://github.com/ForestAdmin/forest-rails/compare/v9.1.7...v9.1.8) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch path-parse dependency vulnerabilities ([#657](https://github.com/ForestAdmin/forest-rails/issues/657)) ([9ed91e8](https://github.com/ForestAdmin/forest-rails/commit/9ed91e89db906557c0571845f6423d6004b174be))
+
 ## [9.1.7](https://github.com/ForestAdmin/forest-rails/compare/v9.1.6...v9.1.7) (2024-02-28)
 
 
