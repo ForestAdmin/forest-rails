@@ -1,3 +1,11 @@
+## [9.1.10](https://github.com/ForestAdmin/forest-rails/compare/v9.1.9...v9.1.10) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch semantic-release dependency vulnerabilities ([20e08da](https://github.com/ForestAdmin/forest-rails/commit/20e08da90376b45c4321554af8a538d816f0e38c))
+* **security:** patch semver-regex dependency vulnerabilities ([#659](https://github.com/ForestAdmin/forest-rails/issues/659)) ([4f8360b](https://github.com/ForestAdmin/forest-rails/commit/4f8360b02d7caaacb6c434124d535d28d2d883ab))
+
 ## [9.1.9](https://github.com/ForestAdmin/forest-rails/compare/v9.1.8...v9.1.9) (2024-02-28)
 
 
