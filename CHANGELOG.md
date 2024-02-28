@@ -1,3 +1,10 @@
+## [9.1.5](https://github.com/ForestAdmin/forest-rails/compare/v9.1.4...v9.1.5) (2024-02-28)
+
+
+### Bug Fixes
+
+* **security:** patch ansi-regex dependency vulnerabilities ([#654](https://github.com/ForestAdmin/forest-rails/issues/654)) ([98d3d18](https://github.com/ForestAdmin/forest-rails/commit/98d3d18d002dbf1f83a4fa135169fd1a48d766b1))
+
 ## [9.1.4](https://github.com/ForestAdmin/forest-rails/compare/v9.1.3...v9.1.4) (2024-02-28)
 
 
