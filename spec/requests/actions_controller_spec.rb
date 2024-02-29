@@ -10,7 +10,6 @@ describe 'Requesting Actions routes', :type => :request  do
     Island.create(id: 1, name: 'Corsica')
 
     ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
-    # allow(ForestLiana::ScopeManager).to receive(:get_scope).and_return(scope_filters)
     allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
   end
 
