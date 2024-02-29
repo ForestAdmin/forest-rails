@@ -1,3 +1,10 @@
+# [9.2.0](https://github.com/ForestAdmin/forest-rails/compare/v9.1.10...v9.2.0) (2024-02-29)
+
+
+### Features
+
+* add support for workspace context in charts ([#649](https://github.com/ForestAdmin/forest-rails/issues/649)) ([3e98864](https://github.com/ForestAdmin/forest-rails/commit/3e98864b1815449aff6983a9eadca1c3b0eaec0b))
+
 ## [9.1.10](https://github.com/ForestAdmin/forest-rails/compare/v9.1.9...v9.1.10) (2024-02-28)
 
 
