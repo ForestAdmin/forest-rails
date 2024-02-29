@@ -6,7 +6,7 @@ module ForestLiana
       return if @params[:aggregator].blank?
       resource = optimize_record_loading(@resource, get_resource)
 
-      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name)
+      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name, @params['contextVariables'])
 
       unless filters.blank?
         filter_parser = FiltersParser.new(filters, resource, @params[:timezone], @params)

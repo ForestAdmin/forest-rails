@@ -3,7 +3,7 @@ module ForestLiana
     AGGREGATOR_OPERATOR = %w(and or)
 
     def initialize(filters, resource, timezone, params = nil)
-      @filters = filters.instance_of?(ActionController::Parameters) ? filters.to_h : JSON.parse(filters)
+      @filters = filters
       @params = params
       @resource = resource
       @operator_date_parser = OperatorDateIntervalParser.new(timezone)
@@ -86,10 +86,6 @@ module ForestLiana
       operator = condition['operator']
       value = condition['value']
       field_name = condition['field']
-
-      if value.is_a?(String) && value.start_with?('{{')
-        value = @params[:contextVariables][value.gsub(/[{}]/, '')]
-      end
 
       if @operator_date_parser.is_date_operator?(operator)
         condition = @operator_date_parser.get_date_filter(operator, value)

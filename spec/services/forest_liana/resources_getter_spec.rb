@@ -6,7 +6,7 @@ module ForestLiana
     let(:sort) { 'id' }
     let(:fields) {}
     let(:filters) {}
-    let(:scopes) { {} }
+    let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
     let(:rendering_id) { 13 }
     let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
 
@@ -480,16 +480,16 @@ module ForestLiana
       let(:filters) { }
       let(:scopes) {
         {
-          'Island' => {
-            'scope'=> {
-              'filter'=> {
+          'scopes' =>
+            {
+              'Island' => {
                 'aggregator' => 'and',
-                'conditions' => [
-                  { 'field' => 'name', 'operator' => 'contains', 'value' => 'u' }
-                ]
-              },
-              'dynamicScopesValues' => { }
-            }
+                'conditions' => [{'field' => 'name', 'operator' => 'contains', 'value' => 'u'}]
+              }
+            },
+          'team' => {
+            'id' => 43,
+            'name' => 'Operations'
           }
         }
       }

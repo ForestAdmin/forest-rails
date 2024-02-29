@@ -25,7 +25,7 @@ module ForestLiana
     def perform
       value = get_resource()
 
-      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name)
+      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filter], @user, @resource.name, @params['contextVariables'])
 
       unless filters.blank?
         value = FiltersParser.new(filters, @resource, @params[:timezone], @params).apply_filters

@@ -2,7 +2,7 @@ module ForestLiana
   describe LineStatGetter do
     let(:rendering_id) { 13 }
     let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
-    let(:scopes) { { } }
+    let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
 
     before(:each) do
       ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)

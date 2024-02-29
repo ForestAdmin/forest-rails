@@ -3,7 +3,7 @@ module ForestLiana
     describe 'when retrieving has many relationship related records' do
       let(:rendering_id) { 13 }
       let(:user) { { 'id' => '1', 'rendering_id' => rendering_id } }
-      let(:scopes) { { } }
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
       let(:association) { Island.reflect_on_association(:trees) }
       let(:params) {
         {
@@ -87,19 +87,21 @@ module ForestLiana
       end
 
       describe 'with scopes' do
-        let(:scopes) { {
-          'Tree' => {
-            'scope'=> {
-              'filter'=> {
-                'aggregator' => 'and',
-                'conditions' => [
-                  { 'field' => 'name', 'operator' => 'contains', 'value' => 'a' }
-                ]
+        let(:scopes) {
+          {
+            'scopes' =>
+              {
+                'Tree' => {
+                  'aggregator' => 'and',
+                  'conditions' => [{'field' => 'name', 'operator' => 'contains', 'value' => 'a'}]
+                }
               },
-              'dynamicScopesValues' => { }
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
             }
           }
-        } }
+        }
 
         describe 'when asking for all trees related to madagascar' do
           it 'should return trees belonging to madagascar and matching the scopes' do

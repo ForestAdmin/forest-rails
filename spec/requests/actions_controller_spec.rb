@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'Requesting Actions routes', :type => :request  do
   let(:rendering_id) { 13 }
-  let(:scope_filters) { nil }
+  let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
 
   before(:each) do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
@@ -10,7 +10,7 @@ describe 'Requesting Actions routes', :type => :request  do
     Island.create(id: 1, name: 'Corsica')
 
     ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
-    allow(ForestLiana::ScopeManager).to receive(:get_scope_for_user).and_return(scope_filters)
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
   end
 
   after(:each) do
@@ -291,7 +291,21 @@ describe 'Requesting Actions routes', :type => :request  do
 
     describe 'with scopes' do
       describe 'when record is in scope' do
-        let(:scope_filters) { JSON.generate({ field: 'name', operator: 'equal', value: 'Corsica' }) }
+        let(:scope_filters) {
+          {
+            'scopes' =>
+              {
+                'Island' => {
+                  'aggregator' => 'and',
+                  'conditions' => [{'field' => 'name', 'operator' => 'equal', 'value' => 'Corsica'}]
+                }
+              },
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
+            }
+          }
+        }
 
         it 'should respond 200 and perform the action' do
           post '/forest/actions/test', params: JSON.dump(params), headers: headers
@@ -301,7 +315,21 @@ describe 'Requesting Actions routes', :type => :request  do
       end
 
       describe 'when record is out of scope' do
-        let(:scope_filters) { JSON.generate({ field: 'name', operator: 'equal', value: 'Ré' }) }
+        let(:scope_filters) {
+          {
+            'scopes' =>
+              {
+                'Island' => {
+                  'aggregator' => 'and',
+                  'conditions' => [{'field' => 'name', 'operator' => 'equal', 'value' => 'Ré'}]
+                }
+              },
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
+            }
+          }
+        }
 
         it 'should respond 400 and NOT perform the action' do
           post '/forest/actions/test', params: JSON.dump(params), headers: headers

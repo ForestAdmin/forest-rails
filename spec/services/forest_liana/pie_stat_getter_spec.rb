@@ -24,7 +24,7 @@ module ForestLiana
     end
 
     describe 'with not allowed aggregator' do
-      let(:scopes) { { } }
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
       let(:model) { Tree }
       let(:collection) { 'trees' }
       let(:params) {
@@ -60,7 +60,7 @@ module ForestLiana
       subject { PieStatGetter.new(model, params, user) }
 
       describe 'with empty scopes' do
-        let(:scopes) { { } }
+        let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
 
         describe 'with an aggregate on the name field' do
           let(:groupByFieldName) { 'name' }
@@ -94,16 +94,16 @@ module ForestLiana
       describe 'with scopes' do
         let(:scopes) {
           {
-            'Tree' => {
-              'scope'=> {
-                'filter'=> {
+            'scopes' =>
+              {
+                'Tree' => {
                   'aggregator' => 'and',
-                  'conditions' => [
-                    { 'field' => 'age', 'operator' => 'less_than', 'value' => 10 }
-                  ]
-                },
-                'dynamicScopesValues' => { }
-              }
+                  'conditions' => [{'field' => 'age', 'operator' => 'less_than', 'value' => 10}]
+                }
+              },
+            'team' => {
+              'id' => 43,
+              'name' => 'Operations'
             }
           }
         }

@@ -1,10 +1,10 @@
 require 'rails_helper'
 
 describe 'Requesting Tree resources', :type => :request  do
-
+  let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   before do
     user = User.create(name: 'Michel')
-    tree = Tree.create(name: 'Lemon Tree', owner: user, cutter: user)
+    Tree.create(name: 'Lemon Tree', owner: user, cutter: user)
 
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
@@ -26,8 +26,7 @@ describe 'Requesting Tree resources', :type => :request  do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
-    # allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
-    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({})
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
   end
 
   after do
@@ -156,10 +155,10 @@ describe 'Requesting Tree resources', :type => :request  do
 end
 
 describe 'Requesting Address resources', :type => :request  do
-
+  let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   before do
     user = User.create(name: 'Michel')
-    address = Address.create(line1: '10 Downing Street', city: 'London', zipcode: '2AB', addressable: user)
+    Address.create(line1: '10 Downing Street', city: 'London', zipcode: '2AB', addressable: user)
 
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
@@ -181,7 +180,7 @@ describe 'Requesting Address resources', :type => :request  do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
-    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({})
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
   end
 
   after do

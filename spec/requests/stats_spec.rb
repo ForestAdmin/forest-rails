@@ -2,32 +2,37 @@ require 'rails_helper'
 require 'json'
 
 describe "Stats", type: :request do
-
-  token = JWT.encode({
-    id: 1,
-    email: 'michael.kelso@that70.show',
-    first_name: 'Michael',
-    last_name: 'Kelso',
-    team: 'Operations',
-    rendering_id: '1',
-    exp: Time.now.to_i + 2.weeks.to_i,
-    permission_level: 'admin'
-  }, ForestLiana.auth_secret, 'HS256')
-
-  headers = {
-    'Accept' => 'application/json',
-    'Content-Type' => 'application/json',
-    'Authorization' => "Bearer #{token}"
-  }
-
+  let(:rendering_id) { 13 }
+  let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   let(:schema) {
     [
       ForestLiana::Model::Collection.new({
-        name: 'Product',
-        fields: [],
-        actions: []
-      })
+                                           name: 'Product',
+                                           fields: [],
+                                           actions: []
+                                         })
     ]
+  }
+
+  let(:token) {
+      JWT.encode({
+      id: 1,
+      email: 'michael.kelso@that70.show',
+      first_name: 'Michael',
+      last_name: 'Kelso',
+      team: 'Operations',
+      rendering_id: rendering_id,
+      exp: Time.now.to_i + 2.weeks.to_i,
+      permission_level: 'admin'
+    }, ForestLiana.auth_secret, 'HS256')
+  }
+
+  let(:headers) {
+    {
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json',
+      'Authorization' => "Bearer #{token}"
+    }
   }
 
   before do
@@ -53,12 +58,8 @@ describe "Stats", type: :request do
           }
         )
 
-    ForestLiana::ScopeManager.class_variable_set(:@@scopes_cache, {
-      '1' => {
-        :fetched_at => Time.now,
-        :scopes => {}
-      }
-    })
+    ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
 
     allow(ForestLiana).to receive(:apimap).and_return(schema)
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }

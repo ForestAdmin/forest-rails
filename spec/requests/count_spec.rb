@@ -15,7 +15,7 @@ describe 'Requesting Owner', :type => :request  do
 
     allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
 
-    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({})
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}})
   end
 
   token = JWT.encode({
