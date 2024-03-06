@@ -1,3 +1,10 @@
+## [9.2.1](https://github.com/ForestAdmin/forest-rails/compare/v9.2.0...v9.2.1) (2024-03-06)
+
+
+### Bug Fixes
+
+* **security:** patch json-jwt dependency vulnerabilities ([#660](https://github.com/ForestAdmin/forest-rails/issues/660)) ([017d54d](https://github.com/ForestAdmin/forest-rails/commit/017d54d6d2ab5895db96489f392f7583eccefa19))
+
 # [9.2.0](https://github.com/ForestAdmin/forest-rails/compare/v9.1.10...v9.2.0) (2024-02-29)
 
 
