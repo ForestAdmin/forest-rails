@@ -1,3 +1,10 @@
+## [9.2.2](https://github.com/ForestAdmin/forest-rails/compare/v9.2.1...v9.2.2) (2024-03-08)
+
+
+### Bug Fixes
+
+* **security:** patch rails active-record dependency vulnerabilities ([#661](https://github.com/ForestAdmin/forest-rails/issues/661)) ([1f0b99d](https://github.com/ForestAdmin/forest-rails/commit/1f0b99d95ba87c714fd61237925a01cf3a879fe6))
+
 ## [9.2.1](https://github.com/ForestAdmin/forest-rails/compare/v9.2.0...v9.2.1) (2024-03-06)
 
 
