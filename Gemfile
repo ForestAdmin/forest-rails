@@ -23,7 +23,7 @@ group :test do
   gem 'simplecov', '~> 0.17.0', require: false
 end
 
-gem 'rails', '6.1.7'
+gem 'rails', '6.1.7.7'
 gem 'forestadmin-jsonapi-serializers'
 gem 'rack-cors'
 gem 'arel-helpers', '2.14.0'
