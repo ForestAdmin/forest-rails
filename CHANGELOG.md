@@ -1,3 +1,10 @@
+## [9.2.3](https://github.com/ForestAdmin/forest-rails/compare/v9.2.2...v9.2.3) (2024-03-11)
+
+
+### Bug Fixes
+
+* **security:** patch rack rack-cors nokogiri httparty dependency vulnerabilities ([#662](https://github.com/ForestAdmin/forest-rails/issues/662)) ([f05e93e](https://github.com/ForestAdmin/forest-rails/commit/f05e93e2944ab695c3bd8f63e8f3a9b76421eb2b))
+
 ## [9.2.2](https://github.com/ForestAdmin/forest-rails/compare/v9.2.1...v9.2.2) (2024-03-08)
 
 
