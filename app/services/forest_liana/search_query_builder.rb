@@ -160,12 +160,9 @@ module ForestLiana
     end
 
     def sort_query
-      column = nil
-      order = 'DESC'
-
       if @params[:sort]
         @params[:sort].split(',').each do |field|
-          order_detected = detect_sort_order(@params[:sort])
+          order_detected = detect_sort_order(field)
           order = order_detected.upcase
           field.slice!(0) if order_detected == :desc
 
@@ -175,14 +172,12 @@ module ForestLiana
           else
             column = field
           end
+
+          @records = @records.order(Arel.sql("#{column} #{order}"))
         end
       end
 
-      if column
-        @records = @records.order(Arel.sql("#{column} #{order}"))
-      else
-        @records
-      end
+      @records
     end
 
     def detect_reference(param)
