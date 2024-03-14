@@ -175,9 +175,6 @@ module ForestLiana
 
           @records = @records.order(Arel.sql("#{column} #{order}"))
         end
-      else
-        # default sort
-        @records = @records.order(Arel.sql("DESC"))
       end
 
       @records
