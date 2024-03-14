@@ -1,3 +1,10 @@
+# [8.3.0](https://github.com/ForestAdmin/forest-rails/compare/v8.2.0...v8.3.0) (2024-03-14)
+
+
+### Features
+
+* add multiple sort support for 8.x.x ([#664](https://github.com/ForestAdmin/forest-rails/issues/664)) ([650fbc5](https://github.com/ForestAdmin/forest-rails/commit/650fbc5a149d71d8e4aa4ec37f0dcfb0c40b270d))
+
 # [8.2.0](https://github.com/ForestAdmin/forest-rails/compare/v8.1.0...v8.2.0) (2024-01-29)
 
 
