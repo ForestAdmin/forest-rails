@@ -1,3 +1,10 @@
+# [9.3.0](https://github.com/ForestAdmin/forest-rails/compare/v9.2.3...v9.3.0) (2024-03-14)
+
+
+### Features
+
+* add multiple sort support ([#665](https://github.com/ForestAdmin/forest-rails/issues/665)) ([531705f](https://github.com/ForestAdmin/forest-rails/commit/531705fb0e43aa8b6721256e9a130911d6b1d626))
+
 ## [9.2.3](https://github.com/ForestAdmin/forest-rails/compare/v9.2.2...v9.2.3) (2024-03-11)
 
 
