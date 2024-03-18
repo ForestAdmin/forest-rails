@@ -87,6 +87,7 @@ module ForestLiana
       associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
 
       includes = associations_has_one.map(&:name)
+
       includes_for_smart_search = []
 
       if @collection && @collection.search_fields
