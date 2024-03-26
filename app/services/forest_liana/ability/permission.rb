@@ -97,7 +97,7 @@ module ForestLiana
         Rails.cache.fetch('forest.stats', expires_in: TTL) do
           stat_hash = []
           get_permissions('/liana/v4/permissions/renderings/' + rendering_id)['stats'].each do |stat|
-            stat_hash << "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.sort.to_h.to_s)}"
+            stat_hash << "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.deep_sort.to_s)}"
           end
 
           stat_hash
