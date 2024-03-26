@@ -2,24 +2,8 @@ require 'rails_helper'
 require 'json'
 
 describe "Stats", type: :request do
-
-  token = JWT.encode({
-    id: 1,
-    email: 'michael.kelso@that70.show',
-    first_name: 'Michael',
-    last_name: 'Kelso',
-    team: 'Operations',
-    rendering_id: '1',
-    exp: Time.now.to_i + 2.weeks.to_i,
-    permission_level: 'admin'
-  }, ForestLiana.auth_secret, 'HS256')
-
-  headers = {
-    'Accept' => 'application/json',
-    'Content-Type' => 'application/json',
-    'Authorization' => "Bearer #{token}"
-  }
-
+  let(:rendering_id) { '13' }
+  let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   let(:schema) {
     [
       ForestLiana::Model::Collection.new({
@@ -30,10 +14,31 @@ describe "Stats", type: :request do
     ]
   }
 
+  let(:token) {
+      JWT.encode({
+      id: 1,
+      email: 'michael.kelso@that70.show',
+      first_name: 'Michael',
+      last_name: 'Kelso',
+      team: 'Operations',
+      rendering_id: rendering_id,
+      exp: Time.now.to_i + 2.weeks.to_i,
+      permission_level: 'user'
+    }, ForestLiana.auth_secret, 'HS256')
+  }
+
+  let(:headers) {
+    {
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json',
+      'Authorization' => "Bearer #{token}"
+    }
+  }
+
   before do
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
-    allow_any_instance_of(ForestLiana::Ability::Fetch)
+    allow_any_instance_of(ForestLiana::Ability::Permission)
       .to receive(:get_permissions)
         .and_return(
           {
@@ -46,6 +51,31 @@ describe "Stats", type: :request do
                 "sourceCollectionName" => "Owner"
               },
               {
+                "type" => "Objective",
+                "sourceCollectionName" => "Owner",
+                "aggregateFieldName" => nil,
+                "aggregator" => "Count",
+                "objective" => 200,
+                "filter" => nil,
+              },
+              {
+                "type" => "Pie",
+                "sourceCollectionName" => "Owner",
+                "aggregateFieldName" => nil,
+                "groupByFieldName" => "id",
+                "aggregator" => "Count",
+                "filter" => nil,
+              },
+              {
+                "type" => "Line",
+                "sourceCollectionName" => "Owner",
+                "aggregateFieldName" => nil,
+                "groupByFieldName" => "hired_at",
+                "aggregator" => "Count",
+                "timeRange" => "Week",
+                "filter" => nil,
+              },
+              {
                 "type"  => "Value",
                 "query" => "SELECT COUNT(*) AS value FROM products;"
               }
@@ -53,13 +83,9 @@ describe "Stats", type: :request do
           }
         )
 
-    ForestLiana::ScopeManager.class_variable_set(:@@scopes_cache, {
-      '1' => {
-        :fetched_at => Time.now,
-        :scopes => {}
-      }
-    })
-
+    ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+    
     allow(ForestLiana).to receive(:apimap).and_return(schema)
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
