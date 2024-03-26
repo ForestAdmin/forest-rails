@@ -2,7 +2,7 @@ require 'rails_helper'
 require 'json'
 
 describe "Stats", type: :request do
-  let(:rendering_id) { 13 }
+  let(:rendering_id) { '13' }
   let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   let(:schema) {
     [
@@ -23,7 +23,7 @@ describe "Stats", type: :request do
       team: 'Operations',
       rendering_id: rendering_id,
       exp: Time.now.to_i + 2.weeks.to_i,
-      permission_level: 'admin'
+      permission_level: 'user'
     }, ForestLiana.auth_secret, 'HS256')
   }
 
@@ -38,7 +38,7 @@ describe "Stats", type: :request do
   before do
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
-    allow_any_instance_of(ForestLiana::Ability::Fetch)
+    allow_any_instance_of(ForestLiana::Ability::Permission)
       .to receive(:get_permissions)
         .and_return(
           {
@@ -49,6 +49,31 @@ describe "Stats", type: :request do
                 "aggregator" => "Count",
                 "aggregateFieldName" => nil,
                 "sourceCollectionName" => "Owner"
+              },
+              {
+                "type" => "Objective",
+                "sourceCollectionName" => "Owner",
+                "aggregateFieldName" => nil,
+                "aggregator" => "Count",
+                "objective" => 200,
+                "filter" => nil,
+              },
+              {
+                "type" => "Pie",
+                "sourceCollectionName" => "Owner",
+                "aggregateFieldName" => nil,
+                "groupByFieldName" => "id",
+                "aggregator" => "Count",
+                "filter" => nil,
+              },
+              {
+                "type" => "Line",
+                "sourceCollectionName" => "Owner",
+                "aggregateFieldName" => nil,
+                "groupByFieldName" => "hired_at",
+                "aggregator" => "Count",
+                "timeRange" => "Week",
+                "filter" => nil,
               },
               {
                 "type"  => "Value",
