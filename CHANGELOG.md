@@ -1,3 +1,10 @@
+## [8.3.1](https://github.com/ForestAdmin/forest-rails/compare/v8.3.0...v8.3.1) (2024-03-26)
+
+
+### Bug Fixes
+
+* **permission:** fix chart permissions to work properly with multiple filter on 8.x.x ([#667](https://github.com/ForestAdmin/forest-rails/issues/667)) ([4a85679](https://github.com/ForestAdmin/forest-rails/commit/4a85679ae15b5a6e9a8eefc97cf2dd3a5be1f960))
+
 # [8.3.0](https://github.com/ForestAdmin/forest-rails/compare/v8.2.0...v8.3.0) (2024-03-14)
 
 
