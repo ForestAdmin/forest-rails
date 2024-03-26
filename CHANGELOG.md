@@ -1,3 +1,10 @@
+## [9.3.1](https://github.com/ForestAdmin/forest-rails/compare/v9.3.0...v9.3.1) (2024-03-26)
+
+
+### Bug Fixes
+
+* **permission:** fix chart permissions to work properly with multiple filter conditions ([#666](https://github.com/ForestAdmin/forest-rails/issues/666)) ([ef706ee](https://github.com/ForestAdmin/forest-rails/commit/ef706ee5c0b18d416a0e551683a917077e49d5ef))
+
 # [9.3.0](https://github.com/ForestAdmin/forest-rails/compare/v9.2.3...v9.3.0) (2024-03-14)
 
 
