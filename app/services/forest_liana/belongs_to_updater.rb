@@ -17,7 +17,7 @@ module ForestLiana
           if @data.nil?
             new_value = nil
           else
-            association_klass = SchemaUtils.polymorphic_models(@association).select { |a| a.name.downcase == @data[:type] }.first
+            association_klass = SchemaUtils.polymorphic_models(@association).select { |a| a.name == @data[:type] }.first
             new_value = association_klass.find(@data[:id]) if @data && @data[:id]
           end
         else
