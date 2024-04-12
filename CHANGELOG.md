@@ -1,3 +1,10 @@
+## [9.3.2](https://github.com/ForestAdmin/forest-rails/compare/v9.3.1...v9.3.2) (2024-04-12)
+
+
+### Bug Fixes
+
+* **security:** patch tar dependency vulnerabilities ([#671](https://github.com/ForestAdmin/forest-rails/issues/671)) ([fbb156b](https://github.com/ForestAdmin/forest-rails/commit/fbb156b4ffc68ae0632c9982da960448c94c55de))
+
 ## [9.3.1](https://github.com/ForestAdmin/forest-rails/compare/v9.3.0...v9.3.1) (2024-03-26)
 
 
