@@ -1,3 +1,10 @@
+## [9.3.3](https://github.com/ForestAdmin/forest-rails/compare/v9.3.2...v9.3.3) (2024-04-17)
+
+
+### Bug Fixes
+
+* **mixpanel:** add import ostruct in lib/forest_liana/mixpanel_event.rb ([7b485d2](https://github.com/ForestAdmin/forest-rails/commit/7b485d266a216628ce13835a74735fcaa1bf820a))
+
 ## [9.3.2](https://github.com/ForestAdmin/forest-rails/compare/v9.3.1...v9.3.2) (2024-04-12)
 
 
