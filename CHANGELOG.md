@@ -1,3 +1,10 @@
+## [9.3.5](https://github.com/ForestAdmin/forest-rails/compare/v9.3.4...v9.3.5) (2024-05-16)
+
+
+### Bug Fixes
+
+* **security:** patch nokogiri dependency vulnerabilities ([#675](https://github.com/ForestAdmin/forest-rails/issues/675)) ([dba08fb](https://github.com/ForestAdmin/forest-rails/commit/dba08fb82d3fe8a490565c30f876ffe68c6d8515))
+
 ## [9.3.4](https://github.com/ForestAdmin/forest-rails/compare/v9.3.3...v9.3.4) (2024-05-16)
 
 
