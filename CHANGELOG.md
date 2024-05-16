@@ -1,3 +1,10 @@
+## [8.3.2](https://github.com/ForestAdmin/forest-rails/compare/v8.3.1...v8.3.2) (2024-05-16)
+
+
+### Bug Fixes
+
+* remove downcase on model name when updated polymorphic association on 8.x.x ([#676](https://github.com/ForestAdmin/forest-rails/issues/676)) ([dd43997](https://github.com/ForestAdmin/forest-rails/commit/dd43997c17e7279258ccd23baeace3f4f6579556))
+
 ## [8.3.1](https://github.com/ForestAdmin/forest-rails/compare/v8.3.0...v8.3.1) (2024-03-26)
 
 
