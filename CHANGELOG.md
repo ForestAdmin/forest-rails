@@ -1,3 +1,10 @@
+## [9.3.6](https://github.com/ForestAdmin/forest-rails/compare/v9.3.5...v9.3.6) (2024-06-06)
+
+
+### Bug Fixes
+
+* **permission:** send api response for 409 error ([#678](https://github.com/ForestAdmin/forest-rails/issues/678)) ([6076a32](https://github.com/ForestAdmin/forest-rails/commit/6076a3293a39cf97f8d5be3eff7e8d43e1662732))
+
 ## [9.3.5](https://github.com/ForestAdmin/forest-rails/compare/v9.3.4...v9.3.5) (2024-05-16)
 
 
