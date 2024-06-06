@@ -6,6 +6,7 @@ module ForestLiana
     rescue_from ForestLiana::Ability::Exceptions::AccessDenied, with: :render_error
     rescue_from ForestLiana::Errors::HTTP403Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
+    rescue_from ForestLiana::Errors::ExpectedError, with: :render_error
 
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
