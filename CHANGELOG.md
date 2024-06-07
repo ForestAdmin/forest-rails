@@ -1,3 +1,10 @@
+## [9.3.7](https://github.com/ForestAdmin/forest-rails/compare/v9.3.6...v9.3.7) (2024-06-07)
+
+
+### Bug Fixes
+
+* **query:** allow user using context variables into query ([#679](https://github.com/ForestAdmin/forest-rails/issues/679)) ([3020a78](https://github.com/ForestAdmin/forest-rails/commit/3020a784c9f136ae4cc1e961c7cbca420cd3b96f))
+
 ## [9.3.6](https://github.com/ForestAdmin/forest-rails/compare/v9.3.5...v9.3.6) (2024-06-06)
 
 
