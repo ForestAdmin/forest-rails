@@ -16,7 +16,8 @@ module ForestLiana
         collection_name = ForestLiana.name_for(collection)
 
         begin
-          is_allowed = collections_data[collection_name][action].include? user_data['roleId']
+          is_allowed = (collections_data.key?(collection_name) && collections_data[collection_name][action].include?(user_data['roleId']))
+
           # re-fetch if user permission is not allowed (may have been changed)
           unless is_allowed
             collections_data = get_collections_permissions_data(true)
