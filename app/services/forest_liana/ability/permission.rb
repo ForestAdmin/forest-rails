@@ -26,7 +26,7 @@ module ForestLiana
 
           is_allowed
         rescue
-          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
+          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection_name} doesn't exist", 'collection not found')
         end
       end
 
