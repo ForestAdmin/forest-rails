@@ -1,3 +1,10 @@
+## [9.3.9](https://github.com/ForestAdmin/forest-rails/compare/v9.3.8...v9.3.9) (2024-06-10)
+
+
+### Bug Fixes
+
+* **security:** patch actionpack dependency vulnerabilities ([#681](https://github.com/ForestAdmin/forest-rails/issues/681)) ([fa58a31](https://github.com/ForestAdmin/forest-rails/commit/fa58a3196217f40d95c71b2d6fb465eb508b32fa))
+
 ## [9.3.8](https://github.com/ForestAdmin/forest-rails/compare/v9.3.7...v9.3.8) (2024-06-10)
 
 
