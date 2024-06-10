@@ -79,6 +79,7 @@ module ForestLiana
           end
         end
 
+
         it 'should throw an exception when the collection doesn\'t exist' do
             expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
         end
@@ -159,6 +160,53 @@ module ForestLiana
                   }
               }
             )
+
+          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to equal true
+        end
+
+        it 'should re-fetch the permission once when collection_name doesn\'t exist' do
+          Rails.cache.write(
+            'forest.collections',
+            {
+              "collections" => {
+                "Fake_collection_name" => {
+                  "collection" => {
+                    "browseEnabled" => { "roles" => [1] },
+                    "readEnabled" => { "roles" => [1] },
+                    "editEnabled" => { "roles" => [1] },
+                    "addEnabled" => { "roles" => [1] },
+                    "deleteEnabled" => { "roles" => [1] },
+                    "exportEnabled" => { "roles" => [1] }
+                  },
+                  "actions" => {
+
+                  }
+                }
+              }
+            }
+          )
+
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+              .and_return(
+                {
+                  "collections" => {
+                    "Island" => {
+                      "collection" => {
+                        "browseEnabled" => { "roles" => [1] },
+                        "readEnabled" => { "roles" => [1] },
+                        "editEnabled" => { "roles" => [1] },
+                        "addEnabled" => { "roles" => [1] },
+                        "deleteEnabled" => { "roles" => [1] },
+                        "exportEnabled" => { "roles" => [1] }
+                      },
+                      "actions" => {
+
+                      }
+                    }
+                  }
+                }
+              )
 
           expect(dummy_class.is_crud_authorized?('browse', user, Island)).to equal true
         end

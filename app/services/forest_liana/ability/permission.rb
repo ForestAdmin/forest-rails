@@ -16,7 +16,8 @@ module ForestLiana
         collection_name = ForestLiana.name_for(collection)
 
         begin
-          is_allowed = collections_data[collection_name][action].include? user_data['roleId']
+          is_allowed = (collections_data.key?(collection_name) && collections_data[collection_name][action].include?(user_data['roleId']))
+
           # re-fetch if user permission is not allowed (may have been changed)
           unless is_allowed
             collections_data = get_collections_permissions_data(true)
@@ -25,7 +26,7 @@ module ForestLiana
 
           is_allowed
         rescue
-          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
+          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection_name} doesn't exist", 'collection not found')
         end
       end
 
