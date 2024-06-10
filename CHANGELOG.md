@@ -1,3 +1,10 @@
+## [9.3.8](https://github.com/ForestAdmin/forest-rails/compare/v9.3.7...v9.3.8) (2024-06-10)
+
+
+### Bug Fixes
+
+* **permission:** refetch permission if collection name doesn't exist ([#680](https://github.com/ForestAdmin/forest-rails/issues/680)) ([4e72624](https://github.com/ForestAdmin/forest-rails/commit/4e72624f15e39ae4e42a8b59c64182a394711a08))
+
 ## [9.3.7](https://github.com/ForestAdmin/forest-rails/compare/v9.3.6...v9.3.7) (2024-06-07)
 
 
