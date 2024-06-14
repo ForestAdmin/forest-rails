@@ -28,11 +28,6 @@ module ForestLiana
           "ForestLiana.forest_client_id is deprecated. It's not needed anymore."
       end
 
-      if Rails.application.secrets.forest_application_url
-        FOREST_LOGGER.warn "DEPRECATION WARNING: The use of " \
-          "The secret forest_application_url is deprecated. It's not needed anymore."
-      end
-
       unless Rails.application.config.action_controller.perform_caching || Rails.env.test?
         FOREST_LOGGER.error "You need to enable caching on your environment to use Forest Admin.\n" \
           "For a development environment, run: `rails dev:cache`"
