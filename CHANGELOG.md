@@ -1,3 +1,10 @@
+## [9.3.11](https://github.com/ForestAdmin/forest-rails/compare/v9.3.10...v9.3.11) (2024-06-14)
+
+
+### Bug Fixes
+
+* **security:** patch braces dependency vulnerabilities ([#683](https://github.com/ForestAdmin/forest-rails/issues/683)) ([68ba271](https://github.com/ForestAdmin/forest-rails/commit/68ba27188c80c6ab92eee05aa03e521d2e62e09e))
+
 ## [9.3.10](https://github.com/ForestAdmin/forest-rails/compare/v9.3.9...v9.3.10) (2024-06-14)
 
 
