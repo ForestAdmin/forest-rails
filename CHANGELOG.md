@@ -1,3 +1,10 @@
+## [9.3.10](https://github.com/ForestAdmin/forest-rails/compare/v9.3.9...v9.3.10) (2024-06-14)
+
+
+### Bug Fixes
+
+* remove warning  forest_application_url ([#682](https://github.com/ForestAdmin/forest-rails/issues/682)) ([0a1a7cf](https://github.com/ForestAdmin/forest-rails/commit/0a1a7cfdb2e64d7e3ebe9cb3d32c850cfb7a3a2c)), closes [#648](https://github.com/ForestAdmin/forest-rails/issues/648)
+
 ## [9.3.9](https://github.com/ForestAdmin/forest-rails/compare/v9.3.8...v9.3.9) (2024-06-10)
 
 
