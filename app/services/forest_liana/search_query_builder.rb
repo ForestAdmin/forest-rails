@@ -104,14 +104,17 @@ module ForestLiana
               end
               association_search = association_search.compact
             end
+
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)
-              resource.klass.columns.each do |column|
-                if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
-                  if @collection.search_fields.nil? || (association_search &&
-                    association_search.include?(column.name))
-                    conditions << association_search_condition(resource.table_name,
-                      column.name)
+              unless (SchemaUtils.polymorphic?(resource))
+                resource.klass.columns.each do |column|
+                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
+                    if @collection.search_fields.nil? || (association_search &&
+                      association_search.include?(column.name))
+                      conditions << association_search_condition(resource.table_name,
+                        column.name)
+                    end
                   end
                 end
               end
