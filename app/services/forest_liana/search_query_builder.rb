@@ -104,14 +104,33 @@ module ForestLiana
               end
               association_search = association_search.compact
             end
+
             if @includes.include? association.to_sym
               resource = @resource.reflect_on_association(association.to_sym)
-              resource.klass.columns.each do |column|
-                if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
-                  if @collection.search_fields.nil? || (association_search &&
-                    association_search.include?(column.name))
-                    conditions << association_search_condition(resource.table_name,
-                      column.name)
+              if (SchemaUtils.polymorphic?(resource))
+                SchemaUtils.polymorphic_models(resource).each do |model|
+                  @resource = @resource.joins(
+                    "LEFT JOIN #{model.table_name} on #{@resource.table_name}.#{resource.foreign_key} = #{model.table_name}.#{model.primary_key} and #{@resource.table_name}.#{resource.foreign_type} = '#{model.name}'"
+                  )
+
+                  model.columns.each do |column|
+                    if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
+                      if @collection.search_fields.nil? || (association_search &&
+                        association_search.include?(column.name))
+                        conditions << association_search_condition(model.table_name,
+                          column.name)
+                      end
+                    end
+                  end
+                end
+              else
+                resource.klass.columns.each do |column|
+                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
+                    if @collection.search_fields.nil? || (association_search &&
+                      association_search.include?(column.name))
+                      conditions << association_search_condition(resource.table_name,
+                        column.name)
+                    end
                   end
                 end
               end
