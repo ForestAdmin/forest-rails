@@ -1,3 +1,10 @@
+## [9.3.12](https://github.com/ForestAdmin/forest-rails/compare/v9.3.11...v9.3.12) (2024-07-02)
+
+
+### Bug Fixes
+
+* **search:** does not apply the extended search for polymorphic relationships ([#684](https://github.com/ForestAdmin/forest-rails/issues/684)) ([d4c74e8](https://github.com/ForestAdmin/forest-rails/commit/d4c74e8bac582cc335cd1b2236b7a05b73f664d8))
+
 ## [9.3.11](https://github.com/ForestAdmin/forest-rails/compare/v9.3.10...v9.3.11) (2024-06-14)
 
 
