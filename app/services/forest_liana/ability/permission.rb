@@ -71,7 +71,7 @@ module ForestLiana
 
       private
 
-      def get_user_data(user_id)
+      def get_user_data(user_id, force_fetch = true)
         cache = Rails.cache.fetch('forest.users', expires_in: TTL) do
           users = {}
           get_permissions('/liana/v4/permissions/users').each do |user|
@@ -81,7 +81,12 @@ module ForestLiana
           users
         end
 
-        cache[user_id.to_s]
+        if !cache.key?(user_id.to_s) && force_fetch
+          Rails.cache.delete('forest.users')
+          get_user_data(user_id, false)
+        else
+          cache[user_id.to_s]
+        end
       end
 
       def get_collections_permissions_data(force_fetch = false)
