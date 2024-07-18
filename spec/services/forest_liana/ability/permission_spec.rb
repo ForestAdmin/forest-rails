@@ -81,7 +81,7 @@ module ForestLiana
 
 
         it 'should throw an exception when the collection doesn\'t exist' do
-            expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
+            expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
         end
 
         it 'should re-fetch the permission once when user permission is not allowed' do
@@ -372,7 +372,8 @@ module ForestLiana
         end
 
         it 'should throw an exception when the collection doesn\'t exist' do
-          expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
+          expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}
+            .to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
         end
       end
 
