@@ -81,7 +81,11 @@ module ForestLiana
 
 
         it 'should throw an exception when the collection doesn\'t exist' do
-            expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+              .and_return({ "collections" => {} })
+            expect {dummy_class.is_crud_authorized?('browse', user, String)}
+              .to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
         end
 
         it 'should re-fetch the permission once when user permission is not allowed' do

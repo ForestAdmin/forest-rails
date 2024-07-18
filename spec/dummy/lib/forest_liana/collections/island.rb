@@ -26,6 +26,8 @@ class Forest::Island
     enums: %w[a b c],
   }
 
+  action 'test'
+
   action 'my_action',
     fields: [foo],
     hooks: {

@@ -25,6 +25,8 @@ module ForestLiana
           end
 
           is_allowed
+        rescue ForestLiana::Errors::ExpectedError => exception
+          raise exception
         rescue
           raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name)
         end
@@ -41,6 +43,8 @@ module ForestLiana
 
           smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection_name][:actions][action], user_data)
           smart_action_approval.can_execute?
+        rescue ForestLiana::Errors::ExpectedError => exception
+          raise exception
         rescue
           raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name)
         end
