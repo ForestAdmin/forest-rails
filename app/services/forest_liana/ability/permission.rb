@@ -25,8 +25,10 @@ module ForestLiana
           end
 
           is_allowed
+        rescue ForestLiana::Errors::ExpectedError => exception
+          raise exception
         rescue
-          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection_name} doesn't exist", 'collection not found')
+          raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name)
         end
       end
 
@@ -35,13 +37,16 @@ module ForestLiana
 
         user_data = get_user_data(user['id'])
         collections_data = get_collections_permissions_data
+        collection_name = ForestLiana.name_for(collection)
         begin
-          action = find_action_from_endpoint(ForestLiana.name_for(collection), endpoint, http_method).name
+          action = find_action_from_endpoint(collection_name, endpoint, http_method).name
 
-          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[ForestLiana.name_for(collection)][:actions][action], user_data)
+          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection_name][:actions][action], user_data)
           smart_action_approval.can_execute?
+        rescue ForestLiana::Errors::ExpectedError => exception
+          raise exception
         rescue
-          raise ForestLiana::Errors::ExpectedError.new(409, :conflict, "The collection #{collection} doesn't exist", 'collection not found')
+          raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name)
         end
       end
 
@@ -66,7 +71,7 @@ module ForestLiana
 
       private
 
-      def get_user_data(user_id)
+      def get_user_data(user_id, force_fetch = true)
         cache = Rails.cache.fetch('forest.users', expires_in: TTL) do
           users = {}
           get_permissions('/liana/v4/permissions/users').each do |user|
@@ -76,7 +81,12 @@ module ForestLiana
           users
         end
 
-        cache[user_id.to_s]
+        if !cache.key?(user_id.to_s) && force_fetch
+          Rails.cache.delete('forest.users')
+          get_user_data(user_id, false)
+        else
+          cache[user_id.to_s]
+        end
       end
 
       def get_collections_permissions_data(force_fetch = false)

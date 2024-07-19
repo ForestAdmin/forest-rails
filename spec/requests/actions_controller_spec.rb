@@ -261,10 +261,6 @@ describe 'Requesting Actions routes', :type => :request  do
   end
 
   describe 'calling the action' do
-    before(:each) do
-      allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
-    end
-
     let(:all_records) { false }
     let(:params) {
       {
@@ -283,13 +279,119 @@ describe 'Requesting Actions routes', :type => :request  do
 
     describe 'without scopes' do
       it 'should respond 200 and perform the action' do
+        allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
         post '/forest/actions/test', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)).to eq({'success' => 'You are OK.'})
       end
+
+      let(:params) {
+        {
+          data: {
+            attributes: {
+              collection_name: 'Island',
+              ids: ['1'],
+              all_records: all_records,
+              smart_action_id: 'Island-Test'
+            },
+            type: 'custom-action-requests'
+          },
+          timezone: 'Europe/Paris'
+        }
+      }
+
+      describe 'with invalid conditions' do
+        it 'should respond a 409' do
+          Rails.cache.write('forest.has_permission', true)
+          Rails.cache.write('forest.users', {'38' => { 'id' => 38, 'roleId' => 1, 'rendering_id' => '13' }})
+          Rails.cache.write(
+            'forest.collections',
+            {
+              'Island' => {
+                :actions =>
+                  {
+                    'test' => { 'triggerEnabled' => [1],
+                      'triggerConditions' => [],
+                      'approvalRequired' => [1],
+                      'approvalRequiredConditions' =>
+                        [
+                          { 'filter' =>
+                            { 'field' => 'id',
+                              'value' => 2,
+                              'source' => 'data',
+                              'operator' => 'foo-greater-than'
+                            },
+                            'roleId' => 1
+                          }
+                        ],
+                    }
+                  }
+              }
+            }
+          )
+
+          post '/forest/actions/test', params: JSON.dump(params), headers: headers
+
+          expect(response.status).to eq(409)
+          expect(JSON.parse(response.body)).to eq(
+            {
+              "errors" => [
+                {
+                  "status" => 409,
+                  "detail" => "The conditions to trigger this action cannot be verified. Please contact an administrator.",
+                  "name" => "InvalidActionConditionError"
+                }
+              ]
+            }
+          )
+        end
+      end
+
+      describe 'with unknown action' do
+        it 'should respond a 409' do
+          Rails.cache.write('forest.has_permission', true)
+          Rails.cache.write('forest.users', {'38' => { 'id' => 38, 'roleId' => 1, 'rendering_id' => '13' }})
+          Rails.cache.write(
+            'forest.collections',
+            {
+              'Island' => {
+                :actions =>
+                  {
+                    'test' => { 'triggerEnabled' => [1],
+                      'triggerConditions' => [],
+                      'approvalRequired' => [1],
+                      'approvalRequiredConditions' =>
+                        [
+                          { 'filter' =>
+                            { 'field' => 'id',
+                              'value' => 2,
+                              'source' => 'data',
+                              'operator' => 'foo-greater-than'
+                            },
+                            'roleId' => 1
+                          }
+                        ],
+                    }
+                  }
+              }
+            }
+          )
+
+          post '/forest/actions/unknown_action', params: JSON.dump(params), headers: headers
+
+          expect(response.status).to eq(409)
+          expect(JSON.parse(response.body)).to eq(
+            {"errors"=> [{"detail" => "The collection Island doesn't exist", "name" => "collection not found", "status" => 409}]}
+          )
+        end
+      end
     end
 
     describe 'with scopes' do
+      before(:each) do
+        allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
+      end
+
       describe 'when record is in scope' do
         let(:scope_filters) {
           {

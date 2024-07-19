@@ -81,7 +81,11 @@ module ForestLiana
 
 
         it 'should throw an exception when the collection doesn\'t exist' do
-            expect {dummy_class.is_crud_authorized?('browse', user, String)}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+              .and_return({ "collections" => {} })
+            expect {dummy_class.is_crud_authorized?('browse', user, String)}
+              .to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
         end
 
         it 'should re-fetch the permission once when user permission is not allowed' do
@@ -206,6 +210,30 @@ module ForestLiana
                     }
                   }
                 }
+              )
+
+          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to equal true
+        end
+
+        it 'should re-fetch the users list once when user doesn\'t exist' do
+          Rails.cache.write('forest.users', {'2' => { 'id' => 2, 'roleId' => 1, 'rendering_id' => '1' }})
+          # Rails.cache.write('forest.users', {'1' => user})
+          Rails.cache.write(
+            'forest.collections',
+            'Island' => {
+              'browse' => [1],
+              'read' => [1],
+              'edit' => [1],
+              'add' => [1],
+              'delete' => [1],
+              'export' => [1],
+            }
+          )
+
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+              .and_return(
+                [user]
               )
 
           expect(dummy_class.is_crud_authorized?('browse', user, Island)).to equal true
@@ -372,7 +400,8 @@ module ForestLiana
         end
 
         it 'should throw an exception when the collection doesn\'t exist' do
-          expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}.to raise_error(ForestLiana::Errors::ExpectedError, 'The collection String doesn\'t exist')
+          expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}
+            .to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
         end
       end
 
