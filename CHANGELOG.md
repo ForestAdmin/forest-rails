@@ -1,3 +1,10 @@
+## [9.3.13](https://github.com/ForestAdmin/forest-rails/compare/v9.3.12...v9.3.13) (2024-07-19)
+
+
+### Bug Fixes
+
+* **permission:** forward action approval exception for return expected response ([#685](https://github.com/ForestAdmin/forest-rails/issues/685)) ([1e6333c](https://github.com/ForestAdmin/forest-rails/commit/1e6333c707773ec5fa0699675dec47b1a5795272))
+
 ## [9.3.12](https://github.com/ForestAdmin/forest-rails/compare/v9.3.11...v9.3.12) (2024-07-02)
 
 
