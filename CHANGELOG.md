@@ -1,3 +1,10 @@
+## [9.3.14](https://github.com/ForestAdmin/forest-rails/compare/v9.3.13...v9.3.14) (2024-08-30)
+
+
+### Bug Fixes
+
+* **security:** patch micromatch dependency vulnerabilities ([#686](https://github.com/ForestAdmin/forest-rails/issues/686)) ([eee2fbf](https://github.com/ForestAdmin/forest-rails/commit/eee2fbf216b32098abd43737eabdd2a3a03720e6))
+
 ## [9.3.13](https://github.com/ForestAdmin/forest-rails/compare/v9.3.12...v9.3.13) (2024-07-19)
 
 
