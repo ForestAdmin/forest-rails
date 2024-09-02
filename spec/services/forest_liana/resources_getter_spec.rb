@@ -248,6 +248,48 @@ module ForestLiana
       end
     end
 
+
+
+
+    context 'when fields is given' do
+      let(:resource) { Island }
+      let(:filters) { {
+        field: 'location:id',
+        operator: 'equal',
+        value: 1,
+      }.to_json }
+
+      # it 'should get only the expected records' do
+      #   getter.perform
+      #   records = getter.records
+      #   count = getter.count
+      #
+      #   expect(records.count).to eq 1
+      #   expect(count).to eq 1
+      #   expect(records.map(&:id)).to eq [1]
+      # end
+
+      it 'should include associated table only once' do
+        sql_query = getter.perform.to_sql
+        location_includes_count = sql_query.scan('LEFT OUTER JOIN "locations"').count
+        expect(location_includes_count).to eq(1)
+      end
+    end
+
+
+
+    # SELECT "isle"."id" AS t0_r0, "isle"."name" AS t0_r1, "isle"."map" AS t0_r2, "isle"."created_at" AS t0_r3,
+    #         "isle"."updated_at" AS t0_r4, "locations"."id" AS t1_r0, "locations"."coordinates" AS t1_r1,
+    #         "locations"."island_id" AS t1_r2, "locations"."created_at" AS t1_r3, "locations"."updated_at" AS t1_r4
+    # FROM "isle"
+    # LEFT OUTER JOIN "locations" ON "locations"."island_id" = "isle"."id"
+    # LEFT OUTER JOIN "locations" "location" ON "location"."island_id" = "isle"."id"
+    # WHERE ("location"."id" = 1) ORDER BY "isle"."id" ASC
+
+
+
+
+
     describe 'when getting instance dependent associations' do
       let(:resource) { Island }
       let(:fields) { { 'Island' => 'id,eponymous_tree', 'eponymous_tree' => 'id,name'} }
