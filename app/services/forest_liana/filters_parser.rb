@@ -16,13 +16,27 @@ module ForestLiana
       where = parse_aggregation(@filters)
       return @resource unless where
 
+      # @joins.each do |join|
+      #   current_resource = @resource.reflect_on_association(join.name).klass
+      #   current_resource.include(ArelHelpers::Aliases)
+      #   current_resource.aliased_as(join.name) do |aliased_resource|
+      #     @resource = @resource.joins(ArelHelpers.join_association(@resource, join.name, Arel::Nodes::OuterJoin, aliases: [aliased_resource]))
+      #   end
+      # end
       @joins.each do |join|
-        current_resource = @resource.reflect_on_association(join.name).klass
-        current_resource.include(ArelHelpers::Aliases)
-        current_resource.aliased_as(join.name) do |aliased_resource|
-          @resource = @resource.joins(ArelHelpers.join_association(@resource, join.name, Arel::Nodes::OuterJoin, aliases: [aliased_resource]))
+        association_name = join.name.to_s
+
+        unless @resource.joins_values.any? { |existing_join| existing_join.to_s.include?(association_name) }
+          @resource = @resource.left_joins(association_name.to_sym)
         end
       end
+      # added_joins = Set.new
+      # @joins.each do |join|
+      #   unless added_joins.include?(join.name)
+      #     @resource = @resource.joins(join.name)
+      #     added_joins.add(join.name)
+      #   end
+      # end
 
       @resource.where(where)
     end
