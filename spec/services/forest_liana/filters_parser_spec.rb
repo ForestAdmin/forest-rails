@@ -421,7 +421,7 @@ module ForestLiana
       context 'on belongs to field' do
         context 'existing field' do
           let(:field_name) { 'trees:age' }
-          it { expect(result).to eq "\"trees\".\"age\""}
+          it { expect(result).to eq "trees.\"age\""}
         end
         context 'not existing field' do
           let(:field_name) { 'hero:age' }

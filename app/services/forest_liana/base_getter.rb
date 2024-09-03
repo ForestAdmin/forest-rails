@@ -34,7 +34,7 @@ module ForestLiana
       instance_dependent_associations = instance_dependent_associations(resource)
 
       polymorphic = []
-      preload_loads = @includes.select do |name|
+      preload_loads = @includes.uniq.select do |name|
         association = resource.reflect_on_association(name)
         if SchemaUtils.polymorphic?(association)
           polymorphic << association.name
@@ -49,7 +49,7 @@ module ForestLiana
         end
       end + instance_dependent_associations
 
-      result = records.eager_load(@includes - preload_loads - polymorphic)
+      result = records.eager_load(@includes.uniq - preload_loads - polymorphic)
 
       # Rails 7 can mix `eager_load` and `preload` in the same scope
       # Rails 6 cannot mix `eager_load` and `preload` in the same scope

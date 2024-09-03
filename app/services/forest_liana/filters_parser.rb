@@ -16,27 +16,9 @@ module ForestLiana
       where = parse_aggregation(@filters)
       return @resource unless where
 
-      # @joins.each do |join|
-      #   current_resource = @resource.reflect_on_association(join.name).klass
-      #   current_resource.include(ArelHelpers::Aliases)
-      #   current_resource.aliased_as(join.name) do |aliased_resource|
-      #     @resource = @resource.joins(ArelHelpers.join_association(@resource, join.name, Arel::Nodes::OuterJoin, aliases: [aliased_resource]))
-      #   end
-      # end
       @joins.each do |join|
-        association_name = join.name.to_s
-
-        unless @resource.joins_values.any? { |existing_join| existing_join.to_s.include?(association_name) }
-          @resource = @resource.left_joins(association_name.to_sym)
-        end
+        @resource = @resource.eager_load(join.name)
       end
-      # added_joins = Set.new
-      # @joins.each do |join|
-      #   unless added_joins.include?(join.name)
-      #     @resource = @resource.joins(join.name)
-      #     added_joins.add(join.name)
-      #   end
-      # end
 
       @resource.where(where)
     end
@@ -184,8 +166,7 @@ module ForestLiana
         current_resource = @resource.reflect_on_association(field.split(':').first.to_sym)&.klass
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") unless current_resource
 
-        association = get_association_name_for_condition(field)
-        quoted_table_name = ActiveRecord::Base.connection.quote_column_name(association)
+        quoted_table_name = current_resource.table_name
         field_name = field.split(':')[1]
       else
         quoted_table_name = @resource.quoted_table_name
