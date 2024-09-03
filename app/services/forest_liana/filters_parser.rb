@@ -166,6 +166,7 @@ module ForestLiana
         current_resource = @resource.reflect_on_association(field.split(':').first.to_sym)&.klass
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") unless current_resource
 
+        get_association_name_for_condition(field)
         quoted_table_name = current_resource.table_name
         field_name = field.split(':')[1]
       else
