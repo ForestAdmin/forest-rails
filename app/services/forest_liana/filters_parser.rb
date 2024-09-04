@@ -1,6 +1,6 @@
 module ForestLiana
   class FiltersParser
-    AGGREGATOR_OPERATOR = %w(and or)
+    AGGREGATOR_OPERATOR = %w(and or).freeze
 
     def initialize(filters, resource, timezone, params = nil)
       @filters = filters
@@ -13,14 +13,14 @@ module ForestLiana
     def apply_filters
       return @resource unless @filters
 
-      where = parse_aggregation(@filters)
-      return @resource unless where
+      where_clause = parse_aggregation(@filters)
+      return @resource unless where_clause
 
       @joins.each do |join|
         @resource = @resource.eager_load(join.name)
       end
 
-      @resource.where(where)
+      @resource.where(where_clause)
     end
 
     def parse_aggregation(node)
