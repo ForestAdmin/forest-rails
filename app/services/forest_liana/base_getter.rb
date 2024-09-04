@@ -40,12 +40,12 @@ module ForestLiana
           polymorphic << association.name
           false
         else
-          targetModelConnection = association.klass.connection
-          targetModelDatabase = targetModelConnection.current_database if targetModelConnection.respond_to? :current_database
-          resourceConnection = resource.connection
-          resourceDatabase = resourceConnection.current_database if resourceConnection.respond_to? :current_database
+          target_model_connection = association.klass.connection
+          target_model_database = target_model_connection.current_database if target_model_connection.respond_to? :current_database
+          resource_connection = resource.connection
+          resource_database = resource_connection.current_database if resource_connection.respond_to? :current_database
 
-          targetModelDatabase != resourceDatabase
+          target_model_database != resource_database
         end
       end + instance_dependent_associations
 
