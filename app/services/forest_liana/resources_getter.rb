@@ -77,7 +77,7 @@ module ForestLiana
     private
 
     def get_fields_to_serialize
-      return @params.dig(:fields, @collection_name)&.split(',')&.map(&:to_sym) || []
+      @params.dig(:fields, @collection_name)&.split(',')&.map(&:to_sym) || []
     end
 
     def get_segment
@@ -101,6 +101,7 @@ module ForestLiana
         end
       end
       @count_needs_includes = true if @params[:search]
+
       associations
     end
 
@@ -122,6 +123,7 @@ module ForestLiana
     def apply_segment(records)
       return records.send(@segment.scope) if @segment.scope
       return records.where(@segment.where.call) if @segment.where
+
       records
     end
 
@@ -158,9 +160,7 @@ module ForestLiana
     end
 
     def self.related_data?(attributes)
-      attributes[:parent_collection_id] &&
-        attributes[:parent_collection_name] &&
-        attributes[:parent_association_name]
+      attributes[:parent_collection_id] && attributes[:parent_collection_name] && attributes[:parent_association_name]
     end
 
     def self.related_data_params(attributes, user)
@@ -172,6 +172,7 @@ module ForestLiana
     def self.fetch_ids(resources_getter)
       ids = []
       resources_getter.query_for_batch.find_in_batches { |records| ids += records.map(&:id) }
+
       ids
     end
 
