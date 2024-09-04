@@ -12,7 +12,7 @@ module ForestLiana
       @fields_to_serialize = get_fields_to_serialize
       @field_names_requested = field_names_requested
       @segment = get_segment
-      @includes = compute_includes
+      compute_includes
       @search_query_builder = SearchQueryBuilder.new(@params, @includes, @collection, @user)
 
       prepare_query
@@ -43,6 +43,31 @@ module ForestLiana
 
     def records
       @records.offset(offset).limit(limit).to_a
+    end
+
+    def compute_includes
+      associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
+
+      includes = associations_has_one.map(&:name)
+      includes_for_smart_search = []
+
+      if @collection && @collection.search_fields
+        includes_for_smart_search = @collection.search_fields
+                                               .select { |field| field.include? '.' }
+                                               .map { |field| field.split('.').first.to_sym }
+
+        includes_has_many = SchemaUtils.many_associations(@resource)
+                                       .select { |association| SchemaUtils.model_included?(association.klass) }
+                                       .map(&:name)
+
+        includes_for_smart_search = includes_for_smart_search & includes_has_many
+      end
+
+      if @field_names_requested
+        @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
+      else
+        @includes = includes
+      end
     end
 
     def includes_for_serialization
