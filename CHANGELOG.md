@@ -1,3 +1,10 @@
+## [9.3.15](https://github.com/ForestAdmin/forest-rails/compare/v9.3.14...v9.3.15) (2024-09-10)
+
+
+### Bug Fixes
+
+* improve quey with duplicate alias ([#687](https://github.com/ForestAdmin/forest-rails/issues/687)) ([a163407](https://github.com/ForestAdmin/forest-rails/commit/a1634076ff6f7078bb06065396fb6bb8c57eb30d)), closes [#512](https://github.com/ForestAdmin/forest-rails/issues/512)
+
 ## [9.3.14](https://github.com/ForestAdmin/forest-rails/compare/v9.3.13...v9.3.14) (2024-08-30)
 
 
