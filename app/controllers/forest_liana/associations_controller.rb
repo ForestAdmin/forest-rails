@@ -76,6 +76,8 @@ module ForestLiana
         dissociator.perform
 
         head :no_content
+      rescue ActiveRecord::RecordNotDestroyed => error
+        render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Dissociate error: #{error}\n#{format_stacktrace(error)}"
