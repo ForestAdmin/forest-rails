@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (8.3.2)
+    forest_liana (8.3.3)
       arel-helpers
       bcrypt
       deepsort

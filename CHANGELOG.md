@@ -1,3 +1,10 @@
+## [8.3.3](https://github.com/ForestAdmin/forest-rails/compare/v8.3.2...v8.3.3) (2024-09-18)
+
+
+### Bug Fixes
+
+* **association:** return bad request if associated record is not destroy on 8.x.x ([#689](https://github.com/ForestAdmin/forest-rails/issues/689)) ([d3d31e2](https://github.com/ForestAdmin/forest-rails/commit/d3d31e2ff5d4919aeea977333383982df43d0c3d))
+
 ## [8.3.2](https://github.com/ForestAdmin/forest-rails/compare/v8.3.1...v8.3.2) (2024-05-16)
 
 
