@@ -1,3 +1,10 @@
+## [9.3.16](https://github.com/ForestAdmin/forest-rails/compare/v9.3.15...v9.3.16) (2024-09-18)
+
+
+### Bug Fixes
+
+* **association:** return bad request when associated record is not destroy ([#688](https://github.com/ForestAdmin/forest-rails/issues/688)) ([d293515](https://github.com/ForestAdmin/forest-rails/commit/d2935156b763806cca70426258f5a178bc1e1e87))
+
 ## [9.3.15](https://github.com/ForestAdmin/forest-rails/compare/v9.3.14...v9.3.15) (2024-09-10)
 
 
