@@ -31,7 +31,12 @@ module ForestLiana
 
         if @with_deletion
           record_ids = record_ids.select { |record_id| @association.klass.exists?(record_id) }
-          @association.klass.destroy(record_ids)
+          @resource.transaction do
+            record_ids.each do |id|
+              record = @association.klass.find(id)
+              record.destroy!
+            end
+          end
         end
       end
     end
