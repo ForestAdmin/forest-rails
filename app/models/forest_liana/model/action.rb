@@ -5,7 +5,7 @@ class ForestLiana::Model::Action
   extend ActiveModel::Naming
 
   attr_accessor :id, :name, :base_url, :endpoint, :http_method, :fields, :redirect,
-    :type, :download, :hooks
+    :type, :download, :hooks, :description, :submit_button_label
 
   def initialize(attributes = {})
     if attributes.key?(:global)
@@ -74,6 +74,8 @@ class ForestLiana::Model::Action
     @type ||= "bulk"
     @download ||= false
     @hooks = !@hooks.nil? ? @hooks.symbolize_keys : nil
+    @description ||= nil
+    @submit_button_label ||= nil
   end
 
   def persisted?
