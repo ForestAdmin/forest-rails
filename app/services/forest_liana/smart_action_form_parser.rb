@@ -7,7 +7,7 @@ module ForestLiana
         if element[:type] == 'Layout'
           validate_layout_element(element)
           element[:component] = element[:component].camelize(:lower)
-          if %w[Page Row].include?(element[:component])
+          if %w[page row].include?(element[:component])
             extract = extract_fields_and_layout_for_component(element)
             layout << element
             fields.concat(extract[:fields])
