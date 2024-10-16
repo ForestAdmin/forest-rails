@@ -90,7 +90,10 @@ module ForestLiana
         updated_field.transform_keys { |key| key.to_s.camelize(:lower) }
       end
 
-      render serializer: nil, json: { fields: fields, layout: result[:layout] }, status: :ok
+      response = { fields: fields }
+      response[:layout] = result[:layout] unless result[:layout].all? { |element| element[:component] == 'input' }
+
+      render serializer: nil, json: response, status: :ok
     end
 
     def load
