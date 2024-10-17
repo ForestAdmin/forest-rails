@@ -52,6 +52,8 @@ module ForestLiana
       'download',
       'fields',
       'hooks',
+      'description',
+      'submit_button_label',
     ]
     KEYS_ACTION_FIELD = [
       'field',

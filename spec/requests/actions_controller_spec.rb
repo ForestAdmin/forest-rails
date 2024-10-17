@@ -41,6 +41,57 @@ describe 'Requesting Actions routes', :type => :request  do
   describe 'hooks' do
     island = ForestLiana.apimap.find {|collection| collection.name.to_s == ForestLiana.name_for(Island)}
 
+    describe 'call /load on layout form' do
+      params = {
+        data: {
+          attributes: { ids: [1], collection_name: 'Island' }
+        }
+      }
+
+      it 'should respond 200 with expected response on load' do
+        post '/forest/actions/my_action_with_layout/hooks/load', params: JSON.dump(params), headers: headers
+        result = JSON.parse(response.body)
+
+        expect(response.status).to eq(200)
+        expect(result).to eq(
+          {
+            "fields" => [
+              {
+                "field"=>"foo",
+                "type"=>"String",
+                "defaultValue"=>nil,
+                "enums"=>nil,
+                "isRequired"=>false,
+                "isReadOnly"=>false,
+                "reference"=>nil,
+                "description"=>nil,
+                "hook"=>"on_foo_changed",
+                "position"=>0,
+                "widgetEdit"=>nil,
+                "value"=>nil
+              },
+              { "field"=>"field 1", "type"=>"String"},
+              {"field"=>"field 2", "type"=>"String" }
+            ],
+            "layout"=>[
+              {
+                "type"=>"Layout",
+                "component"=>"page",
+                "elements"=>[
+                  {"type"=>"Layout", "component"=>"htmlBlock", "content"=>"<p>test</p>"},
+                  {"type"=>"Layout", "component"=>"separator"},
+                  {"component"=>"input", "fieldId"=>"foo"},
+                  {"component"=>"input", "fieldId"=>"field 1"},
+                  {"type"=>"Layout", "component"=>"separator"},
+                  {"component"=>"input", "fieldId"=>"field 2"}
+                ]
+              }
+            ]
+          }
+        )
+      end
+    end
+
     describe 'call /load' do
       params = {
         data: {
@@ -54,6 +105,8 @@ describe 'Requesting Actions routes', :type => :request  do
         foo = action.fields.select { |field| field[:field] == 'foo' }.first
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)).to eq({'fields' => [foo.merge({:value => nil}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
+        # action form without layout elements should not have the key layout
+        expect(JSON.parse(response.body)).not_to have_key('layout')
       end
 
       it 'should respond 422 with bad params' do

@@ -52,12 +52,14 @@ module ForestLiana
         return render status: 500, json: { error: 'Error in smart action load hook: hook must return an array of fields' }
       end
 
+      result = SmartActionFormParser.extract_fields_and_layout(result)
+
       # Validate that the fields are well formed.
       begin
         # action.hooks[:change] is a hashmap here
         # to do the validation, only the hook names are require
         change_hooks_name = action.hooks[:change].nil? ? nil : action.hooks[:change].keys
-        ForestLiana::SmartActionFieldValidator.validate_smart_action_fields(result, action.name, change_hooks_name)
+        ForestLiana::SmartActionFieldValidator.validate_smart_action_fields(result[:fields], action.name, change_hooks_name)
       rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
         FOREST_LOGGER.warn invalid_field_error.message
       rescue ForestLiana::Errors::SmartActionInvalidFieldHookError => invalid_hook_error
@@ -67,8 +69,8 @@ module ForestLiana
       end
 
       # Apply result on fields (transform the object back to an array), preserve order.
-      fields = result.map do |field|
-        updated_field = result.find{|f| f[:field] == field[:field]}
+      fields = result[:fields].map do |field|
+        updated_field = result[:fields].find{|f| f[:field] == field[:field]}
 
         # Reset `value` when not present in `enums` (which means `enums` has changed).
         if updated_field[:enums].is_a?(Array)
@@ -88,7 +90,10 @@ module ForestLiana
         updated_field.transform_keys { |key| key.to_s.camelize(:lower) }
       end
 
-      render serializer: nil, json: { fields: fields }, status: :ok
+      response = { fields: fields }
+      response[:layout] = result[:layout] unless result[:layout].all? { |element| element[:component] == 'input' }
+
+      render serializer: nil, json: response, status: :ok
     end
 
     def load
