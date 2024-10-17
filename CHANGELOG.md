@@ -1,3 +1,10 @@
+# [9.4.0](https://github.com/ForestAdmin/forest-rails/compare/v9.3.16...v9.4.0) (2024-10-17)
+
+
+### Features
+
+* **form:** support layout elements in smart action form hooks  ([#691](https://github.com/ForestAdmin/forest-rails/issues/691)) ([d2a2d47](https://github.com/ForestAdmin/forest-rails/commit/d2a2d47082a87650b1a2065d430f25b47c5fef16))
+
 ## [9.3.16](https://github.com/ForestAdmin/forest-rails/compare/v9.3.15...v9.3.16) (2024-09-18)
 
 
