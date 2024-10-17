@@ -56,11 +56,11 @@ module ForestLiana
       if element[:component] == 'Row'
         unless element[:fields].is_a? Array
           raise ForestLiana::Errors::HTTP422Error.new(
-            " throw new Error('Row components must contain an array of fields in property 'fields'"
+            "Row components must contain an array of fields in property 'fields'"
           )
         end
 
-        if element[:elements].any? { |element| element[:type] === 'Layout' }
+        if element[:fields].any? { |element| element[:type] === 'Layout' }
           raise ForestLiana::Errors::HTTP422Error.new('Row components can only contain fields')
         end
       end
