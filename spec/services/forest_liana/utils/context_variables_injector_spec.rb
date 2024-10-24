@@ -10,7 +10,7 @@ module ForestLiana
           'lastName' => 'Doe',
           'fullName' => 'John Doe',
           'email' => 'john.doe@domain.com',
-          'tags' => [{ 'planet' => 'Death Star' }],
+          'tags' => [{'key' => 'planet', 'value' => 'Death Star' }],
           'roleId' => 1,
           'permissionLevel' => 'admin'
         }
@@ -87,7 +87,7 @@ module ForestLiana
             { key: 'id', expected_value: user['id'] },
             { key: 'permissionLevel', expected_value: user['permissionLevel'] },
             { key: 'roleId', expected_value: user['roleId'] },
-            { key: 'tags.planet', expected_value: user['tags'][0]['planet'] },
+            { key: 'tags.planet', expected_value: user['tags'][0]['value'] },
             { key: 'team.id', expected_value: team['id'] },
             { key: 'team.name', expected_value: team['name'] }
           ].each do |value|
