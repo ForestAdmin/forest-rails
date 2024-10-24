@@ -1,3 +1,10 @@
+## [9.4.1](https://github.com/ForestAdmin/forest-rails/compare/v9.4.0...v9.4.1) (2024-10-24)
+
+
+### Bug Fixes
+
+* ensure correct values are returned for user tags in context variables ([#692](https://github.com/ForestAdmin/forest-rails/issues/692)) ([03b3b63](https://github.com/ForestAdmin/forest-rails/commit/03b3b632beb564ad332981a80dd36e260a224af3))
+
 # [9.4.0](https://github.com/ForestAdmin/forest-rails/compare/v9.3.16...v9.4.0) (2024-10-17)
 
 
