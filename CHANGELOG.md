@@ -1,3 +1,10 @@
+## [9.4.2](https://github.com/ForestAdmin/forest-rails/compare/v9.4.1...v9.4.2) (2024-10-30)
+
+
+### Bug Fixes
+
+* **security:** patch possible ReDoS vulnerabilities ([#693](https://github.com/ForestAdmin/forest-rails/issues/693)) ([deeab93](https://github.com/ForestAdmin/forest-rails/commit/deeab935d9bc132a3faad0718c8a89c6fb3c6281))
+
 ## [9.4.1](https://github.com/ForestAdmin/forest-rails/compare/v9.4.0...v9.4.1) (2024-10-24)
 
 
