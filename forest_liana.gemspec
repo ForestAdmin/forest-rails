@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*", "spec/**/*"]
 
-  s.add_runtime_dependency "rails", ">= 4.0"
+  s.add_runtime_dependency "rails", ">= 6.1.7.9"
   s.add_runtime_dependency "forestadmin-jsonapi-serializers", ">= 0.14.0"
   s.add_runtime_dependency "jwt"
   s.add_runtime_dependency "rack-cors"
