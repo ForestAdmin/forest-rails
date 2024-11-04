@@ -1,3 +1,10 @@
+## [9.4.3](https://github.com/ForestAdmin/forest-rails/compare/v9.4.2...v9.4.3) (2024-11-04)
+
+
+### Bug Fixes
+
+* **action:** fix get_ids_from_request helper call on related data ([#695](https://github.com/ForestAdmin/forest-rails/issues/695)) ([28a0371](https://github.com/ForestAdmin/forest-rails/commit/28a03716fae3afa4a69826bbfee2fd3ef1a79c9f))
+
 ## [9.4.2](https://github.com/ForestAdmin/forest-rails/compare/v9.4.1...v9.4.2) (2024-10-30)
 
 
