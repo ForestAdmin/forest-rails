@@ -166,7 +166,17 @@ module ForestLiana
     def self.related_data_params(attributes, user)
       parent_model = SchemaUtils.find_model_from_collection_name(attributes[:parent_collection_name])
       model = parent_model.reflect_on_association(attributes[:parent_association_name].to_sym)
-      [parent_model, model, attributes.merge(collection: attributes[:parent_collection_name]), user]
+
+      [
+        parent_model,
+        model,
+        attributes.merge(
+          collection: attributes[:parent_collection_name],
+          id: attributes[:parent_collection_id],
+          association_name: attributes[:parent_association_name]
+        ),
+        user
+      ]
     end
 
     def self.fetch_ids(resources_getter)
