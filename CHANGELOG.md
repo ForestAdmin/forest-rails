@@ -1,3 +1,10 @@
+# [9.5.0](https://github.com/ForestAdmin/forest-rails/compare/v9.4.3...v9.5.0) (2024-11-12)
+
+
+### Features
+
+* **smart-field:** add new options to support native polymorphic fields ([#694](https://github.com/ForestAdmin/forest-rails/issues/694)) ([891d07a](https://github.com/ForestAdmin/forest-rails/commit/891d07a9b1a64d5e20bc7d04a5c242919630a891))
+
 ## [9.4.3](https://github.com/ForestAdmin/forest-rails/compare/v9.4.2...v9.4.3) (2024-11-04)
 
 
