@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "forestadmin-jsonapi-serializers", ">= 0.14.0"
   s.add_runtime_dependency "jwt"
   s.add_runtime_dependency "rack-cors"
-  s.add_runtime_dependency "arel-helpers"
   s.add_runtime_dependency "groupdate", ">= 5.0.0"
   s.add_runtime_dependency "useragent"
   s.add_runtime_dependency "bcrypt"
