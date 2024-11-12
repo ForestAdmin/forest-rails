@@ -72,12 +72,12 @@ module ForestLiana::Collection
       opts[:relationships] = nil unless opts.has_key?(:relationships)
       opts[:widget] = nil unless opts.has_key?(:widget)
       opts[:validations] = [] unless opts.has_key?(:validations)
+      opts[:is_virtual] = true unless opts.has_key?(:polymorphic_key) && opts[:polymorphic_key]
 
       model.fields << opts.merge({
         field: name,
         is_filterable: !!opts[:is_filterable],
         is_sortable: !!opts[:is_sortable],
-        is_virtual: true
       })
 
       define_method(name) { self.data[name] } if smart_collection?
