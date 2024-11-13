@@ -1,3 +1,10 @@
+## [9.5.1](https://github.com/ForestAdmin/forest-rails/compare/v9.5.0...v9.5.1) (2024-11-13)
+
+
+### Bug Fixes
+
+* remove arel-helpers to enable Rails 8 compatibility ([#696](https://github.com/ForestAdmin/forest-rails/issues/696)) ([6558699](https://github.com/ForestAdmin/forest-rails/commit/655869923fc045464c6374f93e2392e3611486a5))
+
 # [9.5.0](https://github.com/ForestAdmin/forest-rails/compare/v9.4.3...v9.5.0) (2024-11-12)
 
 
