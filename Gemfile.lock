@@ -2,7 +2,6 @@ PATH
   remote: .
   specs:
     forest_liana (9.5.0)
-      arel-helpers
       bcrypt
       deepsort
       forestadmin-jsonapi-serializers (>= 0.14.0)
@@ -80,8 +79,6 @@ GEM
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     aes_key_wrap (1.1.0)
-    arel-helpers (2.14.0)
-      activerecord (>= 3.1.0, < 8)
     attr_required (1.0.1)
     base64 (0.2.0)
     bcrypt (3.1.18)
@@ -263,7 +260,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  arel-helpers (= 2.14.0)
   bcrypt
   byebug
   deepsort
