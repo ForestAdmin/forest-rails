@@ -26,7 +26,6 @@ end
 gem 'rails', '6.1.7.9'
 gem 'forestadmin-jsonapi-serializers'
 gem 'rack-cors'
-# gem 'arel-helpers', '2.14.0'
 gem 'groupdate', '5.2.2'
 gem 'useragent'
 gem 'jwt'
