@@ -39,7 +39,7 @@ module ForestLiana
         expect(field[:is_sortable]).to eq(true)
       end
 
-      it 'add polymorphic smart field with options' do
+      it 'add polymorphic smart field with is_filterable option set to false' do
         field = collection.fields.select { |field| field[:field] == :addressable_type }.first
 
         expect(field).not_to be_nil
