@@ -35,7 +35,9 @@ module ForestLiana
           if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
             return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
-            if @smart_action['approvalRequiredConditions'].empty? || match_conditions('approvalRequiredConditions')
+            approval_condition = @smart_action['approvalRequiredConditions'].find { |c| c['roleId'] }
+
+            if approval_condition.blank? || match_conditions('approvalRequiredConditions')
               raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
             else
               return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
@@ -48,8 +50,10 @@ module ForestLiana
         def match_conditions(condition_name)
           begin
             attributes = @parameters[:data][:attributes]
+            condition = @smart_action[condition_name].find { |c| c['roleId'] == @user['roleId'] }
+
             records = FiltersParser.new(
-              @smart_action[condition_name][0]['filter'],
+              condition['filter'],
               @collection,
               @parameters[:timezone],
               @parameters
