@@ -35,12 +35,10 @@ module ForestLiana
           if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
             return true if condition_by_role_id(@smart_action['triggerConditions']).blank? || match_conditions('triggerConditions')
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
-            approval_condition = condition_by_role_id(@smart_action['approvalRequiredConditions'])
-
-            if approval_condition.blank? || match_conditions('approvalRequiredConditions')
+            if condition_by_role_id(@smart_action['approvalRequiredConditions']).blank? || match_conditions('approvalRequiredConditions')
               raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
             else
-              return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
+              return true if condition_by_role_id(@smart_action['triggerConditions']).blank? || match_conditions('triggerConditions')
             end
           end
 
