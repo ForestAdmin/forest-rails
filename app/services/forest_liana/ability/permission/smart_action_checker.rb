@@ -22,7 +22,7 @@ module ForestLiana
 
         def can_approve?
           @parameters = RequestPermission.decodeSignedApprovalRequest(@parameters)
-          if ((@smart_action['userApprovalConditions'].empty? || match_conditions('userApprovalConditions')) &&
+          if ((condition_by_role_id(@smart_action['userApprovalConditions']).blank? || match_conditions('userApprovalConditions')) &&
             (@parameters[:data][:attributes][:requester_id] != @user['id'] || @smart_action['selfApprovalEnabled'].include?(@user['roleId']))
           )
             return true
@@ -35,7 +35,7 @@ module ForestLiana
           if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
             return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
-            approval_condition = @smart_action['approvalRequiredConditions'].find { |c| c['roleId'] }
+            approval_condition = condition_by_role_id(@smart_action['approvalRequiredConditions'])
 
             if approval_condition.blank? || match_conditions('approvalRequiredConditions')
               raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
@@ -50,7 +50,7 @@ module ForestLiana
         def match_conditions(condition_name)
           begin
             attributes = @parameters[:data][:attributes]
-            condition = @smart_action[condition_name].find { |c| c['roleId'] == @user['roleId'] }
+            condition = condition_by_role_id(@smart_action[condition_name])
 
             records = FiltersParser.new(
               condition['filter'],
@@ -70,6 +70,12 @@ module ForestLiana
           rescue
             raise ForestLiana::Ability::Exceptions::ActionConditionError.new
           end
+        end
+
+        private
+
+        def condition_by_role_id(condition)
+          condition.find { |c| c['roleId'] == @user['roleId'] }
         end
       end
     end
