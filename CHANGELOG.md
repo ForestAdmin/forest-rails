@@ -1,3 +1,10 @@
+## [9.5.2](https://github.com/ForestAdmin/forest-rails/compare/v9.5.1...v9.5.2) (2024-11-18)
+
+
+### Bug Fixes
+
+* **permission:** get approval conditions by role id  ([#698](https://github.com/ForestAdmin/forest-rails/issues/698)) ([73d9874](https://github.com/ForestAdmin/forest-rails/commit/73d9874f925e2868c996dcae02f1e4070b3d06ed))
+
 ## [9.5.1](https://github.com/ForestAdmin/forest-rails/compare/v9.5.0...v9.5.1) (2024-11-13)
 
 
