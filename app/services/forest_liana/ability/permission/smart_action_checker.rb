@@ -72,8 +72,6 @@ module ForestLiana
           end
         end
 
-        private
-
         def condition_by_role_id(condition)
           condition.find { |c| c['roleId'] == @user['roleId'] }
         end
