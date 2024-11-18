@@ -33,7 +33,7 @@ module ForestLiana
 
         def can_trigger?
           if @smart_action['triggerEnabled'].include?(@user['roleId']) && @smart_action['approvalRequired'].exclude?(@user['roleId'])
-            return true if @smart_action['triggerConditions'].empty? || match_conditions('triggerConditions')
+            return true if condition_by_role_id(@smart_action['triggerConditions']).blank? || match_conditions('triggerConditions')
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
             approval_condition = condition_by_role_id(@smart_action['approvalRequiredConditions'])
 
