@@ -1,3 +1,11 @@
+## [9.5.3](https://github.com/ForestAdmin/forest-rails/compare/v9.5.2...v9.5.3) (2024-11-22)
+
+
+### Bug Fixes
+
+* **security:** patch cross-spawn dependency vulnerabilities ([#700](https://github.com/ForestAdmin/forest-rails/issues/700)) ([b97e86c](https://github.com/ForestAdmin/forest-rails/commit/b97e86c22568d6cbb93e3925865c3ea6ffb7cd1c))
+* **security:** patch micromatch dependency vulnerabilities ([#699](https://github.com/ForestAdmin/forest-rails/issues/699)) ([ccf60b3](https://github.com/ForestAdmin/forest-rails/commit/ccf60b39f07d44840f7726dd2131bb2e77a12aff))
+
 ## [9.5.2](https://github.com/ForestAdmin/forest-rails/compare/v9.5.1...v9.5.2) (2024-11-18)
 
 
