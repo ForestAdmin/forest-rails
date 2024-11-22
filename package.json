@@ -29,5 +29,8 @@
     "semantic-release": "19.0.5",
     "semantic-release-rubygem": "1.2.0",
     "semantic-release-slack-bot": "3.5.2"
+  },
+  "resolutions": {
+    "semantic-release-slack-bot/**/micromatch": "^4.0.8"
   }
 }
