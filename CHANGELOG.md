@@ -1,3 +1,10 @@
+## [9.5.4](https://github.com/ForestAdmin/forest-rails/compare/v9.5.3...v9.5.4) (2024-12-04)
+
+
+### Bug Fixes
+
+* **scopes:** prevent unnecessary HTTP call despite caching ([#702](https://github.com/ForestAdmin/forest-rails/issues/702)) ([5013e2b](https://github.com/ForestAdmin/forest-rails/commit/5013e2b7e1a64fa95f69ac24c3b7cafe4b3d559e))
+
 ## [9.5.3](https://github.com/ForestAdmin/forest-rails/compare/v9.5.2...v9.5.3) (2024-11-22)
 
 
