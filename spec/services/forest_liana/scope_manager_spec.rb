@@ -73,6 +73,14 @@ module ForestLiana
               'team' => {'id' => '1', 'name' => 'Operations'},
             })
         end
+
+        it 'calls the API only once, even with multiple fetch_scopes calls' do
+          described_class.fetch_scopes(rendering_id)
+          described_class.fetch_scopes(rendering_id)
+
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).once
+        end
+
       end
 
       describe 'when scope contains dynamic values' do

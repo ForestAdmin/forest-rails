@@ -1,7 +1,7 @@
 module ForestLiana
   class ScopeManager
     # 5 minutes expiration cache
-    @@scope_cache_expiration_delta = 300
+    @@scope_cache_expiration_delta = 10
 
     def self.apply_scopes_on_records(records, user, collection_name, timezone)
       scope_filters = get_scope(collection_name, user)
@@ -49,20 +49,15 @@ module ForestLiana
     end
 
     def self.fetch_scopes(rendering_id)
-      response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
+      Rails.cache.fetch("forest.scopes.#{rendering_id}", expires_in: @@scope_cache_expiration_delta) do
+        response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
+        raise 'Unable to fetch scopes' unless response.is_a?(Net::HTTPOK)
+        parsed_response = JSON.parse(response.body)
 
-      if response.is_a?(Net::HTTPOK)
-        Rails.cache.fetch('forest.scopes.' + rendering_id.to_s, expires_in: @@scope_cache_expiration_delta) do
-          data = {}
-          parse_response = JSON.parse(response.body)
-
-          data['scopes'] = decode_scope(parse_response['collections'])
-          data['team'] = parse_response['team']
-
-          data
-        end
-      else
-        raise 'Unable to fetch scopes'
+        {
+          'scopes' => decode_scope(parsed_response['collections']),
+          'team' => parsed_response['team']
+        }
       end
     end
 
