@@ -128,7 +128,7 @@ module ForestLiana
                 end
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError => exception
-              FOREST_LOGGER.warn "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}.\n#{exception.backtrace.try(:join, "\n\t")}"
+              FOREST_LOGGER.warn "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}.\n#{exception&.backtrace&.join("\n\t")}"
             end
           end
 
