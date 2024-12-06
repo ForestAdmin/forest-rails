@@ -3,13 +3,14 @@ module ForestLiana
     module Exceptions
       class RequireApproval < ForestLiana::Errors::ExpectedError
         attr_reader :data
-        def initialize(data)
+        def initialize(data, backtrace = nil)
           @data = data
           super(
             403,
                 :forbidden,
                 'This action requires to be approved.',
                 'CustomActionRequiresApprovalError',
+            backtrace,
           )
         end
       end
