@@ -127,8 +127,8 @@ module ForestLiana
                   ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
                 end
               end
-            rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError
-              puts "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}."
+            rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError => exception
+              FOREST_LOGGER.warn "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}.\n#{exception&.backtrace&.join("\n\t")}"
             end
           end
 
