@@ -76,8 +76,16 @@ module ForestLiana::Collection
 
       model.fields << opts.merge({
         field: name,
-        is_filterable: !!opts[:is_filterable],
-        is_sortable: !!opts[:is_sortable],
+        is_filterable: if opts.has_key?(:is_filterable)
+                        !!opts[:is_filterable]
+                      else
+                        !!opts[:polymorphic_key]
+                      end,
+        is_sortable: if opts.has_key?(:is_sortable)
+                      !!opts[:is_sortable]
+                    else
+                      !!opts[:polymorphic_key]
+                    end
       })
 
       define_method(name) { self.data[name] } if smart_collection?
