@@ -154,6 +154,88 @@ describe 'Requesting Tree resources', :type => :request  do
   end
 end
 
+describe 'Requesting User resources', :type => :request  do
+  let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
+  before do
+    User.create(name: 'John')
+
+    Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
+    Rails.cache.write('forest.has_permission', true)
+    Rails.cache.write(
+      'forest.collections',
+      {
+        'User' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
+        }
+      }
+    )
+
+    allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
+    allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
+    allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
+  end
+
+  after do
+    User.destroy_all
+  end
+
+  token = JWT.encode({
+    id: 1,
+    email: 'michael.kelso@that70.show',
+    first_name: 'Michael',
+    last_name: 'Kelso',
+    team: 'Operations',
+    rendering_id: 16,
+    exp: Time.now.to_i + 2.weeks.to_i,
+    permission_level: 'admin'
+  }, ForestLiana.auth_secret, 'HS256')
+
+  headers = {
+    'Accept' => 'application/json',
+    'Content-Type' => 'application/json',
+    'Authorization' => "Bearer #{token}"
+  }
+
+  describe 'index' do
+    params = {
+      fields: { 'User' => 'id,name,cap_name' },
+      page: { 'number' => '1', 'size' => '10' },
+      searchExtended: '0',
+      sort: '-id',
+      timezone: 'Europe/Paris'
+    }
+
+    it 'should respond the user data with meta when search apply on simple column and smart field' do
+      params[:search] = 'JOHN'
+      get '/forest/User', params: params, headers: headers
+
+      expect(JSON.parse(response.body)).to include(
+        "data" => [
+          {
+            "type" => "User",
+            "id" => "1",
+            "attributes" => {
+              "id" => 1,
+              "name" => "John",
+              "cap_name" => "JOHN"
+            },
+            "links" => { "self" => "/forest/user/1" },
+          }
+        ],
+        "included" => [],
+        "meta" => { 'decorators' => { '0' => { 'id' => "1", 'search' => %w[name cap_name] } } }
+      )
+    end
+  end
+end
+
 describe 'Requesting Address resources', :type => :request  do
   let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   before do
