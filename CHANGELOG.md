@@ -1,3 +1,10 @@
+## [9.5.5](https://github.com/ForestAdmin/forest-rails/compare/v9.5.4...v9.5.5) (2024-12-09)
+
+
+### Bug Fixes
+
+* **search:** highlight decorator search on smart field ([#707](https://github.com/ForestAdmin/forest-rails/issues/707)) ([69e2cac](https://github.com/ForestAdmin/forest-rails/commit/69e2cac636d4d018af6ea370266050080afda6ee))
+
 ## [9.5.4](https://github.com/ForestAdmin/forest-rails/compare/v9.5.3...v9.5.4) (2024-12-04)
 
 
