@@ -446,7 +446,11 @@ module ForestLiana
     def add_validations(column_schema, column)
       # NOTICE: Do not consider validations if a before_validation Active Records
       #         Callback is detected.
-      if @model._validation_callbacks.map(&:kind).include? :before
+      default_callback_excluded = [:normalize_changed_in_place_attributes]
+      if @model._validation_callbacks
+               .reject { |callback| default_callback_excluded.include?(callback.filter) }
+               .map(&:kind).include?(:before)
+
         return column_schema
       end
 
