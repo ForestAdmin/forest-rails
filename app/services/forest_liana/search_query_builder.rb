@@ -30,6 +30,7 @@ module ForestLiana
           if field.try(:[], :search)
             begin
               @records = field[:search].call(@records, @search)
+              (@fields_searched << field[:field].to_s) if field[:type] == 'String'
             rescue => exception
               FOREST_REPORTER.report exception
               FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \

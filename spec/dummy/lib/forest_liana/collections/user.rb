@@ -8,7 +8,12 @@ class Forest::User
     "name IS '#{capitalize_name}'"
   end
 
-  field :cap_name, type: 'String', filter: filter_cap_name do
+  search_cap_name = lambda do |query, search|
+    # Injects your new filter into the query.
+    query.or(User.where("name = '#{search}'"))
+  end
+
+  field :cap_name, type: 'String', filter: filter_cap_name, search: search_cap_name do
     object.name.upcase
   end
 
