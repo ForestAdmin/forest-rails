@@ -1,3 +1,10 @@
+# [9.6.0](https://github.com/ForestAdmin/forest-rails/compare/v9.5.7...v9.6.0) (2024-12-10)
+
+
+### Features
+
+* **smart-field:** set filterable and sortable options at true by default on polymorphic smart field ([#697](https://github.com/ForestAdmin/forest-rails/issues/697)) ([7f9de48](https://github.com/ForestAdmin/forest-rails/commit/7f9de48c88a3801f36d4c9f63d058e8b587e31bd))
+
 ## [9.5.7](https://github.com/ForestAdmin/forest-rails/compare/v9.5.6...v9.5.7) (2024-12-10)
 
 
