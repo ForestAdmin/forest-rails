@@ -27,8 +27,8 @@ module ForestLiana
           is_allowed
         rescue ForestLiana::Errors::ExpectedError => exception
           raise exception
-        rescue
-          raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name)
+        rescue => exception
+          raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name, exception.backtrace)
         end
       end
 
@@ -45,8 +45,8 @@ module ForestLiana
           smart_action_approval.can_execute?
         rescue ForestLiana::Errors::ExpectedError => exception
           raise exception
-        rescue
-          raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name)
+        rescue => exception
+          raise ForestLiana::Ability::Exceptions::UnknownCollection.new(collection_name, exception.backtrace)
         end
       end
 

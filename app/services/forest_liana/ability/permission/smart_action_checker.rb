@@ -65,8 +65,8 @@ module ForestLiana
             end
 
             records.select(@collection.table_name + '.id').count == attributes[:ids].count
-          rescue
-            raise ForestLiana::Ability::Exceptions::ActionConditionError.new
+          rescue => exception
+            raise ForestLiana::Ability::Exceptions::ActionConditionError.new(exception.backtrace)
           end
         end
 
