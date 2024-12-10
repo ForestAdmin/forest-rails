@@ -24,11 +24,15 @@ module ForestLiana::Collection
     end
 
     def action(name, opts = {})
+      return if model.actions.find { |action| action.name == name }
+
       opts[:name] = name
       model.actions << ForestLiana::Model::Action.new(opts)
     end
 
     def segment(name, opts = {}, &block)
+      return if model.segments.find { |segment| segment.name == name }
+
       opts[:name] = name
       model.segments << ForestLiana::Model::Segment.new(opts, &block)
     end
@@ -74,11 +78,13 @@ module ForestLiana::Collection
       opts[:validations] = [] unless opts.has_key?(:validations)
       opts[:is_virtual] = true unless opts.has_key?(:polymorphic_key) && opts[:polymorphic_key]
 
-      model.fields << opts.merge({
+      field = opts.merge({
         field: name,
         is_filterable: !!opts[:is_filterable],
         is_sortable: !!opts[:is_sortable],
       })
+
+      add_field(field)
 
       define_method(name) { self.data[name] } if smart_collection?
 
@@ -108,12 +114,14 @@ module ForestLiana::Collection
     end
 
     def has_many(name, opts, &block)
-      model.fields << opts.merge({
+      field = opts.merge({
         field: name,
         is_virtual: true,
         is_searchable: false,
         type: ['String']
       })
+
+      add_field(field)
 
       define_method(name) { self.data[name] } if smart_collection?
 
@@ -126,12 +134,14 @@ module ForestLiana::Collection
     end
 
     def belongs_to(name, opts, &block)
-      model.fields << opts.merge({
+      field = opts.merge({
         field: name,
         is_virtual: true,
         is_searchable: false,
         type: 'String'
       })
+
+      add_field(field)
 
       define_method(name) { self.data[name] } if smart_collection?
 
@@ -144,6 +154,12 @@ module ForestLiana::Collection
     end
 
     private
+
+    def add_field(field)
+      return if model.fields.find { |field| field[:field] == name }
+
+      model.fields << field
+    end
 
     def find_name(collection_name)
       # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
