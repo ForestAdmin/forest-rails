@@ -1,3 +1,10 @@
+## [9.5.6](https://github.com/ForestAdmin/forest-rails/compare/v9.5.5...v9.5.6) (2024-12-10)
+
+
+### Bug Fixes
+
+* avoid smart feature to be load more one time ([#706](https://github.com/ForestAdmin/forest-rails/issues/706)) ([bbbb321](https://github.com/ForestAdmin/forest-rails/commit/bbbb3218a6a333a244b3cdebbb6d83d6e7bc66a0))
+
 ## [9.5.5](https://github.com/ForestAdmin/forest-rails/compare/v9.5.4...v9.5.5) (2024-12-09)
 
 
