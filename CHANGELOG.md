@@ -1,3 +1,10 @@
+## [9.5.7](https://github.com/ForestAdmin/forest-rails/compare/v9.5.6...v9.5.7) (2024-12-10)
+
+
+### Bug Fixes
+
+* **validations:** ignore default before_validation ([#708](https://github.com/ForestAdmin/forest-rails/issues/708)) ([436e9a6](https://github.com/ForestAdmin/forest-rails/commit/436e9a6699e9a0891b5431c975979024668e3219))
+
 ## [9.5.6](https://github.com/ForestAdmin/forest-rails/compare/v9.5.5...v9.5.6) (2024-12-10)
 
 
