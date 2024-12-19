@@ -42,7 +42,7 @@ module ForestLiana
     end
 
     class ExpectedError < StandardError
-      attr_reader :error_code, :status, :message, :name, :backtrace
+      attr_reader :error_code, :status, :message, :name
 
       def initialize(error_code, status, message, name = nil, backtrace = nil)
         @error_code = error_code
