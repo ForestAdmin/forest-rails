@@ -1,3 +1,10 @@
+## [9.6.2](https://github.com/ForestAdmin/forest-rails/compare/v9.6.1...v9.6.2) (2024-12-19)
+
+
+### Bug Fixes
+
+* **errors:** provide stacktrace with errors ([#705](https://github.com/ForestAdmin/forest-rails/issues/705)) ([ab166dd](https://github.com/ForestAdmin/forest-rails/commit/ab166dde516d1d8c71bf5075454176f47ec7d91c))
+
 ## [9.6.1](https://github.com/ForestAdmin/forest-rails/compare/v9.6.0...v9.6.1) (2024-12-19)
 
 
