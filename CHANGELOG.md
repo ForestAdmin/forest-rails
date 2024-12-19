@@ -1,3 +1,10 @@
+## [9.6.1](https://github.com/ForestAdmin/forest-rails/compare/v9.6.0...v9.6.1) (2024-12-19)
+
+
+### Bug Fixes
+
+* **serializer:** provide more information when association can't be loaded ([#704](https://github.com/ForestAdmin/forest-rails/issues/704)) ([3129e96](https://github.com/ForestAdmin/forest-rails/commit/3129e96312eabfa0f3ff8c241c11c50f4449adac))
+
 # [9.6.0](https://github.com/ForestAdmin/forest-rails/compare/v9.5.7...v9.6.0) (2024-12-10)
 
 
