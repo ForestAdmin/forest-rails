@@ -44,11 +44,13 @@ module ForestLiana
     class ExpectedError < StandardError
       attr_reader :error_code, :status, :message, :name
 
-      def initialize(error_code, status, message, name = nil)
+      def initialize(error_code, status, message, name = nil, backtrace = nil)
         @error_code = error_code
         @status = status
         @message = message
         @name = name
+
+        set_backtrace(backtrace) unless backtrace.nil?
       end
 
       def display_error
