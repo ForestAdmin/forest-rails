@@ -9,8 +9,11 @@ module ForestLiana
           headers: base_headers.merge(headers),
           query: query,
         }).response
-      rescue
-        raise "Cannot reach Forest API at #{forest_api_url}#{route}, it seems to be down right now."
+      rescue => exception
+        error = "Cannot reach Forest API at #{forest_api_url}#{route}, it seems to be down right now."
+        FOREST_LOGGER.error error
+        FOREST_REPORTER.report error
+        raise exception
       end
     end
 
@@ -28,8 +31,11 @@ module ForestLiana
           query: query,
           body: body.to_json,
         }).response
-      rescue
-        raise "Cannot reach Forest API at #{post_route}, it seems to be down right now."
+      rescue => exception
+        error = "Cannot reach Forest API at #{post_route}, it seems to be down right now."
+        FOREST_LOGGER.error error
+        FOREST_REPORTER.report error
+        raise exception
       end
     end
 
