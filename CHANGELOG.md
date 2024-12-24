@@ -1,3 +1,10 @@
+## [9.6.3](https://github.com/ForestAdmin/forest-rails/compare/v9.6.2...v9.6.3) (2024-12-24)
+
+
+### Bug Fixes
+
+* **forest-requester:** don't swallow error anymore ([#710](https://github.com/ForestAdmin/forest-rails/issues/710)) ([6fd1dd8](https://github.com/ForestAdmin/forest-rails/commit/6fd1dd8a8e150bc8e0fd28beb72e61ff1c8d6e5f))
+
 ## [9.6.2](https://github.com/ForestAdmin/forest-rails/compare/v9.6.1...v9.6.2) (2024-12-19)
 
 
