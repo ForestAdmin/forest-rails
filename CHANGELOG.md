@@ -1,3 +1,10 @@
+## [9.6.4](https://github.com/ForestAdmin/forest-rails/compare/v9.6.3...v9.6.4) (2024-12-27)
+
+
+### Bug Fixes
+
+* **forest-requester:** forest reporter now gets actual error instead of message ([#711](https://github.com/ForestAdmin/forest-rails/issues/711)) ([0b8611f](https://github.com/ForestAdmin/forest-rails/commit/0b8611fc6e877d5d93ab327af2151e89e5120d0e))
+
 ## [9.6.3](https://github.com/ForestAdmin/forest-rails/compare/v9.6.2...v9.6.3) (2024-12-24)
 
 
