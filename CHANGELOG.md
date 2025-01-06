@@ -1,3 +1,10 @@
+# [9.7.0](https://github.com/ForestAdmin/forest-rails/compare/v9.6.4...v9.7.0) (2025-01-06)
+
+
+### Features
+
+* enable context variable usage in segment queries ([#712](https://github.com/ForestAdmin/forest-rails/issues/712)) ([0851178](https://github.com/ForestAdmin/forest-rails/commit/08511789fcd2c9fae6625a937e5f23b39d89fe9a))
+
 ## [9.6.4](https://github.com/ForestAdmin/forest-rails/compare/v9.6.3...v9.6.4) (2024-12-27)
 
 
