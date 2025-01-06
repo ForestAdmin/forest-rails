@@ -37,11 +37,17 @@ module ForestLiana
 
     def self.inject_context_variables(filter, user, request_context_variables = nil)
       filter = JSON.parse(filter) if filter.is_a? String
-
       retrieve = fetch_scopes(user['rendering_id'])
       context_variables = Utils::ContextVariables.new(retrieve['team'], user, request_context_variables)
 
       Utils::ContextVariablesInjector.inject_context_in_filter(filter, context_variables)
+    end
+
+    def self.inject_context_variables_on_query(query, user)
+      retrieve = fetch_scopes(user['rendering_id'])
+      context_variables = Utils::ContextVariables.new(retrieve['team'], user)
+
+      Utils::ContextVariablesInjector.inject_context_in_value(query, context_variables)
     end
 
     def self.invalidate_scope_cache(rendering_id)

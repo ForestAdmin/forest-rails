@@ -132,6 +132,8 @@ module ForestLiana
 
       begin
         segment_query = @params[:segmentQuery].gsub(/\;\s*$/, '')
+        ScopeManager.inject_context_variables_on_query(segment_query, @user)
+
         @records = @records.where(
           "#{@resource.table_name}.#{@resource.primary_key} IN (SELECT id FROM (#{segment_query}) as ids)"
         )

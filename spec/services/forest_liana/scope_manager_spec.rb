@@ -326,6 +326,32 @@ module ForestLiana
           expect(filters_parser).to have_received(:apply_filters).once
         end
       end
+
+      describe '#inject_context_variables_on_query' do
+        let(:query) { "SELECT id FROM users WHERE email = '{{currentUser.email}}'" }
+        let(:filled_scope) {
+          JSON.generate(
+            {
+              'collections' => {
+                'User' => {}
+              },
+              'team' => {'id' => '1', 'name' => 'Operations'}
+            }
+          )
+        }
+        let(:api_call_response_success) { Net::HTTPOK.new({}, 200, filled_scope) }
+
+        before do
+          allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(api_call_response_success)
+          allow(api_call_response_success).to receive(:body).and_return(filled_scope)
+        end
+
+        it 'should inject the context variables in the query' do
+          described_class.inject_context_variables_on_query(query, user)
+
+          expect(query).to eq "SELECT id FROM users WHERE email = 'jd@forestadmin.com'"
+        end
+      end
     end
   end
 end
