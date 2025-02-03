@@ -24,6 +24,7 @@ group :test do
 end
 
 gem 'rails', '6.1.7.9'
+gem 'concurrent-ruby', '1.3.4'
 gem 'forestadmin-jsonapi-serializers'
 gem 'rack-cors'
 gem 'groupdate', '5.2.2'
