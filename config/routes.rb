@@ -59,7 +59,7 @@ ForestLiana::Engine.routes.draw do
   delete ':collection/:id', to: router
   delete ':collection', to: router
 
-  post ':collection/inbox' => 'resources#index'
+  post ':collection/search' => 'resources#index'
 
   draw(:actions)
 
