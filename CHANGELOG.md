@@ -1,3 +1,10 @@
+# [9.8.0](https://github.com/ForestAdmin/forest-rails/compare/v9.7.0...v9.8.0) (2025-02-04)
+
+
+### Features
+
+* **inbox:** add new route post for inbox feature ([#713](https://github.com/ForestAdmin/forest-rails/issues/713)) ([acf6f22](https://github.com/ForestAdmin/forest-rails/commit/acf6f22d3ad48c235ba8972a906cdcfcfbdd3bb6))
+
 # [9.7.0](https://github.com/ForestAdmin/forest-rails/compare/v9.6.4...v9.7.0) (2025-01-06)
 
 
