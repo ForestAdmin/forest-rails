@@ -1,3 +1,10 @@
+# [9.9.0](https://github.com/ForestAdmin/forest-rails/compare/v9.8.0...v9.9.0) (2025-02-07)
+
+
+### Features
+
+* **inbox:** add new route count post for inbox feature ([da7bf82](https://github.com/ForestAdmin/forest-rails/commit/da7bf82f5050e3384a6bc187840d3605dd5ef4bd))
+
 # [9.8.0](https://github.com/ForestAdmin/forest-rails/compare/v9.7.0...v9.8.0) (2025-02-04)
 
 
