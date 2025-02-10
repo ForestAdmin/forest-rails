@@ -4,7 +4,9 @@ module ForestLiana
 
       def self.inject_context_in_value(value, context_variables)
         inject_context_in_value_custom(value) do |context_variable_key|
-          context_variables.get_value(context_variable_key).to_s
+          value = context_variables.get_value(context_variable_key)
+          raise "Unknown context variable: #{context_variable_key}, please check the query for any typos" if value.nil?
+          value.to_s
         end
       end
 
@@ -18,12 +20,10 @@ module ForestLiana
         while (match = regex.match(value_with_context_variables_injected))
           context_variable_key = match[1]
 
-          unless encountered_variables.include?(context_variable_key)
-            value_with_context_variables_injected.gsub!(
-              /{{#{context_variable_key}}}/,
-              yield(context_variable_key)
-            )
-          end
+          value_with_context_variables_injected.gsub!(
+            /{{#{context_variable_key}}}/,
+            yield(context_variable_key)
+          )
 
           encountered_variables.push(context_variable_key)
         end
