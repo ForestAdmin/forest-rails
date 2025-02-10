@@ -1,3 +1,10 @@
+## [9.9.1](https://github.com/ForestAdmin/forest-rails/compare/v9.9.0...v9.9.1) (2025-02-10)
+
+
+### Bug Fixes
+
+* prevent infinite loops in context variable injection ([#716](https://github.com/ForestAdmin/forest-rails/issues/716)) ([6744b81](https://github.com/ForestAdmin/forest-rails/commit/6744b812cda6e773e51a997539c3ff86943771d6)), closes [#714](https://github.com/ForestAdmin/forest-rails/issues/714)
+
 # [9.9.0](https://github.com/ForestAdmin/forest-rails/compare/v9.8.0...v9.9.0) (2025-02-07)
 
 
