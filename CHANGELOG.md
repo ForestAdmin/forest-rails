@@ -1,3 +1,15 @@
+# [9.10.0](https://github.com/ForestAdmin/forest-rails/compare/v9.9.1...v9.10.0) (2025-02-11)
+
+
+### Bug Fixes
+
+* rename route search to query ([79e5702](https://github.com/ForestAdmin/forest-rails/commit/79e5702a7d5b7b34659238b9bbe8abfb98f66607))
+
+
+### Features
+
+* **inbox:** rename route search to query ([285fb7b](https://github.com/ForestAdmin/forest-rails/commit/285fb7b7744c8424962d5d2ac2a05d011534525e))
+
 ## [9.9.1](https://github.com/ForestAdmin/forest-rails/compare/v9.9.0...v9.9.1) (2025-02-10)
 
 
