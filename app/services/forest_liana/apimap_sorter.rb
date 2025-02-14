@@ -19,6 +19,7 @@ module ForestLiana
       'default_value',
       'enums',
       'integration',
+      'is_primary_key',
       'is_filterable',
       'is_read_only',
       'is_required',

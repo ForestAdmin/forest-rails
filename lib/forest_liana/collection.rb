@@ -65,6 +65,7 @@ module ForestLiana::Collection
         opts.delete(:isSortable)
       end
 
+      opts[:is_primary_key] = false unless opts.has_key?(:is_primary_key)
       opts[:is_read_only] = true unless opts.has_key?(:is_read_only)
       opts[:is_read_only] = false if opts.has_key?(:set)
       opts[:is_required] = false unless opts.has_key?(:is_required)

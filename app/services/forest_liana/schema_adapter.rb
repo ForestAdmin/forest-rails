@@ -22,7 +22,7 @@ module ForestLiana
             field[:inverse_of] = nil
 
             collection.fields.delete_if do |f|
-              ['taggings', 'base_tags', 'tag_taggings'].include?(f[:field])
+              %w[taggings base_tags tag_taggings].include?(f[:field])
             end
           end
         end
@@ -326,6 +326,7 @@ module ForestLiana
       schema = {
         field: column.name,
         type: column_type,
+        is_primary_key: is_primary_key?(column),
         is_filterable: true,
         is_sortable: true,
         is_read_only: false,
@@ -343,6 +344,10 @@ module ForestLiana
       add_enum_values_if_is_sti_model(schema, column)
       add_default_value(schema, column)
       add_validations(schema, column)
+    end
+
+    def is_primary_key?(column)
+      column.name == @model.primary_key
     end
 
     def get_schema_for_association(association)
