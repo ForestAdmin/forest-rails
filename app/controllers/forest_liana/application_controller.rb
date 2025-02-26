@@ -162,7 +162,7 @@ module ForestLiana
           else
             model_association = model.reflect_on_association(relation_name.to_sym)
             if model_association
-              model_name = model_association.class_name
+              model_name = ForestLiana.name_for(model_association.klass)
               # NOTICE: Join fields in case of model with self-references.
               if fields[model_name]
                 fields[model_name] = [
