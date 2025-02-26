@@ -1,3 +1,10 @@
+## [9.10.1](https://github.com/ForestAdmin/forest-rails/compare/v9.10.0...v9.10.1) (2025-02-26)
+
+
+### Bug Fixes
+
+* **export:** format relation model name for matching collection ([#718](https://github.com/ForestAdmin/forest-rails/issues/718)) ([597116e](https://github.com/ForestAdmin/forest-rails/commit/597116e3ad21adb60cc09ed287f0ebfdbc8a301c))
+
 # [9.10.0](https://github.com/ForestAdmin/forest-rails/compare/v9.9.1...v9.10.0) (2025-02-11)
 
 
