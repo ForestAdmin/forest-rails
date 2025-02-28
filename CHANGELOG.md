@@ -1,3 +1,10 @@
+## [9.10.2](https://github.com/ForestAdmin/forest-rails/compare/v9.10.1...v9.10.2) (2025-02-28)
+
+
+### Bug Fixes
+
+* **api_map:** display more information when we don't understand why schema could not be sent ([#719](https://github.com/ForestAdmin/forest-rails/issues/719)) ([efec7d4](https://github.com/ForestAdmin/forest-rails/commit/efec7d4d730e085fae16411a9900e22f761eb78a))
+
 ## [9.10.1](https://github.com/ForestAdmin/forest-rails/compare/v9.10.0...v9.10.1) (2025-02-26)
 
 
