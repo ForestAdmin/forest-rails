@@ -318,9 +318,11 @@ module ForestLiana
           end
         rescue Errno::ECONNREFUSED, SocketError
           FOREST_LOGGER.warn "Cannot send the apimap to Forest. Are you online?"
-        rescue
-          FOREST_LOGGER.warn "Cannot send the apimap to Forest. Forest might " \
+        rescue => error
+          FOREST_REPORTER.report error
+          FOREST_LOGGER.error "Cannot send the apimap to Forest (#{forest_url}). Forest might " \
             "currently be in maintenance."
+          FOREST_LOGGER.error "#{error}\n#{error.backtrace.join("\n\t")}"
         end
       end
     end
