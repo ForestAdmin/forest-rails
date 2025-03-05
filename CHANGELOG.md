@@ -1,3 +1,10 @@
+## [9.10.3](https://github.com/ForestAdmin/forest-rails/compare/v9.10.2...v9.10.3) (2025-03-05)
+
+
+### Bug Fixes
+
+* **schema-updater:** properly write validation regex when writing schema on disk ([#720](https://github.com/ForestAdmin/forest-rails/issues/720)) ([ffee038](https://github.com/ForestAdmin/forest-rails/commit/ffee03897eb25d368e400597e9d6ceaf941bb467))
+
 ## [9.10.2](https://github.com/ForestAdmin/forest-rails/compare/v9.10.1...v9.10.2) (2025-02-28)
 
 
