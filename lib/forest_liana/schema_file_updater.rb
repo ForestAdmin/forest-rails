@@ -149,7 +149,7 @@ module ForestLiana
         file.puts pretty_print({
           collections: @collections,
           meta: @meta
-        }).gsub(/[^\\](\\)[^\\"]/) { |x| x.gsub($1, "\\\\\\") }
+        }).gsub(/\\/, '\\\\\\\\')
       end
     end
   end
