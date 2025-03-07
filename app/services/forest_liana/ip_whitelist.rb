@@ -17,7 +17,7 @@ module ForestLiana
         else
           FOREST_LOGGER.error 'An error occured while retrieving your IP whitelist. Your Forest ' +
             'env_secret seems to be missing or unknown. Can you check that you properly set your ' +
-            'Forest env_secret in the forest_liana initializer?'
+            'Forest env_secret in the forest_liana initializer? Current value is: ' + ForestLiana.env_secret
           false
         end
       rescue => exception
