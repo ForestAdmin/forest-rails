@@ -1,3 +1,10 @@
+## [9.10.4](https://github.com/ForestAdmin/forest-rails/compare/v9.10.3...v9.10.4) (2025-03-07)
+
+
+### Bug Fixes
+
+* **schema-bypass:** properly bypass schema update using forest_disable_auto_schema_apply ([#721](https://github.com/ForestAdmin/forest-rails/issues/721)) ([4540c7a](https://github.com/ForestAdmin/forest-rails/commit/4540c7a755fcf8db98bdb54396e19762fc0b0cc4))
+
 ## [9.10.3](https://github.com/ForestAdmin/forest-rails/compare/v9.10.2...v9.10.3) (2025-03-05)
 
 
