@@ -1,3 +1,10 @@
+## [9.10.5](https://github.com/ForestAdmin/forest-rails/compare/v9.10.4...v9.10.5) (2025-03-07)
+
+
+### Bug Fixes
+
+* **startup:** display current env secret when ip whitelist fails to ease debugging ([#722](https://github.com/ForestAdmin/forest-rails/issues/722)) ([e23500b](https://github.com/ForestAdmin/forest-rails/commit/e23500b015d0bd26df34f261344ce1d046dff9dc))
+
 ## [9.10.4](https://github.com/ForestAdmin/forest-rails/compare/v9.10.3...v9.10.4) (2025-03-07)
 
 
