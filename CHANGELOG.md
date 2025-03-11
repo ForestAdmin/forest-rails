@@ -1,3 +1,10 @@
+## [9.10.6](https://github.com/ForestAdmin/forest-rails/compare/v9.10.5...v9.10.6) (2025-03-11)
+
+
+### Bug Fixes
+
+* **schema-updater:** fix regression introduced with [#720](https://github.com/ForestAdmin/forest-rails/issues/720) regex when writing schema ([c7da92c](https://github.com/ForestAdmin/forest-rails/commit/c7da92cf904f6fba80460de42aa4ffe742a7ebcd))
+
 ## [9.10.5](https://github.com/ForestAdmin/forest-rails/compare/v9.10.4...v9.10.5) (2025-03-07)
 
 
