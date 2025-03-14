@@ -281,6 +281,12 @@ module ForestLiana
           it { expect(result).to eq "\"trees\".\"name\" LIKE '%3'" }
         end
 
+        context 'when the condition uses the i_contains operator' do
+          let(:condition) { { 'field' => 'name', 'operator' => 'i_contains', 'value' => 'Tree' } }
+
+          it { expect(result).to eq "LOWER(\"trees\".\"name\") LIKE '%tree%'" }
+        end
+
         context 'when the condition uses the blank operator' do
           let(:condition) { { 'field' => 'name', 'operator' => 'blank' } }
 
