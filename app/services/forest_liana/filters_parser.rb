@@ -96,7 +96,8 @@ module ForestLiana
         value = current_resource.defined_enums[association_field][value]
       end
 
-      parsed_field = parse_field_name(field_name)
+      case_insensitive = operator == 'i_contains'
+      parsed_field = parse_field_name(field_name, case_insensitive)
       parsed_operator = parse_operator(operator)
       parsed_value = parse_value(operator, value)
       field_and_operator = "#{parsed_field} #{parsed_operator}"
@@ -120,7 +121,7 @@ module ForestLiana
         '>'
       when 'less_than', 'before'
         '<'
-      when 'contains', 'starts_with', 'ends_with'
+      when 'contains', 'starts_with', 'ends_with', 'i_contains'
         'LIKE'
       when 'not_contains'
         'NOT LIKE'
@@ -145,6 +146,8 @@ module ForestLiana
         value
       when 'contains', 'not_contains'
         "%#{value}%"
+      when 'i_contains'
+        "%#{value.downcase}%"
       when 'starts_with'
         "#{value}%"
       when 'ends_with'
@@ -161,7 +164,7 @@ module ForestLiana
       end
     end
 
-    def parse_field_name(field)
+    def parse_field_name(field, insensitive = false)
       if is_belongs_to(field)
         current_resource = @resource.reflect_on_association(field.split(':').first.to_sym)&.klass
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found") unless current_resource
@@ -181,7 +184,7 @@ module ForestLiana
         raise ForestLiana::Errors::HTTP422Error.new("Field '#{field}' not found")
       end
 
-      "#{quoted_table_name}.#{quoted_field_name}"
+      insensitive ? "LOWER(#{quoted_table_name}.#{quoted_field_name})" : "#{quoted_table_name}.#{quoted_field_name}"
     end
 
     def is_belongs_to(field)
