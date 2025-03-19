@@ -1,3 +1,10 @@
+# [9.11.0](https://github.com/ForestAdmin/forest-rails/compare/v9.10.6...v9.11.0) (2025-03-19)
+
+
+### Features
+
+* **operators:** add i_contains operator support ([#725](https://github.com/ForestAdmin/forest-rails/issues/725)) ([3ed9123](https://github.com/ForestAdmin/forest-rails/commit/3ed912383e3592191c55335d369ef3e98d31f0f0))
+
 ## [9.10.6](https://github.com/ForestAdmin/forest-rails/compare/v9.10.5...v9.10.6) (2025-03-11)
 
 
