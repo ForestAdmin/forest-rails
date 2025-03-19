@@ -68,6 +68,25 @@ module ForestLiana
             expect(stat.value.find { |item| item[:label] == "W18-2021" }[:values][:value]).to eq(2)
             expect(stat.value.find { |item| item[:label] == "W19-2021" }[:values][:value]).to eq(2)
           end
+
+          it 'should return consistent data for a leap year with week transition' do
+            Owner.delete_all
+            Owner.create(name: 'Michel', hired_at: Date.parse('23-12-2024'));
+            Owner.create(name: 'Robert', hired_at: Date.parse('23-12-2024'));
+            Owner.create(name: 'José', hired_at: Date.parse('30-12-2024'));
+            Owner.create(name: 'Yves', hired_at: Date.parse('06-01-2025'));
+
+            stat = LineStatGetter.new(Owner, {
+              timezone: "Europe/Paris",
+              aggregator: "Count",
+              timeRange: "Week",
+              groupByFieldName: "hired_at",
+            }, user).perform
+
+            expect(stat.value.find { |item| item[:label] == "W52-2024" }[:values][:value]).to eq(2)
+            expect(stat.value.find { |item| item[:label] == "W01-2025" }[:values][:value]).to eq(1)
+            expect(stat.value.find { |item| item[:label] == "W02-2025" }[:values][:value]).to eq(1)
+          end
         end
       end
     end
