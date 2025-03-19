@@ -14,7 +14,7 @@ module ForestLiana
         when 'day'
           '%d/%m/%Y'
         when 'week'
-          'W%V-%Y'
+          'W%V-%G'
         when 'month'
           '%b %Y'
         when 'year'
