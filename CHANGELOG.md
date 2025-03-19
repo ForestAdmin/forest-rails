@@ -1,3 +1,10 @@
+## [9.11.1](https://github.com/ForestAdmin/forest-rails/compare/v9.11.0...v9.11.1) (2025-03-19)
+
+
+### Bug Fixes
+
+* **charts:** properly format week of year ([#726](https://github.com/ForestAdmin/forest-rails/issues/726)) ([5cbfd3a](https://github.com/ForestAdmin/forest-rails/commit/5cbfd3a22bbe31e6c35aa3b74582c79599cf10de))
+
 # [9.11.0](https://github.com/ForestAdmin/forest-rails/compare/v9.10.6...v9.11.0) (2025-03-19)
 
 
