@@ -70,7 +70,16 @@ module ForestLiana
       date - @timezone_offset.hours
     end
 
-    def get_date_filter(operator, value)
+
+    def format_date(field_type, value)
+      if field_type == 'Dateonly'
+        return value.strftime('%Y-%m-%d')
+      end
+
+      value
+    end
+
+    def get_date_filter(operator, value, field_schema)
       return nil unless is_date_operator? operator
 
       filter = case operator
@@ -79,18 +88,18 @@ module ForestLiana
         when OPERATOR_PAST
           "<= '#{Time.now}'"
         when OPERATOR_TODAY
-          "BETWEEN '#{to_client_timezone(Time.now.beginning_of_day)}' " +
-            "AND '#{to_client_timezone(Time.now.end_of_day)}'"
+          "BETWEEN '#{format_date(field_schema[:type], to_client_timezone(Time.now.beginning_of_day))}' " +
+            "AND '#{format_date(field_schema[:type], to_client_timezone(Time.now.end_of_day))}'"
         when OPERATOR_PREVIOUS_X_DAYS
           ensure_integer_value(value)
           "BETWEEN '" +
-            "#{to_client_timezone(Integer(value).day.ago.beginning_of_day)}'" +
-            " AND '#{to_client_timezone(1.day.ago.end_of_day)}'"
+            "#{format_date(field_schema[:type], to_client_timezone(Integer(value).day.ago.beginning_of_day))}'" +
+            " AND '#{format_date(field_schema[:type], to_client_timezone(1.day.ago.end_of_day))}'"
         when OPERATOR_PREVIOUS_X_DAYS_TO_DATE
           ensure_integer_value(value)
           "BETWEEN '" +
-            "#{to_client_timezone((Integer(value) - 1).day.ago.beginning_of_day)}'" +
-            " AND '#{Time.now}'"
+            "#{format_date(field_schema[:type], to_client_timezone((Integer(value) - 1).day.ago.beginning_of_day))}'" +
+            " AND '#{format_date(field_schema[:type], Time.now)}'"
         when OPERATOR_BEFORE_X_HOURS_AGO
           ensure_integer_value(value)
           "< '#{(Integer(value)).hour.ago}'"
@@ -109,35 +118,35 @@ module ForestLiana
       to_date = PERIODS[operator][:to_date]
 
       if to_date
-        from = to_client_timezone(Time.now.send("beginning_of_#{period_of_time}"))
-        to = Time.now
+        from = format_date(field_schema[:type], to_client_timezone(Time.now.send("beginning_of_#{period_of_time}")))
+        to = format_date(field_schema[:type], Time.now)
       else
-        from = to_client_timezone(duration.send(period).ago
-          .send("beginning_of_#{period_of_time}"))
-        to = to_client_timezone(duration.send(period).ago
-          .send("end_of_#{period_of_time}"))
+        from = format_date(field_schema[:type], to_client_timezone(duration.send(period).ago
+          .send("beginning_of_#{period_of_time}")))
+        to = format_date(field_schema[:type], to_client_timezone(duration.send(period).ago
+          .send("end_of_#{period_of_time}")))
       end
 
       "BETWEEN '#{from}' AND '#{to}'"
     end
 
-    def get_date_filter_for_previous_interval(operator, value)
+    def get_date_filter_for_previous_interval(operator, value, field_schema)
       return nil unless has_previous_interval? operator
 
       case operator
       when OPERATOR_TODAY
-        return "BETWEEN '#{to_client_timezone(1.day.ago.beginning_of_day)}' AND " +
-          "'#{to_client_timezone(1.day.ago.end_of_day)}'"
+        return "BETWEEN '#{format_date(field_schema[:type], to_client_timezone(1.day.ago.beginning_of_day))}' AND " +
+          "'#{format_date(field_schema[:type], to_client_timezone(1.day.ago.end_of_day))}'"
       when OPERATOR_PREVIOUS_X_DAYS
         ensure_integer_value(value)
         return "BETWEEN '" +
-          "#{to_client_timezone((Integer(value) * 2).day.ago.beginning_of_day)}'" +
-          " AND '#{to_client_timezone((Integer(value) + 1).day.ago.end_of_day)}'"
+          "#{format_date(field_schema[:type], to_client_timezone((Integer(value) * 2).day.ago.beginning_of_day))}'" +
+          " AND '#{format_date(field_schema[:type], to_client_timezone((Integer(value) + 1).day.ago.end_of_day))}'"
       when OPERATOR_PREVIOUS_X_DAYS_TO_DATE
         ensure_integer_value(value)
         return "BETWEEN '" +
-          "#{to_client_timezone(((Integer(value) * 2) - 1).day.ago.beginning_of_day)}'" +
-          " AND '#{to_client_timezone(Integer(value).day.ago)}'"
+          "#{format_date(field_schema[:type], to_client_timezone(((Integer(value) * 2) - 1).day.ago.beginning_of_day))}'" +
+          " AND '#{format_date(field_schema[:type], to_client_timezone(Integer(value).day.ago))}'"
       end
 
       duration = PERIODS[operator][:duration]
@@ -146,14 +155,14 @@ module ForestLiana
       to_date = PERIODS[operator][:to_date]
 
       if to_date
-        from = to_client_timezone((duration)
-          .send(period).ago.send("beginning_of_#{period_of_time}"))
-        to = to_client_timezone((duration).send(period).ago)
+        from = format_date(field_schema[:type], to_client_timezone((duration)
+          .send(period).ago.send("beginning_of_#{period_of_time}")))
+        to = format_date(field_schema[:type], to_client_timezone((duration).send(period).ago))
       else
-        from = to_client_timezone((duration * 2).send(period).ago
-          .send("beginning_of_#{period_of_time}"))
-        to = to_client_timezone((duration * 2).send(period).ago
-          .send("end_of_#{period_of_time}"))
+        from = format_date(field_schema[:type], to_client_timezone((duration * 2).send(period).ago
+          .send("beginning_of_#{period_of_time}")))
+        to = format_date(field_schema[:type], to_client_timezone((duration * 2).send(period).ago
+          .send("end_of_#{period_of_time}")))
       end
 
       "BETWEEN '#{from}' AND '#{to}'"
