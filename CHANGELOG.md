@@ -1,3 +1,10 @@
+## [9.11.2](https://github.com/ForestAdmin/forest-rails/compare/v9.11.1...v9.11.2) (2025-04-07)
+
+
+### Bug Fixes
+
+* **filters:** filtering on date only fields now format value properly ([#727](https://github.com/ForestAdmin/forest-rails/issues/727)) ([0e3b54a](https://github.com/ForestAdmin/forest-rails/commit/0e3b54a733b551dc2dfcce386a0c392934cb3f36))
+
 ## [9.11.1](https://github.com/ForestAdmin/forest-rails/compare/v9.11.0...v9.11.1) (2025-03-19)
 
 
