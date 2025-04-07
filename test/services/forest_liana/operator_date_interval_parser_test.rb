@@ -20,11 +20,19 @@ module ForestLiana
         validations: []
       }
 
-      result = operatorDateIntervalParser.get_date_filter(OperatorDateIntervalParser::OPERATOR_AFTER_X_HOURS_AGO, 2)
+      result = operatorDateIntervalParser.get_date_filter(
+        OperatorDateIntervalParser::OPERATOR_AFTER_X_HOURS_AGO,
+        2,
+        fake_field_schema
+      )
       hourComputed = result.split('> ')[1].tr('\'', '').to_datetime.hour
       assert hourComputed == Time.now.utc.hour - 2
 
-      result = operatorDateIntervalParser.get_date_filter(OperatorDateIntervalParser::OPERATOR_BEFORE_X_HOURS_AGO, 2)
+      result = operatorDateIntervalParser.get_date_filter(
+        OperatorDateIntervalParser::OPERATOR_BEFORE_X_HOURS_AGO,
+        2,
+        fake_field_schema
+      )
       hourComputed = result.split('< ')[1].tr('\'', '').to_datetime.hour
       assert hourComputed == Time.now.utc.hour - 2
     end
