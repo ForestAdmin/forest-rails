@@ -84,7 +84,8 @@ module ForestLiana
       field_name = condition['field']
 
       if @operator_date_parser.is_date_operator?(operator)
-        condition = @operator_date_parser.get_date_filter(operator, value)
+        field_schema = SchemaUtils.find_column_schema_by_name(@resource.name, field_name)
+        condition = @operator_date_parser.get_date_filter(operator, value, field_schema)
         return "#{parse_field_name(field_name)} #{condition}"
       end
 
@@ -259,10 +260,12 @@ module ForestLiana
 
     def parse_previous_interval_condition(condition)
       raise_empty_condition_in_filter_error unless condition
+      field_schema = SchemaUtils.find_column_schema_by_name(@resource.name, condition['field'])
 
       parsed_condition = @operator_date_parser.get_date_filter_for_previous_interval(
         condition['operator'],
-        condition['value']
+        condition['value'],
+        field_schema
       )
 
       "#{parse_field_name(condition['field'])} #{parsed_condition}"

@@ -49,6 +49,23 @@ module ForestLiana
       model_found
     end
 
+    def self.find_column_schema_by_name(collection_name, field_name)
+      schema = ForestLiana.apimap.find { |collection| collection.name == collection_name }
+      if field_name.include?(':')
+        relation, field_name = field_name.split(':')
+        relation_schema = schema.fields.find do |field|
+          field[:field].to_s == relation
+        end
+        foreign_collection_name, = relation_schema[:reference].split('.')
+
+        return find_column_schema_by_name(foreign_collection_name, field_name)
+      else
+        return schema.fields.find do |field|
+          field[:field].to_s == field_name
+        end
+      end
+    end
+
     def self.tables_names
       ActiveRecord::Base.connection.tables
     end
