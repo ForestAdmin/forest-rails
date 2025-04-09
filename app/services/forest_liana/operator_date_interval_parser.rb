@@ -73,7 +73,7 @@ module ForestLiana
 
     def format_date(field_type, value)
       if field_type == 'Dateonly'
-        return value.strftime('%Y-%m-%d')
+        return (value + @timezone_offset.hours).strftime('%Y-%m-%d')
       end
 
       value
