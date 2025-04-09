@@ -1,3 +1,10 @@
+## [9.11.3](https://github.com/ForestAdmin/forest-rails/compare/v9.11.2...v9.11.3) (2025-04-09)
+
+
+### Bug Fixes
+
+* **filters:** get collection name with the right format ([#728](https://github.com/ForestAdmin/forest-rails/issues/728)) ([68455f8](https://github.com/ForestAdmin/forest-rails/commit/68455f8a3e60fac2fffdb866f041030fdd846f1e))
+
 ## [9.11.2](https://github.com/ForestAdmin/forest-rails/compare/v9.11.1...v9.11.2) (2025-04-07)
 
 
