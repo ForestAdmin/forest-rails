@@ -30,7 +30,14 @@ module ForestLiana
     end
 
     def perform
-      @records = optimize_record_loading(@resource, @records)
+      if @includes.empty?
+        @records = optimize_record_loading(@resource, @records)
+      else
+        select = compute_select_fields
+        @records = optimize_record_loading(@resource, @records).references(@includes).select(*select)
+      end
+
+      @records
     end
 
     def count
@@ -209,6 +216,24 @@ module ForestLiana
 
     def pagination?
       @params[:page]&.dig(:number)
+    end
+
+    def compute_select_fields
+      select = [:_brick_eager_load]
+      @params[:fields][@collection_name].split(',').each do |path|
+        if @params[:fields].key?(path)
+          table_name = ForestLiana::QueryHelper.get_one_associations(@resource)
+                                                .select { |association| association.name == path.to_sym }
+                                                .first
+                                               .table_name
+
+          @params[:fields][path].split(',').each { |association_path| select << "#{table_name}.#{association_path}" }
+        else
+          select << path
+        end
+      end
+
+      select
     end
   end
 end
