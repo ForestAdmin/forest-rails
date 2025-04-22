@@ -30,6 +30,8 @@ module ForestLiana
     end
 
     def perform
+      polymorphic_association, = analyze_associations(@resource)
+      @includes = @includes.uniq - polymorphic_association
       if @includes.empty?
         @records = optimize_record_loading(@resource, @records)
       else
@@ -222,12 +224,19 @@ module ForestLiana
       select = [:_brick_eager_load]
       @params[:fields][@collection_name].split(',').each do |path|
         if @params[:fields].key?(path)
-          table_name = ForestLiana::QueryHelper.get_one_associations(@resource)
+          association = ForestLiana::QueryHelper.get_one_associations(@resource)
                                                 .select { |association| association.name == path.to_sym }
                                                 .first
-                                               .table_name
+          table_name = association.table_name
 
-          @params[:fields][path].split(',').each { |association_path| select << "#{table_name}.#{association_path}" }
+          @params[:fields][path].split(',').each do |association_path|
+            if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
+              association.klass.attribute_names.each { |attribute| select << "#{table_name}.#{attribute}" }
+            else
+              select << "#{table_name}.#{association_path}"
+            end
+
+          end
         else
           select << path
         end
