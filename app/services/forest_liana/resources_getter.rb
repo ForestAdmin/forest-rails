@@ -30,8 +30,8 @@ module ForestLiana
     end
 
     def perform
-      polymorphic_association, = analyze_associations(@resource)
-      @includes = @includes.uniq - polymorphic_association
+      polymorphic_association, preload_loads = analyze_associations(@resource)
+      @includes = @includes.uniq - polymorphic_association - preload_loads
       has_smart_fields =  @params[:fields][@collection_name].split(',').any? do |field|
         ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
       end

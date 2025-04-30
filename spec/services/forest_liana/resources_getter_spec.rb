@@ -4,7 +4,7 @@ module ForestLiana
     let(:pageSize) { 10 }
     let(:pageNumber) { 1 }
     let(:sort) { 'id' }
-    let(:fields) {}
+    let(:fields) { { resource.name => 'id' } }
     let(:filters) {}
     let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
     let(:rendering_id) { 13 }
@@ -190,6 +190,7 @@ module ForestLiana
 
     describe 'when on a model having a reserved SQL word as name' do
       let(:resource) { Reference }
+      let(:fields) { { resource.name => 'id' } }
 
       it 'should get the ressource properly' do
         getter.perform
@@ -219,6 +220,7 @@ module ForestLiana
 
     describe 'when sorting by a belongs_to association' do
       let(:resource) { Tree }
+      let(:fields) { { resource.name => 'id' } }
       let(:sort) { 'owner.name' }
 
       it 'should get only the expected records' do
@@ -501,7 +503,7 @@ module ForestLiana
     describe 'when scopes are defined' do
       let(:resource) { Island }
       let(:pageSize) { 15 }
-      let(:fields) { }
+      let(:fields) { { resource.name => 'id' } }
       let(:filters) { }
       let(:scopes) {
         {
