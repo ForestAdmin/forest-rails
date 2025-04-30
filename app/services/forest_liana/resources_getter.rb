@@ -31,16 +31,16 @@ module ForestLiana
 
     def perform
       polymorphic_association, preload_loads = analyze_associations(@resource)
-      @includes = @includes.uniq - polymorphic_association - preload_loads
+      includes = @includes.uniq - polymorphic_association - preload_loads
       has_smart_fields =  @params[:fields][@collection_name].split(',').any? do |field|
         ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
       end
 
-      if @includes.empty? || has_smart_fields
+      if includes.empty? || has_smart_fields
         @records = optimize_record_loading(@resource, @records)
       else
         select = compute_select_fields
-        @records = optimize_record_loading(@resource, @records).references(@includes).select(*select)
+        @records = optimize_record_loading(@resource, @records).references(includes).select(*select)
       end
 
       @records
