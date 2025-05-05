@@ -30,7 +30,20 @@ module ForestLiana
     end
 
     def perform
-      @records = optimize_record_loading(@resource, @records)
+      polymorphic_association, preload_loads = analyze_associations(@resource)
+      includes = @includes.uniq - polymorphic_association - preload_loads
+      has_smart_fields =  @params[:fields][@collection_name].split(',').any? do |field|
+        ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
+      end
+
+      if includes.empty? || has_smart_fields
+        @records = optimize_record_loading(@resource, @records)
+      else
+        select = compute_select_fields
+        @records = optimize_record_loading(@resource, @records).references(includes).select(*select)
+      end
+
+      @records
     end
 
     def count
@@ -209,6 +222,30 @@ module ForestLiana
 
     def pagination?
       @params[:page]&.dig(:number)
+    end
+
+    def compute_select_fields
+      select = ['_forest_admin_eager_load']
+      @params[:fields][@collection_name].split(',').each do |path|
+        if @params[:fields].key?(path)
+          association = ForestLiana::QueryHelper.get_one_associations(@resource)
+                                                .select { |association| association.name == path.to_sym }
+                                                .first
+          table_name = association.table_name
+
+          @params[:fields][path].split(',').each do |association_path|
+            if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
+              association.klass.attribute_names.each { |attribute| select << "#{table_name}.#{attribute}" }
+            else
+              select << "#{table_name}.#{association_path}"
+            end
+          end
+        else
+          select << "#{@resource.table_name}.#{path}"
+        end
+      end
+
+      select
     end
   end
 end

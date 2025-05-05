@@ -7,6 +7,7 @@ require 'jwt'
 require 'bcrypt'
 require_relative 'bootstrapper'
 require_relative 'collection'
+require_relative 'active_record_override'
 
 module Rack
   class Cors
@@ -87,6 +88,12 @@ module ForestLiana
         Zeitwerk::Loader.eager_load_all
       else
         app.eager_load!
+      end
+    end
+
+    initializer 'forest_liana.override_active_record_dependency' do
+      ActiveSupport.on_load(:active_record) do
+        ActiveRecord::Associations::JoinDependency.prepend(ForestLiana::ActiveRecordOverride::Associations::JoinDependency)
       end
     end
 
