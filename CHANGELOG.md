@@ -1,3 +1,10 @@
+# [9.12.0](https://github.com/ForestAdmin/forest-rails/compare/v9.11.3...v9.12.0) (2025-05-05)
+
+
+### Features
+
+* **active-record:** improve performance when a belongsTo relation is included ([#729](https://github.com/ForestAdmin/forest-rails/issues/729)) ([2491f66](https://github.com/ForestAdmin/forest-rails/commit/2491f668a36208a6c6b3ec4ddb55642fcea2da18))
+
 ## [9.11.3](https://github.com/ForestAdmin/forest-rails/compare/v9.11.2...v9.11.3) (2025-04-09)
 
 
