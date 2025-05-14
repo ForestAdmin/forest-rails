@@ -118,7 +118,9 @@ module ForestLiana
 
           if ret[:href].blank?
             begin
-              if @options[:include].try(:include?, attribute_name.to_s)
+              if @options[:include].try(:include?, attribute_name.to_s) &&
+                !SchemaHelper.is_smart_field?(object.class, attribute_name.to_s)
+
                 object.send(attribute_name)
               end
 
