@@ -7,4 +7,6 @@ class Tree < ActiveRecord::Base
     class_name: 'Island',
     inverse_of: :eponymous_tree,
     optional: true
+
+  has_one :location, through: :island
 end

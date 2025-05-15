@@ -164,7 +164,7 @@ Here is the contribution workflow:
 Please ensure that the **tests** are passing before submitting any pull request:
 
 ```
-$ RAILS_ENV=test bundle exec rake --trace db:migrate test
+$ RAILS_ENV=test bundle exec rake --trace db:migrate test; bundle exec rspec
 ```
 
 ## Community

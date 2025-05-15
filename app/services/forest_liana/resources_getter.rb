@@ -227,10 +227,20 @@ module ForestLiana
     def compute_select_fields
       select = ['_forest_admin_eager_load']
       @params[:fields][@collection_name].split(',').each do |path|
+        association = get_one_association(path)
+        if association
+          while association.options[:through]
+            association = get_one_association(association.options[:through])
+          end
+
+          if SchemaUtils.polymorphic?(association)
+            select << "#{@resource.table_name}.#{association.foreign_type}"
+          end
+          select << "#{@resource.table_name}.#{association.foreign_key}"
+        end
+
         if @params[:fields].key?(path)
-          association = ForestLiana::QueryHelper.get_one_associations(@resource)
-                                                .select { |association| association.name == path.to_sym }
-                                                .first
+          association = get_one_association(path)
           table_name = association.table_name
 
           @params[:fields][path].split(',').each do |association_path|
@@ -245,7 +255,13 @@ module ForestLiana
         end
       end
 
-      select
+      select.uniq
+    end
+
+    def get_one_association(name)
+      ForestLiana::QueryHelper.get_one_associations(@resource)
+        .select { |association| association.name == name.to_sym }
+        .first
     end
   end
 end

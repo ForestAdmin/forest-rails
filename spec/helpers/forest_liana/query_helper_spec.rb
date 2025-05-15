@@ -37,6 +37,7 @@ module ForestLiana
             { name: :cutter, klass: User },
             { name: :island, klass: Island },
             { name: :eponymous_island, klass: Island },
+            { name: :location, klass: Location },
           ]
         end
 
@@ -52,13 +53,17 @@ module ForestLiana
 
     describe 'get_one_association_names_symbol' do
       it 'should return the one-one associations names as symbols' do
-        expect(QueryHelper.get_one_association_names_symbol(Tree)).to eq([:owner, :cutter, :island, :eponymous_island])
+        expect(QueryHelper.get_one_association_names_symbol(Tree)).to eq(
+          [:owner, :cutter, :island, :eponymous_island, :location]
+        )
       end
     end
 
     describe 'get_one_association_names_string' do
       it 'should return the one-one associations names as strings' do
-        expect(QueryHelper.get_one_association_names_string(Tree)).to eq(['owner', 'cutter', 'island', 'eponymous_island'])
+        expect(QueryHelper.get_one_association_names_string(Tree)).to eq(
+          ['owner', 'cutter', 'island', 'eponymous_island', 'location']
+        )
       end
     end
 
@@ -71,12 +76,12 @@ module ForestLiana
         end
       end
 
-      context 'on a model having 2 belongsTo associations' do
+      context 'on a model having 3 belongsTo/hasOne associations' do
         tables_associated_to_relations_name =
           QueryHelper.get_tables_associated_to_relations_name(Tree)
 
         it 'should return the one-one associations' do
-          expect(tables_associated_to_relations_name.keys.length).to eq(2)
+          expect(tables_associated_to_relations_name.keys.length).to eq(3)
         end
 
         it 'should return relationships having a name different than the targeted model' do

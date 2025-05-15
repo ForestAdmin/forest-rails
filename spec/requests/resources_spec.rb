@@ -4,7 +4,9 @@ describe 'Requesting Tree resources', :type => :request  do
   let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   before do
     user = User.create(name: 'Michel')
-    Tree.create(name: 'Lemon Tree', owner: user, cutter: user)
+    tree = Tree.create(name: 'Lemon Tree', owner: user, cutter: user)
+    island = Island.create(name: 'Lemon Island', trees: [tree])
+    Location.create(coordinates: '1,2', island: island)
 
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
@@ -32,6 +34,8 @@ describe 'Requesting Tree resources', :type => :request  do
   after do
     User.destroy_all
     Tree.destroy_all
+    Island.destroy_all
+    Location.destroy_all
   end
 
   token = JWT.encode({
@@ -54,7 +58,7 @@ describe 'Requesting Tree resources', :type => :request  do
   describe 'index' do
     describe 'without any filter' do
       params = {
-        fields: { 'Tree' => 'id,name' },
+        fields: { 'Tree' => 'id,name,location' },
         page: { 'number' => '1', 'size' => '10' },
         searchExtended: '0',
         sort: '-id',
@@ -98,7 +102,8 @@ describe 'Requesting Tree resources', :type => :request  do
 
       it 'should respond the tree data' do
         get '/forest/Tree', params: params, headers: headers
-        expect(JSON.parse(response.body)).to eq({
+        
+        expect(JSON.parse(response.body)).to include({
           "data" => [{
             "type" => "Tree",
             "id" => "1",
@@ -108,9 +113,30 @@ describe 'Requesting Tree resources', :type => :request  do
             },
             "links" => {
               "self" => "/forest/tree/1"
+            },
+            "relationships" => {
+              "location" => {
+                "data" => { "id" => "1", "type" => "Location" },
+                "links" => { "related" => {} }
+              }
             }
           }],
-          "included" => []
+          "included" => [{
+            "type" => "Location",
+            "id" => "1",
+            "attributes" => include(
+              "id" => 1,
+              "created_at" => nil,
+              "updated_at" => nil,
+              "coordinates" => nil
+            ),
+            "links" => { "self" => "/forest/location/1" },
+            "relationships" => {
+              "island" => {
+                "links" => { "related" => {} }
+              }
+            }
+          }]
         })
       end
     end

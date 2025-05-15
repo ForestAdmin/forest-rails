@@ -290,6 +290,22 @@ module ForestLiana
       end
     end
 
+    describe 'when getting a has_one through association' do
+      let(:resource) { Tree }
+      let(:fields) { { 'Tree' => 'id,location' } }
+
+      it 'should get the expected records, including the foreign_key for the direct association' do
+        getter.perform
+        records = getter.records
+        count = getter.count
+
+        expect(records.count).to eq Tree.count
+        expect(count).to eq Tree.count
+        expect(records.map(&:id)).to match_array(Tree.pluck(:id))
+        expect(records.map(&:island_id)).to match_array(Tree.pluck(:island_id))
+      end
+    end
+
     describe 'when filtering on an ambiguous field' do
       let(:resource) { Tree }
       let(:pageSize) { 5 }
