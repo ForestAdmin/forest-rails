@@ -1,3 +1,10 @@
+## [9.12.2](https://github.com/ForestAdmin/forest-rails/compare/v9.12.1...v9.12.2) (2025-05-15)
+
+
+### Bug Fixes
+
+* **serializer:** do not execute smart feature on object like a native attribute ([#733](https://github.com/ForestAdmin/forest-rails/issues/733)) ([09c9e5f](https://github.com/ForestAdmin/forest-rails/commit/09c9e5fb9a3155d00057cc517e0b6e9156c1b143))
+
 ## [9.12.1](https://github.com/ForestAdmin/forest-rails/compare/v9.12.0...v9.12.1) (2025-05-15)
 
 
