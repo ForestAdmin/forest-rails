@@ -1,3 +1,10 @@
+## [9.12.1](https://github.com/ForestAdmin/forest-rails/compare/v9.12.0...v9.12.1) (2025-05-15)
+
+
+### Bug Fixes
+
+* include has_one through associations in compute_select_fields in ResourcesGetter ([#732](https://github.com/ForestAdmin/forest-rails/issues/732)) ([6472522](https://github.com/ForestAdmin/forest-rails/commit/6472522e73156e2cc8909e17cb052947880f5137))
+
 # [9.12.0](https://github.com/ForestAdmin/forest-rails/compare/v9.11.3...v9.12.0) (2025-05-05)
 
 
