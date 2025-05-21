@@ -37,10 +37,10 @@ module ForestLiana
       end
 
       if includes.empty? || has_smart_fields
-        @records = optimize_record_loading(@resource, @records)
+        @records = optimize_record_loading(@resource, @records, false)
       else
         select = compute_select_fields
-        @records = optimize_record_loading(@resource, @records).references(includes).select(*select)
+        @records = optimize_record_loading(@resource, @records, false).references(includes).select(*select)
       end
 
       @records
@@ -55,7 +55,43 @@ module ForestLiana
     end
 
     def records
-      @records.offset(offset).limit(limit).to_a
+      records = @records.offset(offset).limit(limit).to_a
+
+      polymorphic_association, preload_loads = analyze_associations(@resource)
+      if polymorphic_association && Rails::VERSION::MAJOR >= 7
+        # TODO
+      end
+      preload_separately(records, preload_loads)
+
+      records
+    end
+
+    def preload_separately(records, preload_loads)
+      preload_loads.each do |association_name|
+        association = @resource.reflect_on_association(association_name)
+        foreign_key = association.foreign_key
+
+        ids = records.map { |r| r.public_send(foreign_key) }.compact.uniq
+        next if ids.empty?
+
+        columns = request_columns_for_association(association_name)
+        associated = association.klass.where(id: ids).select(columns).index_by(&:id)
+
+        records.each do |record|
+          record.define_singleton_method(association_name) do
+            associated[record.send(foreign_key.to_sym)] || nil
+          end
+        end
+      end
+    end
+
+    def request_columns_for_association(association_name)
+      return [:id] unless @params[:fields].present?
+
+      fields = @params[:fields][association_name.to_s]
+      return [:id] unless fields
+
+      fields.split(',').map(&:strip).map(&:to_sym) | [:id]
     end
 
     def compute_includes
