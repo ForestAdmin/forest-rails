@@ -31,7 +31,7 @@ module ForestLiana
 
     def perform
       polymorphic_association, preload_loads = analyze_associations(@resource)
-      includes = @includes.uniq - polymorphic_association - preload_loads
+      includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
       has_smart_fields =  @params[:fields][@collection_name].split(',').any? do |field|
         ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
       end
@@ -42,7 +42,7 @@ module ForestLiana
         select = compute_select_fields
         @records = optimize_record_loading(@resource, @records, false).references(includes).select(*select)
       end
-
+      # debugger
       @records
     end
 
@@ -132,26 +132,38 @@ module ForestLiana
 
     def compute_includes
       associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
-
-      includes = associations_has_one.map(&:name)
-      includes_for_smart_search = []
-
-      if @collection && @collection.search_fields
-        includes_for_smart_search = @collection.search_fields
-                                               .select { |field| field.include? '.' }
-                                               .map { |field| field.split('.').first.to_sym }
-
-        includes_has_many = SchemaUtils.many_associations(@resource)
-                                       .select { |association| SchemaUtils.model_included?(association.klass) }
-                                       .map(&:name)
-
-        includes_for_smart_search = includes_for_smart_search & includes_has_many
-      end
-
+      @optional_includes = []
       if @field_names_requested
+        includes = associations_has_one.map do |association|
+          association_name = association.name.to_s
+
+          if @params[:fields].key?(association_name) &&
+            @params[:fields][association_name].split(',').size == 1 &&
+            @params[:fields][association_name].split(',').include?(association.klass.primary_key)
+
+            @field_names_requested << association.foreign_key
+            @optional_includes << association.name
+          end
+
+          association.name
+        end
+
+        includes_for_smart_search = []
+        if @collection && @collection.search_fields
+          includes_for_smart_search = @collection.search_fields
+                                                 .select { |field| field.include? '.' }
+                                                 .map { |field| field.split('.').first.to_sym }
+
+          includes_has_many = SchemaUtils.many_associations(@resource)
+                                         .select { |association| SchemaUtils.model_included?(association.klass) }
+                                         .map(&:name)
+
+          includes_for_smart_search = includes_for_smart_search & includes_has_many
+        end
+
         @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
       else
-        @includes = includes
+        @includes = associations_has_one.map(&:name)
       end
     end
 
@@ -298,7 +310,7 @@ module ForestLiana
 
     def compute_select_fields
       select = ['_forest_admin_eager_load']
-      @params[:fields][@collection_name].split(',').each do |path|
+      @field_names_requested.each do |path|
         association = get_one_association(path)
         if association
           while association.options[:through]
