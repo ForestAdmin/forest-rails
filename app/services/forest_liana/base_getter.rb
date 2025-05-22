@@ -21,11 +21,11 @@ module ForestLiana
       @includes = ForestLiana::QueryHelper.get_one_association_names_symbol(@resource)
     end
 
-    def optimize_record_loading(resource, records)
+    def optimize_record_loading(resource, records, force_preload = true)
       polymorphic, preload_loads = analyze_associations(resource)
       result = records.eager_load(@includes.uniq - preload_loads - polymorphic)
 
-      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7
+      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7 && force_preload
 
       result
     end
