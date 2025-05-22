@@ -61,37 +61,73 @@ module ForestLiana
       if polymorphic_association && Rails::VERSION::MAJOR >= 7
         # TODO
       end
-      preload_separately(records, preload_loads)
+
+      preload_cross_database_associations(records, preload_loads)
 
       records
     end
 
-    def preload_separately(records, preload_loads)
+    def preload_cross_database_associations(records, preload_loads)
       preload_loads.each do |association_name|
         association = @resource.reflect_on_association(association_name)
-        foreign_key = association.foreign_key
+        next unless separate_database?(@resource, association)
 
-        ids = records.map { |r| r.public_send(foreign_key) }.compact.uniq
-        next if ids.empty?
+        columns = columns_for_cross_database_association(association_name)
 
-        columns = request_columns_for_association(association_name)
-        associated = association.klass.where(id: ids).select(columns).index_by(&:id)
+        if association.macro == :belongs_to
+          foreign_key = association.foreign_key
+          primary_key = association.klass.primary_key
 
-        records.each do |record|
-          record.define_singleton_method(association_name) do
-            associated[record.send(foreign_key.to_sym)] || nil
+          ids = records.map { |r| r.public_send(foreign_key) }.compact.uniq
+          next if ids.empty?
+
+          associated = association.klass.where(primary_key => ids)
+                                  .select(columns)
+                                  .index_by { |record| record.public_send(primary_key) }
+
+          records.each do |record|
+            record.define_singleton_method(association_name) do
+              associated[record.send(foreign_key.to_sym)] || nil
+            end
+          end
+        end
+
+        if association.macro == :has_one
+          foreign_key = association.foreign_key
+          primary_key = association.active_record_primary_key
+
+          ids = records.map { |r| r.public_send(primary_key) }.compact.uniq
+          next if ids.empty?
+
+          associated = association.klass.where(foreign_key => ids)
+                                  .select(columns)
+                                  .index_by { |record| record.public_send(foreign_key.to_sym) }
+
+          records.each do |record|
+            record.define_singleton_method(association_name) do
+              associated[record.send(primary_key.to_sym)] || nil
+            end
           end
         end
       end
     end
 
-    def request_columns_for_association(association_name)
+    def columns_for_cross_database_association(association_name)
       return [:id] unless @params[:fields].present?
 
       fields = @params[:fields][association_name.to_s]
       return [:id] unless fields
 
-      fields.split(',').map(&:strip).map(&:to_sym) | [:id]
+      base_fields = fields.split(',').map(&:strip).map(&:to_sym) | [:id]
+
+      association = @resource.reflect_on_association(association_name)
+      extra_key = association.foreign_key
+
+      # Add the foreign key used for the association to ensure it's available in the preloaded records
+      # This is necessary for has_one associations, without it calling record.public_send(foreign_key) would raise a "missing attribute" error
+      base_fields << extra_key if association.macro == :has_one
+
+      base_fields.uniq
     end
 
     def compute_includes
