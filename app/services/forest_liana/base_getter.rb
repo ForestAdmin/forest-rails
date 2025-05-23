@@ -19,11 +19,12 @@ module ForestLiana
 
     def compute_includes
       @includes = ForestLiana::QueryHelper.get_one_association_names_symbol(@resource)
+      @optional_includes = []
     end
 
     def optimize_record_loading(resource, records)
       polymorphic, preload_loads = analyze_associations(resource)
-      result = records.eager_load(@includes.uniq - preload_loads - polymorphic)
+      result = records.eager_load(@includes.uniq - preload_loads - polymorphic - @optional_includes)
 
       result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7
 

@@ -118,12 +118,6 @@ module ForestLiana
 
           if ret[:href].blank?
             begin
-              if @options[:include].try(:include?, attribute_name.to_s) &&
-                !SchemaHelper.is_smart_field?(object.class, attribute_name.to_s)
-
-                object.send(attribute_name)
-              end
-
               SchemaUtils.many_associations(object.class).each do |a|
                 if a.name == attribute_name
                   ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
@@ -135,6 +129,30 @@ module ForestLiana
           end
 
           ret
+        end
+
+        def has_one_relationships
+          return {} if self.class.to_one_associations.nil?
+          data = {}
+          self.class.to_one_associations.each do |attribute_name, attr_data|
+            relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+
+            next if !should_include_attr?(attribute_name, attr_data)
+
+            unless relation.polymorphic?
+              relation_class_name = ForestLiana.name_for(relation.klass).demodulize
+
+              if object.send(relation.foreign_key.to_sym) &&
+                @options[:fields][relation_class_name]&.size == 1 &&
+                @options[:fields][relation_class_name]&.include?(relation.klass.primary_key.to_sym)
+
+                attr_data[:attr_or_block] = proc {  relation.klass.new(relation.klass.primary_key => object.send(relation.foreign_key.to_sym)) }
+              end
+            end
+
+            data[attribute_name] = attr_data
+          end
+          data
         end
 
         private
