@@ -42,7 +42,7 @@ module ForestLiana
         select = compute_select_fields
         @records = optimize_record_loading(@resource, @records, false).references(includes).select(*select)
       end
-      # debugger
+
       @records
     end
 
