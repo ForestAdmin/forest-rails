@@ -1,3 +1,10 @@
+# [9.14.0](https://github.com/ForestAdmin/forest-rails/compare/v9.13.0...v9.14.0) (2025-05-26)
+
+
+### Features
+
+* improve performance by avoiding unnecessary jointure on belongsTo relations ([#735](https://github.com/ForestAdmin/forest-rails/issues/735)) ([a256135](https://github.com/ForestAdmin/forest-rails/commit/a256135fad5353db3743f837c5a5e0016c1f2ad8))
+
 # [9.13.0](https://github.com/ForestAdmin/forest-rails/compare/v9.12.2...v9.13.0) (2025-05-26)
 
 
