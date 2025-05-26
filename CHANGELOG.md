@@ -1,3 +1,10 @@
+# [9.13.0](https://github.com/ForestAdmin/forest-rails/compare/v9.12.2...v9.13.0) (2025-05-26)
+
+
+### Features
+
+* reduce redundant queries on cross-db belongs_to ([#734](https://github.com/ForestAdmin/forest-rails/issues/734)) ([e040718](https://github.com/ForestAdmin/forest-rails/commit/e0407185cde95b9abc6f00b0d17f38c8dc5e5fdc))
+
 ## [9.12.2](https://github.com/ForestAdmin/forest-rails/compare/v9.12.1...v9.12.2) (2025-05-15)
 
 
