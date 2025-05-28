@@ -139,10 +139,10 @@ module ForestLiana
 
             next if !should_include_attr?(attribute_name, attr_data)
 
-            unless relation.polymorphic?
+            unless relation.nil? || (relation.respond_to?(:polymorphic?) && relation.polymorphic?)
               relation_class_name = ForestLiana.name_for(relation.klass).demodulize
 
-              if object.send(relation.foreign_key.to_sym) &&
+              if object.respond_to?(relation.foreign_key.to_sym) &&
                 @options[:fields][relation_class_name]&.size == 1 &&
                 @options[:fields][relation_class_name]&.include?(relation.klass.primary_key.to_sym)
 
