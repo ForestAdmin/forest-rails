@@ -55,7 +55,7 @@ module ForestLiana
     end
 
     def records
-      records =  @records.offset(offset).limit(limit).to_a
+      records = @records.offset(offset).limit(limit).to_a
       polymorphic_association, preload_loads = analyze_associations(@resource)
 
       if polymorphic_association && Rails::VERSION::MAJOR >= 7
