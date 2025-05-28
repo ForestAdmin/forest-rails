@@ -1,3 +1,10 @@
+## [9.14.1](https://github.com/ForestAdmin/forest-rails/compare/v9.14.0...v9.14.1) (2025-05-28)
+
+
+### Bug Fixes
+
+* preload polymorphic associations to improve performance ([#731](https://github.com/ForestAdmin/forest-rails/issues/731)) ([00ceef7](https://github.com/ForestAdmin/forest-rails/commit/00ceef75b9c9beb3b01216c03f42e7e337ecd4bf))
+
 # [9.14.0](https://github.com/ForestAdmin/forest-rails/compare/v9.13.0...v9.14.0) (2025-05-26)
 
 
