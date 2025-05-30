@@ -127,10 +127,15 @@ module ForestLiana
     def columns_for_cross_database_association(association_name)
       return [:id] unless @params[:fields].present?
 
-      fields = @params[:fields][association_name.to_s]
+      fields = @params[:fields][association_name.to_s]&.split(',')
       return [:id] unless fields
 
-      base_fields = fields.split(',').map(&:strip).map(&:to_sym) | [:id]
+      association = get_one_association(association_name)
+      if fields.any? { |field| ForestLiana::SchemaHelper.is_smart_field?(association.klass, field) }
+        base_fields = ['*']
+      else
+        base_fields = fields.map(&:strip).map(&:to_sym) | [:id]
+      end
 
       association = @resource.reflect_on_association(association_name)
       extra_key = association.foreign_key
