@@ -47,6 +47,8 @@ module ForestLiana
     end
 
     def separate_database?(resource, association)
+      return false if SchemaUtils.polymorphic?(association)
+
       target_model_connection = association.klass.connection
       target_model_database = target_model_connection.current_database if target_model_connection.respond_to? :current_database
       resource_connection = resource.connection
