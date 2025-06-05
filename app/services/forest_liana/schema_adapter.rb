@@ -346,7 +346,7 @@ module ForestLiana
     end
 
     def get_schema_for_association(association)
-      {
+      opts ={
         field: association.name.to_s,
         type: get_type_for_association(association),
         relationship: get_relationship_type(association),
@@ -363,6 +363,14 @@ module ForestLiana
         widget: nil,
         validations: []
       }
+
+      ForestLiana::SchemaUtils.disable_filter_and_sort_if_cross_db!(
+        opts,
+        association.name.to_s,
+        ForestLiana.name_for(@model)
+      )
+
+      opts
     end
 
     def get_relationship_type(association)

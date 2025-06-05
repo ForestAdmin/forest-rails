@@ -126,5 +126,27 @@ module ForestLiana
     def self.is_active_type? model
       Object.const_defined?('ActiveType::Object') && model < ActiveType::Object
     end
+
+    def self.disable_filter_and_sort_if_cross_db!(opts, name, collection_name)
+      return unless opts[:reference]
+
+      assoc_name = opts[:reference].split('.').first&.underscore&.to_sym || name
+      model = find_model_from_collection_name(collection_name)
+      return unless model
+
+      association = model.reflect_on_association(assoc_name)
+      return unless association
+      return if polymorphic?(association)
+
+      model_db = model.connection_db_config.database
+      assoc_db = association.klass.connection_db_config.database
+
+      if model_db != assoc_db
+        opts[:is_filterable] = false
+        opts[:is_sortable] = false
+      end
+    rescue => e
+      FOREST_LOGGER.warn("Could not evaluate cross-db association for #{name}: #{e.message}")
+    end
   end
 end
