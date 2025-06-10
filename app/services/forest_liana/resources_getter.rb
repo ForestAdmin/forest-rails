@@ -58,7 +58,7 @@ module ForestLiana
       records = @records.offset(offset).limit(limit).to_a
       polymorphic_association, preload_loads = analyze_associations(@resource)
 
-      if polymorphic_association && Rails::VERSION::MAJOR >= 7
+      if polymorphic_association.any? && Rails::VERSION::MAJOR >= 7
         preloader = ActiveRecord::Associations::Preloader.new(records: records, associations: polymorphic_association)
         preloader.loaders
         preloader.branches.each do |branch|
@@ -85,7 +85,6 @@ module ForestLiana
         next unless separate_database?(@resource, association)
 
         columns = columns_for_cross_database_association(association_name)
-
         if association.macro == :belongs_to
           foreign_key = association.foreign_key
           primary_key = association.klass.primary_key
@@ -125,27 +124,22 @@ module ForestLiana
     end
 
     def columns_for_cross_database_association(association_name)
-      return [:id] unless @params[:fields].present?
-
-      fields = @params[:fields][association_name.to_s]
-      return [:id] unless fields
-
-      base_fields = fields.split(',').map(&:strip).map(&:to_sym) | [:id]
-
       association = @resource.reflect_on_association(association_name)
-      extra_key = association.foreign_key
 
-      # Add the foreign key used for the association to ensure it's available in the preloaded records
-      # This is necessary for has_one associations, without it calling record.public_send(foreign_key) would raise a "missing attribute" error
-      base_fields << extra_key if association.macro == :has_one
+      # Always include all columns of the associated model to avoid missing attribute errors
+      columns = association.klass.column_names.map(&:to_sym)
 
-      base_fields.uniq
+      # Ensure the foreign key is present for manual binding (especially for has_one)
+      columns << association.foreign_key.to_sym if association.macro == :has_one
+
+      columns.uniq
     end
 
     def compute_includes
       associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
+
       @optional_includes = []
-      if @field_names_requested
+      if @field_names_requested && @params['searchExtended'].to_i != 1
         includes = associations_has_one.map do |association|
           association_name = association.name.to_s
 
@@ -175,7 +169,10 @@ module ForestLiana
 
         @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
       else
-        @includes = associations_has_one.map(&:name)
+        @includes = associations_has_one
+                      # Avoid eager loading has_one associations pointing to a different database as ORM can't join cross databases
+                      .reject { |association| separate_database?(@resource, association) }
+                      .map(&:name)
       end
     end
 

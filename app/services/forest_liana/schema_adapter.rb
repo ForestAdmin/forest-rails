@@ -278,7 +278,13 @@ module ForestLiana
               field[:field] = association.name
               field[:inverse_of] = inverse_of(association)
               field[:relationship] = get_relationship_type(association)
-          # NOTICE: Create the fields of hasOne, HasMany, … relationships.
+
+              ForestLiana::SchemaUtils.disable_filter_and_sort_if_cross_db!(
+                field,
+                association.name.to_s,
+                ForestLiana.name_for(@model)
+              )
+              # NOTICE: Create the fields of hasOne, HasMany, … relationships.
           else
             collection.fields << get_schema_for_association(association)
           end
@@ -346,7 +352,7 @@ module ForestLiana
     end
 
     def get_schema_for_association(association)
-      {
+      opts ={
         field: association.name.to_s,
         type: get_type_for_association(association),
         relationship: get_relationship_type(association),
@@ -363,6 +369,14 @@ module ForestLiana
         widget: nil,
         validations: []
       }
+
+      ForestLiana::SchemaUtils.disable_filter_and_sort_if_cross_db!(
+        opts,
+        association.name.to_s,
+        ForestLiana.name_for(@model)
+      )
+
+      opts
     end
 
     def get_relationship_type(association)
