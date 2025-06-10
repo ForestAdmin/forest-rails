@@ -1,3 +1,10 @@
+## [9.14.2](https://github.com/ForestAdmin/forest-rails/compare/v9.14.1...v9.14.2) (2025-06-10)
+
+
+### Bug Fixes
+
+* correct column selection in cross-db associations and extended-search ([#737](https://github.com/ForestAdmin/forest-rails/issues/737)) ([f352809](https://github.com/ForestAdmin/forest-rails/commit/f352809ea4f8853001357a3dd04cf2ea90645728))
+
 ## [9.14.1](https://github.com/ForestAdmin/forest-rails/compare/v9.14.0...v9.14.1) (2025-05-28)
 
 
