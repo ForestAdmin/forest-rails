@@ -32,7 +32,7 @@ module ForestLiana
     def perform
       polymorphic_association, preload_loads = analyze_associations(@resource)
       includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
-      has_smart_fields =  @params[:fields][@collection_name].split(',').any? do |field|
+      has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
         ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
       end
 
@@ -143,10 +143,8 @@ module ForestLiana
         includes = associations_has_one.map do |association|
           association_name = association.name.to_s
 
-          if @params[:fields].key?(association_name) &&
-            @params[:fields][association_name].split(',').size == 1 &&
-            @params[:fields][association_name].split(',').include?(association.klass.primary_key)
-
+          fields = @params[:fields]&.[](association_name)&.split(',')
+          if fields&.size == 1 && fields.include?(association.klass.primary_key)
             @field_names_requested << association.foreign_key
             @optional_includes << association.name
           end
@@ -191,7 +189,7 @@ module ForestLiana
     end
 
     def field_names_requested
-      return nil unless @params[:fields] && @params[:fields][@collection_name]
+      return [] unless @params.dig(:fields, @collection_name)
 
       associations_for_query = extract_associations_from_filter
       associations_for_query << @params[:sort].split('.').first.to_sym if @params[:sort]&.include?('.')
@@ -332,11 +330,12 @@ module ForestLiana
           select << "#{@resource.table_name}.#{association.foreign_key}"
         end
 
-        if @params[:fields].key?(path)
+        fields = @params[:fields]&.[](path)&.split(',')
+        if fields
           association = get_one_association(path)
           table_name = association.table_name
 
-          @params[:fields][path].split(',').each do |association_path|
+          fields.each do |association_path|
             if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
               association.klass.attribute_names.each { |attribute| select << "#{table_name}.#{attribute}" }
             else
