@@ -1,3 +1,10 @@
+## [9.14.3](https://github.com/ForestAdmin/forest-rails/compare/v9.14.2...v9.14.3) (2025-06-19)
+
+
+### Bug Fixes
+
+* **search:** prevent nil error in field selection during search ([#739](https://github.com/ForestAdmin/forest-rails/issues/739)) ([069c647](https://github.com/ForestAdmin/forest-rails/commit/069c647554353450c255a36e47309dfd232143f2)), closes [#738](https://github.com/ForestAdmin/forest-rails/issues/738)
+
 ## [9.14.2](https://github.com/ForestAdmin/forest-rails/compare/v9.14.1...v9.14.2) (2025-06-10)
 
 
