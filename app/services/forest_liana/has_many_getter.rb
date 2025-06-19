@@ -62,9 +62,8 @@ module ForestLiana
     end
 
     def field_names_requested
-      return nil unless @params[:fields] && @params[:fields][@collection_name]
-      @params[:fields][@collection_name].split(',')
-        .map { |name| name.to_sym }
+      fields = @params.dig(:fields, @collection_name)
+      Array(fields&.split(',')).map(&:to_sym)
     end
 
     def model_association

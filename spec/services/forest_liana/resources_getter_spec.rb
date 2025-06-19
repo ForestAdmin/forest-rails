@@ -572,6 +572,26 @@ module ForestLiana
           expect(records.second.name).to eq 'Treasure'
         end
       end
+
+      describe '#perform' do
+        let(:resource) { User }
+        let(:fields) { nil }
+        let(:sort) { nil }
+        let(:filters) { nil }
+
+        it 'does not raise an error when params[:fields] is nil' do
+          expect {
+            getter.perform
+          }.not_to raise_error
+
+          records = getter.records
+          count = getter.count
+
+          expect(records).to all(be_a(User))
+          expect(count).to eq User.count
+        end
+      end
+
     end
   end
 end
