@@ -146,7 +146,10 @@ module ForestLiana
                 @options[:fields][relation_class_name]&.size == 1 &&
                 @options[:fields][relation_class_name]&.include?(relation.klass.primary_key.to_sym)
 
-                attr_data[:attr_or_block] = proc {  relation.klass.new(relation.klass.primary_key => object.send(relation.foreign_key.to_sym)) }
+                attr_data[:attr_or_block] = proc {
+                  foreign_key_value = object.send(relation.foreign_key.to_sym)
+                  foreign_key_value.nil? ? nil : relation.klass.new(relation.klass.primary_key => foreign_key_value)
+                }
               end
             end
 
