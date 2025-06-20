@@ -1,3 +1,10 @@
+## [9.14.4](https://github.com/ForestAdmin/forest-rails/compare/v9.14.3...v9.14.4) (2025-06-20)
+
+
+### Bug Fixes
+
+* avoid creating invalid objects when foreign key is null in serializer ([#740](https://github.com/ForestAdmin/forest-rails/issues/740)) ([61432ef](https://github.com/ForestAdmin/forest-rails/commit/61432ef478b81683df4a68a646b3db21fad9810f))
+
 ## [9.14.3](https://github.com/ForestAdmin/forest-rails/compare/v9.14.2...v9.14.3) (2025-06-19)
 
 
