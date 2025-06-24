@@ -35,16 +35,17 @@ module ForestLiana
     end
 
     def order
-      order = 'DESC'
+      order_direction = 'DESC'
 
-      # NOTICE: The generated alias for a count is "count_all", for a sum the
-      #         alias looks like "sum_#{aggregate_field}"
+      # Wrap in Arel.sql() for Rails 8 security requirements
       if @aggregate == 'sum'
-        field = @aggregate_field.downcase
+        field_name = @aggregate_field.downcase
+        Arel.sql("#{@aggregate}_#{field_name} #{order_direction}")
       else
-        field = 'all'
+        # For COUNT, use the aggregation function directly in ORDER BY
+        # rather than depending on the automatically generated alias
+        Arel.sql("COUNT(*) #{order_direction}")
       end
-      "#{@aggregate}_#{field} #{order}"
     end
   end
 end
