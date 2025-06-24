@@ -133,5 +133,93 @@ module ForestLiana
         end
       end
     end
+
+    describe 'order method behavior' do
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
+      let(:model) { Tree }
+      let(:collection) { 'trees' }
+      let(:groupByFieldName) { 'age' }
+
+      describe 'with COUNT aggregator' do
+        let(:params) {
+          {
+            type: 'Pie',
+            sourceCollectionName: collection,
+            timezone: 'Europe/Paris',
+            aggregator: 'Count',
+            groupByFieldName: groupByFieldName
+          }
+        }
+
+        subject { PieStatGetter.new(model, params, user) }
+
+        it 'should use Arel.sql for COUNT order and return results in descending order' do
+          subject.perform
+
+          # Verify results are ordered by count descending (5 young trees, 4 old trees)
+          expect(subject.record.value).to eq [
+                                               { :key => 3, :value => 5},
+                                               { :key => 15, :value => 4 }
+                                             ]
+        end
+
+        it 'should return an Arel::Nodes::SqlLiteral for order method' do
+          order_result = subject.send(:order)
+          expect(order_result).to be_a(Arel::Nodes::SqlLiteral)
+          expect(order_result.to_s).to match(/COUNT.*DESC/i)
+        end
+      end
+
+      describe 'with SUM aggregator' do
+        let(:params) {
+          {
+            type: 'Pie',
+            sourceCollectionName: collection,
+            timezone: 'Europe/Paris',
+            aggregator: 'Sum',
+            aggregateFieldName: 'age',
+            groupByFieldName: groupByFieldName
+          }
+        }
+
+        subject { PieStatGetter.new(model, params, user) }
+
+        it 'should use Arel.sql for SUM order and return results in descending order' do
+          subject.perform
+
+          # Verify results are ordered by sum descending (15*4=60 > 3*5=15)
+          expect(subject.record.value).to eq [
+                                               { :key => 15, :value => 60 },
+                                               { :key => 3, :value => 15 }
+                                             ]
+        end
+
+        it 'should return an Arel::Nodes::SqlLiteral for order method' do
+          order_result = subject.send(:order)
+          expect(order_result).to be_a(Arel::Nodes::SqlLiteral)
+          expect(order_result.to_s).to match(/sum_age.*DESC/i)
+        end
+      end
+
+      describe 'order method returns Arel SQL' do
+        let(:params) {
+          {
+            type: 'Pie',
+            sourceCollectionName: collection,
+            timezone: 'Europe/Paris',
+            aggregator: 'Count',
+            groupByFieldName: groupByFieldName
+          }
+        }
+
+        subject { PieStatGetter.new(model, params, user) }
+
+        it 'should return an Arel::Nodes::SqlLiteral with COUNT function' do
+          order_result = subject.send(:order)
+          expect(order_result).to be_a(Arel::Nodes::SqlLiteral)
+          expect(order_result.to_s).to match(/COUNT.*DESC/i)
+        end
+      end
+    end
   end
 end
