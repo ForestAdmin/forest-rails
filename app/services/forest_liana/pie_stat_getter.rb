@@ -13,11 +13,16 @@ module ForestLiana
           resource = FiltersParser.new(filters, resource, @params[:timezone], @params).apply_filters
         end
 
-        result = resource
-          .group(groupByFieldName)
-          .order(order)
-          .send(@params[:aggregator].downcase, @params[:aggregateFieldName])
-          .map do |key, value|
+        aggregation_type = @params[:aggregator].downcase
+        aggregation_field = @params[:aggregateFieldName]
+        alias_name = aggregation_alias(aggregation_type, aggregation_field)
+
+        resource = resource
+                     .group(groupByFieldName)
+                     .order(Arel.sql("#{alias_name} DESC"))
+                     .pluck(groupByFieldName, Arel.sql("#{aggregation_sql(aggregation_type, aggregation_field)} AS #{alias_name}"))
+
+        result = resource.map do |key, value|
             # NOTICE: Display the enum name instead of an integer if it is an
             #         "Enum" field type on old Rails version (before Rails
             #         5.1.3).
@@ -37,33 +42,44 @@ module ForestLiana
       end
     end
 
+    def resolve_field_path(field_param, default_field = 'id')
+      return "#{@resource.table_name}.#{default_field}" unless field_param
+
+      if field_param.include?(':')
+        association, field = field_param.split ':'
+        associated_resource = @resource.reflect_on_association(association.to_sym)
+        "#{associated_resource.table_name}.#{field}"
+      else
+        "#{@resource.table_name}.#{field_param}"
+      end
+    end
+
     def groupByFieldName
-      if @params[:groupByFieldName].include? ':'
-        association, field = @params[:groupByFieldName].split ':'
-        resource = @resource.reflect_on_association(association.to_sym)
-        "#{resource.table_name}.#{field}"
+      resolve_field_path(@params[:groupByFieldName])
+    end
+
+    def aggregation_sql(type, field)
+      field_path = resolve_field_path(field)
+
+      case type
+      when 'sum'
+        "SUM(#{field_path})"
+      when 'count'
+        "COUNT(DISTINCT #{field_path})"
       else
-        "#{@resource.table_name}.#{@params[:groupByFieldName]}"
+        raise "Unsupported aggregator : #{type}"
       end
     end
 
-    def order
-      order_direction = 'DESC'
-
-      # Wrap in Arel.sql() for Rails 8 security requirements
-      if @params[:aggregator].downcase == 'sum'
-        field_name = @params[:aggregateFieldName].downcase
-        Arel.sql("#{@params[:aggregator].downcase}_#{field_name} #{order_direction}")
+    def aggregation_alias(type, field)
+      case type
+      when 'sum'
+        "sum_#{field.downcase}"
+      when 'count'
+        'count_id'
       else
-        # For COUNT, we use the aggregation function directly in ORDER BY
-        # rather than depending on the automatically generated alias
-        if Rails::VERSION::MAJOR == 5 || @includes.size > 0
-          Arel.sql("COUNT(#{@resource.table_name}.id) #{order_direction}")
-        else
-          Arel.sql("COUNT(*) #{order_direction}")
-        end
+        raise "Unsupported aggregator : #{type}"
       end
     end
-
   end
 end
