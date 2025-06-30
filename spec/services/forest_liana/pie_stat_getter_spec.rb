@@ -133,5 +133,187 @@ module ForestLiana
         end
       end
     end
+
+    describe 'aggregation methods behavior' do
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
+      let(:model) { Tree }
+      let(:collection) { 'trees' }
+      let(:groupByFieldName) { 'age' }
+
+      describe 'aggregation_sql method' do
+        subject { PieStatGetter.new(model, params, user) }
+
+        context 'with COUNT aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Count',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should generate correct COUNT SQL' do
+            sql = subject.send(:aggregation_sql, 'count', nil)
+            expect(sql).to eq 'COUNT(DISTINCT trees.id)'
+          end
+
+          it 'should generate correct COUNT SQL with specific field' do
+            sql = subject.send(:aggregation_sql, 'count', 'age')
+            expect(sql).to eq 'COUNT(DISTINCT trees.age)'
+          end
+        end
+
+        context 'with SUM aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Sum',
+              aggregateFieldName: 'age',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should generate correct SUM SQL' do
+            sql = subject.send(:aggregation_sql, 'sum', 'age')
+            expect(sql).to eq 'SUM(trees.age)'
+          end
+        end
+
+        context 'with association field' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Count',
+              groupByFieldName: 'owner:name'
+            }
+          }
+
+          it 'should handle association fields correctly' do
+            # Assuming Tree belongs_to :owner
+            allow(model).to receive(:reflect_on_association).with(:owner).and_return(
+              double(table_name: 'owners')
+            )
+
+            sql = subject.send(:aggregation_sql, 'count', 'owner:id')
+            expect(sql).to eq 'COUNT(DISTINCT owners.id)'
+          end
+        end
+
+        context 'with unsupported aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Invalid',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should raise an error for unsupported aggregator' do
+            expect {
+              subject.send(:aggregation_sql, 'invalid', 'age')
+            }.to raise_error(ForestLiana::Errors::HTTP422Error)
+          end
+        end
+      end
+
+      describe 'aggregation_alias method' do
+        subject { PieStatGetter.new(model, params, user) }
+
+        context 'with COUNT aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Count',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should return correct alias for count' do
+            alias_name = subject.send(:aggregation_alias, 'count', nil)
+            expect(alias_name).to eq 'count_id'
+          end
+        end
+
+        context 'with SUM aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Sum',
+              aggregateFieldName: 'age',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should return correct alias for sum' do
+            alias_name = subject.send(:aggregation_alias, 'sum', 'age')
+            expect(alias_name).to eq 'sum_age'
+          end
+
+          it 'should handle field names with mixed case' do
+            alias_name = subject.send(:aggregation_alias, 'sum', 'TreeAge')
+            expect(alias_name).to eq 'sum_treeage'
+          end
+        end
+      end
+
+      describe 'results ordering' do
+        subject { PieStatGetter.new(model, params, user) }
+
+        context 'with COUNT aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Count',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should return results ordered by count descending' do
+            subject.perform
+
+            expect(subject.record.value).to eq [
+                                                 { :key => 3, :value => 5},
+                                                 { :key => 15, :value => 4 }
+                                               ]
+          end
+        end
+
+        context 'with SUM aggregator' do
+          let(:params) {
+            {
+              type: 'Pie',
+              sourceCollectionName: collection,
+              timezone: 'Europe/Paris',
+              aggregator: 'Sum',
+              aggregateFieldName: 'age',
+              groupByFieldName: groupByFieldName
+            }
+          }
+
+          it 'should return results ordered by sum descending' do
+            subject.perform
+
+            expect(subject.record.value).to eq [
+                                                 { :key => 15, :value => 60 },
+                                                 { :key => 3, :value => 15 }
+                                               ]
+          end
+        end
+      end
+    end
   end
 end

@@ -1,5 +1,6 @@
 module ForestLiana
   class PieStatGetter < StatGetter
+    include AggregationHelper
     attr_accessor :record
 
     def perform
@@ -13,11 +14,16 @@ module ForestLiana
           resource = FiltersParser.new(filters, resource, @params[:timezone], @params).apply_filters
         end
 
-        result = resource
-          .group(groupByFieldName)
-          .order(order)
-          .send(@params[:aggregator].downcase, @params[:aggregateFieldName])
-          .map do |key, value|
+        aggregation_type = @params[:aggregator].downcase
+        aggregation_field = @params[:aggregateFieldName]
+        alias_name = aggregation_alias(aggregation_type, aggregation_field)
+
+        resource = resource
+                     .group(groupByFieldName)
+                     .order(Arel.sql("#{alias_name} DESC"))
+                     .pluck(groupByFieldName, Arel.sql("#{aggregation_sql(aggregation_type, aggregation_field)} AS #{alias_name}"))
+
+        result = resource.map do |key, value|
             # NOTICE: Display the enum name instead of an integer if it is an
             #         "Enum" field type on old Rails version (before Rails
             #         5.1.3).
@@ -38,28 +44,7 @@ module ForestLiana
     end
 
     def groupByFieldName
-      if @params[:groupByFieldName].include? ':'
-        association, field = @params[:groupByFieldName].split ':'
-        resource = @resource.reflect_on_association(association.to_sym)
-        "#{resource.table_name}.#{field}"
-      else
-        "#{@resource.table_name}.#{@params[:groupByFieldName]}"
-      end
+      resolve_field_path(@params[:groupByFieldName])
     end
-
-    def order
-      order = 'DESC'
-
-      # NOTICE: The generated alias for a count is "count_all", for a sum the
-      #         alias looks like "sum_#{aggregateFieldName}"
-      if @params[:aggregator].downcase == 'sum'
-        field = @params[:aggregateFieldName].downcase
-      else
-        # `count_id` is required only for rails v5
-        field = Rails::VERSION::MAJOR == 5 || @includes.size > 0 ? 'id' : 'all'
-      end
-      "#{@params[:aggregator].downcase}_#{field} #{order}"
-    end
-
   end
 end
