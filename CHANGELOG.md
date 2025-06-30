@@ -1,3 +1,10 @@
+## [9.14.5](https://github.com/ForestAdmin/forest-rails/compare/v9.14.4...v9.14.5) (2025-06-30)
+
+
+### Bug Fixes
+
+* rails 8 compatibility for stat aggregators ([#741](https://github.com/ForestAdmin/forest-rails/issues/741)) ([370c852](https://github.com/ForestAdmin/forest-rails/commit/370c852bdaf9eb53e3699f57ab6b3b6bf0446db8))
+
 ## [9.14.4](https://github.com/ForestAdmin/forest-rails/compare/v9.14.3...v9.14.4) (2025-06-20)
 
 
