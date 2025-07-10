@@ -347,7 +347,30 @@ module ForestLiana
         end
       end
 
+      associations_from_filters.each do |association|
+        select << "#{@resource.table_name}.#{association.foreign_key}"
+      end
+
       select.uniq
+    end
+
+    def associations_from_filters
+      return [] unless filters_fields
+
+      filters_fields
+        .select { |field| field.include?(':') }
+        .map { |field| field.split(':').first }
+        .map { |field| get_one_association(field) }
+        .compact
+    end
+
+    def filters_fields
+      return unless @params[:filters]
+
+      parsed_filters = JSON.parse(@params[:filters])
+      # Different structure when multiple filters are applied
+      parsed_filters = parsed_filters['conditions'] if parsed_filters['conditions']
+      Array.wrap(parsed_filters).map { |filter| filter['field'] }.compact.uniq
     end
 
     def get_one_association(name)
