@@ -1,3 +1,10 @@
+# [9.15.0](https://github.com/ForestAdmin/forest-rails/compare/v9.14.7...v9.15.0) (2025-07-17)
+
+
+### Features
+
+* **router:** make controller and action available to middleware ([#533](https://github.com/ForestAdmin/forest-rails/issues/533)) ([57804f6](https://github.com/ForestAdmin/forest-rails/commit/57804f6354e45341497589fdbee38b5f9788040a))
+
 ## [9.14.7](https://github.com/ForestAdmin/forest-rails/compare/v9.14.6...v9.14.7) (2025-07-17)
 
 
