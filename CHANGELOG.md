@@ -1,3 +1,10 @@
+## [9.14.7](https://github.com/ForestAdmin/forest-rails/compare/v9.14.6...v9.14.7) (2025-07-17)
+
+
+### Bug Fixes
+
+* skip where when computed search conditions are empty ([#544](https://github.com/ForestAdmin/forest-rails/issues/544)) ([5a9aa09](https://github.com/ForestAdmin/forest-rails/commit/5a9aa09f3cae48e38ec3907af721fc13c7eededd))
+
 ## [9.14.6](https://github.com/ForestAdmin/forest-rails/compare/v9.14.5...v9.14.6) (2025-07-17)
 
 
