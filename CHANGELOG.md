@@ -1,3 +1,10 @@
+## [9.14.6](https://github.com/ForestAdmin/forest-rails/compare/v9.14.5...v9.14.6) (2025-07-17)
+
+
+### Bug Fixes
+
+* **schema:** ensure fields are properly sorted in SchemaFileUpdater ([#541](https://github.com/ForestAdmin/forest-rails/issues/541)) ([711f1a2](https://github.com/ForestAdmin/forest-rails/commit/711f1a2c7b4ce9253c06261117ae0549645e1ad1))
+
 ## [9.14.5](https://github.com/ForestAdmin/forest-rails/compare/v9.14.4...v9.14.5) (2025-06-30)
 
 
