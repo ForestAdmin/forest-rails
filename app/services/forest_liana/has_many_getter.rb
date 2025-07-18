@@ -37,8 +37,6 @@ module ForestLiana
     private
 
     def compute_includes
-      @optional_includes = []
-
       @includes = @association.klass
         .reflect_on_all_associations
         .select do |association|

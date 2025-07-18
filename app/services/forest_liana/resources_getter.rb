@@ -31,7 +31,7 @@ module ForestLiana
 
     def perform
       polymorphic_association, preload_loads = analyze_associations(@resource)
-      includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
+      includes = @includes.uniq - polymorphic_association - preload_loads
       has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
         ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
       end
@@ -137,19 +137,22 @@ module ForestLiana
 
     def compute_includes
       associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
-
-      @optional_includes = []
+      includes = []
       if @field_names_requested && @params['searchExtended'].to_i != 1
-        includes = associations_has_one.map do |association|
+        associations_has_one.map do |association|
           association_name = association.name.to_s
 
           fields = @params[:fields]&.[](association_name)&.split(',')
-          if fields&.size == 1 && fields.include?(association.klass.primary_key)
-            @field_names_requested << association.foreign_key
-            @optional_includes << association.name
+
+          has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
+            ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
           end
 
-          association.name
+          if fields&.size == 1 && fields.include?(association.klass.primary_key) || has_smart_fields
+            @field_names_requested << association.foreign_key if association.foreign_key.present?
+            includes << association.options[:through] if association.options[:through].present?
+            includes << association.name
+          end
         end
 
         includes_for_smart_search = []
@@ -165,7 +168,7 @@ module ForestLiana
           includes_for_smart_search = includes_for_smart_search & includes_has_many
         end
 
-        @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
+        @includes = includes.concat(includes_for_smart_search).uniq
       else
         @includes = associations_has_one
                       # Avoid eager loading has_one associations pointing to a different database as ORM can't join cross databases
