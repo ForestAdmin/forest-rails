@@ -198,15 +198,29 @@ module ForestLiana
 
     def extract_associations_from_filter
       associations = []
-      @params[:filter]&.each do |field, _|
-        if field.include?(':')
+
+      filters = @params[:filters]
+      filters = JSON.parse(filters) if filters.is_a?(String)
+
+      conditions = []
+
+      if filters.is_a?(Hash) && filters.key?('conditions')
+        conditions = filters['conditions']
+      elsif filters.is_a?(Hash) && filters.key?('field')
+        conditions = [filters]
+      end
+
+      conditions.each do |condition|
+        field = condition['field']
+        if field&.include?(':')
           associations << field.split(':').first.to_sym
           @count_needs_includes = true
         end
       end
+
       @count_needs_includes = true if @params[:search]
 
-      associations
+      associations.uniq
     end
 
     def prepare_query
