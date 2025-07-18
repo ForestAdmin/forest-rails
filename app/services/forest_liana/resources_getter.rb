@@ -139,14 +139,13 @@ module ForestLiana
       associations_has_one = ForestLiana::QueryHelper.get_one_associations(@resource)
       includes = []
       if @field_names_requested && @params['searchExtended'].to_i != 1
+        has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
+          ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
+        end
+
         associations_has_one.map do |association|
           association_name = association.name.to_s
-
           fields = @params[:fields]&.[](association_name)&.split(',')
-
-          has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
-            ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
-          end
 
           if fields&.size == 1 && fields.include?(association.klass.primary_key) || has_smart_fields
             @field_names_requested << association.foreign_key if association.foreign_key.present?
