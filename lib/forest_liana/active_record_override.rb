@@ -33,7 +33,7 @@ module ForestLiana
               keys = [join_part.base_klass.primary_key] # Always include the primary key
 
               # # %%% Optional to include all foreign keys:
-              # keys.concat(join_part.base_klass.reflect_on_all_associations.select { |a| a.belongs_to? }.map(&:foreign_key))
+              keys.concat(join_part.base_klass.reflect_on_all_associations.select { |a| a.belongs_to? }.map(&:foreign_key))
               # Add foreign keys out to referenced tables that we belongs_to
               join_part.children.each { |child| keys << child.reflection.foreign_key if child.reflection.belongs_to? }
 
