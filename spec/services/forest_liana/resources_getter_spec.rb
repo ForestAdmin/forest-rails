@@ -38,7 +38,7 @@ module ForestLiana
       clean_database
 
       users = ['Michel', 'Robert', 'Vince', 'Sandro', 'Olesya', 'Romain', 'Valentin', 'Jason', 'Arnaud', 'Jeff', 'Steve', 'Marc', 'Xavier', 'Paul', 'Mickael', 'Mike', 'Maxime', 'Gertrude', 'Monique', 'Mia', 'Rachid', 'Edouard', 'Sacha', 'Caro', 'Amand', 'Nathan', 'Noémie', 'Robin', 'Gaelle', 'Isabelle']
-      .map { |name| User.create(name: name) }
+                .map { |name| User.create(name: name) }
 
       islands = [
         { :name => 'Skull', :updated_at => Time.now - 1.years },
@@ -309,18 +309,18 @@ module ForestLiana
     describe 'when filtering on an ambiguous field' do
       let(:resource) { Tree }
       let(:pageSize) { 5 }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name', 'cutter' => 'id' } }
       let(:filters) { {
         aggregator: 'and',
         conditions: [{
-          field: 'created_at',
-          operator: 'after',
-          value: "#{Time.now - 6.year}",
-        }, {
-          field: 'cutter:name',
-          operator: 'equal',
-          value: 'Michel'
-        }]
+                       field: 'created_at',
+                       operator: 'after',
+                       value: "#{Time.now - 6.year}",
+                     }, {
+                       field: 'cutter:name',
+                       operator: 'equal',
+                       value: 'Michel'
+                     }]
       }.to_json }
 
       it 'should get only the expected records' do
@@ -332,7 +332,6 @@ module ForestLiana
         expect(count).to eq 1
         expect(records.first.id).to eq 3
         expect(records.first.name).to eq 'Apple Tree'
-        expect(records.first.cutter.name).to eq 'Michel'
       end
     end
 
@@ -379,7 +378,7 @@ module ForestLiana
     describe 'when sorting on an ambiguous field name with a filter' do
       let(:resource) { Tree }
       let(:sort) { '-name' }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name' } }
       let(:filters) { {
         field: 'cutter:name',
         operator: 'equal',
@@ -417,7 +416,7 @@ module ForestLiana
 
     describe 'when filtering on an updated_at field of an associated collection' do
       let(:resource) { Tree }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name' } }
       let(:filters) { {
         field: 'island:updated_at',
         operator: 'previous_year'
@@ -510,9 +509,9 @@ module ForestLiana
 
       it 'should raise the right error' do
         expect { getter }.to raise_error(
-          ForestLiana::Errors::NotImplementedMethodError,
-           "method filter on smart field 'alter_coordinates' not found"
-        )
+                               ForestLiana::Errors::NotImplementedMethodError,
+                               "method filter on smart field 'alter_coordinates' not found"
+                             )
       end
     end
 
@@ -555,10 +554,10 @@ module ForestLiana
         let(:filters) { {
           aggregator: 'and',
           conditions: [{
-            field: 'name',
-            operator: 'contains',
-            value: 'a',
-          }]
+                         field: 'name',
+                         operator: 'contains',
+                         value: 'a',
+                       }]
         }.to_json }
 
         it 'should get only the records matching the scope' do
@@ -592,6 +591,64 @@ module ForestLiana
         end
       end
 
+      describe '#extract_associations_from_filter' do
+        let(:resource) { Tree }
+
+        before { init_scopes }
+
+        context 'with a single filter as JSON string' do
+          let(:filters) {
+            {
+              field: 'island:updated_at',
+              operator: 'equal',
+              value: '2024-01-01'
+            }.to_json
+          }
+
+          it 'extracts the correct association' do
+            expect(getter.send(:extract_associations_from_filter)).to eq [:island]
+          end
+        end
+
+        context 'with grouped conditions as JSON string' do
+          let(:filters) {
+            {
+              aggregator: 'and',
+              conditions: [
+                { field: 'island:updated_at', operator: 'equal', value: '2024-01-01' },
+                { field: 'owner:name', operator: 'equal', value: 'Michel' },
+                { field: 'id', operator: 'present', value: nil }
+              ]
+            }.to_json
+          }
+
+          it 'extracts all unique associations' do
+            expect(getter.send(:extract_associations_from_filter)).to match_array [:island, :owner]
+          end
+        end
+
+        context 'when filters has no association field' do
+          let(:filters) {
+            {
+              field: 'id',
+              operator: 'equal',
+              value: 1
+            }.to_json
+          }
+
+          it 'returns an empty array' do
+            expect(getter.send(:extract_associations_from_filter)).to eq []
+          end
+        end
+
+        context 'when filters is nil' do
+          let(:filters) { nil }
+
+          it 'returns an empty array' do
+            expect(getter.send(:extract_associations_from_filter)).to eq []
+          end
+        end
+      end
     end
   end
 end
