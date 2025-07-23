@@ -131,32 +131,62 @@ module ForestLiana
           ret
         end
 
-        def has_one_relationships
-          return {} if self.class.to_one_associations.nil?
-          data = {}
-          self.class.to_one_associations.each do |attribute_name, attr_data|
-            relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+        # def has_one_relationships
+        #   return {} if self.class.to_one_associations.nil?
+        #   data = {}
+        #   self.class.to_one_associations.each do |attribute_name, attr_data|
+        #     next if !should_include_attr?(attribute_name, attr_data)
+        #     relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+        #
+        #     unless relation.nil? || (relation.respond_to?(:polymorphic?) && relation.polymorphic?)
+        #       #if relation && relation.polymorphic? != nil && relation.association_class != ActiveRecord::Associations::BelongsToPolymorphicAssociation
+        #       puts self.class.inspect
+        #       puts relation.name.inspect
+        #       relation_class_name = ForestLiana.name_for(relation.klass).demodulize
+        #
+        #       if object.respond_to?(relation.foreign_key.to_sym) &&
+        #         @options[:fields][relation_class_name]&.size == 1 &&
+        #         @options[:fields][relation_class_name]&.include?(relation.klass.primary_key.to_sym)
+        #         debugger
+        #         attr_data[:attr_or_block] = proc {
+        #           foreign_key_value = object.send(relation.foreign_key.to_sym)
+        #           foreign_key_value.nil? ? nil : relation.klass.new(relation.klass.primary_key => foreign_key_value)
+        #         }
+        #       end
+        #     end
+        #
+        #     data[attribute_name] = attr_data
+        #   end
+        #   data
+        # end
 
-            next if !should_include_attr?(attribute_name, attr_data)
 
-            unless relation.nil? || (relation.respond_to?(:polymorphic?) && relation.polymorphic?)
-              relation_class_name = ForestLiana.name_for(relation.klass).demodulize
-
-              if object.respond_to?(relation.foreign_key.to_sym) &&
-                @options[:fields][relation_class_name]&.size == 1 &&
-                @options[:fields][relation_class_name]&.include?(relation.klass.primary_key.to_sym)
-
-                attr_data[:attr_or_block] = proc {
-                  foreign_key_value = object.send(relation.foreign_key.to_sym)
-                  foreign_key_value.nil? ? nil : relation.klass.new(relation.klass.primary_key => foreign_key_value)
-                }
-              end
-            end
-
-            data[attribute_name] = attr_data
-          end
-          data
-        end
+        # def has_one_relationships
+        #   return {} if self.class.to_one_associations.nil?
+        #   data = {}
+        #   self.class.to_one_associations.each do |attribute_name, attr_data|
+        #     relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+        #
+        #     next if !should_include_attr?(attribute_name, attr_data)
+        #
+        #     unless relation.nil? || (relation.respond_to?(:polymorphic?) && relation.polymorphic?)
+        #       relation_class_name = ForestLiana.name_for(relation.klass).demodulize
+        #
+        #       if object.respond_to?(relation.foreign_key.to_sym) &&
+        #         @options[:fields][relation_class_name]&.size == 1 &&
+        #         @options[:fields][relation_class_name]&.include?(relation.klass.primary_key.to_sym)
+        #
+        #         attr_data[:attr_or_block] = proc {
+        #           foreign_key_value = object.send(relation.foreign_key.to_sym)
+        #           foreign_key_value.nil? ? nil : relation.klass.new(relation.klass.primary_key => foreign_key_value)
+        #         }
+        #       end
+        #     end
+        #
+        #     data[attribute_name] = attr_data
+        #   end
+        #   data
+        # end
 
         private
 
