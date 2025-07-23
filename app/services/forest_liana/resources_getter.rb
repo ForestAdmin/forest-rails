@@ -168,7 +168,7 @@ module ForestLiana
         @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
       else
         @includes = associations_has_one
-                      # Avoid eager loading has_one associations pointing to a different database as ORM can't join cross databases
+        # Avoid eager loading has_one associations pointing to a different database as ORM can't join cross databases
                       .reject { |association| separate_database?(@resource, association) }
                       .map(&:name)
       end
@@ -198,15 +198,29 @@ module ForestLiana
 
     def extract_associations_from_filter
       associations = []
-      @params[:filter]&.each do |field, _|
-        if field.include?(':')
+
+      filters = @params[:filters]
+      filters = JSON.parse(filters) if filters.is_a?(String)
+
+      conditions = []
+
+      if filters.is_a?(Hash) && filters.key?('conditions')
+        conditions = filters['conditions']
+      elsif filters.is_a?(Hash) && filters.key?('field')
+        conditions = [filters]
+      end
+
+      conditions.each do |condition|
+        field = condition['field']
+        if field&.include?(':')
           associations << field.split(':').first.to_sym
           @count_needs_includes = true
         end
       end
+
       @count_needs_includes = true if @params[:search]
 
-      associations
+      associations.uniq
     end
 
     def prepare_query
@@ -352,8 +366,8 @@ module ForestLiana
 
     def get_one_association(name)
       ForestLiana::QueryHelper.get_one_associations(@resource)
-        .select { |association| association.name == name.to_sym }
-        .first
+                              .select { |association| association.name == name.to_sym }
+                              .first
     end
   end
 end
