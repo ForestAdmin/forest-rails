@@ -1,3 +1,16 @@
+## [9.15.1](https://github.com/ForestAdmin/forest-rails/compare/v9.15.0...v9.15.1) (2025-07-23)
+
+
+### Bug Fixes
+
+* **filters:** properly parse filters from request params ([#743](https://github.com/ForestAdmin/forest-rails/issues/743)) ([801f5d1](https://github.com/ForestAdmin/forest-rails/commit/801f5d1e898f76cc5c0edea06b3cb24bb0e37d2b))
+* **filters:** properly parse filters from request params ([#747](https://github.com/ForestAdmin/forest-rails/issues/747)) ([a1d011e](https://github.com/ForestAdmin/forest-rails/commit/a1d011e5bb0cf1800e0af4c5a2e0aa2ee976a180))
+
+
+### Reverts
+
+* Revert "fix(filters): properly parse filters from request params" (#746) ([7f57f25](https://github.com/ForestAdmin/forest-rails/commit/7f57f25adddffc07ccb95d3d3d330358184f4a58)), closes [#746](https://github.com/ForestAdmin/forest-rails/issues/746) [#743](https://github.com/ForestAdmin/forest-rails/issues/743)
+
 # [9.15.0](https://github.com/ForestAdmin/forest-rails/compare/v9.14.7...v9.15.0) (2025-07-17)
 
 
