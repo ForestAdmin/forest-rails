@@ -65,10 +65,10 @@ jobs:
         run: |
           bundle exec rake test
           bundle exec rake db:migrate && bundle exec rspec --color --format doc
-      - name: Send coverage
-        uses: paambaati/codeclimate-action@v2.7.4
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+#      - name: Send coverage
+#        uses: paambaati/codeclimate-action@5.0.0
+#        env:
+#          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
   deploy:
     name: Release
