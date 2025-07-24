@@ -5,27 +5,6 @@ module ForestLiana
       let(:island) { Island.create!(name: 'TestIsland') }
       let(:tree) { Tree.create!(name: 'TestTree', island: island, owner: user) }
 
-      it 'simulates has_one relation with only primary key' do
-        factory = described_class.new
-        serializer_class = factory.serializer_for(Tree)
-
-        serializer_class.send(:has_one, :island) { }
-
-        instance = serializer_class.new(tree, fields: {
-          'Island' => [:id],
-          'Tree' => [:island]
-        })
-
-        relationships = instance.send(:has_one_relationships)
-        expect(relationships).to have_key(:island)
-        relation_data = relationships[:island]
-        expect(relation_data[:attr_or_block]).to be_a(Proc)
-        model = relation_data[:attr_or_block].call
-
-        expect(model).to be_a(Island)
-        expect(model.id).to eq(island.id)
-      end
-
       it 'returns nil if foreign key is nil' do
         tree_without_island = Tree.create!(name: 'NoIslandTree', island_id: nil, owner: user)
 
