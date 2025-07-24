@@ -1,3 +1,10 @@
+## [9.15.2](https://github.com/ForestAdmin/forest-rails/compare/v9.15.1...v9.15.2) (2025-07-24)
+
+
+### Bug Fixes
+
+* serializer on relationships ([#745](https://github.com/ForestAdmin/forest-rails/issues/745)) ([dc96641](https://github.com/ForestAdmin/forest-rails/commit/dc966414c645fe0f34764ad264e2fbe55226d4cc))
+
 ## [9.15.1](https://github.com/ForestAdmin/forest-rails/compare/v9.15.0...v9.15.1) (2025-07-23)
 
 
