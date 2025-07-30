@@ -131,6 +131,33 @@ module ForestLiana
           ret
         end
 
+        def has_one_relationships
+          return {} if self.class.to_one_associations.nil?
+          data = {}
+          self.class.to_one_associations.each do |attribute_name, attr_data|
+            relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+            next if !should_include_attr?(attribute_name, attr_data)
+
+            if relation && relation.belongs_to? && relation.polymorphic?.nil?
+              reflection_primary_key = relation.options[:primary_key]&.to_sym || :id
+              klass_primary_key = relation.klass.primary_key.to_sym
+
+              if reflection_primary_key != klass_primary_key
+                data[attribute_name] = attr_data.merge({
+                                                         attr_or_block: proc {
+                                                           relation.klass.find_by(reflection_primary_key => object.send(relation.foreign_key))
+                                                         }
+                                                       })
+                next
+              end
+            end
+
+            data[attribute_name] = attr_data
+          end
+
+          data
+        end
+
         private
 
         def intercom_integration?
