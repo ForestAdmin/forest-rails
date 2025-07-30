@@ -124,18 +124,7 @@ describe 'Requesting Tree resources', :type => :request  do
           "included" => [{
             "type" => "Location",
             "id" => "1",
-            "attributes" => include(
-              "id" => 1,
-              "created_at" => nil,
-              "updated_at" => nil,
-              "coordinates" => nil
-            ),
-            "links" => { "self" => "/forest/location/1" },
-            "relationships" => {
-              "island" => {
-                "links" => { "related" => {} }
-              }
-            }
+            "links" => { "self" => "/forest/location/1" }
           }]
         })
       end

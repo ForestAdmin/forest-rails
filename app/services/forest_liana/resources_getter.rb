@@ -74,53 +74,7 @@ module ForestLiana
         end
       end
 
-      preload_cross_database_associations(records, preload_loads)
-
       records
-    end
-
-    def preload_cross_database_associations(records, preload_loads)
-      preload_loads.each do |association_name|
-        association = @resource.reflect_on_association(association_name)
-        next unless separate_database?(@resource, association)
-
-        columns = columns_for_cross_database_association(association_name)
-        if association.macro == :belongs_to
-          foreign_key = association.foreign_key
-          primary_key = association.klass.primary_key
-
-          ids = records.map { |r| r.public_send(foreign_key) }.compact.uniq
-          next if ids.empty?
-
-          associated = association.klass.where(primary_key => ids)
-                                  .select(columns)
-                                  .index_by { |record| record.public_send(primary_key) }
-
-          records.each do |record|
-            record.define_singleton_method(association_name) do
-              associated[record.send(foreign_key.to_sym)] || nil
-            end
-          end
-        end
-
-        if association.macro == :has_one
-          foreign_key = association.foreign_key
-          primary_key = association.active_record_primary_key
-
-          ids = records.map { |r| r.public_send(primary_key) }.compact.uniq
-          next if ids.empty?
-
-          associated = association.klass.where(foreign_key => ids)
-                                  .select(columns)
-                                  .index_by { |record| record.public_send(foreign_key.to_sym) }
-
-          records.each do |record|
-            record.define_singleton_method(association_name) do
-              associated[record.send(primary_key.to_sym)] || nil
-            end
-          end
-        end
-      end
     end
 
     def columns_for_cross_database_association(association_name)
