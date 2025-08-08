@@ -1,3 +1,15 @@
+## [9.15.3](https://github.com/ForestAdmin/forest-rails/compare/v9.15.2...v9.15.3) (2025-08-08)
+
+
+### Bug Fixes
+
+* improve performance by only serializing requested fields ([89db677](https://github.com/ForestAdmin/forest-rails/commit/89db6774c453d655b8d209ac6a320ea2e508953f))
+* test ([8766f25](https://github.com/ForestAdmin/forest-rails/commit/8766f25cfd9a37f8303b6067777ac20b54db24c4))
+* **serializer:** load correctly cross db relationship ([afc2a65](https://github.com/ForestAdmin/forest-rails/commit/afc2a659c61e6e2a4cb898d381c91c69f0148f4e))
+* **serializer:** load smart field ([0d72103](https://github.com/ForestAdmin/forest-rails/commit/0d72103e0e36fb7464091f8c6e6635f048b6e5f8))
+* **serializer:** load smart field & improve queries ([672dbeb](https://github.com/ForestAdmin/forest-rails/commit/672dbebf21f14f51a605855445c84b63416314c8))
+* **serializer:** override find_recursive_relationships ([a173f43](https://github.com/ForestAdmin/forest-rails/commit/a173f437dc29a26f359d6b062346b4970541203a))
+
 ## [9.15.2](https://github.com/ForestAdmin/forest-rails/compare/v9.15.1...v9.15.2) (2025-07-24)
 
 
