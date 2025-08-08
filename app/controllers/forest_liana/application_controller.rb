@@ -156,10 +156,12 @@ module ForestLiana
         params_fields_hash.inject({}) do |fields, param_field|
           relation_name = param_field[0]
           relation_fields = param_field[1]
+          forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == model.to_s.gsub('::', '__') }
+          smart_relations = forest_collection.fields_smart_belongs_to
 
           if relation_name == ForestLiana.name_for(model)
             fields[relation_name] = relation_fields
-          else
+          elsif model.reflect_on_association(relation_name.to_sym)
             model_association = model.reflect_on_association(relation_name.to_sym)
             if model_association
               model_name = ForestLiana.name_for(model_association.klass)
@@ -173,7 +175,14 @@ module ForestLiana
                 fields[model_name] = relation_fields
               end
             end
+          else
+            smart_relations.each do |smart_relation|
+              if smart_relation[:field].to_s == relation_name
+                fields[smart_relation[:reference].split('.').first] = relation_fields
+              end
+            end
           end
+
           fields
         end
       else

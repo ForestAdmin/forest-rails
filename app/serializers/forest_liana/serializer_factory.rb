@@ -47,6 +47,81 @@ module ForestLiana
       end
     end
 
+    # duplicate method from Serializer
+    ForestAdmin::JSONAPI::Serializer.singleton_class.send(:define_method, :find_recursive_relationships) do |root_object, root_inclusion_tree, results, options|
+      ActiveSupport::Notifications.instrument(
+        'render.jsonapi_serializers.find_recursive_relationships',
+        {class_name: root_object.class.name},
+        ) do
+        root_inclusion_tree.each do |attribute_name, child_inclusion_tree|
+          next if attribute_name == :_include
+
+          serializer = ForestAdmin::JSONAPI::Serializer.find_serializer(root_object, options)
+          unformatted_attr_name = serializer.unformat_name(attribute_name).to_sym
+          object = nil
+          is_collection = false
+          is_valid_attr = false
+          if serializer.has_one_relationships.has_key?(unformatted_attr_name)
+            # only added this condition
+            if root_object.class.reflect_on_association(unformatted_attr_name)&.polymorphic?
+              options[:context][:unoptimized] = true
+            end
+
+            is_valid_attr = true
+            attr_data = serializer.has_one_relationships[unformatted_attr_name]
+            object = serializer.has_one_relationship(unformatted_attr_name, attr_data)
+          elsif serializer.has_many_relationships.has_key?(unformatted_attr_name)
+            is_valid_attr = true
+            is_collection = true
+            attr_data = serializer.has_many_relationships[unformatted_attr_name]
+            object = serializer.has_many_relationship(unformatted_attr_name, attr_data)
+          end
+
+          if !is_valid_attr
+            raise ForestAdmin::JSONAPI::Serializer::InvalidIncludeError.new(
+              "'#{attribute_name}' is not a valid include.")
+          end
+
+          if attribute_name != serializer.format_name(attribute_name)
+            expected_name = serializer.format_name(attribute_name)
+
+            raise ForestAdmin::JSONAPI::Serializer::InvalidIncludeError.new(
+              "'#{attribute_name}' is not a valid include.  Did you mean '#{expected_name}' ?"
+            )
+          end
+
+          next if object.nil?
+
+          objects = is_collection ? object : [object]
+          if child_inclusion_tree[:_include] == true
+            objects.each do |obj|
+              obj_serializer = ForestAdmin::JSONAPI::Serializer.find_serializer(obj, options)
+              key = [obj_serializer.type, obj_serializer.id]
+
+              current_child_includes = []
+              inclusion_names = child_inclusion_tree.keys.reject { |k| k == :_include }
+              inclusion_names.each do |inclusion_name|
+                if child_inclusion_tree[inclusion_name][:_include]
+                  current_child_includes << inclusion_name
+                end
+              end
+
+              current_child_includes += results[key] && results[key][:include_linkages] || []
+              current_child_includes.uniq!
+              results[key] = {object: obj, include_linkages: current_child_includes}
+            end
+          end
+
+          if !child_inclusion_tree.empty?
+            objects.each do |obj|
+              find_recursive_relationships(obj, child_inclusion_tree, results, options)
+            end
+          end
+        end
+      end
+      nil
+    end
+
     def initialize(is_smart_collection = false)
       @is_smart_collection = is_smart_collection
     end
@@ -129,6 +204,51 @@ module ForestLiana
           end
 
           ret
+        end
+
+        def has_one_relationships
+          return {} if self.class.to_one_associations.nil?
+          data = {}
+          self.class.to_one_associations.each do |attribute_name, attr_data|
+            relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+            next if !should_include_attr?(attribute_name, attr_data)
+
+            if relation && relation.belongs_to? && relation.polymorphic?.nil?
+              reflection_primary_key = relation.options[:primary_key]&.to_sym || :id
+              klass_primary_key = relation.klass.primary_key.to_sym
+
+              if reflection_primary_key != klass_primary_key
+                data[attribute_name] = attr_data.merge({
+                                                         attr_or_block: proc {
+                                                           relation.klass.find_by(reflection_primary_key => object.send(relation.foreign_key))
+                                                         }
+                                                       })
+                next
+              end
+            end
+
+            data[attribute_name] = attr_data
+          end
+
+          data
+        end
+
+        def should_include_attr?(attribute_name, attr_data)
+          collection = self.type
+
+          unless @options.dig(:context, :unoptimized)
+            return false unless @options[:fields][collection]&.include?(attribute_name.to_sym)
+          end
+
+          # Allow "if: :show_title?" and "unless: :hide_title?" attribute options.
+          if_method_name = attr_data[:options][:if]
+          unless_method_name = attr_data[:options][:unless]
+          formatted_attribute_name = format_name(attribute_name).to_sym
+          show_attr = true
+          show_attr &&= send(if_method_name) if if_method_name
+          show_attr &&= !send(unless_method_name) if unless_method_name
+          show_attr &&= @_fields[type.to_s].include?(formatted_attribute_name) if @_fields[type.to_s]
+          show_attr
         end
 
         private
