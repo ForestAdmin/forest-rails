@@ -1,3 +1,11 @@
+## [9.15.4](https://github.com/ForestAdmin/forest-rails/compare/v9.15.3...v9.15.4) (2025-08-12)
+
+
+### Bug Fixes
+
+* **controller:** distinguish relation from self + unoptimized getOne ([8fbfdf2](https://github.com/ForestAdmin/forest-rails/commit/8fbfdf29f2009a8551fb96920ced1586a26b5966))
+* **controller:** distinguish relation from self + unoptimized getOne ([060c69b](https://github.com/ForestAdmin/forest-rails/commit/060c69b026a6ccd0273a92656d6e358691d0e603))
+
 ## [9.15.3](https://github.com/ForestAdmin/forest-rails/compare/v9.15.2...v9.15.3) (2025-08-08)
 
 
