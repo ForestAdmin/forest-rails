@@ -40,6 +40,8 @@ module ForestLiana
 
     def serialize_model(record, options = {})
       options[:is_collection] = false
+      options[:context] = { unoptimized: true }.merge(options[:context] || {})
+
       json = ForestAdmin::JSONAPI::Serializer.serialize(record, options)
 
       force_utf8_encoding(json)
@@ -178,7 +180,7 @@ module ForestLiana
           else
             smart_relations.each do |smart_relation|
               if smart_relation[:field].to_s == relation_name
-                fields[smart_relation[:reference].split('.').first] = relation_fields
+                fields[relation_name] = relation_fields
               end
             end
           end
