@@ -49,6 +49,7 @@ module ForestLiana
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
+      options[:context] = { unoptimized: true }.merge(options[:context] || {})
       json = ForestAdmin::JSONAPI::Serializer.serialize(records, options)
 
       if options[:params] && options[:params][:search]
