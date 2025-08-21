@@ -4,6 +4,8 @@ module ForestLiana
     attr_reader :includes
     attr_reader :records_count
 
+    SUPPORTED_ASSOCIATION_MACROS = [:belongs_to, :has_one, :has_and_belongs_to_many].freeze
+
     def initialize(resource, association, params, forest_user)
       @resource = resource
       @association = association
@@ -43,13 +45,13 @@ module ForestLiana
         .reflect_on_all_associations
         .select do |association|
 
+          next false unless SUPPORTED_ASSOCIATION_MACROS.include?(association.macro)
+
           if SchemaUtils.polymorphic?(association)
             inclusion = SchemaUtils.polymorphic_models(association)
-                                   .all? { |model| SchemaUtils.model_included?(model) } &&
-              [:belongs_to, :has_and_belongs_to_many].include?(association.macro)
+                                   .all? { |model| SchemaUtils.model_included?(model) }
           else
-            inclusion = SchemaUtils.model_included?(association.klass) &&
-              [:belongs_to, :has_and_belongs_to_many].include?(association.macro)
+            inclusion = SchemaUtils.model_included?(association.klass)
           end
 
             if @field_names_requested
@@ -58,7 +60,7 @@ module ForestLiana
               inclusion
             end
           end
-        .map { |association| association.name }
+        .map(&:name)
     end
 
     def field_names_requested
