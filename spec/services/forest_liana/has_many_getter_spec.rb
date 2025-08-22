@@ -113,6 +113,95 @@ module ForestLiana
           end
         end
       end
+
+      describe 'compute_includes' do
+        it 'should include has_one relation from association' do
+          expect(subject.includes).to include(:location)
+        end
+
+        it 'should include belongs_to relations from association' do
+          expect(subject.includes).to include(:owner, :cutter, :island, :eponymous_island)
+        end
+
+        it 'should exclude has_many relations' do
+          has_many_associations = Tree.reflect_on_all_associations
+                                      .select { |a| a.macro == :has_many }
+                                      .map(&:name)
+
+          has_many_associations.each do |assoc|
+            expect(subject.includes).not_to include(assoc)
+          end
+        end
+
+        it 'should include all supported associations from association by default' do
+          expected_associations = Tree.reflect_on_all_associations
+                                      .select { |a| [:belongs_to, :has_one, :has_and_belongs_to_many].include?(a.macro) }
+                                      .map(&:name)
+
+          expect(subject.includes).to match_array(expected_associations)
+        end
+
+        it 'should respect fields filter for associations' do
+          params[:fields] = { 'Tree' => 'owner,island' }
+          getter = described_class.new(Island, association, params, user)
+
+          expect(getter.includes).to include(:owner, :island)
+          expect(getter.includes).not_to include(:cutter, :eponymous_island, :location)
+        end
+
+        it 'should exclude Tree associations when models not included' do
+          allow(SchemaUtils).to receive(:model_included?).and_return(false)
+          expect(subject.includes).to be_empty
+        end
+
+        context 'on polymorphic associations' do
+          let(:base_params) do
+            {
+              id: Island.first&.id || 1,
+              association_name: 'trees',
+              page: { size: 15, number: 1 },
+              timezone: 'UTC'
+            }
+          end
+
+          before do
+            # temporarily add a polymorphic association on Tree
+            Tree.class_eval { belongs_to :addressable, polymorphic: true, optional: true }
+
+            allow_any_instance_of(described_class).to receive(:prepare_query).and_return(nil)
+            allow(ForestLiana).to receive(:name_for).and_return('trees')
+          end
+
+          after do
+            %w[addressable].each do |name|
+              Tree._reflections.delete(name)
+              Tree.reflections.delete(name)
+            end
+            %w[addressable addressable= addressable_id addressable_type].each do |m|
+              Tree.undef_method(m) rescue nil
+            end
+          end
+
+          it 'should exclude the polymorphic association when not all target models are includable' do
+            params = base_params.merge(fields: { 'trees' => 'addressable' })
+
+            allow(SchemaUtils).to receive(:model_included?).and_return(true, false)
+
+            getter = described_class.new(Island, association, params, user)
+            expect(getter.includes).to eq([])
+          end
+
+          it 'should include the polymorphic association only when all target models are includable' do
+            params = base_params.merge(fields: { 'trees' => 'addressable' })
+
+            allow(SchemaUtils).to receive(:model_included?).and_return(true, true)
+
+            getter = described_class.new(Island, association, params, user)
+            expect(getter.includes).to contain_exactly(:addressable)
+          end
+
+        end
+      end
     end
   end
 end
