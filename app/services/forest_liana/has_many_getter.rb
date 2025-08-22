@@ -54,13 +54,12 @@ module ForestLiana
             inclusion = SchemaUtils.model_included?(association.klass)
           end
 
-            if @field_names_requested
-              inclusion && @field_names_requested.include?(association.name)
-            else
-              inclusion
-            end
+          if @field_names_requested.any?
+            inclusion && @field_names_requested.include?(association.name)
+          else
+            inclusion
           end
-        .map(&:name)
+        end.map(&:name)
     end
 
     def field_names_requested
