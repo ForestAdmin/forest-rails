@@ -14,6 +14,10 @@ module ForestLiana
     def self.decorate_for_search(records_serialized, field_names, search_value)
       match_fields = {}
       records_serialized['data'].each_with_index do |record, index|
+        unless record['attributes']
+          raise ArgumentError, "Missing 'attributes' key in record #{record}"
+        end
+
         field_names.each do |field_name|
           value = record['attributes'][field_name]
           if value
