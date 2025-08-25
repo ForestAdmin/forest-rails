@@ -1,3 +1,10 @@
+## [9.15.5](https://github.com/ForestAdmin/forest-rails/compare/v9.15.4...v9.15.5) (2025-08-25)
+
+
+### Bug Fixes
+
+* **has_many_getter:** add has_one support ([#752](https://github.com/ForestAdmin/forest-rails/issues/752)) ([da14366](https://github.com/ForestAdmin/forest-rails/commit/da14366505c6e3dff947de10d8b4884b83769e3a))
+
 ## [9.15.4](https://github.com/ForestAdmin/forest-rails/compare/v9.15.3...v9.15.4) (2025-08-12)
 
 
