@@ -67,6 +67,10 @@ module ForestLiana
       force_utf8_encoding(json)
     end
 
+    def get_collection
+      raise NotImplementedError, "#{self.class} must implement #get_collection"
+    end
+
     def authenticate_user_from_jwt
       begin
         if request.headers
