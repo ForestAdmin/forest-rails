@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 describe 'Requesting Actions routes', :type => :request  do
+  subject(:controller) { ForestLiana::ApplicationController.new }
+
   let(:rendering_id) { 13 }
   let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
 
@@ -11,6 +13,16 @@ describe 'Requesting Actions routes', :type => :request  do
 
     ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
     allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
+
+
+    allow(ForestAdmin::JSONAPI::Serializer)
+      .to receive(:serialize)
+            .and_return(json_out)
+
+    allow(controller)
+      .to receive(:force_utf8_encoding) do |arg|
+      arg
+    end
   end
 
   after(:each) do
@@ -37,6 +49,10 @@ describe 'Requesting Actions routes', :type => :request  do
       'Authorization' => "Bearer #{token}"
     }
   }
+
+  let(:record) { Island.first }
+
+  let(:json_out){ { 'data' => [] } }
 
   describe 'hooks' do
     island = ForestLiana.apimap.find {|collection| collection.name.to_s == ForestLiana.name_for(Island)}
@@ -502,6 +518,92 @@ describe 'Requesting Actions routes', :type => :request  do
           end
         end
       end
+    end
+  end
+
+  describe 'serialize model' do
+    it 'should set is_collection and context option correctly' do
+      options = { field: {"Island" => "id,name"} }
+
+      expect(ForestAdmin::JSONAPI::Serializer)
+        .to receive(:serialize) do |obj, opts|
+        expect(obj).to eq(record)
+        expect(opts[:is_collection]).to be(false)
+        expect(opts[:context]).to include(unoptimized: true)
+        json_out
+      end
+
+      expect(controller).to receive(:force_utf8_encoding).with(json_out)
+
+      res = controller.send(:serialize_model, record, options)
+      expect(res).to eq(json_out)
+    end
+  end
+
+  describe 'serialize models' do
+    let(:records) { Island.all }
+
+    context 'when searchToEdit equal "true"' do
+      it 'merges unoptimized into context' do
+        options = { field: {"Island" => "id,name"}, params: { searchToEdit: 'true' }, context: { foo: 42 } }
+
+        expect(ForestAdmin::JSONAPI::Serializer)
+          .to receive(:serialize) do |objs, opts|
+          expect(objs).to eq(records)
+          expect(opts[:is_collection]).to be(true)
+          expect(opts[:context]).to include(unoptimized: true, foo: 42)
+          json_out
+        end
+
+        res = controller.send(:serialize_models, records, options)
+        expect(res).to eq(json_out)
+      end
+    end
+
+    context 'when searchToEdit is not present or false' do
+      it 'leaves context unchanged' do
+        options = { params: { }, context: { foo: 1 } }
+
+        expect(ForestAdmin::JSONAPI::Serializer)
+          .to receive(:serialize) do |_, opts|
+          expect(opts[:context]).to eq(foo: 1)
+          json_out
+        end
+
+        controller.send(:serialize_models, records, options)
+      end
+    end
+
+    context 'when params[:search] is present' do
+      it 'adds meta.decorators via DecorationHelper and concatenates smart fields' do
+        options = { params: { search: 'hello' } }
+        fields_searched = ['existing']
+        collection_double = double('collection', string_smart_fields_names: %w[foo bar])
+
+        allow_any_instance_of(ForestLiana::ApplicationController)
+          .to receive(:get_collection)
+                .and_return(collection_double)
+
+        expect(ForestLiana::DecorationHelper)
+          .to receive(:decorate_for_search) do |json, fields, term|
+          expect(json).to eq(json_out)
+          expect(fields).to match_array(%w[existing foo bar])
+          expect(term).to eq('hello')
+          { foo: 'bar' }
+        end
+          .and_return({ foo: 'bar' })
+
+        res = controller.send(:serialize_models, records, options, fields_searched)
+
+        expect(res['meta']).to eq(decorators: { foo: 'bar' })
+        expect(fields_searched).to match_array(%w[existing foo bar])
+      end
+    end
+
+    it 'calls force_utf8_encoding with the final JSON' do
+      options = {}
+      expect(controller).to receive(:force_utf8_encoding).with(json_out)
+      controller.send(:serialize_models, records, options)
     end
   end
 end
