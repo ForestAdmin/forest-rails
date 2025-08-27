@@ -49,6 +49,10 @@ module ForestLiana
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
+      if options[:params] && options[:params][:fields].nil?
+        options[:context] = { unoptimized: true }.merge(options[:context] || {})
+      end
+
       json = ForestAdmin::JSONAPI::Serializer.serialize(records, options)
 
       if options[:params] && options[:params][:search]
@@ -61,6 +65,10 @@ module ForestLiana
       end
 
       force_utf8_encoding(json)
+    end
+
+    def get_collection
+      raise NotImplementedError, "#{self.class} must implement #get_collection"
     end
 
     def authenticate_user_from_jwt
