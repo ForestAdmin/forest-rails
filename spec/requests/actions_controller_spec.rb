@@ -543,7 +543,7 @@ describe 'Requesting Actions routes', :type => :request  do
   describe 'serialize models' do
     let(:records) { Island.all }
 
-    context 'when searchToEdit equal "true"' do
+    context 'when params fields is not present' do
       it 'merges unoptimized into context' do
         options = { field: {"Island" => "id,name"}, params: { searchToEdit: 'true' }, context: { foo: 42 } }
 
