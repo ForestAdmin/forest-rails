@@ -1,3 +1,10 @@
+## [9.15.6](https://github.com/ForestAdmin/forest-rails/compare/v9.15.5...v9.15.6) (2025-08-27)
+
+
+### Bug Fixes
+
+* enable unoptimized mode in serializer when searchToEdit flag is set ([#753](https://github.com/ForestAdmin/forest-rails/issues/753)) ([7c1f7d4](https://github.com/ForestAdmin/forest-rails/commit/7c1f7d4fb047519bbb763fa3d3ebd902ad9f8d19)), closes [#751](https://github.com/ForestAdmin/forest-rails/issues/751)
+
 ## [9.15.5](https://github.com/ForestAdmin/forest-rails/compare/v9.15.4...v9.15.5) (2025-08-25)
 
 
