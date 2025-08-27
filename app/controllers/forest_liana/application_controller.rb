@@ -49,7 +49,7 @@ module ForestLiana
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
-      if options[:params] && options[:params][:searchToEdit] == "true"
+      if options[:params] && options[:params][:fields].nil?
         options[:context] = { unoptimized: true }.merge(options[:context] || {})
       end
 
