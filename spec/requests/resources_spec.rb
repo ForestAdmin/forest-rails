@@ -167,6 +167,52 @@ describe 'Requesting Tree resources', :type => :request  do
       end
     end
   end
+
+  describe 'csv' do
+    it 'should return CSV with correct headers and data' do
+      params = {
+        fields: { 'Tree' => 'id,name,owner', 'owner' => 'name'},
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris',
+        header: 'id,name,owner',
+      }
+      get '/forest/Tree.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+
+      csv_content = response.body
+      csv_lines = csv_content.split("\n")
+
+      expect(csv_lines.first).to eq(params[:header])
+      expect(csv_lines[1]).to eq('1,Lemon Tree,Michel')
+    end
+
+    it 'returns CSV with only requested fields and ignores optional relation' do
+      params = {
+        fields: { 'Tree' => 'id,name', 'owner' => 'name'},
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris',
+        header: 'id,name',
+      }
+      get '/forest/Tree.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+
+      csv_content = response.body
+      csv_lines = csv_content.split("\n")
+
+      expect(csv_lines.first).to eq(params[:header])
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
+    end
+  end
 end
 
 describe 'Requesting User resources', :type => :request  do
