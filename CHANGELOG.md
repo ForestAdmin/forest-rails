@@ -1,3 +1,10 @@
+## [9.15.7](https://github.com/ForestAdmin/forest-rails/compare/v9.15.6...v9.15.7) (2025-08-29)
+
+
+### Bug Fixes
+
+* remove unnecessary validation logic in serializer relationships ([#754](https://github.com/ForestAdmin/forest-rails/issues/754)) ([5e3dd03](https://github.com/ForestAdmin/forest-rails/commit/5e3dd034d1b3bfc7d4667ae5284c66872e3eb5d8))
+
 ## [9.15.6](https://github.com/ForestAdmin/forest-rails/compare/v9.15.5...v9.15.6) (2025-08-27)
 
 
