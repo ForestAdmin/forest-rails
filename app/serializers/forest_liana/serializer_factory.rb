@@ -60,26 +60,18 @@ module ForestLiana
           unformatted_attr_name = serializer.unformat_name(attribute_name).to_sym
           object = nil
           is_collection = false
-          is_valid_attr = false
           if serializer.has_one_relationships.has_key?(unformatted_attr_name)
             # only added this condition
             if root_object.class.reflect_on_association(unformatted_attr_name)&.polymorphic?
               options[:context][:unoptimized] = true
             end
 
-            is_valid_attr = true
             attr_data = serializer.has_one_relationships[unformatted_attr_name]
             object = serializer.has_one_relationship(unformatted_attr_name, attr_data)
           elsif serializer.has_many_relationships.has_key?(unformatted_attr_name)
-            is_valid_attr = true
             is_collection = true
             attr_data = serializer.has_many_relationships[unformatted_attr_name]
             object = serializer.has_many_relationship(unformatted_attr_name, attr_data)
-          end
-
-          if !is_valid_attr
-            raise ForestAdmin::JSONAPI::Serializer::InvalidIncludeError.new(
-              "'#{attribute_name}' is not a valid include.")
           end
 
           if attribute_name != serializer.format_name(attribute_name)
