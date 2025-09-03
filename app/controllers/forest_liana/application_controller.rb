@@ -188,7 +188,11 @@ module ForestLiana
           else
             smart_relations.each do |smart_relation|
               if smart_relation[:field].to_s == relation_name
-                fields[relation_name] = relation_fields
+                if smart_relation[:reference].split('.').first == params[:collection]
+                  fields[relation_name] = relation_fields
+                else
+                  fields[smart_relation[:reference].split('.').first] = relation_fields
+                end
               end
             end
           end
