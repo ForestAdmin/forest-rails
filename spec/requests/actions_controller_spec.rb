@@ -606,4 +606,93 @@ describe 'Requesting Actions routes', :type => :request  do
       controller.send(:serialize_models, records, options)
     end
   end
+
+  describe 'fields_per_model method' do
+    let(:model) { Island }
+    let(:collection_name) { 'Island' }
+
+    before do
+      forest_collection = double('forest_collection')
+      allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+      allow(forest_collection).to receive(:name).and_return(collection_name)
+    end
+
+    context 'with smart relations pointing to external models' do
+      it 'should use reference model name as key for external smart relations' do
+        smart_relations = [
+          {
+            field: :organization,
+            reference: 'Api__OrganizationsView.id',
+            is_virtual: true,
+            is_searchable: false,
+            type: 'String'
+          }
+        ]
+
+        forest_collection = double('forest_collection')
+        allow(forest_collection).to receive(:name).and_return(collection_name)
+        allow(forest_collection).to receive(:fields_smart_belongs_to).and_return(smart_relations)
+        allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+
+        params_fields = ActionController::Parameters.new({
+                                                           'organization' => 'name'
+                                                         })
+
+        mock_params = ActionController::Parameters.new({
+                                                         collection: 'Island',
+                                                         fields: { 'Island' => 'id,name', 'organization' => 'name'},
+                                                         page: { 'number' => '1', 'size' => '10' },
+                                                         searchExtended: '0',
+                                                         sort: '-id',
+                                                         timezone: 'Europe/Paris'
+                                                       })
+        allow(controller).to receive(:params).and_return(mock_params)
+
+        result = controller.send(:fields_per_model, params_fields, model)
+
+        expect(result).to have_key('Api__OrganizationsView')
+        expect(result['Api__OrganizationsView']).to eq('name')
+        expect(result).not_to have_key('organization')
+      end
+    end
+
+    context 'with smart relations pointing to same collection (self-reference)' do
+      it 'should use relation name as key for self-referencing smart relations' do
+        smart_relations = [
+          {
+            field: :parent_island,
+            reference: 'Island.id',
+            is_virtual: true,
+            is_searchable: false,
+            type: 'String'
+          }
+        ]
+
+        forest_collection = double('forest_collection')
+        allow(forest_collection).to receive(:name).and_return(collection_name)
+        allow(forest_collection).to receive(:fields_smart_belongs_to).and_return(smart_relations)
+        allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+
+        params_fields = ActionController::Parameters.new({
+                                                           'parent_island' => 'name'
+                                                         })
+
+        mock_params = ActionController::Parameters.new({
+                                                         collection: 'Island',
+                                                         fields: { 'Island' => 'id,name', 'parent_island' => 'name'},
+                                                         page: { 'number' => '1', 'size' => '10' },
+                                                         searchExtended: '0',
+                                                         sort: '-id',
+                                                         timezone: 'Europe/Paris'
+                                                       })
+        allow(controller).to receive(:params).and_return(mock_params)
+
+        result = controller.send(:fields_per_model, params_fields, model)
+
+        expect(result).to have_key('parent_island')
+        expect(result['parent_island']).to eq('name')
+        expect(result).not_to have_key('Island')
+      end
+    end
+  end
 end
