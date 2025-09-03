@@ -1,3 +1,10 @@
+## [9.15.8](https://github.com/ForestAdmin/forest-rails/compare/v9.15.7...v9.15.8) (2025-09-03)
+
+
+### Bug Fixes
+
+* key conflicts in fields for same-collection smart relations ([#755](https://github.com/ForestAdmin/forest-rails/issues/755)) ([c38e224](https://github.com/ForestAdmin/forest-rails/commit/c38e2246fa2541cdca07dffb15471b785a50b917))
+
 ## [9.15.7](https://github.com/ForestAdmin/forest-rails/compare/v9.15.6...v9.15.7) (2025-08-29)
 
 
