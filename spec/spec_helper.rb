@@ -2,8 +2,6 @@ require 'simplecov'
 require 'simplecov_json_formatter'
 require 'simplecov-html'
 
-ENV['MT_NO_PLUGINS'] ||= '1'
-
 SimpleCov.formatters = [SimpleCov::Formatter::JSONFormatter, SimpleCov::Formatter::HTMLFormatter]
 SimpleCov.start 'rails'
 SimpleCov.add_filter ['app/services/forest_liana/ability/fetch.rb', 'lib/forest_liana/version.rb']

@@ -62,6 +62,7 @@ jobs:
       - name: Test
         env:
           RAILS_ENV: test
+          MT_NO_PLUGINS: 1
         run: |
           bundle exec rake test
           bundle exec rake db:migrate && bundle exec rspec --color --format doc
