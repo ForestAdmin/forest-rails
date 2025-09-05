@@ -20,7 +20,8 @@ end
 group :test do
   gem 'rake'
   gem 'sqlite3', '~> 1.4'
-  gem 'simplecov', '~> 0.17.0', require: false
+  gem 'simplecov', "~> 0.22", require: false
+  gem 'simplecov_json_formatter', "~> 0.1.4"
 end
 
 gem 'rails', '6.1.7.9'

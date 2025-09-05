@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7
+          ruby-version: 3.3
       - name: Cache gem
         uses: actions/cache@v4
         with:
@@ -57,18 +57,20 @@ jobs:
       - name: Bundle install
         run: |
           bundle config path vendor/bundle
-          gem install bundler -v '2.1.4'
+          gem install bundler
           bundle install
       - name: Test
         env:
           RAILS_ENV: test
+          MT_NO_PLUGINS: 1
         run: |
           bundle exec rake test
           bundle exec rake db:migrate && bundle exec rspec --color --format doc
-#      - name: Send coverage
-#        uses: paambaati/codeclimate-action@v2.7.4
-#        env:
-#          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: Send coverage
+        uses: qltysh/qlty-action/coverage@8d5c844f32f80364ccc135534671640466e7f610
+        with:
+          oidc: true
+          files: ${{github.workspace}}/coverage/coverage.json:simplecov
 
   deploy:
     name: Release
