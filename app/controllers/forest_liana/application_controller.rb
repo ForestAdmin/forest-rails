@@ -35,7 +35,23 @@ module ForestLiana
 
     # NOTICE: Helper method for Smart Routes logic based on current user info.
     def forest_user
-      @jwt_decoded_token
+      normalize_keys(@jwt_decoded_token)
+    end
+
+    def normalize_keys(hash)
+      hash.each_with_object({}) do |(key, value), result|
+        normalize_key = key.to_s.underscore
+        normalize_value = case value
+                          when Hash
+                            normalize_keys(value)
+                          when Array
+                            value.map { |v| v.is_a?(Hash) ? normalize_keys(v) : v }
+                          else
+                            value
+                          end
+
+        result[normalize_key] = normalize_value
+      end
     end
 
     def serialize_model(record, options = {})
