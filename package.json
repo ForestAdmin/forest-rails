@@ -31,6 +31,7 @@
     "semantic-release-slack-bot": "3.5.2"
   },
   "resolutions": {
-    "semantic-release-slack-bot/**/micromatch": "^4.0.8"
+    "semantic-release-slack-bot/**/micromatch": "^4.0.8",
+    "socks": "^2.8.7"
   }
 }
