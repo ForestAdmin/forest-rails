@@ -6,13 +6,13 @@ module ForestLiana
       let(:user) do
         {
           'id' => 1,
-          'firstName' => 'John',
-          'lastName' => 'Doe',
-          'fullName' => 'John Doe',
+          'first_name' => 'John',
+          'last_name' => 'Doe',
+          # 'fullName' => 'John Doe',
           'email' => 'john.doe@domain.com',
           'tags' => [{'key' => 'planet', 'value' => 'Death Star' }],
-          'roleId' => 1,
-          'permissionLevel' => 'admin'
+          'role_id' => 1,
+          'permission_level' => 'admin'
         }
       end
 
@@ -81,12 +81,11 @@ module ForestLiana
         it 'replaces all currentUser variables' do
           [
             { key: 'email', expected_value: user['email'] },
-            { key: 'firstName', expected_value: user['firstName'] },
-            { key: 'lastName', expected_value: user['lastName'] },
-            { key: 'fullName', expected_value: user['fullName'] },
+            { key: 'firstName', expected_value: user['first_name'] },
+            { key: 'lastName', expected_value: user['last_name'] },
             { key: 'id', expected_value: user['id'] },
-            { key: 'permissionLevel', expected_value: user['permissionLevel'] },
-            { key: 'roleId', expected_value: user['roleId'] },
+            { key: 'permissionLevel', expected_value: user['permission_level'] },
+            { key: 'roleId', expected_value: user['role_id'] },
             { key: 'tags.planet', expected_value: user['tags'][0]['value'] },
             { key: 'team.id', expected_value: team['id'] },
             { key: 'team.name', expected_value: team['name'] }
