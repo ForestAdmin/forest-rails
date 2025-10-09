@@ -82,6 +82,7 @@ module ForestLiana
     describe 'records eager loading' do
       let(:resource) { Product }
       let(:fields) { { resource.name => 'id,name,manufacturer', 'manufacturer' => 'name' } }
+      let(:expected_selected_resource_attributes) { %w[id name manufacturer_id] }
 
       shared_context 'resource current_database' do
         before do
@@ -117,9 +118,31 @@ module ForestLiana
         end
       end
 
+      shared_examples 'filtered resource fields selection' do
+        it 'selects only the fields requested from the main resource' do
+          expected_non_selected_attributes = Product.attribute_names - expected_selected_resource_attributes
+
+          full_sql = getter.perform.to_sql
+
+          # Extract only the SELECT column list (between SELECT and the first FROM)
+          select_match = full_sql.match(/SELECT\s+(.*?)\s+FROM/i)
+          expect(select_match).not_to be_nil
+          select_columns_sql = select_match[1]
+
+          expected_selected_resource_attributes.each do |attribute|
+            expect(select_columns_sql).to include(%Q{"products"."#{attribute}"})
+          end
+
+          expected_non_selected_attributes.each do |attribute|
+            expect(select_columns_sql).not_to include(%Q{"products"."#{attribute}"})
+          end
+        end
+      end
+
       context 'when the connections do not support current_database' do
         include_examples 'left outer join'
         include_examples 'records'
+        include_examples 'filtered resource fields selection'
       end
 
       context 'when the included association uses a different database connection' do
@@ -151,6 +174,30 @@ module ForestLiana
 
         include_examples 'left outer join'
         include_examples 'records'
+        include_examples 'filtered resource fields selection'
+      end
+
+      context 'when the configuration to optimize query select fields is disabled' do
+        let(:expected_selected_resource_attributes) { Product.attribute_names }
+
+        before do
+          allow(ForestLiana).to receive(:optimize_query_select_fields).and_return(false)
+        end
+
+        include_examples 'records'
+
+        it 'selects all fields from the main resource' do
+          full_sql = getter.perform.to_sql
+
+           # Extract only the SELECT column list (between SELECT and the first FROM)
+          select_match = full_sql.match(/SELECT\s+(.*?)\s+FROM/i)
+          expect(select_match).not_to be_nil
+          select_columns_sql = select_match[1]
+
+          expected_selected_resource_attributes.each do |attribute|
+            expect(select_columns_sql).to include(%Q{"products"."#{attribute}"})
+          end
+        end
       end
     end
 
