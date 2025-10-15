@@ -14,7 +14,7 @@ module ForestLiana
     def perform
       records = optimize_record_loading(@resource, get_resource())
       scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(records, @user, @collection_name, @params[:timezone])
-      @record = scoped_records.find(@params[:id])
+      @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(scoped_records, @resource, @params[:id])
     end
   end
 end
