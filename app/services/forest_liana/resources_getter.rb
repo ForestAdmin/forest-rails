@@ -84,7 +84,10 @@ module ForestLiana
       columns = association.klass.column_names.map(&:to_sym)
 
       # Ensure the foreign key is present for manual binding (especially for has_one)
-      columns << association.foreign_key.to_sym if association.macro == :has_one
+      if association.macro == :has_one
+        foreign_keys = Array(association.foreign_key).map(&:to_sym)
+        columns.concat(foreign_keys)
+      end
 
       columns.uniq
     end
@@ -99,7 +102,9 @@ module ForestLiana
 
           fields = @params[:fields]&.[](association_name)&.split(',')
           if fields&.size == 1 && fields.include?(association.klass.primary_key)
-            @field_names_requested << association.foreign_key
+            # Handle composite foreign keys
+            foreign_keys = Array(association.foreign_key)
+            foreign_keys.each { |fk| @field_names_requested << fk }
             @optional_includes << association.name
           end
 
@@ -295,7 +300,12 @@ module ForestLiana
           if SchemaUtils.polymorphic?(association)
             select << "#{@resource.table_name}.#{association.foreign_type}"
           end
-          select << "#{@resource.table_name}.#{association.foreign_key}"
+
+          # Handle composite foreign keys
+          foreign_keys = Array(association.foreign_key)
+          foreign_keys.each do |fk|
+            select << "#{@resource.table_name}.#{fk}"
+          end
         end
 
         fields = @params[:fields]&.[](path)&.split(',')
@@ -319,8 +329,10 @@ module ForestLiana
     end
 
     def get_one_association(name)
+      # Handle composite primary keys - name might be an Array
+      name_sym = name.is_a?(Array) ? name : name.to_sym
       ForestLiana::QueryHelper.get_one_associations(@resource)
-                              .select { |association| association.name == name.to_sym }
+                              .select { |association| association.name == name_sym }
                               .first
     end
   end
