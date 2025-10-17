@@ -97,19 +97,7 @@ module ForestLiana
 
       @optional_includes = []
       if @field_names_requested && @params['searchExtended'].to_i != 1
-        includes = associations_has_one.map do |association|
-          association_name = association.name.to_s
-
-          fields = @params[:fields]&.[](association_name)&.split(',')
-          if fields&.size == 1 && fields.include?(association.klass.primary_key)
-            # Handle composite foreign keys
-            foreign_keys = Array(association.foreign_key)
-            foreign_keys.each { |fk| @field_names_requested << fk }
-            @optional_includes << association.name
-          end
-
-          association.name
-        end
+        includes = associations_has_one.map(&:name)
 
         includes_for_smart_search = []
         if @collection && @collection.search_fields
@@ -302,9 +290,11 @@ module ForestLiana
           end
 
           # Handle composite foreign keys
-          foreign_keys = Array(association.foreign_key)
-          foreign_keys.each do |fk|
-            select << "#{@resource.table_name}.#{fk}"
+          if association.macro == :belongs_to
+            foreign_keys = Array(association.foreign_key)
+            foreign_keys.each do |fk|
+              select << "#{@resource.table_name}.#{fk}"
+            end
           end
         end
 
