@@ -173,7 +173,7 @@ module ForestLiana
             fields[relation_name] = relation_fields
           elsif model.reflect_on_association(relation_name.to_sym)
             model_association = model.reflect_on_association(relation_name.to_sym)
-            if model_association
+            if model_association && !model_association.polymorphic?
               model_name = ForestLiana.name_for(model_association.klass)
               # NOTICE: Join fields in case of model with self-references.
               if fields[model_name]
@@ -184,6 +184,8 @@ module ForestLiana
               else
                 fields[model_name] = relation_fields
               end
+            elsif model_association && model_association.polymorphic?
+              fields[relation_name] = relation_fields
             end
           else
             smart_relations.each do |smart_relation|
