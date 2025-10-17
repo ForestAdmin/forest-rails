@@ -23,16 +23,6 @@ ActiveRecord::Schema.define(version: 2023_11_17_084236) do
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable_type_and_addressable_id"
   end
 
-  create_table "cars", force: :cascade do |t|
-    t.string "model"
-    t.integer "driver_id"
-    t.index ["driver_id"], name: "index_cars_on_driver_id"
-  end
-
-  create_table "drivers", force: :cascade do |t|
-    t.string "firstname"
-  end
-
   create_table "isle", force: :cascade do |t|
     t.string "name"
     t.binary "map"
