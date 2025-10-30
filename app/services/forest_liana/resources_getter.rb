@@ -112,7 +112,13 @@ module ForestLiana
           includes_for_smart_search = includes_for_smart_search & includes_has_many
         end
 
-        @includes = (includes & @field_names_requested).concat(includes_for_smart_search)
+        filter_associations = extract_associations_from_filter
+        filter_has_many = filter_associations.select do |assoc_name|
+          assoc = @resource.reflect_on_association(assoc_name)
+          assoc && [:has_many, :has_and_belongs_to_many].include?(assoc.macro)
+        end
+
+        @includes = (includes & @field_names_requested).concat(includes_for_smart_search).concat(filter_has_many).uniq
       else
         @includes = associations_has_one
         # Avoid eager loading has_one associations pointing to a different database as ORM can't join cross databases
@@ -160,7 +166,12 @@ module ForestLiana
       conditions.each do |condition|
         field = condition['field']
         if field&.include?(':')
+          # Handle association filters with : separator (e.g., "user:name")
           associations << field.split(':').first.to_sym
+          @count_needs_includes = true
+        elsif field&.include?('.')
+          # Handle nested association filters with . separator (e.g., "top_level_partner.display_name")
+          associations << field.split('.').first.to_sym
           @count_needs_includes = true
         end
       end
@@ -278,6 +289,14 @@ module ForestLiana
 
     def compute_select_fields
       select = ['_forest_admin_eager_load']
+
+      pk = @resource.primary_key
+      if pk.is_a?(Array)
+        pk.each { |key| select << "#{@resource.table_name}.#{key}" }
+      else
+        select << "#{@resource.table_name}.#{pk}"
+      end
+
       @field_names_requested.each do |path|
         association = get_one_association(path)
         if association
@@ -285,12 +304,15 @@ module ForestLiana
             association = get_one_association(association.options[:through])
           end
 
+          if is_active_storage_association?(association)
+            next
+          end
+
           if SchemaUtils.polymorphic?(association)
             select << "#{@resource.table_name}.#{association.foreign_type}"
           end
 
-          # Handle composite foreign keys
-          if association.macro == :belongs_to
+          if association.macro == :belongs_to || association.macro == :has_one
             foreign_keys = Array(association.foreign_key)
             foreign_keys.each do |fk|
               select << "#{@resource.table_name}.#{fk}"
@@ -302,6 +324,8 @@ module ForestLiana
         if fields
           association = get_one_association(path)
           table_name = association.table_name
+
+          next if association && is_active_storage_association?(association)
 
           fields.each do |association_path|
             if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
@@ -324,6 +348,15 @@ module ForestLiana
       ForestLiana::QueryHelper.get_one_associations(@resource)
                               .select { |association| association.name == name_sym }
                               .first
+    end
+
+    def is_active_storage_association?(association)
+      return false unless association
+
+      klass_name = association.klass.name
+      klass_name == 'ActiveStorage::Attachment' ||
+      klass_name == 'ActiveStorage::Blob' ||
+      klass_name.start_with?('ActiveStorage::')
     end
   end
 end
