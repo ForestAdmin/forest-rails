@@ -341,8 +341,6 @@ module ForestLiana
       @field_names_requested.each do |path|
         association = get_one_association(path)
         if association
-          # Handle :through associations - resolve to the direct association
-          original_association = association
           through_chain = []
           while association.options[:through]
             through_chain << association.options[:through]
