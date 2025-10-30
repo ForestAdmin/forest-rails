@@ -297,6 +297,21 @@ module ForestLiana
         select << "#{@resource.table_name}.#{pk}"
       end
 
+      # Include columns used in default ordering for batch cursor compatibility
+      if @resource.respond_to?(:default_scoped) && @resource.default_scoped.order_values.any?
+        @resource.default_scoped.order_values.each do |order_value|
+          if order_value.is_a?(Arel::Nodes::Ordering)
+            # Extract column name from Arel node
+            column_name = order_value.expr.name if order_value.expr.respond_to?(:name)
+            select << "#{@resource.table_name}.#{column_name}" if column_name
+          elsif order_value.is_a?(String) || order_value.is_a?(Symbol)
+            # Handle simple column names
+            column_name = order_value.to_s.split(' ').first.split('.').last
+            select << "#{@resource.table_name}.#{column_name}"
+          end
+        end
+      end
+
       # Handle ActiveStorage associations from both @includes and @field_names_requested
       active_storage_associations_processed = Set.new
 
@@ -326,21 +341,39 @@ module ForestLiana
       @field_names_requested.each do |path|
         association = get_one_association(path)
         if association
+          # Handle :through associations - resolve to the direct association
+          original_association = association
+          through_chain = []
           while association.options[:through]
+            through_chain << association.options[:through]
             association = get_one_association(association.options[:through])
           end
 
           # Skip ActiveStorage associations - already processed above
           next if is_active_storage_association?(association)
 
-          if SchemaUtils.polymorphic?(association)
-            select << "#{@resource.table_name}.#{association.foreign_type}"
-          end
+          # For :through associations, only add foreign keys from the direct (first) association in the chain
+          # Don't try to select columns from the main table for the final :through target
+          if through_chain.any?
+            # Use the first association in the through chain
+            first_through = get_one_association(through_chain.first)
+            if first_through && (first_through.macro == :belongs_to || first_through.macro == :has_one)
+              foreign_keys = Array(first_through.foreign_key)
+              foreign_keys.each do |fk|
+                select << "#{@resource.table_name}.#{fk}"
+              end
+            end
+          else
+            # Direct association (not :through)
+            if SchemaUtils.polymorphic?(association)
+              select << "#{@resource.table_name}.#{association.foreign_type}"
+            end
 
-          if association.macro == :belongs_to || association.macro == :has_one
-            foreign_keys = Array(association.foreign_key)
-            foreign_keys.each do |fk|
-              select << "#{@resource.table_name}.#{fk}"
+            if association.macro == :belongs_to || association.macro == :has_one
+              foreign_keys = Array(association.foreign_key)
+              foreign_keys.each do |fk|
+                select << "#{@resource.table_name}.#{fk}"
+              end
             end
           end
         end
