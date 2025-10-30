@@ -275,7 +275,12 @@ module ForestLiana
           puts " = Sending Forest Apimap:\n#{JSON.pretty_generate(apimap)}" if with_feedback
           uri = URI.parse("#{forest_url}/forest/apimaps")
           http = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl = true if forest_url.start_with?('https')
+          if forest_url.start_with?('https')
+            http.use_ssl = true
+            if ENV['FOREST_URL'].present?
+              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            end
+          end
           http.start do |client|
             request = Net::HTTP::Post.new(uri.path)
             request.body = apimap.to_json
