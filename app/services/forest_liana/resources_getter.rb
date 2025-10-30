@@ -304,7 +304,21 @@ module ForestLiana
             association = get_one_association(association.options[:through])
           end
 
+          # For ActiveStorage associations, include all required columns
           if is_active_storage_association?(association)
+            # Include all columns from ActiveStorage tables to avoid initialization errors
+            table_name = association.table_name
+            association.klass.column_names.each do |column_name|
+              select << "#{table_name}.#{column_name}"
+            end
+
+            # Also include the foreign key from the main resource (e.g., blob_id, record_id)
+            if association.macro == :belongs_to || association.macro == :has_one
+              foreign_keys = Array(association.foreign_key)
+              foreign_keys.each do |fk|
+                select << "#{@resource.table_name}.#{fk}"
+              end
+            end
             next
           end
 
