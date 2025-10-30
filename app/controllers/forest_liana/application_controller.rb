@@ -229,7 +229,9 @@ module ForestLiana
             included = json['included']
 
             values = field_names_requested.map do |field_name|
-              if record_attributes[field_name]
+              if field_name == 'id'
+                json['data']['id']
+              elsif record_attributes[field_name]
                 record_attributes[field_name]
               elsif record_relationships[field_name] &&
                 record_relationships[field_name]['data']

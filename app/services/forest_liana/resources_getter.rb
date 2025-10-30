@@ -386,6 +386,8 @@ module ForestLiana
           next if association && is_active_storage_association?(association)
 
           fields.each do |association_path|
+            next if association_path == 'id'
+
             if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
               association.klass.attribute_names.each { |attribute| select << "#{table_name}.#{attribute}" }
             else
