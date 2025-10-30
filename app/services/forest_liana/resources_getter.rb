@@ -297,6 +297,32 @@ module ForestLiana
         select << "#{@resource.table_name}.#{pk}"
       end
 
+      # Handle ActiveStorage associations from both @includes and @field_names_requested
+      active_storage_associations_processed = Set.new
+
+      (@includes + @field_names_requested).each do |path|
+        association = path.is_a?(Symbol) ? @resource.reflect_on_association(path) : get_one_association(path)
+        next unless association
+        next if active_storage_associations_processed.include?(association.name)
+        next unless is_active_storage_association?(association)
+
+        # Include all columns from ActiveStorage tables to avoid initialization errors
+        table_name = association.table_name
+        association.klass.column_names.each do |column_name|
+          select << "#{table_name}.#{column_name}"
+        end
+
+        # Include the foreign key from the main resource (e.g., blob_id, record_id)
+        if association.macro == :belongs_to || association.macro == :has_one
+          foreign_keys = Array(association.foreign_key)
+          foreign_keys.each do |fk|
+            select << "#{@resource.table_name}.#{fk}"
+          end
+        end
+
+        active_storage_associations_processed.add(association.name)
+      end
+
       @field_names_requested.each do |path|
         association = get_one_association(path)
         if association
@@ -304,23 +330,8 @@ module ForestLiana
             association = get_one_association(association.options[:through])
           end
 
-          # For ActiveStorage associations, include all required columns
-          if is_active_storage_association?(association)
-            # Include all columns from ActiveStorage tables to avoid initialization errors
-            table_name = association.table_name
-            association.klass.column_names.each do |column_name|
-              select << "#{table_name}.#{column_name}"
-            end
-
-            # Also include the foreign key from the main resource (e.g., blob_id, record_id)
-            if association.macro == :belongs_to || association.macro == :has_one
-              foreign_keys = Array(association.foreign_key)
-              foreign_keys.each do |fk|
-                select << "#{@resource.table_name}.#{fk}"
-              end
-            end
-            next
-          end
+          # Skip ActiveStorage associations - already processed above
+          next if is_active_storage_association?(association)
 
           if SchemaUtils.polymorphic?(association)
             select << "#{@resource.table_name}.#{association.foreign_type}"
