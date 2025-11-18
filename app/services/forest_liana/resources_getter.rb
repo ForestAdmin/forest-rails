@@ -411,6 +411,7 @@ module ForestLiana
 
     def is_active_storage_association?(association)
       return false unless association
+      return false if SchemaUtils.polymorphic?(association)
 
       klass_name = association.klass.name
       klass_name == 'ActiveStorage::Attachment' ||
