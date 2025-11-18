@@ -16,6 +16,7 @@ module ForestLiana
       @search_query_builder = SearchQueryBuilder.new(@params, @includes, @collection, @user)
 
       prepare_query
+      @base_records_for_batch = @records
     end
 
     def self.get_ids_from_request(params, user)
@@ -51,7 +52,7 @@ module ForestLiana
     end
 
     def query_for_batch
-      @records
+      @base_records_for_batch
     end
 
     def records
