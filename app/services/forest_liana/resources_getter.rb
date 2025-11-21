@@ -30,17 +30,19 @@ module ForestLiana
     end
 
     def perform
-      polymorphic_association, preload_loads = analyze_associations(@resource)
-      includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
-      has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
-        ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
-      end
+      @records = optimize_record_loading(@resource, @records, false)
 
-      if includes.empty? || has_smart_fields
-        @records = optimize_record_loading(@resource, @records, false)
-      else
-        select = compute_select_fields
-        @records = optimize_record_loading(@resource, @records, false).references(includes).select(*select)
+      if ForestLiana.optimize_query_select_fields
+        polymorphic_association, preload_loads = analyze_associations(@resource)
+        includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
+        has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
+          ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
+        end
+
+        if includes.any? && !has_smart_fields
+          select = compute_select_fields
+          @records = @records.references(includes).select(*select)
+        end
       end
 
       @records

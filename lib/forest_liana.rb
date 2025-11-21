@@ -29,6 +29,7 @@ module ForestLiana
   mattr_accessor :meta
   mattr_accessor :logger
   mattr_accessor :reporter
+  mattr_accessor :optimize_query_select_fields
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
 
@@ -42,6 +43,7 @@ module ForestLiana
   self.meta = {}
   self.logger = nil
   self.reporter = nil
+  self.optimize_query_select_fields = true
 
   @config_dir = 'lib/forest_liana/**/*.rb'
 
