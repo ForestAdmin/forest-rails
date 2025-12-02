@@ -264,6 +264,11 @@ module ForestLiana
     end
 
     def send_apimap(with_feedback=false)
+      if should_skip_schema_update?
+        log_schema_skip
+        return
+      end
+
       if ForestLiana.env_secret && ForestLiana.env_secret.length != 64
         FOREST_LOGGER.error "Your env_secret does not seem to be correct. " \
           "Can you check on Forest that you copied it properly in the " \
@@ -671,6 +676,16 @@ module ForestLiana
       rescue
         'unknown'
       end
+    end
+
+    def should_skip_schema_update?
+      ForestLiana.skip_schema_update == true
+    end
+
+    def log_schema_skip
+      FOREST_LOGGER.warn '[ForestAdmin] Schema update skipped (skip_schema_update flag is true)'
+      environment = Rails.env.production? ? 'production' : 'development'
+      FOREST_LOGGER.info "[ForestAdmin] Running in #{environment} mode"
     end
   end
 end
