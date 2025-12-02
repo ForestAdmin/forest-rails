@@ -1,3 +1,10 @@
+# [9.16.0](https://github.com/ForestAdmin/forest-rails/compare/v9.15.8...v9.16.0) (2025-12-02)
+
+
+### Features
+
+* add skip_schema_update configuration flag ([#762](https://github.com/ForestAdmin/forest-rails/issues/762)) ([7bf25b6](https://github.com/ForestAdmin/forest-rails/commit/7bf25b6ed17f07123bd0dac104201bb4f6e65c6d))
+
 ## [9.15.8](https://github.com/ForestAdmin/forest-rails/compare/v9.15.7...v9.15.8) (2025-09-03)
 
 
