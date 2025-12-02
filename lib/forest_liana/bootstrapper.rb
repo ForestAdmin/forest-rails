@@ -263,8 +263,8 @@ module ForestLiana
       ForestLiana::ApimapSorter.new(apimap).perform
     end
 
-    def send_apimap(with_feedback=false, force: false)
-      if should_skip_schema_update? && !force
+    def send_apimap(with_feedback=false)
+      if should_skip_schema_update?
         log_schema_skip
         return
       end
