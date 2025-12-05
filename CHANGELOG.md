@@ -1,3 +1,10 @@
+## [9.16.1](https://github.com/ForestAdmin/forest-rails/compare/v9.16.0...v9.16.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* support composite primary keys in resource getters ([#760](https://github.com/ForestAdmin/forest-rails/issues/760)) ([010f8c5](https://github.com/ForestAdmin/forest-rails/commit/010f8c5f7cc4bcfb68a5af32c78287e39db16605)), closes [#763](https://github.com/ForestAdmin/forest-rails/issues/763)
+
 # [9.16.0](https://github.com/ForestAdmin/forest-rails/compare/v9.15.8...v9.16.0) (2025-12-02)
 
 

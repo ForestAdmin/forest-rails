@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (9.15.8)
+    forest_liana (9.16.1)
       bcrypt
       deepsort
       forestadmin-jsonapi-serializers (>= 0.14.0)
