@@ -25,7 +25,29 @@ module ForestLiana
     end
 
     def count
-      @records_count = @records.count
+      association_class = model_association
+
+      if association_class.primary_key.is_a?(Array)
+        adapter_name = association_class.connection.adapter_name.downcase
+
+        if adapter_name.include?('sqlite')
+          # For SQLite: concatenate columns for DISTINCT count
+          pk_concat = association_class.primary_key.map do |pk|
+            "#{association_class.table_name}.#{pk}"
+          end.join(" || '|' || ")
+
+          @records_count = @records.distinct.count(Arel.sql(pk_concat))
+        else
+          # For PostgreSQL/MySQL: use DISTINCT with multiple columns
+          pk_columns = association_class.primary_key.map do |pk|
+            "#{association_class.table_name}.#{pk}"
+          end.join(', ')
+
+          @records_count = @records.distinct.count(Arel.sql(pk_columns))
+        end
+      else
+        @records_count = @records.count
+      end
     end
 
     def query_for_batch
@@ -72,7 +94,8 @@ module ForestLiana
     end
 
     def prepare_query
-      association = get_resource().find(@params[:id]).send(@params[:association_name])
+      parent_record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(get_resource(), @resource, @params[:id])
+      association = parent_record.send(@params[:association_name])
       @records = optimize_record_loading(association, @search_query_builder.perform(association))
     end
 

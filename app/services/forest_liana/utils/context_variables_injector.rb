@@ -5,7 +5,14 @@ module ForestLiana
       def self.inject_context_in_value(value, context_variables)
         inject_context_in_value_custom(value) do |context_variable_key|
           value = context_variables.get_value(context_variable_key)
-          raise "Unknown context variable: #{context_variable_key}, please check the query for any typos" if value.nil?
+          if value.nil?
+            available_keys = context_variables.respond_to?(:keys) ? context_variables.keys.join(', ') : 'unknown'
+            available_context = context_variables.inspect
+            error_message = "Unknown context variable: '#{context_variable_key}'. " \
+                          "Please check the query for any typos. " \
+                          "Available context variables: #{available_keys}. "
+            raise error_message
+          end
           value.to_s
         end
       end

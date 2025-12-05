@@ -309,6 +309,82 @@ describe 'Requesting User resources', :type => :request  do
   end
 end
 
+describe 'Requesting Island resources', :type => :request  do
+  let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
+  before do
+    island = Island.create(name: 'Paradise Island')
+    Location.create(coordinates: '10,20', island: island)
+
+    Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
+    Rails.cache.write('forest.has_permission', true)
+    Rails.cache.write(
+      'forest.collections',
+      {
+        'Island' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
+        }
+      }
+    )
+
+    allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
+    allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
+    allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
+  end
+
+  after do
+    Island.destroy_all
+    Location.destroy_all
+  end
+
+  token = JWT.encode({
+    id: 1,
+    email: 'michael.kelso@that70.show',
+    first_name: 'Michael',
+    last_name: 'Kelso',
+    team: 'Operations',
+    rendering_id: 16,
+    exp: Time.now.to_i + 2.weeks.to_i,
+    permission_level: 'admin'
+  }, ForestLiana.auth_secret, 'HS256')
+
+  headers = {
+    'Accept' => 'application/json',
+    'Content-Type' => 'application/json',
+    'Authorization' => "Bearer #{token}"
+  }
+
+  describe 'csv' do
+    it 'should return CSV with has_one association without SQL error' do
+      params = {
+        fields: { 'Island' => 'id,name,location', 'location' => 'coordinates'},
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris',
+        header: 'id,name,location',
+      }
+      get '/forest/Island.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+
+      csv_content = response.body
+      csv_lines = csv_content.split("\n")
+
+      expect(csv_lines.first).to eq(params[:header])
+      expect(csv_lines[1]).to eq('1,Paradise Island,"10,20"')
+    end
+  end
+end
+
 describe 'Requesting Address resources', :type => :request  do
   let(:scope_filters) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
   before do
@@ -389,6 +465,52 @@ describe 'Requesting Address resources', :type => :request  do
           }
         ]
       )
+    end
+  end
+
+  describe 'csv' do
+    it 'should return CSV with polymorphic association' do
+      params = {
+        fields: { 'Address' => 'id,line1,city,addressable', 'addressable' => 'name'},
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris',
+        header: 'id,line1,city,addressable',
+      }
+      get '/forest/Address.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+
+      csv_content = response.body
+      csv_lines = csv_content.split("\n")
+
+      expect(csv_lines.first).to eq(params[:header])
+      expect(csv_lines[1]).to eq('1,10 Downing Street,London,Michel')
+    end
+
+    it 'should return CSV with only requested fields and ignore optional polymorphic relation' do
+      params = {
+        fields: { 'Address' => 'id,line1,city', 'addressable' => 'name'},
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris',
+        header: 'id,line1,city',
+      }
+      get '/forest/Address.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      expect(response.headers['Content-Disposition']).to include('attachment')
+
+      csv_content = response.body
+      csv_lines = csv_content.split("\n")
+
+      expect(csv_lines.first).to eq(params[:header])
+      expect(csv_lines[1]).to eq('1,10 Downing Street,London')
     end
   end
 end

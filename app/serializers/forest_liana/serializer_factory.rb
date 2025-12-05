@@ -122,6 +122,15 @@ module ForestLiana
       serializer = Class.new {
         include ForestAdmin::JSONAPI::Serializer
 
+        def id
+          pk = object.class.primary_key
+          if pk.is_a?(Array)
+            pk.map { |key| object.send(key) }.to_json
+          else
+            object.id.to_s
+          end
+        end
+
         def self_link
           "/forest#{super.underscore}"
         end

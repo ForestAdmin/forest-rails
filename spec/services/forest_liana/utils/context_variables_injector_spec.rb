@@ -105,7 +105,7 @@ module ForestLiana
         it 'raises an error when the variable is not found' do
           expect {
             described_class.inject_context_in_value("{{siths.selectedRecord.evilString}}", context_variables)
-          }.to raise_error('Unknown context variable: siths.selectedRecord.evilString, please check the query for any typos')
+          }.to raise_error(/Unknown context variable: 'siths\.selectedRecord\.evilString'/)
         end
       end
     end
