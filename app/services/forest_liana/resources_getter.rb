@@ -343,23 +343,44 @@ module ForestLiana
         association = get_one_association(path)
         if association
           through_chain = []
-          while association.options[:through]
-            through_chain << association.options[:through]
-            association = get_one_association(association.options[:through])
+          current_association = association
+          while current_association.options[:through]
+            through_chain << current_association.options[:through]
+            current_association = get_one_association(current_association.options[:through])
           end
 
           # Skip ActiveStorage associations - already processed above
           next if is_active_storage_association?(association)
 
-          # For :through associations, only add foreign keys from the direct (first) association in the chain
-          # Don't try to select columns from the main table for the final :through target
+          # For :through associations, recursively add all intermediate foreign keys
           if through_chain.any?
-            # Use the first association in the through chain
-            first_through = get_one_association(through_chain.first)
-            if first_through && (first_through.macro == :belongs_to || first_through.macro == :has_one)
-              foreign_keys = Array(first_through.foreign_key)
-              foreign_keys.each do |fk|
-                select << "#{@resource.table_name}.#{fk}"
+            current_resource = @resource
+            through_chain.reverse.each do |through_name|
+              through_assoc = current_resource.reflect_on_association(through_name)
+
+              if through_assoc
+                if through_assoc.options[:through]
+                  direct_through_name = through_assoc.options[:through]
+                  direct_assoc = current_resource.reflect_on_association(direct_through_name)
+
+                  if direct_assoc && (direct_assoc.macro == :belongs_to || direct_assoc.macro == :has_one)
+                    fks = Array(direct_assoc.foreign_key)
+                    fks.each do |fk|
+                      select << "#{current_resource.table_name}.#{fk}"
+                    end
+                  end
+                else
+                  # Direct association (not nested through)
+                  if through_assoc.macro == :belongs_to || through_assoc.macro == :has_one
+                    fks = Array(through_assoc.foreign_key)
+                    fks.each do |fk|
+                      select << "#{current_resource.table_name}.#{fk}"
+                    end
+                  end
+                end
+
+                # Move to the next level in the chain
+                current_resource = through_assoc.klass if through_assoc.klass
               end
             end
           else
@@ -369,8 +390,8 @@ module ForestLiana
             end
 
             if association.macro == :belongs_to || association.macro == :has_one
-              foreign_keys = Array(association.foreign_key)
-              foreign_keys.each do |fk|
+              fks = Array(association.foreign_key)
+              fks.each do |fk|
                 select << "#{@resource.table_name}.#{fk}"
               end
             end
@@ -394,7 +415,11 @@ module ForestLiana
             end
           end
         else
-          select << "#{@resource.table_name}.#{path}"
+          # Only add as column if it's not an association
+          # Associations are handled by the through chain logic above
+          unless association
+            select << "#{@resource.table_name}.#{path}"
+          end
         end
       end
 
