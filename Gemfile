@@ -22,6 +22,8 @@ group :test do
   gem 'sqlite3', '~> 1.4'
   gem 'simplecov', "~> 0.22", require: false
   gem 'simplecov_json_formatter', "~> 0.1.4"
+  gem 'rdoc'
+  gem 'minitest', '~> 5.25'
 end
 
 gem 'rails', '6.1.7.9'
@@ -38,3 +40,4 @@ gem 'openid_connect', '1.4.2'
 gem 'json'
 gem 'json-jwt', '>= 1.16'
 gem 'deepsort'
+gem 'ostruct'
