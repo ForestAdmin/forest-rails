@@ -30,4 +30,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "json-jwt", ">= 1.16.0"
   s.add_runtime_dependency "openid_connect", "1.4.2"
   s.add_runtime_dependency "deepsort"
+  s.add_runtime_dependency "ostruct"
+  s.add_runtime_dependency "csv"
 end
