@@ -23,6 +23,7 @@ group :test do
   gem 'simplecov', "~> 0.22", require: false
   gem 'simplecov_json_formatter', "~> 0.1.4"
   gem 'rdoc'
+  gem 'minitest', '~> 5.25'
 end
 
 gem 'rails', '6.1.7.9'
