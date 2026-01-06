@@ -1,3 +1,10 @@
+# [9.17.0](https://github.com/ForestAdmin/forest-rails/compare/v9.16.1...v9.17.0) (2026-01-06)
+
+
+### Features
+
+* add ruby 4.0.0 support ([#764](https://github.com/ForestAdmin/forest-rails/issues/764)) ([323f688](https://github.com/ForestAdmin/forest-rails/commit/323f688da4abd57f65f1f1455e5273a80136194a))
+
 ## [9.16.1](https://github.com/ForestAdmin/forest-rails/compare/v9.16.0...v9.16.1) (2025-12-05)
 
 
