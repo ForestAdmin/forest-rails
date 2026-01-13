@@ -1,3 +1,10 @@
+## [9.17.1](https://github.com/ForestAdmin/forest-rails/compare/v9.17.0...v9.17.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* normalize default values in schema for ruby 4.0 and rails 8 compatibility ([#765](https://github.com/ForestAdmin/forest-rails/issues/765)) ([581a743](https://github.com/ForestAdmin/forest-rails/commit/581a743b14a0c5f383752fa323fa89efcbcc0003))
+
 # [9.17.0](https://github.com/ForestAdmin/forest-rails/compare/v9.16.1...v9.17.0) (2026-01-06)
 
 
