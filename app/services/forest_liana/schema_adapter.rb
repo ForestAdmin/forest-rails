@@ -454,7 +454,31 @@ module ForestLiana
     def add_default_value(column_schema, column)
       # TODO: detect/introspect the attribute default value with Rails 5
       #       ex: attribute :email, :string, default: 'arnaud@forestadmin.com'
-      column_schema[:default_value] = column.default if column.default
+
+      unless column.default.nil?
+        column_schema[:default_value] = normalize_default_value(column)
+      end
+    end
+
+    def normalize_default_value(column)
+      # In Ruby 4.0+ and Rails 8+, ActiveRecord returns default values as strings
+      case column.type
+      when :boolean
+        case column.default.to_s
+        when '0', 'f', 'false'
+          false
+        when '1', 't', 'true'
+          true
+        else
+          column.default
+        end
+      when :integer
+        column.default.to_i
+      when :float, :decimal
+        column.default.to_f
+      else
+        column.default
+      end
     end
 
     def add_validations(column_schema, column)
