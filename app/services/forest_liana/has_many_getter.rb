@@ -29,6 +29,9 @@ module ForestLiana
 
       if association_class.primary_key.is_a?(Array)
         adapter_name = association_class.connection.adapter_name.downcase
+        pk_columns = association_class.primary_key.map do |pk|
+          "#{association_class.table_name}.#{pk}"
+        end.join(', ')
 
         if adapter_name.include?('sqlite')
           # For SQLite: concatenate columns for DISTINCT count
@@ -37,12 +40,9 @@ module ForestLiana
           end.join(" || '|' || ")
 
           @records_count = @records.distinct.count(Arel.sql(pk_concat))
+        elsif adapter_name.include?('postgresql')
+          @records_count = @records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
         else
-          # For PostgreSQL/MySQL: use DISTINCT with multiple columns
-          pk_columns = association_class.primary_key.map do |pk|
-            "#{association_class.table_name}.#{pk}"
-          end.join(', ')
-
           @records_count = @records.distinct.count(Arel.sql(pk_columns))
         end
       else

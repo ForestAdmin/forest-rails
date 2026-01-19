@@ -10,8 +10,8 @@ module ForestLiana
     end
 
     def perform
-      @record = @resource.find(@params[:id])
-      associated_records = @resource.find(@params[:id]).send(@association.name)
+      @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(@resource, @resource, @params[:id])
+      associated_records = @record.send(@association.name)
 
       remove_association = !@with_deletion || @association.macro == :has_and_belongs_to_many
       if @data.is_a?(Array)

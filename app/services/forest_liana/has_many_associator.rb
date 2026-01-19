@@ -8,8 +8,8 @@ module ForestLiana
     end
 
     def perform
-      @record = @resource.find(@params[:id])
-      associated_records = @resource.find(@params[:id]).send(@association.name)
+      @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(@resource, @resource, @params[:id])
+      associated_records = @record.send(@association.name)
 
       if @data.is_a?(Array)
         @data.each do |record_added|

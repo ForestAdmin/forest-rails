@@ -12,7 +12,7 @@ module ForestLiana
 
     def perform
       begin
-        @record = @resource.find(@params[:id])
+        @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(@resource, @resource, @params[:id])
         if (SchemaUtils.polymorphic?(@association))
           if @data.nil?
             new_value = nil
