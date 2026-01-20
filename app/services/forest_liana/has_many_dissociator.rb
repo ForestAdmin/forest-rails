@@ -1,5 +1,7 @@
 module ForestLiana
   class HasManyDissociator
+    include ForestLiana::RecordFindable
+
     def initialize(resource, association, params, forest_user)
       @resource = resource
       @association = association
@@ -10,7 +12,7 @@ module ForestLiana
     end
 
     def perform
-      @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(@resource, @resource, @params[:id])
+      @record = find_record(@resource, @resource, @params[:id])
       associated_records = @record.send(@association.name)
 
       remove_association = !@with_deletion || @association.macro == :has_and_belongs_to_many

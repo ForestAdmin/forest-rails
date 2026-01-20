@@ -11,20 +11,37 @@ module ForestLiana
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
     end
 
-    describe ResourceUpdater do
-      describe 'with composite primary key' do
+    describe RecordFindable do
+      # Create a test class that includes the module to test private methods
+      let(:test_class) do
+        Class.new do
+          include ForestLiana::RecordFindable
+          # Expose private methods for testing
+          public :find_record, :parse_composite_id
+        end
+      end
+
+      let(:helper) { test_class.new }
+
+      describe '#parse_composite_id' do
         it 'correctly parses composite ID in JSON format' do
-          expect(ForestLiana::Utils::CompositePrimaryKeyHelper.parse_composite_id('[1,2]')).to eq([1, 2])
-          expect(ForestLiana::Utils::CompositePrimaryKeyHelper.parse_composite_id('[10,20]')).to eq([10, 20])
-          expect(ForestLiana::Utils::CompositePrimaryKeyHelper.parse_composite_id('["a","b"]')).to eq(['a', 'b'])
+          expect(helper.parse_composite_id('[1,2]')).to eq([1, 2])
+          expect(helper.parse_composite_id('[10,20]')).to eq([10, 20])
+          expect(helper.parse_composite_id('["a","b"]')).to eq(['a', 'b'])
+        end
+
+        it 'returns array as-is when already an array' do
+          expect(helper.parse_composite_id([1, 2])).to eq([1, 2])
         end
 
         it 'raises error for invalid composite ID format' do
           expect {
-            ForestLiana::Utils::CompositePrimaryKeyHelper.parse_composite_id('invalid')
+            helper.parse_composite_id('invalid')
           }.to raise_error(ForestLiana::Errors::HTTP422Error)
         end
+      end
 
+      describe '#find_record' do
         it 'finds record using composite key conditions' do
           mock_resource = double('Resource', primary_key: [:user_id, :island_id])
           mock_scoped_records = double('ScopedRecords')
@@ -34,11 +51,7 @@ module ForestLiana
             .with({ user_id: 1, island_id: 2 })
             .and_return(mock_record)
 
-          result = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(
-            mock_scoped_records,
-            mock_resource,
-            '[1,2]'
-          )
+          result = helper.find_record(mock_scoped_records, mock_resource, '[1,2]')
 
           expect(result).to eq(mock_record)
           expect(mock_scoped_records).to have_received(:find_by).with({ user_id: 1, island_id: 2 })
@@ -51,11 +64,7 @@ module ForestLiana
 
           allow(mock_scoped_records).to receive(:find).with(123).and_return(mock_record)
 
-          result = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(
-            mock_scoped_records,
-            mock_resource,
-            123
-          )
+          result = helper.find_record(mock_scoped_records, mock_resource, 123)
 
           expect(result).to eq(mock_record)
           expect(mock_scoped_records).to have_received(:find).with(123)
@@ -139,7 +148,7 @@ module ForestLiana
 
     describe BelongsToUpdater do
       describe 'with composite primary key parent' do
-        it 'uses CompositePrimaryKeyHelper to find the parent record' do
+        it 'uses find_record to find the parent record' do
           composite_model = double('CompositeModel')
           association = double('Association', name: :user, klass: User)
           mock_record = double('Record', save: true)
@@ -147,14 +156,14 @@ module ForestLiana
 
           params = { id: '[1,2]', 'data' => { id: '5', type: 'User' } }
 
-          allow(ForestLiana::Utils::CompositePrimaryKeyHelper).to receive(:find_record).and_return(mock_record)
+          updater = described_class.new(composite_model, association, params)
+          allow(updater).to receive(:find_record).and_return(mock_record)
           allow(User).to receive(:find).and_return(double('User'))
           allow(SchemaUtils).to receive(:polymorphic?).and_return(false)
 
-          updater = described_class.new(composite_model, association, params)
           updater.perform
 
-          expect(ForestLiana::Utils::CompositePrimaryKeyHelper).to have_received(:find_record)
+          expect(updater).to have_received(:find_record)
             .with(composite_model, composite_model, '[1,2]')
         end
       end
@@ -162,7 +171,7 @@ module ForestLiana
 
     describe HasManyAssociator do
       describe 'with composite primary key parent' do
-        it 'uses CompositePrimaryKeyHelper to find the parent record' do
+        it 'uses find_record to find the parent record' do
           composite_model = double('CompositeModel')
           association = double('Association', name: :trees, klass: Tree)
           mock_record = double('Record')
@@ -173,13 +182,13 @@ module ForestLiana
 
           params = { id: '[1,2]', 'data' => [{ id: '5' }] }
 
-          allow(ForestLiana::Utils::CompositePrimaryKeyHelper).to receive(:find_record).and_return(mock_record)
+          associator = described_class.new(composite_model, association, params)
+          allow(associator).to receive(:find_record).and_return(mock_record)
           allow(Tree).to receive(:find).and_return(double('Tree'))
 
-          associator = described_class.new(composite_model, association, params)
           associator.perform
 
-          expect(ForestLiana::Utils::CompositePrimaryKeyHelper).to have_received(:find_record)
+          expect(associator).to have_received(:find_record)
             .with(composite_model, composite_model, '[1,2]')
         end
       end
@@ -187,7 +196,7 @@ module ForestLiana
 
     describe HasManyDissociator do
       describe 'with composite primary key parent' do
-        it 'uses CompositePrimaryKeyHelper to find the parent record' do
+        it 'uses find_record to find the parent record' do
           composite_model = double('CompositeModel')
           association = double('Association', name: :trees, klass: Tree, macro: :has_many)
           mock_record = double('Record')
@@ -199,13 +208,13 @@ module ForestLiana
           params = { id: '[1,2]', 'data' => [{ id: '5' }], delete: 'false' }
           forest_user = user
 
-          allow(ForestLiana::Utils::CompositePrimaryKeyHelper).to receive(:find_record).and_return(mock_record)
+          dissociator = described_class.new(composite_model, association, params, forest_user)
+          allow(dissociator).to receive(:find_record).and_return(mock_record)
           allow(Tree).to receive(:find).and_return(double('Tree'))
 
-          dissociator = described_class.new(composite_model, association, params, forest_user)
           dissociator.perform
 
-          expect(ForestLiana::Utils::CompositePrimaryKeyHelper).to have_received(:find_record)
+          expect(dissociator).to have_received(:find_record)
             .with(composite_model, composite_model, '[1,2]')
         end
       end

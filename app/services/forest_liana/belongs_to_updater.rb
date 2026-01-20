@@ -1,5 +1,7 @@
 module ForestLiana
   class BelongsToUpdater
+    include ForestLiana::RecordFindable
+
     attr_accessor :errors
 
     def initialize(resource, association, params)
@@ -12,7 +14,7 @@ module ForestLiana
 
     def perform
       begin
-        @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(@resource, @resource, @params[:id])
+        @record = find_record(@resource, @resource, @params[:id])
         if (SchemaUtils.polymorphic?(@association))
           if @data.nil?
             new_value = nil

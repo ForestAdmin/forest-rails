@@ -1,5 +1,7 @@
 module ForestLiana
   class HasManyAssociator
+    include ForestLiana::RecordFindable
+
     def initialize(resource, association, params)
       @resource = resource
       @association = association
@@ -8,7 +10,7 @@ module ForestLiana
     end
 
     def perform
-      @record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(@resource, @resource, @params[:id])
+      @record = find_record(@resource, @resource, @params[:id])
       associated_records = @record.send(@association.name)
 
       if @data.is_a?(Array)

@@ -94,7 +94,7 @@ module ForestLiana
     end
 
     def prepare_query
-      parent_record = ForestLiana::Utils::CompositePrimaryKeyHelper.find_record(get_resource(), @resource, @params[:id])
+      parent_record = find_record(get_resource(), @resource, @params[:id])
       association = parent_record.send(@params[:association_name])
       @records = optimize_record_loading(association, @search_query_builder.perform(association))
     end
