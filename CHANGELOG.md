@@ -1,3 +1,10 @@
+## [9.17.2](https://github.com/ForestAdmin/forest-rails/compare/v9.17.1...v9.17.2) (2026-01-20)
+
+
+### Bug Fixes
+
+* **composite-pk:** support update and count operations ([#767](https://github.com/ForestAdmin/forest-rails/issues/767)) ([7731de1](https://github.com/ForestAdmin/forest-rails/commit/7731de1697fa6d27e7a5eb17c84c4d542bbbe882))
+
 ## [9.17.1](https://github.com/ForestAdmin/forest-rails/compare/v9.17.0...v9.17.1) (2026-01-13)
 
 
