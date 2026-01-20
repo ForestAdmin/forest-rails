@@ -1,5 +1,7 @@
 module ForestLiana
   class ResourceUpdater
+    include ForestLiana::RecordFindable
+
     attr_accessor :record
     attr_accessor :errors
 
@@ -14,7 +16,7 @@ module ForestLiana
       begin
         collection_name = ForestLiana.name_for(@resource)
         scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(@resource, @user, collection_name, @params[:timezone])
-        @record = scoped_records.find(@params[:id])
+        @record = find_record(scoped_records, @resource, @params[:id])
 
         if has_strong_parameter
           @record.update(resource_params)

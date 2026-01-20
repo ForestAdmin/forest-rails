@@ -1,5 +1,7 @@
 module ForestLiana
   class BaseGetter
+    include ForestLiana::RecordFindable
+
     def get_collection(collection_name)
       ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
     end
