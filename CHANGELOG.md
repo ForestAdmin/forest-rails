@@ -1,3 +1,10 @@
+## [9.17.3](https://github.com/ForestAdmin/forest-rails/compare/v9.17.2...v9.17.3) (2026-01-27)
+
+
+### Bug Fixes
+
+* include all intermediate foreign keys for deep has_one through associations ([#768](https://github.com/ForestAdmin/forest-rails/issues/768)) ([0342d4d](https://github.com/ForestAdmin/forest-rails/commit/0342d4d007180aff7fd6ee47c7fff3ac39407bb4))
+
 ## [9.17.2](https://github.com/ForestAdmin/forest-rails/compare/v9.17.1...v9.17.2) (2026-01-20)
 
 
