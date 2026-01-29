@@ -166,6 +166,104 @@ describe 'Requesting Tree resources', :type => :request  do
         })
       end
     end
+
+    describe 'with a single filter on a through association that is not a displayed column when also including an unrelated association' do
+      params = {
+        fields: { 'Tree' => 'id,name,owner' },
+        filters: JSON.generate({
+          field: 'location:coordinates',
+          operator: 'equal',
+          value: '1,2'
+        }),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'should respond 200' do
+        get '/forest/Tree', params: params, headers: headers
+        expect(response.status).to eq(200)
+      end
+
+      it 'should respond with the tree data' do
+        get '/forest/Tree', params: params, headers: headers
+        expect(JSON.parse(response.body)).to match({
+          "data" => [{
+            "type" => "Tree",
+            "id" => "1",
+            "attributes" => {
+              "id" => 1,
+              "name" => "Lemon Tree"
+            },
+            "links" => {
+              "self" => "/forest/tree/1"
+            },
+            "relationships" => {
+              "owner" => {
+                "data" => { "id" => "1", "type" => "User" },
+                "links" => { "related" => {} }
+              }
+            }
+          }],
+          "included" => be_a(Array)
+        })
+      end
+    end
+
+    describe 'with multiple filters on a through association that is not a displayed column when also including an unrelated association' do
+      params = {
+        fields: { 'Tree' => 'id,name,owner' },
+        filters: JSON.generate({
+          aggregator: "or",
+          conditions: [
+            {
+              field: 'location:coordinates',
+              operator: 'equal',
+              value: '1,2'
+            },
+            {
+              field: 'location:coordinates',
+              operator: 'equal',
+              value: '2,3'
+            }
+          ]
+        }),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'should respond 200' do
+        get '/forest/Tree', params: params, headers: headers
+        expect(response.status).to eq(200)
+      end
+
+      it 'should respond with the tree data' do
+        get '/forest/Tree', params: params, headers: headers
+        expect(JSON.parse(response.body)).to match({
+          "data" => [{
+            "type" => "Tree",
+            "id" => "1",
+            "attributes" => {
+              "id" => 1,
+              "name" => "Lemon Tree"
+            },
+            "links" => {
+              "self" => "/forest/tree/1"
+            },
+            "relationships" => {
+              "owner" => {
+                "data" => { "id" => "1", "type" => "User" },
+                "links" => { "related" => {} }
+              }
+            }
+          }],
+          "included" => be_a(Array)
+        })
+      end
+    end
   end
 
   describe 'csv' do

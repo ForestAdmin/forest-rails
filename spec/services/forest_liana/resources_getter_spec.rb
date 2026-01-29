@@ -306,6 +306,58 @@ module ForestLiana
       end
     end
 
+    describe 'when filtering on a field of a through association without including the field in the fields param and when also including an unrelated association' do
+      let(:resource) { Tree }
+      let(:fields) { { 'Tree' => 'id,name,owner' } }
+      let(:filters) { {
+        field: 'location:coordinates',
+        operator: 'equal',
+        value: '12345'
+      }.to_json }
+
+      it 'should get only the expected records' do
+        getter.perform
+        records = getter.records
+        count = getter.count
+
+        expect(records.count).to eq 2
+        expect(count).to eq 2
+        expect(records.map(&:id)).to eq [1, 2]
+        expect(records.map(&:name)).to eq ['Lemon Tree', 'Ginger Tree']
+      end
+    end
+
+    describe 'when filtering with multiple conditions on a field of a through association without including the field in the fields param and when also including an unrelated association' do
+      let(:resource) { Tree }
+      let(:fields) { { 'Tree' => 'id,name,owner' } }
+      let(:filters) { {
+        aggregator: "or",
+        conditions: [
+          {
+            field: 'location:coordinates',
+            operator: 'equal',
+            value: '12345'
+          },
+          {
+            field: 'location:coordinates',
+            operator: 'equal',
+            value: '54321'
+          }
+        ]
+      }.to_json }
+
+      it 'should get only the expected records' do
+        getter.perform
+        records = getter.records
+        count = getter.count
+
+        expect(records.count).to eq 3
+        expect(count).to eq 3
+        expect(records.map(&:id)).to eq [1, 2, 3]
+        expect(records.map(&:name)).to eq ['Lemon Tree', 'Ginger Tree', 'Apple Tree']
+      end
+    end
+
     describe 'when filtering on an ambiguous field' do
       let(:resource) { Tree }
       let(:pageSize) { 5 }
