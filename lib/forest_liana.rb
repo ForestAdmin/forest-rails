@@ -30,6 +30,7 @@ module ForestLiana
   mattr_accessor :logger
   mattr_accessor :reporter
   mattr_accessor :skip_schema_update
+  mattr_accessor :workflow_executor_url
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
 
