@@ -75,7 +75,11 @@ module ForestLiana
             end
           # NOTICE: Rails 3 do not have a defined_enums method
           elsif REGEX_UUID.match(@search) && column.type == :uuid
-            conditions << "#{column_name}  = :search_value_for_uuid"
+            if column.respond_to?(:array) && column.array
+              conditions << ":search_value_for_uuid = ANY(#{column_name})"
+            else
+              conditions << "#{column_name}  = :search_value_for_uuid"
+            end
           elsif @resource.respond_to?(:defined_enums) &&
             @resource.defined_enums.has_key?(column.name) &&
             !@resource.defined_enums[column.name][@search.downcase].nil?
