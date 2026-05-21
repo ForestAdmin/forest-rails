@@ -1,3 +1,10 @@
+## [9.17.4](https://github.com/ForestAdmin/forest-rails/compare/v9.17.3...v9.17.4) (2026-05-21)
+
+
+### Bug Fixes
+
+* search array uuid columns using ANY() operator ([#770](https://github.com/ForestAdmin/forest-rails/issues/770)) ([1066a2b](https://github.com/ForestAdmin/forest-rails/commit/1066a2b71803dcb43685bf3ba87bee8aa0891969))
+
 ## [9.17.3](https://github.com/ForestAdmin/forest-rails/compare/v9.17.2...v9.17.3) (2026-01-27)
 
 
