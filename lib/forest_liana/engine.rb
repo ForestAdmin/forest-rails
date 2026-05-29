@@ -59,7 +59,14 @@ module ForestLiana
     end
 
     def rake?
-      File.basename($0) == 'rake'
+      # NOTICE: `rails db:migrate` runs through Rake but exposes $0 as `rails`,
+      #         so matching the binary name alone let the bootstrapper introspect
+      #         models mid-migration (crashing on enums backed by a pending column).
+      return true if File.basename($0) == 'rake'
+
+      defined?(Rake) &&
+        Rake.respond_to?(:application) &&
+        Rake.application.top_level_tasks.any? { |task| task != 'default' }
     end
 
     def database_available?
