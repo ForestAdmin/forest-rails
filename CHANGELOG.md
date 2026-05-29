@@ -1,3 +1,10 @@
+## [9.17.5](https://github.com/ForestAdmin/forest-rails/compare/v9.17.4...v9.17.5) (2026-05-29)
+
+
+### Bug Fixes
+
+* skip bootstrapper during rails-invoked rake tasks ([#771](https://github.com/ForestAdmin/forest-rails/issues/771)) ([572f08f](https://github.com/ForestAdmin/forest-rails/commit/572f08f2c996a4da00eeb3b46f4d726b94eb82ff))
+
 ## [9.17.4](https://github.com/ForestAdmin/forest-rails/compare/v9.17.3...v9.17.4) (2026-05-21)
 
 
