@@ -64,9 +64,7 @@ module ForestLiana
       #         models mid-migration (crashing on enums backed by a pending column).
       return true if File.basename($0) == 'rake'
 
-      defined?(Rake) &&
-        Rake.respond_to?(:application) &&
-        Rake.application.top_level_tasks.any? { |task| task != 'default' }
+      defined?(Rake) && Rake.application.top_level_tasks.any? { |task| task != 'default' }
     end
 
     def database_available?
