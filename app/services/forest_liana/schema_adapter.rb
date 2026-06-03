@@ -248,6 +248,7 @@ module ForestLiana
               relationship: get_relationship_type(association),
               reference: "#{association.name.to_s}.id",
               inverse_of: @model.name.demodulize.underscore,
+              is_primary_key: false,
               is_filterable: false,
               is_sortable: true,
               is_read_only: false,
@@ -278,6 +279,7 @@ module ForestLiana
               field[:field] = association.name
               field[:inverse_of] = inverse_of(association)
               field[:relationship] = get_relationship_type(association)
+              field[:is_primary_key] = false
 
               ForestLiana::SchemaUtils.disable_filter_and_sort_if_cross_db!(
                 field,
@@ -332,6 +334,7 @@ module ForestLiana
       schema = {
         field: column.name,
         type: column_type,
+        is_primary_key: primary_key?(column),
         is_filterable: true,
         is_sortable: true,
         is_read_only: false,
@@ -351,6 +354,16 @@ module ForestLiana
       add_validations(schema, column)
     end
 
+    def primary_key?(column)
+      pk = @model.primary_key
+      if pk.is_a?(Array)
+        # NOTICE: composite_primary_keys exposes an Array of column names.
+        pk.map(&:to_s).include?(column.name)
+      else
+        !pk.nil? && pk.to_s == column.name
+      end
+    end
+
     def get_schema_for_association(association)
       opts ={
         field: association.name.to_s,
@@ -358,6 +371,7 @@ module ForestLiana
         relationship: get_relationship_type(association),
         reference: "#{ForestLiana.name_for(association.klass)}.id",
         inverse_of: inverse_of(association),
+        is_primary_key: false,
         is_filterable: !is_many_association(association),
         is_sortable: true,
         is_read_only: false,
