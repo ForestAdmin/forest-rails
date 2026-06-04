@@ -3,6 +3,7 @@ require 'httparty'
 module ForestLiana
   class WorkflowExecutionsController < ApplicationController
     FORWARDED_HEADERS = %w[Authorization Cookie].freeze
+    UPSTREAM_TIMEOUT_IN_SECONDS = 10
     UPSTREAM_ERRORS = [
       HTTParty::Error,
       SocketError,
@@ -36,7 +37,8 @@ module ForestLiana
         headers: forwarded_headers,
         query: forwarded_query,
         body: forwarded_body(method),
-        verify: Rails.env.production?
+        verify: Rails.env.production?,
+        timeout: UPSTREAM_TIMEOUT_IN_SECONDS
       )
 
       render json: response.parsed_response, status: response.code
