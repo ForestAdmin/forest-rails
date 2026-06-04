@@ -1,3 +1,10 @@
+# [9.18.0](https://github.com/ForestAdmin/forest-rails/compare/v9.17.7...v9.18.0) (2026-06-04)
+
+
+### Features
+
+* **agent:** add workflow executor proxy routes ([#769](https://github.com/ForestAdmin/forest-rails/issues/769)) ([d6e897d](https://github.com/ForestAdmin/forest-rails/commit/d6e897d6b09b81a41b7b9fe0df45d298b6d81815))
+
 ## [9.17.7](https://github.com/ForestAdmin/forest-rails/compare/v9.17.6...v9.17.7) (2026-06-04)
 
 
