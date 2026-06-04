@@ -1,3 +1,10 @@
+## [9.17.7](https://github.com/ForestAdmin/forest-rails/compare/v9.17.6...v9.17.7) (2026-06-04)
+
+
+### Bug Fixes
+
+* **engine:** prevent boot crash when Rake is partially loaded ([#773](https://github.com/ForestAdmin/forest-rails/issues/773)) ([a1854a0](https://github.com/ForestAdmin/forest-rails/commit/a1854a011a52a710999d8ead3f2825aafb267386))
+
 ## [9.17.6](https://github.com/ForestAdmin/forest-rails/compare/v9.17.5...v9.17.6) (2026-06-04)
 
 
