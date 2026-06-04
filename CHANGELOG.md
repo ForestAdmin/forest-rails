@@ -1,3 +1,10 @@
+## [9.17.6](https://github.com/ForestAdmin/forest-rails/compare/v9.17.5...v9.17.6) (2026-06-04)
+
+
+### Bug Fixes
+
+* **schema:** emit is_primary_key flag on collection fields ([025a424](https://github.com/ForestAdmin/forest-rails/commit/025a424d3a9465591163ebd9bf31372af86d190a))
+
 ## [9.17.5](https://github.com/ForestAdmin/forest-rails/compare/v9.17.4...v9.17.5) (2026-05-29)
 
 
