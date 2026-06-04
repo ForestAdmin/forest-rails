@@ -9,7 +9,7 @@ module ForestLiana
     end
 
     def self.expiration_in_seconds
-      return Time.now.to_i + EXPIRATION_IN_SECONDS
+      return Time.now.to_i + EXPIRATION_IN_SECONDS.to_i   # .to_i → Integer, conforme RFC 7519
     end
 
     def self.create_token(user, rendering_id)
