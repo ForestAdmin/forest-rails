@@ -64,7 +64,11 @@ module ForestLiana
       #         models mid-migration (crashing on enums backed by a pending column).
       return true if File.basename($0) == 'rake'
 
-      defined?(Rake) && Rake.application.top_level_tasks.any? { |task| task != 'default' }
+      # NOTICE: `respond_to?` guard — the Rake constant can be defined with only a
+      #         partial load (Rails' test_unit requires rake/file_list), leaving
+      #         Rake.application undefined and crashing boot.
+      defined?(Rake) && Rake.respond_to?(:application) &&
+        Rake.application.top_level_tasks.any? { |task| task != 'default' }
     end
 
     def database_available?

@@ -45,6 +45,24 @@ module ForestLiana
           expect(engine.rake?).to be(false)
         end
       end
+
+      context 'when Rake is only partially loaded (Rake constant defined without Rake.application)' do
+        # Reproduces the boot crash: Rails' test_unit integration requires
+        # `rake/file_list`, which defines the Rake module without loading
+        # rake/application. `defined?(Rake)` is then truthy but `Rake.application`
+        # is undefined, so the old guard raised NoMethodError at boot.
+        it 'returns false instead of raising NoMethodError' do
+          $0 = '/usr/local/bin/rails'
+          allow(Rake).to receive(:respond_to?).and_call_original
+          allow(Rake).to receive(:respond_to?).with(:application).and_return(false)
+          allow(Rake).to receive(:application).and_raise(
+            NoMethodError.new("undefined method 'application' for module Rake")
+          )
+
+          expect { engine.rake? }.not_to raise_error
+          expect(engine.rake?).to be(false)
+        end
+      end
     end
   end
 end
