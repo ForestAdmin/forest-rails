@@ -37,6 +37,7 @@ class ForestLiana::Model::Collection
       field[:enums] = nil unless field.key?(:enums)
       field[:integration] = nil unless field.key?(:integration)
       field[:is_filterable] = true unless field.key?(:is_filterable)
+      field[:is_primary_key] = false unless field.key?(:is_primary_key)
       field[:is_read_only] = false unless field.key?(:is_read_only)
       field[:is_required] = false unless field.key?(:is_required)
       field[:is_sortable] = true unless field.key?(:is_sortable)

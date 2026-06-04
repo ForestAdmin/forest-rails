@@ -36,6 +36,39 @@ module ForestLiana
       assert fields.size == 1
     end
 
+    test 'the standard primary key column is flagged is_primary_key: true' do
+      adapter = SchemaAdapter.new(IntegerField)
+      schema = adapter.send(:get_schema_for_column, IntegerField.columns_hash['id'])
+      assert_equal true, schema[:is_primary_key]
+    end
+
+    test 'a non primary key column is flagged is_primary_key: false' do
+      adapter = SchemaAdapter.new(IntegerField)
+      schema = adapter.send(:get_schema_for_column, IntegerField.columns_hash['field'])
+      assert_equal false, schema[:is_primary_key]
+    end
+
+    test 'every column of a composite primary key is flagged is_primary_key: true' do
+      adapter = SchemaAdapter.new(BelongsToField)
+      BelongsToField.define_singleton_method(:primary_key) { ['id', 'has_one_field_id'] }
+      is_pk = ->(name) do
+        adapter.send(:get_schema_for_column, BelongsToField.columns_hash[name])[:is_primary_key]
+      end
+
+      assert_equal true, is_pk.call('id')
+      assert_equal true, is_pk.call('has_one_field_id')
+      assert_equal false, is_pk.call('has_many_field_id')
+    ensure
+      BelongsToField.singleton_class.send(:remove_method, :primary_key)
+    end
+
+    test 'an association is flagged is_primary_key: false' do
+      adapter = SchemaAdapter.new(HasOneField)
+      association = HasOneField.reflect_on_association(:belongs_to_field)
+      schema = adapter.send(:get_schema_for_association, association)
+      assert_equal false, schema[:is_primary_key]
+    end
+
     test 'belongsTo relationship' do
       schema = SchemaAdapter.new(BelongsToField).perform
       fields = schema.fields.select do |field|

@@ -15,6 +15,7 @@ module ForestLiana
               relationship: "BelongsTo",
               reference: "addressable.id",
               inverse_of: "address",
+              is_primary_key: false,
               is_filterable: false,
               is_sortable: true,
               is_read_only: false,

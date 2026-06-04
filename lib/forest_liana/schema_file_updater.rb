@@ -26,6 +26,7 @@ module ForestLiana
       'enums',
       'integration',
       'is_filterable',
+      'is_primary_key',
       'is_read_only',
       'is_required',
       'is_sortable',
@@ -86,6 +87,7 @@ module ForestLiana
           field['enums'] = nil unless field.has_key?('enums')
           field['integration'] = nil unless field.has_key?('integration')
           field['is_filterable'] = false unless field.has_key?('is_filterable')
+          field['is_primary_key'] = false unless field.has_key?('is_primary_key')
           field['is_read_only'] = true unless field.has_key?('is_read_only')
           field['is_required'] = false unless field.has_key?('is_required')
           field['is_sortable'] = false unless field.has_key?('is_sortable')

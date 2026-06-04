@@ -25,6 +25,7 @@ module ForestLiana
             validations: [],
             is_virtual: true,
             field: :address_type,
+            is_primary_key: false,
             is_filterable: false,
             is_sortable: false
           }
