@@ -30,14 +30,14 @@ module ForestLiana
           expect(helper.parse_composite_id('["a","b"]')).to eq(['a', 'b'])
         end
 
-        it 'returns array as-is when already an array' do
-          expect(helper.parse_composite_id([1, 2])).to eq([1, 2])
+        it 'parses composite ID in pipe-joined format (agent-client / workflow executor)' do
+          expect(helper.parse_composite_id('1|2')).to eq(['1', '2'])
+          expect(helper.parse_composite_id('10|20')).to eq(['10', '20'])
+          expect(helper.parse_composite_id('a|b')).to eq(['a', 'b'])
         end
 
-        it 'raises error for invalid composite ID format' do
-          expect {
-            helper.parse_composite_id('invalid')
-          }.to raise_error(ForestLiana::Errors::HTTP422Error)
+        it 'returns array as-is when already an array' do
+          expect(helper.parse_composite_id([1, 2])).to eq([1, 2])
         end
       end
 

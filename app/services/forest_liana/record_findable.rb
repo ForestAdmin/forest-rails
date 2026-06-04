@@ -14,13 +14,18 @@ module ForestLiana
       end
     end
 
+    # Composite ids reach us in two shapes, both ordered like the model's primary_key:
+    #   - JSON array "[v1,v2]"  -> from the Forest frontend
+    #   - pipe-joined "v1|v2"   -> from the agent-client (workflow executor, Forest convention)
+    # Either way the values stay in primary_key order, so find_record can zip them directly.
     def parse_composite_id(id)
       return id if id.is_a?(Array)
 
-      if id.to_s.start_with?('[') && id.to_s.end_with?(']')
-        JSON.parse(id.to_s)
+      str = id.to_s
+      if str.start_with?('[') && str.end_with?(']')
+        JSON.parse(str)
       else
-        raise ForestLiana::Errors::HTTP422Error.new("Composite primary key ID must be in format [value1,value2], received: #{id}")
+        str.split('|')
       end
     end
   end
