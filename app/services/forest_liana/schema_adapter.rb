@@ -279,7 +279,8 @@ module ForestLiana
               field[:field] = association.name
               field[:inverse_of] = inverse_of(association)
               field[:relationship] = get_relationship_type(association)
-              field[:is_primary_key] = false
+              # NOTICE: Preserve is_primary_key from the underlying column; a
+              #         composite PK made of FKs would otherwise lose its flag.
 
               ForestLiana::SchemaUtils.disable_filter_and_sort_if_cross_db!(
                 field,

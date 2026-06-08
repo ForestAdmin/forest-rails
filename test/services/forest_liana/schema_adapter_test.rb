@@ -69,6 +69,23 @@ module ForestLiana
       assert_equal false, schema[:is_primary_key]
     end
 
+    test 'a foreign key composing the primary key keeps is_primary_key: true once turned into an association' do
+      name = ForestLiana.name_for(BelongsToField)
+      original = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(original) if original
+      BelongsToField.define_singleton_method(:primary_key) { ['id', 'has_one_field_id'] }
+
+      schema = SchemaAdapter.new(BelongsToField).perform
+      field = schema.fields.find { |f| f[:field] == :has_one_field }
+
+      assert_equal true, field[:is_primary_key]
+    ensure
+      BelongsToField.singleton_class.send(:remove_method, :primary_key)
+      rebuilt = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(rebuilt) if rebuilt
+      ForestLiana.apimap << original if original
+    end
+
     test 'belongsTo relationship' do
       schema = SchemaAdapter.new(BelongsToField).perform
       fields = schema.fields.select do |field|
