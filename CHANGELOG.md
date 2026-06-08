@@ -1,3 +1,10 @@
+## [9.18.1](https://github.com/ForestAdmin/forest-rails/compare/v9.18.0...v9.18.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* **composite-pk:** accept pipe-joined composite ids [PRD-450] ([#774](https://github.com/ForestAdmin/forest-rails/issues/774)) ([3db6377](https://github.com/ForestAdmin/forest-rails/commit/3db6377de04d444d8206e4fbea04ffe028a42faf))
+
 # [9.18.0](https://github.com/ForestAdmin/forest-rails/compare/v9.17.7...v9.18.0) (2026-06-04)
 
 
