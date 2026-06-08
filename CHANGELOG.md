@@ -1,3 +1,10 @@
+## [9.18.2](https://github.com/ForestAdmin/forest-rails/compare/v9.18.1...v9.18.2) (2026-06-08)
+
+
+### Bug Fixes
+
+* **schema:** keep is_primary_key on FK columns composing a composite PK ([b8761e9](https://github.com/ForestAdmin/forest-rails/commit/b8761e97c7994c2a68f37effe13831a7e7425304)), closes [#772](https://github.com/ForestAdmin/forest-rails/issues/772)
+
 ## [9.18.1](https://github.com/ForestAdmin/forest-rails/compare/v9.18.0...v9.18.1) (2026-06-08)
 
 
