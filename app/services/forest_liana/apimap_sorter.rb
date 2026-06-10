@@ -31,6 +31,7 @@ module ForestLiana
       'widget',
       'validations',
       'polymorphic_referenced_models',
+      'foreign_key_type_field',
     ]
     KEYS_ACTION = [
       'name',

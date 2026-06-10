@@ -259,7 +259,10 @@ module ForestLiana
               relationships: nil,
               widget: nil,
               validations: [],
-              polymorphic_referenced_models: get_polymorphic_types(association)
+              polymorphic_referenced_models: get_polymorphic_types(association),
+              # NOTICE: Expose the discriminator column (e.g. "addressable_type")
+              #         so consumers can resolve which model a record targets.
+              foreign_key_type_field: association.foreign_type
             }
 
             collection.fields = collection.fields.reject do |field|

@@ -32,7 +32,8 @@ module ForestLiana
                     "relationships" => nil,
                     "widget" => nil,
                     "validations" => [],
-                    "polymorphic_referenced_models" => ["User"]
+                    "polymorphic_referenced_models" => ["User"],
+                    "foreign_key_type_field" => "addressable_type"
                   },
                 ],
                 "actions" => [],
