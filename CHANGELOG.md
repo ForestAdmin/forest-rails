@@ -1,3 +1,10 @@
+# [9.19.0](https://github.com/ForestAdmin/forest-rails/compare/v9.18.2...v9.19.0) (2026-06-10)
+
+
+### Features
+
+* **schema:** expose polymorphic discriminator column in schema ([5c67fa7](https://github.com/ForestAdmin/forest-rails/commit/5c67fa7f0d55f1d4c190859df76f555af882fb75))
+
 ## [9.18.2](https://github.com/ForestAdmin/forest-rails/compare/v9.18.1...v9.18.2) (2026-06-08)
 
 
