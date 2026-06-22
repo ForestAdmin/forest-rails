@@ -3,14 +3,11 @@ require 'httparty'
 module ForestLiana
   class WorkflowExecutionsController < ApplicationController
     EXECUTOR_PREFIX = '/runs'.freeze
-    # Hop-by-hop headers + those the HTTP client / framework recomputes — never forwarded
-    # (request or response side).
+    # Hop-by-hop / client-recomputed headers — never forwarded (request or response side).
     SKIPPED_HEADERS = %w[
       connection keep-alive transfer-encoding upgrade te trailer
       proxy-authenticate proxy-authorization host content-length
     ].freeze
-    # Substrings that could let the wildcard escape EXECUTOR_PREFIX (traversal, encoded dots,
-    # backslash, null byte).
     UNSAFE_PATH_FRAGMENTS = ['..', '%2e', '%2E', '\\', "\0"].freeze
     OPEN_TIMEOUT_IN_SECONDS = 2
     REQUEST_TIMEOUT_IN_SECONDS = 120
@@ -23,8 +20,8 @@ module ForestLiana
       Timeout::Error
     ].freeze
 
-    # Single catch-all: any sub-path/verb under the agent prefix is forwarded to EXECUTOR_PREFIX,
-    # so a new executor route needs no change here (PRD-567).
+    # Catch-all: forward any verb/sub-path to EXECUTOR_PREFIX so a new executor route needs no
+    # change here (PRD-567).
     def proxy
       base = ForestLiana.workflow_executor_url
       return head(:not_found) if base.blank?
@@ -52,9 +49,8 @@ module ForestLiana
 
     private
 
-    # Security boundary: the wildcard can only ever map into EXECUTOR_PREFIX. Returns nil for
-    # anything that could escape it, so executor routes outside EXECUTOR_PREFIX stay unreachable
-    # through the proxy.
+    # Security boundary: the wildcard can only map into EXECUTOR_PREFIX; reject (nil) anything that
+    # could escape it, so non-/runs executor routes stay unreachable through the proxy.
     def safe_executor_path
       wildcard = params[:path].to_s
       return nil if wildcard.empty? || wildcard.start_with?('/')
@@ -63,8 +59,6 @@ module ForestLiana
       "#{EXECUTOR_PREFIX}/#{wildcard}"
     end
 
-    # Forward every client header except hop-by-hop / host / content-length, so a new executor
-    # header never requires an agent change.
     def forwarded_request_headers
       request.headers.env.each_with_object({}) do |(key, value), acc|
         name = http_header_name(key.to_s)
@@ -88,8 +82,7 @@ module ForestLiana
       rack_name.split('_').map(&:capitalize).join('-')
     end
 
-    # The glob is the routing key; strip it (and Rails internals) so only real query params reach
-    # the executor.
+    # Strip the routing key (the glob) and Rails internals so only real query params reach the executor.
     def forwarded_query
       params
         .except(:path, :controller, :action, :format)
@@ -102,8 +95,7 @@ module ForestLiana
       request.raw_post.presence
     end
 
-    # Forward every executor response header except hop-by-hop ones, so new executor headers never
-    # require an agent change (PRD-567: zero breaking, the agent stays a transparent proxy).
+    # Forward executor response headers (minus hop-by-hop) so executor-set headers survive the proxy.
     def forward_response_headers(upstream_response)
       upstream_response.headers.each do |name, value|
         next if name.nil? || SKIPPED_HEADERS.include?(name.to_s.downcase)

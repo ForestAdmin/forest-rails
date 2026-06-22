@@ -23,9 +23,8 @@ ForestLiana::Engine.routes.draw do
   # Scopes
   post '/scope-cache-invalidation' => 'scopes#invalidate_scope_cache'
 
-  # Workflow executor proxy (mounted only when ForestLiana.workflow_executor_url is set).
-  # Single catch-all forwarding every verb/sub-path so a new executor route needs no change
-  # here (PRD-567).
+  # Workflow executor proxy: single catch-all forwarding every verb/sub-path (PRD-567).
+  # Mounted only when ForestLiana.workflow_executor_url is set.
   if ForestLiana.workflow_executor_url.present?
     match '_internal/workflow-executions/*path' => 'workflow_executions#proxy', via: :all
   end
