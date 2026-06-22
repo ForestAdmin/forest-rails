@@ -31,7 +31,14 @@ describe 'Workflow executor proxy', type: :request do
     instance_double(
       HTTParty::Response,
       parsed_response: { 'id' => run_id, 'state' => 'pending' },
-      code: 200
+      code: 200,
+      headers: {
+        'content-type' => 'application/json',
+        # arbitrary executor response header — must be forwarded untouched.
+        'x-executor-custom' => 'passthrough-value',
+        # hop-by-hop response header — must be dropped, not forwarded.
+        'transfer-encoding' => 'chunked'
+      }
     )
   end
 
@@ -42,20 +49,53 @@ describe 'Workflow executor proxy', type: :request do
 
     allow(HTTParty).to receive(:get).and_return(executor_response)
     allow(HTTParty).to receive(:post).and_return(executor_response)
+    allow(HTTParty).to receive(:delete).and_return(executor_response)
   end
 
-  describe 'GET /forest/_internal/workflow-executions/:run_id' do
-    it 'forwards GET to the executor /runs/:run_id endpoint' do
+  describe 'generic forwarding' do
+    it 'forwards a GET under /runs, preserving the sub-path and query verbatim' do
       get "/forest/_internal/workflow-executions/#{run_id}", params: { foo: 'bar' }, headers: auth_headers
 
       expect(HTTParty).to have_received(:get).with(
         "#{executor_url}/runs/#{run_id}",
+        hash_including(query: hash_including('foo' => 'bar'))
+      )
+    end
+
+    it 'forwards a POST trigger with the raw body untouched (no reshaping)' do
+      raw = { step: 'approve', value: 42 }.to_json
+
+      post(
+        "/forest/_internal/workflow-executions/#{run_id}/trigger",
+        params: raw,
+        headers: auth_headers
+      )
+
+      expect(HTTParty).to have_received(:post).with(
+        "#{executor_url}/runs/#{run_id}/trigger",
+        hash_including(body: raw)
+      )
+    end
+
+    it 'forwards any verb and any future sub-path without a dedicated route' do
+      delete "/forest/_internal/workflow-executions/#{run_id}/cancel", headers: auth_headers
+
+      expect(HTTParty).to have_received(:delete).with(
+        "#{executor_url}/runs/#{run_id}/cancel",
+        anything
+      )
+    end
+
+    it 'forwards client headers (e.g. Authorization / Cookie) to the executor' do
+      get "/forest/_internal/workflow-executions/#{run_id}", headers: auth_headers
+
+      expect(HTTParty).to have_received(:get).with(
+        anything,
         hash_including(
           headers: hash_including(
             'Authorization' => "Bearer #{bearer_token}",
             'Cookie' => 'forest_session_token=session-xyz'
-          ),
-          query: hash_including('foo' => 'bar')
+          )
         )
       )
     end
@@ -67,6 +107,31 @@ describe 'Workflow executor proxy', type: :request do
       expect(JSON.parse(response.body)).to eq('id' => run_id, 'state' => 'pending')
     end
 
+    it 'forwards executor response headers except hop-by-hop ones' do
+      get "/forest/_internal/workflow-executions/#{run_id}", headers: auth_headers
+
+      expect(response.headers['x-executor-custom']).to eq('passthrough-value')
+      expect(response.headers['transfer-encoding']).to be_nil
+    end
+  end
+
+  describe 'path traversal protection (the namespace security boundary)' do
+    [
+      '..',
+      '../mcp-oauth-credentials',
+      "#{'run_abc123'}/../../mcp-oauth-credentials",
+      '%2e%2e/mcp-oauth-credentials'
+    ].each do |evil_path|
+      it "rejects #{evil_path.inspect} with 404 and never forwards" do
+        get "/forest/_internal/workflow-executions/#{evil_path}", headers: auth_headers
+
+        expect(response.status).to eq(404)
+        expect(HTTParty).not_to have_received(:get)
+      end
+    end
+  end
+
+  describe 'authentication' do
     it 'rejects unauthenticated requests with 401' do
       get "/forest/_internal/workflow-executions/#{run_id}"
 
@@ -75,40 +140,14 @@ describe 'Workflow executor proxy', type: :request do
     end
   end
 
-  describe 'POST /forest/_internal/workflow-executions/:run_id/trigger' do
-    let(:trigger_body) { { step: 'approve', value: 42 } }
-
-    it 'forwards POST to the executor /runs/:run_id/trigger endpoint with the body' do
-      post(
-        "/forest/_internal/workflow-executions/#{run_id}/trigger",
-        params: trigger_body.to_json,
-        headers: auth_headers
-      )
-
-      expect(HTTParty).to have_received(:post).with(
-        "#{executor_url}/runs/#{run_id}/trigger",
-        hash_including(
-          headers: hash_including('Authorization' => "Bearer #{bearer_token}"),
-          body: trigger_body.to_json
-        )
-      )
-    end
-
-    it 'returns the executor response' do
-      post(
-        "/forest/_internal/workflow-executions/#{run_id}/trigger",
-        params: trigger_body.to_json,
-        headers: auth_headers
-      )
-
-      expect(response.status).to eq(200)
-      expect(JSON.parse(response.body)).to eq('id' => run_id, 'state' => 'pending')
-    end
-  end
-
   describe 'when the executor returns an error status' do
     let(:executor_response) do
-      instance_double(HTTParty::Response, parsed_response: { 'error' => 'invalid_step' }, code: 422)
+      instance_double(
+        HTTParty::Response,
+        parsed_response: { 'error' => 'invalid_step' },
+        code: 422,
+        headers: { 'content-type' => 'application/json' }
+      )
     end
 
     it 'forwards the executor status and body to the client' do

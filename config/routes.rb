@@ -23,10 +23,11 @@ ForestLiana::Engine.routes.draw do
   # Scopes
   post '/scope-cache-invalidation' => 'scopes#invalidate_scope_cache'
 
-  # Workflow executor proxy (mounted only when ForestLiana.workflow_executor_url is set)
+  # Workflow executor proxy (mounted only when ForestLiana.workflow_executor_url is set).
+  # Single catch-all forwarding every verb/sub-path so a new executor route needs no change
+  # here (PRD-567).
   if ForestLiana.workflow_executor_url.present?
-    get  '_internal/workflow-executions/:run_id'         => 'workflow_executions#show'
-    post '_internal/workflow-executions/:run_id/trigger' => 'workflow_executions#trigger'
+    match '_internal/workflow-executions/*path' => 'workflow_executions#proxy', via: :all
   end
 
   # Stripe Integration
