@@ -3,10 +3,13 @@ require 'httparty'
 module ForestLiana
   class WorkflowExecutionsController < ApplicationController
     EXECUTOR_PREFIX = '/runs'.freeze
-    # Hop-by-hop / client-recomputed headers — never forwarded (request or response side).
+    # Never forwarded (request or response): hop-by-hop, Host, and body-framing headers.
+    # render json: re-serializes the body, so the upstream length/encoding no longer match — and
+    # forwarding accept-encoding would defeat Net::HTTP's transparent gzip decompression.
     SKIPPED_HEADERS = %w[
       connection keep-alive transfer-encoding upgrade te trailer
-      proxy-authenticate proxy-authorization host content-length
+      proxy-authenticate proxy-authorization host
+      content-length content-encoding accept-encoding
     ].freeze
     UNSAFE_PATH_FRAGMENTS = ['..', '%2e', '%2E', '\\', "\0"].freeze
     OPEN_TIMEOUT_IN_SECONDS = 2
@@ -17,7 +20,8 @@ module ForestLiana
       Errno::ECONNREFUSED,
       Net::OpenTimeout,
       Net::ReadTimeout,
-      Timeout::Error
+      Timeout::Error,
+      OpenSSL::SSL::SSLError
     ].freeze
 
     # Catch-all: forward any verb/sub-path to EXECUTOR_PREFIX so a new executor route needs no

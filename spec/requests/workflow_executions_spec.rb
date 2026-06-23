@@ -37,7 +37,9 @@ describe 'Workflow executor proxy', type: :request do
         # arbitrary executor response header — must be forwarded untouched.
         'x-executor-custom' => 'passthrough-value',
         # hop-by-hop response header — must be dropped, not forwarded.
-        'transfer-encoding' => 'chunked'
+        'transfer-encoding' => 'chunked',
+        # body-framing header — meaningless once the body is re-serialized; must be dropped.
+        'content-encoding' => 'gzip'
       }
     )
   end
@@ -107,11 +109,23 @@ describe 'Workflow executor proxy', type: :request do
       expect(JSON.parse(response.body)).to eq('id' => run_id, 'state' => 'pending')
     end
 
-    it 'forwards executor response headers except hop-by-hop ones' do
+    it 'forwards executor response headers except hop-by-hop / encoding ones' do
       get "/forest/_internal/workflow-executions/#{run_id}", headers: auth_headers
 
       expect(response.headers['x-executor-custom']).to eq('passthrough-value')
       expect(response.headers['transfer-encoding']).to be_nil
+      # content-encoding would tell the client the re-serialized JSON is gzipped → corruption.
+      expect(response.headers['content-encoding']).to be_nil
+    end
+
+    it 'does not forward accept-encoding (would defeat transparent gzip decompression)' do
+      get "/forest/_internal/workflow-executions/#{run_id}",
+          headers: auth_headers.merge('Accept-Encoding' => 'gzip, deflate')
+
+      expect(HTTParty).to have_received(:get).with(
+        anything,
+        hash_including(headers: hash_excluding('Accept-Encoding'))
+      )
     end
   end
 
@@ -164,6 +178,19 @@ describe 'Workflow executor proxy', type: :request do
     end
 
     it 'returns 503 service_unavailable' do
+      get "/forest/_internal/workflow-executions/#{run_id}", headers: auth_headers
+
+      expect(response.status).to eq(503)
+      expect(JSON.parse(response.body)).to eq('error' => 'workflow_executor_unreachable')
+    end
+  end
+
+  describe 'when the executor connection fails at the transport level (e.g. SSL)' do
+    before do
+      allow(HTTParty).to receive(:get).and_raise(OpenSSL::SSL::SSLError.new('cert verify failed'))
+    end
+
+    it 'returns 503 rather than a generic 500' do
       get "/forest/_internal/workflow-executions/#{run_id}", headers: auth_headers
 
       expect(response.status).to eq(503)
