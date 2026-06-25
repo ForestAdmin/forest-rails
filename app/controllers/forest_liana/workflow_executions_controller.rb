@@ -1,8 +1,8 @@
 require 'httparty'
+require 'uri'
 
 module ForestLiana
   class WorkflowExecutionsController < ApplicationController
-    EXECUTOR_PREFIX = '/runs'.freeze
     # Never forwarded (request or response): hop-by-hop, Host, and body-framing headers.
     # render json: re-serializes the body, so the upstream length/encoding no longer match — and
     # forwarding accept-encoding would defeat Net::HTTP's transparent gzip decompression.
@@ -24,22 +24,26 @@ module ForestLiana
       OpenSSL::SSL::SSLError
     ].freeze
 
-    # Catch-all: forward any verb/sub-path to EXECUTOR_PREFIX so a new executor route needs no
-    # change here (PRD-567).
+    # Catch-all: forward any verb/sub-path verbatim to the executor, so a new executor route needs
+    # no change here.
     def proxy
       base = ForestLiana.workflow_executor_url
       return head(:not_found) if base.blank?
 
+      normalized_base = base.sub(%r{/+\z}, '')
       path = safe_executor_path
       return head(:not_found) if path.nil?
+      return head(:not_found) unless same_origin?(normalized_base, path)
 
       response = HTTParty.send(
         request.request_method_symbol,
-        "#{base.sub(%r{/+\z}, '')}#{path}",
+        "#{normalized_base}#{path}",
         headers: forwarded_request_headers,
         query: forwarded_query,
         body: forwarded_body,
         verify: Rails.env.production?,
+        # Don't follow redirects: a 3xx Location to an off-origin host would bypass the origin guard.
+        follow_redirects: false,
         open_timeout: OPEN_TIMEOUT_IN_SECONDS,
         timeout: REQUEST_TIMEOUT_IN_SECONDS
       )
@@ -53,14 +57,22 @@ module ForestLiana
 
     private
 
-    # Security boundary: the wildcard can only map into EXECUTOR_PREFIX; reject (nil) anything that
-    # could escape it, so non-/runs executor routes stay unreachable through the proxy.
+    # First-pass rejection of escape attempts; the authoritative origin check is same_origin?.
     def safe_executor_path
       wildcard = params[:path].to_s
       return nil if wildcard.empty? || wildcard.start_with?('/')
       return nil if UNSAFE_PATH_FRAGMENTS.any? { |fragment| wildcard.include?(fragment) }
 
-      "#{EXECUTOR_PREFIX}/#{wildcard}"
+      "/#{wildcard}"
+    end
+
+    # Authoritative SSRF check: forwarding must never leave the executor origin.
+    def same_origin?(base, path)
+      base_uri = URI.parse(base)
+      target = URI.parse("#{base}#{path}")
+      target.scheme == base_uri.scheme && target.host == base_uri.host && target.port == base_uri.port
+    rescue URI::InvalidURIError
+      false
     end
 
     def forwarded_request_headers
