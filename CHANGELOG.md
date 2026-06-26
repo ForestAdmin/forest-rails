@@ -1,3 +1,10 @@
+# [9.20.0](https://github.com/ForestAdmin/forest-rails/compare/v9.19.0...v9.20.0) (2026-06-26)
+
+
+### Features
+
+* **workflow:** forward any executor route generically [PRD-567] ([#778](https://github.com/ForestAdmin/forest-rails/issues/778)) ([8b1edfb](https://github.com/ForestAdmin/forest-rails/commit/8b1edfb9528c80344d73b9ff244ffc66deaef471))
+
 # [9.19.0](https://github.com/ForestAdmin/forest-rails/compare/v9.18.2...v9.19.0) (2026-06-10)
 
 
