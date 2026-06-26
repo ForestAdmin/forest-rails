@@ -23,10 +23,10 @@ ForestLiana::Engine.routes.draw do
   # Scopes
   post '/scope-cache-invalidation' => 'scopes#invalidate_scope_cache'
 
-  # Workflow executor proxy: single catch-all forwarding every verb/sub-path (PRD-567).
+  # Workflow executor proxy: single catch-all forwarding every verb/sub-path verbatim.
   # Mounted only when ForestLiana.workflow_executor_url is set.
   if ForestLiana.workflow_executor_url.present?
-    match '_internal/workflow-executions/*path' => 'workflow_executions#proxy', via: :all
+    match '_internal/executor/*path' => 'workflow_executions#proxy', via: :all
   end
 
   # Stripe Integration
