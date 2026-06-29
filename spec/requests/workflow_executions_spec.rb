@@ -1,4 +1,7 @@
 require 'rails_helper'
+require 'zlib'
+require 'stringio'
+require 'socket'
 
 describe 'Workflow executor proxy', type: :request do
   let(:run_id) { 'run_abc123' }
@@ -204,6 +207,53 @@ describe 'Workflow executor proxy', type: :request do
 
       expect(response.status).to eq(503)
       expect(JSON.parse(response.body)).to eq('error' => 'workflow_executor_unreachable')
+    end
+  end
+
+  # Real local server + real HTTParty (no stub) to exercise actual gzip decompression.
+  describe 'when the executor gzip-compresses the response (nginx in front)' do
+    let(:gz_body) do
+      io = StringIO.new
+      writer = Zlib::GzipWriter.new(io)
+      writer.write({ 'id' => run_id, 'state' => 'pending' }.to_json)
+      writer.close
+      io.string
+    end
+
+    around do |example|
+      server = TCPServer.new('127.0.0.1', 0)
+      port = server.addr[1]
+      thread = Thread.new do
+        client = server.accept
+        client.readpartial(4096)
+        client.write(
+          "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n" \
+          "Content-Encoding: gzip\r\nContent-Length: #{gz_body.bytesize}\r\n" \
+          "Connection: close\r\n\r\n"
+        )
+        client.write(gz_body)
+        client.close
+      rescue IOError, Errno::ECONNRESET, Errno::EPIPE
+        nil
+      end
+
+      original = ForestLiana.workflow_executor_url
+      ForestLiana.workflow_executor_url = "http://127.0.0.1:#{port}"
+      example.run
+    ensure
+      ForestLiana.workflow_executor_url = original
+      thread&.kill
+      server&.close
+    end
+
+    before { allow(HTTParty).to receive(:get).and_call_original }
+
+    it 'decompresses the body and drops the stale content-encoding' do
+      get "/forest/_internal/executor/runs/#{run_id}", headers: auth_headers
+
+      expect(response.status).to eq(200)
+      expect(JSON.parse(response.body)).to eq('id' => run_id, 'state' => 'pending')
+      expect(response.headers['content-encoding']).to be_nil
     end
   end
 
