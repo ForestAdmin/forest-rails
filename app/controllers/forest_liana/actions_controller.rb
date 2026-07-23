@@ -58,7 +58,7 @@ module ForestLiana
       begin
         # action.hooks[:change] is a hashmap here
         # to do the validation, only the hook names are require
-        change_hooks_name = action.hooks[:change].nil? ? nil : action.hooks[:change].keys
+        change_hooks_name = action.hooks && action.hooks[:change] ? action.hooks[:change].keys : nil
         ForestLiana::SmartActionFieldValidator.validate_smart_action_fields(result[:fields], action.name, change_hooks_name)
       rescue ForestLiana::Errors::SmartActionInvalidFieldError => invalid_field_error
         FOREST_LOGGER.warn invalid_field_error.message
@@ -107,10 +107,15 @@ module ForestLiana
         # Get the smart action hook load context
         context = get_smart_action_load_ctx(action.fields)
 
-        # Call the user-defined load hook.
-        result = action.hooks[:load].(context)
+        if action.hooks && action.hooks[:load].present?
+          # Call the user-defined load hook.
+          result = action.hooks[:load].(context)
 
-        handle_result(result, action)
+          handle_result(result, action)
+        else
+          # No load hook declared: answer the static form (Node agent parity) instead of a 404.
+          handle_result(context[:fields], action)
+        end
       end
     end
 
