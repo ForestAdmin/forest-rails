@@ -1,3 +1,10 @@
+## [9.20.1](https://github.com/ForestAdmin/forest-rails/compare/v9.20.0...v9.20.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **actions:** always expose /hooks/load even without a load hook [PRD-801] ([#780](https://github.com/ForestAdmin/forest-rails/issues/780)) ([4b28797](https://github.com/ForestAdmin/forest-rails/commit/4b28797b2be7e9b0602e4d5dd973ae9140ac1e00))
+
 # [9.20.0](https://github.com/ForestAdmin/forest-rails/compare/v9.19.0...v9.20.0) (2026-06-26)
 
 
