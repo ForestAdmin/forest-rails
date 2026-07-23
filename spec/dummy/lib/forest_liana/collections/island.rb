@@ -28,6 +28,19 @@ class Forest::Island
 
   action 'test'
 
+  action 'static_form_action',
+    fields: [{
+      field: 'static_field',
+      type: 'String',
+      default_value: nil,
+      enums: nil,
+      is_required: false,
+      is_read_only: false,
+      reference: nil,
+      description: nil,
+      widget: nil
+    }]
+
   action 'my_action',
     fields: [foo],
     hooks: {

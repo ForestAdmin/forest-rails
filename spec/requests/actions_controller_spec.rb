@@ -130,6 +130,20 @@ describe 'Requesting Actions routes', :type => :request  do
         expect(response.status).to eq(422)
       end
 
+      it 'should respond 200 with the static form when the action has no load hook' do
+        post '/forest/actions/static_form_action/hooks/load', params: JSON.dump(params), headers: headers
+        action = island.actions.select { |action| action.name == 'static_form_action' }.first
+        static_field = action.fields.select { |field| field[:field] == 'static_field' }.first
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)).to eq({'fields' => [static_field.merge({:value => nil}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
+      end
+
+      it 'should respond 200 with empty fields when the action has no form at all' do
+        post '/forest/actions/test/hooks/load', params: JSON.dump(params), headers: headers
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)).to eq({'fields' => []})
+      end
+
       it 'should respond 500 with bad hook result type' do
         post '/forest/actions/fail_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(500)
