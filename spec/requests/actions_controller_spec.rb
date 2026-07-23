@@ -136,6 +136,11 @@ describe 'Requesting Actions routes', :type => :request  do
         static_field = action.fields.select { |field| field[:field] == 'static_field' }.first
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)).to eq({'fields' => [static_field.merge({:value => nil}).transform_keys { |key| key.to_s.camelize(:lower) }.stringify_keys]})
+
+        first_body = response.body
+        post '/forest/actions/static_form_action/hooks/load', params: JSON.dump(params), headers: headers
+        expect(response.status).to eq(200)
+        expect(response.body).to eq(first_body)
       end
 
       it 'should respond 200 with empty fields when the action has no form at all' do
