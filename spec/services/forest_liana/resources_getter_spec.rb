@@ -83,26 +83,6 @@ module ForestLiana
       let(:resource) { Product }
       let(:fields) { { resource.name => 'id,name,manufacturer', 'manufacturer' => 'name' } }
 
-      shared_context 'resource current_database' do
-        before do
-          connection = resource.connection
-
-          def connection.current_database
-            'db/test.sqlite3'
-          end
-        end
-
-        after do
-          resource.connection.singleton_class.remove_method(:current_database)
-        end
-      end
-
-      shared_examples 'left outer join' do
-        it 'should perform a left outer join with the association' do
-          expect(getter.perform.to_sql).to match(/LEFT OUTER JOIN "manufacturers"/)
-        end
-      end
-
       shared_examples 'records' do
         it 'should get only the expected records' do
           getter.perform
@@ -117,40 +97,38 @@ module ForestLiana
         end
       end
 
-      context 'when the connections do not support current_database' do
-        include_examples 'left outer join'
+      context 'when the included association is in the same database' do
+        it 'performs a left outer join with the association' do
+          expect(getter.perform.to_sql).to match(/LEFT OUTER JOIN "manufacturers"/)
+        end
+
         include_examples 'records'
       end
 
-      context 'when the included association uses a different database connection' do
+      context 'when the included association is in a different database' do
         let(:fields) { { resource.name => 'id,name,driver', 'driver' => 'firstname' } }
-
-        before do
-          association_connection = resource.reflect_on_association(:driver).klass.connection
-
-          def association_connection.current_database
-            'db/different_test.sqlite3'
-          end
-        end
-
-        after do
-          resource.reflect_on_association(:driver).klass.connection.singleton_class.remove_method(:current_database)
-        end
-
-        include_context 'resource current_database'
-
-        include_examples 'records'
 
         it 'does not perform a left outer join with the association' do
           expect(getter.perform.to_sql).not_to match(/LEFT OUTER JOIN "drivers"/)
         end
+
+        include_examples 'records'
       end
 
-      context 'when the included association uses the same database connection' do
-        include_context 'resource current_database'
+      it 'resolves the database without issuing a SQL query' do
+        getter
 
-        include_examples 'left outer join'
-        include_examples 'records'
+        queries = []
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+          queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+        end
+        begin
+          getter.send(:separate_database?, Product, Product.reflect_on_association(:manufacturer))
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+
+        expect(queries).to be_empty
       end
     end
 
