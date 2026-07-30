@@ -107,6 +107,41 @@ module ForestLiana
       ForestLiana.apimap << original if original
     end
 
+    test 'an ordinary foreign key of an excluded association is still deleted' do
+      excluded_models = ForestLiana.excluded_models
+      name = ForestLiana.name_for(BelongsToField)
+      original = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(original) if original
+      ForestLiana.excluded_models = [ForestLiana.name_for(HasOneField)]
+
+      schema = SchemaAdapter.new(BelongsToField).perform
+
+      assert_nil schema.fields.find { |f| f[:field] == 'has_one_field_id' }
+    ensure
+      ForestLiana.excluded_models = excluded_models
+      rebuilt = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(rebuilt) if rebuilt
+      ForestLiana.apimap << original if original
+    end
+
+    test 'a primary key column that is also a polymorphic foreign key is kept' do
+      name = ForestLiana.name_for(PolymorphicField)
+      original = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(original) if original
+      PolymorphicField.define_singleton_method(:primary_key) { 'has_one_field_id' }
+
+      schema = SchemaAdapter.new(PolymorphicField).perform
+      field = schema.fields.find { |f| f[:field] == 'has_one_field_id' }
+
+      refute_nil field, 'the primary key column must not be rejected'
+      assert_equal true, field[:is_primary_key]
+    ensure
+      PolymorphicField.singleton_class.send(:remove_method, :primary_key)
+      rebuilt = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(rebuilt) if rebuilt
+      ForestLiana.apimap << original if original
+    end
+
     test 'belongsTo relationship' do
       schema = SchemaAdapter.new(BelongsToField).perform
       fields = schema.fields.select do |field|

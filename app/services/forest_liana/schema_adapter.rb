@@ -266,6 +266,9 @@ module ForestLiana
             }
 
             collection.fields = collection.fields.reject do |field|
+              # NOTICE: A primary key column must survive; a type column is never one.
+              next false if field[:is_primary_key]
+
               field[:field] == association.foreign_key || field[:field] == association.foreign_type
             end
           # NOTICE: Delete the association if the targeted model is excluded.
