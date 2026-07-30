@@ -1,3 +1,12 @@
+## [9.20.2](https://github.com/ForestAdmin/forest-rails/compare/v9.20.1...v9.20.2) (2026-07-30)
+
+
+### Bug Fixes
+
+* **schema:** guard the polymorphic reject too, and pin the deletion that must stay ([f13120c](https://github.com/ForestAdmin/forest-rails/commit/f13120c2b2fa54f68861584a0231e1103295858e))
+* **schema:** keep primary key columns that double as a foreign key ([5fe4dec](https://github.com/ForestAdmin/forest-rails/commit/5fe4dec8b717e988d85afab9aaff93f811b8094b))
+* **schema:** keep primary key columns that double as a foreign key ([e0a540b](https://github.com/ForestAdmin/forest-rails/commit/e0a540bb265d0e5cc1dee9bf461e99f64b6ac410))
+
 ## [9.20.1](https://github.com/ForestAdmin/forest-rails/compare/v9.20.0...v9.20.1) (2026-07-23)
 
 
