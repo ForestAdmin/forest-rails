@@ -86,6 +86,29 @@ module ForestLiana
       ForestLiana.apimap << original if original
     end
 
+    test 'a primary key column that is also the foreign key of an excluded association is kept' do
+      excluded_models = ForestLiana.excluded_models
+      name = ForestLiana.name_for(BelongsToField)
+      original = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(original) if original
+      ForestLiana.excluded_models = [ForestLiana.name_for(HasOneField)]
+      BelongsToField.define_singleton_method(:primary_key) { 'has_one_field_id' }
+
+      schema = SchemaAdapter.new(BelongsToField).perform
+      field = schema.fields.find { |f| f[:field] == 'has_one_field_id' }
+
+      refute_nil field, 'the primary key column must not be deleted'
+      assert_equal true, field[:is_primary_key]
+      # NOTICE: The excluded target must not be published as an association either.
+      assert_nil schema.fields.find { |f| f[:field].to_s == 'has_one_field' }
+    ensure
+      BelongsToField.singleton_class.send(:remove_method, :primary_key)
+      ForestLiana.excluded_models = excluded_models
+      rebuilt = ForestLiana.apimap.find { |c| c.name.to_s == name }
+      ForestLiana.apimap.delete(rebuilt) if rebuilt
+      ForestLiana.apimap << original if original
+    end
+
     test 'belongsTo relationship' do
       schema = SchemaAdapter.new(BelongsToField).perform
       fields = schema.fields.select do |field|
