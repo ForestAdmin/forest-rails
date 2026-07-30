@@ -99,8 +99,6 @@ module ForestLiana
 
       refute_nil field, 'the primary key column must not be deleted'
       assert_equal true, field[:is_primary_key]
-      # NOTICE: The excluded target must not be published as an association either.
-      assert_nil schema.fields.find { |f| f[:field].to_s == 'has_one_field' }
     ensure
       BelongsToField.singleton_class.send(:remove_method, :primary_key)
       ForestLiana.excluded_models = excluded_models

@@ -274,9 +274,7 @@ module ForestLiana
               x[:field] == association.foreign_key
             end
 
-            # NOTICE: Never drop a primary key column, even when it doubles as the
-            #         foreign key of an excluded association: the collection would
-            #         be left with no addressable primary key at all.
+            # NOTICE: A primary key column must survive, even as an excluded association's FK.
             collection.fields.delete(field) if field && !field[:is_primary_key]
           # NOTICE: The foreign key exists, so it's a belongsTo relationship.
           elsif (field = column_association(collection, association)) &&
