@@ -1,3 +1,10 @@
+## [9.20.3](https://github.com/ForestAdmin/forest-rails/compare/v9.20.2...v9.20.3) (2026-07-30)
+
+
+### Performance Improvements
+
+* avoid a SQL query per association in separate_database? ([#782](https://github.com/ForestAdmin/forest-rails/issues/782)) ([bb0ded2](https://github.com/ForestAdmin/forest-rails/commit/bb0ded221ceb972664ef9156d9dc2bf2e7699412))
+
 ## [9.20.2](https://github.com/ForestAdmin/forest-rails/compare/v9.20.1...v9.20.2) (2026-07-30)
 
 
