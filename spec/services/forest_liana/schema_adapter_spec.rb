@@ -1,5 +1,25 @@
 module ForestLiana
   describe SchemaAdapter do
+    describe '#get_type_for' do
+      let(:adapter) { described_class.new(Tree) }
+
+      def column_of_type(type)
+        double('Column', name: 'some_column', type: type, array: false)
+      end
+
+      it 'maps a timestamptz column to the Date type' do
+        expect(adapter.send(:get_type_for, column_of_type(:timestamptz))).to eq 'Date'
+      end
+
+      it 'maps a timestamp column to the Date type' do
+        expect(adapter.send(:get_type_for, column_of_type(:timestamp))).to eq 'Date'
+      end
+
+      it 'still maps a datetime column to the Date type' do
+        expect(adapter.send(:get_type_for, column_of_type(:datetime))).to eq 'Date'
+      end
+    end
+
     describe 'perform' do
       context 'with polymorphic association' do
         it 'should define the association with the referenced models' do

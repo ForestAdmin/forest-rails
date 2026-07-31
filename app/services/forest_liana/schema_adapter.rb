@@ -415,7 +415,7 @@ module ForestLiana
       case column.type
       when :boolean
         type = 'Boolean'
-      when :datetime
+      when :datetime, :timestamptz, :timestamp
         type = 'Date'
       when :date
         type = 'Dateonly'
