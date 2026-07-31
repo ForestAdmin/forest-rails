@@ -88,6 +88,7 @@ module ForestLiana
             { key: 'permissionLevel', expected_value: user['permissionLevel'] },
             { key: 'roleId', expected_value: user['roleId'] },
             { key: 'tags.planet', expected_value: user['tags'][0]['value'] },
+            { key: 'tags', expected_value: user['tags'].to_json },
             { key: 'team.id', expected_value: team['id'] },
             { key: 'team.name', expected_value: team['name'] }
           ].each do |value|

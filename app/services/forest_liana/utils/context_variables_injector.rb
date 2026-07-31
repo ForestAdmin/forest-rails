@@ -13,7 +13,7 @@ module ForestLiana
                           "Available context variables: #{available_keys}. "
             raise error_message
           end
-          value.to_s
+          value.is_a?(Array) || value.is_a?(Hash) ? value.to_json : value.to_s
         end
       end
 
