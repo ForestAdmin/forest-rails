@@ -1,3 +1,10 @@
+## [9.20.4](https://github.com/ForestAdmin/forest-rails/compare/v9.20.3...v9.20.4) (2026-07-31)
+
+
+### Bug Fixes
+
+* serialize Array/Hash context variables as JSON instead of Ruby #to_s ([#783](https://github.com/ForestAdmin/forest-rails/issues/783)) ([d6c4568](https://github.com/ForestAdmin/forest-rails/commit/d6c4568550bf36295a2f3d50217d3dcc0b6cd97c))
+
 ## [9.20.3](https://github.com/ForestAdmin/forest-rails/compare/v9.20.2...v9.20.3) (2026-07-30)
 
 
