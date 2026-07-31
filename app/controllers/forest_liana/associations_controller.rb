@@ -27,6 +27,11 @@ module ForestLiana
     def count
       find_resource
       find_association
+      # NOTICE: find_association renders a 404 (without halting) when the
+      #         association name does not resolve; stop here instead of falling
+      #         through and dereferencing a nil @association, which surfaced as
+      #         a double-render / 500 rather than the intended 404.
+      return if performed?
       begin
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count

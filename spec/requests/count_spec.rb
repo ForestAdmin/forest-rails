@@ -74,6 +74,20 @@ describe 'Requesting Owner', :type => :request  do
     end
   end
 
+  describe 'count on an unknown relationship' do
+    params = {
+      fields: { 'Tree' => 'id,name,owner' },
+      page: { 'number' => '1', 'size' => '10' },
+      searchExtended: '0',
+      timezone: 'Europe/Paris'
+    }
+
+    it 'should respond 404 instead of 500' do
+      get '/forest/Owner/5/relationships/unknown_things/count', params: params, headers: headers
+      expect(response.status).to eq(404)
+    end
+  end
+
   describe 'deactivate_count_response' do
     params = {
       fields: { 'Owner' => 'id,name' },
