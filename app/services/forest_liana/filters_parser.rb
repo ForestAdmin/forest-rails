@@ -83,6 +83,10 @@ module ForestLiana
       value = condition['value']
       field_name = condition['field']
 
+      # NOTICE: captured before the enum mapping below, which turns an unknown
+      #         enum value into nil and would otherwise look like a null filter.
+      null_value = value.nil?
+
       if @operator_date_parser.is_date_operator?(operator)
         field_schema = SchemaUtils.find_column_schema_by_name(ForestLiana.name_for(@resource), field_name)
         condition = @operator_date_parser.get_date_filter(operator, value, field_schema)
@@ -99,6 +103,14 @@ module ForestLiana
 
       case_insensitive = operator == 'i_contains'
       parsed_field = parse_field_name(field_name, case_insensitive)
+
+      # NOTICE: the UI sends a null equality filter as a JSON null; `= NULL` and
+      #         `!= NULL` never match anything in SQL.
+      if null_value
+        return "#{parsed_field} IS NULL" if operator == 'equal'
+        return "#{parsed_field} IS NOT NULL" if operator == 'not_equal'
+      end
+
       parsed_operator = parse_operator(operator)
       parsed_value = parse_value(operator, value)
       field_and_operator = "#{parsed_field} #{parsed_operator}"

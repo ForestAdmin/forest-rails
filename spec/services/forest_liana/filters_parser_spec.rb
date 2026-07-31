@@ -45,6 +45,29 @@ module ForestLiana
             it { expect(parsed_filters.count).to eq 1 }
           end
 
+          context 'equal on a null value (JSON null from the UI)' do
+            before do
+              Tree.create!(name: nil, age: 42, island: Island.first)
+              Tree.create!(name: 'null', age: 43, island: Island.first)
+            end
+
+            let(:filters) { { 'field' => 'name', 'operator' => 'equal', 'value' => nil } }
+
+            it 'matches rows where the column IS NULL, not the literal string "null"' do
+              expect(parsed_filters.pluck(:name)).to eq([nil])
+            end
+          end
+
+          context 'not_equal on a null value (JSON null from the UI)' do
+            before { Tree.create!(name: nil, age: 42, island: Island.first) }
+
+            let(:filters) { { 'field' => 'name', 'operator' => 'not_equal', 'value' => nil } }
+
+            it 'matches rows where the column IS NOT NULL' do
+              expect(parsed_filters.pluck(:name)).to match_array(['Tree n1', 'Tree n2', 'Tree n3'])
+            end
+          end
+
           context 'greater_than' do
             let(:filters) { { 'field' => 'age', 'operator' => 'greater_than', 'value' => 2 } }
             it { expect(parsed_filters.count).to eq 2 }
@@ -104,6 +127,14 @@ module ForestLiana
 
           context 'equal' do
           let(:filters) { { 'field' => 'cutter:title', 'operator' => 'equal', 'value' => 'king' } }
+            it { expect(parsed_filters.count).to eq 0 }
+          end
+
+          context 'equal on an unknown enum value' do
+            # The enum mapping nils an unknown value; the null-filter guard is
+            # keyed on the pre-mapping value so it must NOT become `IS NULL`
+            # (that would wrongly match rows whose joined cutter is absent).
+            let(:filters) { { 'field' => 'cutter:title', 'operator' => 'equal', 'value' => 'not_a_title' } }
             it { expect(parsed_filters.count).to eq 0 }
           end
 
