@@ -1,3 +1,10 @@
+## [9.20.5](https://github.com/ForestAdmin/forest-rails/compare/v9.20.4...v9.20.5) (2026-08-03)
+
+
+### Bug Fixes
+
+* handle nil datetime group key in pie chart aggregation ([#787](https://github.com/ForestAdmin/forest-rails/issues/787)) ([b323460](https://github.com/ForestAdmin/forest-rails/commit/b3234607beddab1d71e582aa66935a83d5a3279a))
+
 ## [9.20.4](https://github.com/ForestAdmin/forest-rails/compare/v9.20.3...v9.20.4) (2026-07-31)
 
 
