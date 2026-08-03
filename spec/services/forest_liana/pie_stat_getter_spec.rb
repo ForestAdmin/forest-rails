@@ -44,6 +44,33 @@ module ForestLiana
       end
     end
 
+    describe 'grouping by a nullable datetime field with a null value' do
+      let(:scopes) { {'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}} }
+      let(:model) { Tree }
+      let(:collection) { 'trees' }
+      let(:params) {
+        {
+          type: 'Pie',
+          sourceCollectionName: collection,
+          timezone: 'Europe/Paris',
+          aggregator: 'Count',
+          groupByFieldName: 'created_at'
+        }
+      }
+
+      subject { PieStatGetter.new(model, params, user) }
+
+      before do
+        tree = Tree.create!(name: 'No date tree', age: 1)
+        tree.update_columns(created_at: nil)
+      end
+
+      it 'labels the null bucket "No value" instead of raising on nil + offset' do
+        expect { subject.perform }.not_to raise_error
+        expect(subject.record.value.map { |entry| entry[:key] }).to include('No value')
+      end
+    end
+
     describe 'with valid aggregate function' do
       let(:model) { Tree }
       let(:collection) { 'trees' }
