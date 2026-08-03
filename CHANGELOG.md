@@ -1,3 +1,10 @@
+## [9.20.7](https://github.com/ForestAdmin/forest-rails/compare/v9.20.6...v9.20.7) (2026-08-03)
+
+
+### Bug Fixes
+
+* map timestamptz columns to the Date type ([#785](https://github.com/ForestAdmin/forest-rails/issues/785)) ([e8bcc1f](https://github.com/ForestAdmin/forest-rails/commit/e8bcc1f3c88a4dcf36f522b1b02985ff11a127a8))
+
 ## [9.20.6](https://github.com/ForestAdmin/forest-rails/compare/v9.20.5...v9.20.6) (2026-08-03)
 
 
