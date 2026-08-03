@@ -1,3 +1,10 @@
+## [9.20.6](https://github.com/ForestAdmin/forest-rails/compare/v9.20.5...v9.20.6) (2026-08-03)
+
+
+### Bug Fixes
+
+* return 404 not 500 when counting an unknown relationship ([#788](https://github.com/ForestAdmin/forest-rails/issues/788)) ([dad083a](https://github.com/ForestAdmin/forest-rails/commit/dad083af00ca6f08ac6a9d9b5dcce3ebb2fb48ca))
+
 ## [9.20.5](https://github.com/ForestAdmin/forest-rails/compare/v9.20.4...v9.20.5) (2026-08-03)
 
 
