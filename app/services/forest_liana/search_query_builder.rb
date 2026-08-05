@@ -85,7 +85,7 @@ module ForestLiana
             !@resource.defined_enums[column.name][@search.downcase].nil?
             conditions << "#{column_name} =
               #{@resource.defined_enums[column.name][@search.downcase]}"
-          elsif !(column.respond_to?(:array) && column.array) && text_type?(column.type)
+          elsif !(column.respond_to?(:array) && column.array) && text_type?(column.type) && !malformed_uuid_search?
             conditions << "LOWER(#{column_name}) LIKE :search_value_for_string"
           end
         end
@@ -114,7 +114,7 @@ module ForestLiana
               resource = @resource.reflect_on_association(association.to_sym)
               unless (SchemaUtils.polymorphic?(resource))
                 resource.klass.columns.each do |column|
-                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
+                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type) && !malformed_uuid_search?
                     if @collection.search_fields.nil? || (association_search &&
                       association_search.include?(column.name))
                       conditions << association_search_condition(resource.table_name,
@@ -138,7 +138,7 @@ module ForestLiana
               unless association_search.empty?
                 resource = @resource.reflect_on_association(association.to_sym)
                 resource.klass.columns.each do |column|
-                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type)
+                  if !(column.respond_to?(:array) && column.array) && text_type?(column.type) && !malformed_uuid_search?
                     if association_search.include?(column.name)
                       conditions << association_search_condition(resource.table_name,
                         column.name)
@@ -150,11 +150,18 @@ module ForestLiana
           end
         end
 
-        @records = @resource.where(
-          conditions.join(' OR '),
-          search_value_for_string: "%#{@search.downcase}%",
-          search_value_for_uuid: @search.to_s
-        ) unless conditions.empty?
+        if conditions.empty?
+          # NOTICE: a malformed-UUID search suppresses the only conditions it could
+          #         have produced (text LIKE scans); match nothing rather than fall
+          #         through to an unfiltered query that returns the whole table.
+          @records = @resource.none if malformed_uuid_search?
+        else
+          @records = @resource.where(
+            conditions.join(' OR '),
+            search_value_for_string: "%#{@search.downcase}%",
+            search_value_for_uuid: @search.to_s
+          )
+        end
       end
 
       @records
@@ -222,6 +229,18 @@ module ForestLiana
 
     def text_type?(type_sym)
       [:string, :text, :citext].include? type_sym
+    end
+
+    # NOTICE: A search that is UUID-shaped but fails the strict REGEX_UUID (a
+    #         truncated or mistyped UUID) can never match a real UUID column and,
+    #         on text columns, only triggers `LOWER(col) LIKE '%…%'` sequential
+    #         scans that can hit the statement timeout. Valid UUIDs are excluded
+    #         so they keep matching UUIDs stored in varchar/text columns.
+    def malformed_uuid_search?
+      return false unless @search.is_a?(String)
+
+      @search.match?(/\A[0-9a-f]+-[0-9a-f]+-[0-9a-f]+-[0-9a-f]+-[0-9a-f]+\z/i) &&
+        !REGEX_UUID.match?(@search)
     end
   end
 end
