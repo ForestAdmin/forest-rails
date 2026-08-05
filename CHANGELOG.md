@@ -1,3 +1,10 @@
+## [9.20.8](https://github.com/ForestAdmin/forest-rails/compare/v9.20.7...v9.20.8) (2026-08-05)
+
+
+### Bug Fixes
+
+* translate null equality/inequality filters to IS [NOT] NULL ([#784](https://github.com/ForestAdmin/forest-rails/issues/784)) ([d27956d](https://github.com/ForestAdmin/forest-rails/commit/d27956dbf13ecf0e8327254c1b694bfeebd2143f))
+
 ## [9.20.7](https://github.com/ForestAdmin/forest-rails/compare/v9.20.6...v9.20.7) (2026-08-03)
 
 
