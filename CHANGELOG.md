@@ -1,3 +1,10 @@
+## [9.20.9](https://github.com/ForestAdmin/forest-rails/compare/v9.20.8...v9.20.9) (2026-08-05)
+
+
+### Bug Fixes
+
+* skip LIKE scans for malformed UUID searches ([#786](https://github.com/ForestAdmin/forest-rails/issues/786)) ([44d2adb](https://github.com/ForestAdmin/forest-rails/commit/44d2adba417a687e018f824c262eff64abf6c961))
+
 ## [9.20.8](https://github.com/ForestAdmin/forest-rails/compare/v9.20.7...v9.20.8) (2026-08-05)
 
 
