@@ -177,10 +177,17 @@ describe 'Requesting Actions routes', :type => :request  do
         }
       }
 
+      # The dummy app declares a `/api/*path` catch-all standing in for a host SPA fallback: these
+      # routes have to outrank it, or the 404 this fix removes comes straight back.
       it 'should serve /load at the endpoint the client calls' do
         post '/api/custom/islands/out_of_mount_action/hooks/load', params: JSON.dump(params), headers: headers
         expect(response.status).to eq(200)
         expect(JSON.parse(response.body)['fields'].map { |field| field['field'] }).to eq(['foo'])
+      end
+
+      it 'should let the host catch-all keep every other path under it' do
+        post '/api/custom/islands/something_else', params: JSON.dump(params), headers: headers
+        expect(JSON.parse(response.body)).to eq({'caught_by' => 'host catch-all'})
       end
 
       it 'should serve /change at the endpoint the client calls' do
@@ -200,6 +207,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
         post '/api/custom/islands/out_of_mount_action/hooks/change', params: JSON.dump(p), headers: headers
         expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)['fields'].map { |field| field['field'] }).to eq(['foo'])
       end
 
       it 'should not expose the hooks under the engine mount' do
