@@ -81,4 +81,22 @@ class ForestLiana::Model::Action
   def persisted?
     false
   end
+
+  def endpoint_under_forest_mount?
+    normalized_endpoint.start_with?('forest/')
+  end
+
+  def engine_relative_endpoint
+    normalized_endpoint.delete_prefix('forest')
+  end
+
+  def absolute_endpoint
+    "/#{normalized_endpoint}"
+  end
+
+  private
+
+  def normalized_endpoint
+    endpoint.to_s.delete_prefix('/')
+  end
 end

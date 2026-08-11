@@ -127,6 +127,25 @@ module ForestLiana
           end
         end
       end
+
+      # An endpoint outside the engine mount can only be served by the host router: a route drawn in
+      # the engine gets prefixed with the mount, where no client ever calls. Appended from here and
+      # not from config/routes/actions.rb, which is re-evaluated on every reload while appended
+      # blocks are never cleared — registering there would stack a duplicate block on each pass.
+      Rails.application.routes.append do
+        ForestLiana.apimap.each do |collection|
+          collection.actions.each do |action|
+            next if action.endpoint_under_forest_mount?
+
+            post "#{action.absolute_endpoint}/hooks/load" => 'forest_liana/actions#load',
+              action_name: ActiveSupport::Inflector.parameterize(action.name)
+            if action.hooks && action.hooks[:change].present?
+              post "#{action.absolute_endpoint}/hooks/change" => 'forest_liana/actions#change',
+                action_name: ActiveSupport::Inflector.parameterize(action.name)
+            end
+          end
+        end
+      end
     end
   end
 end
