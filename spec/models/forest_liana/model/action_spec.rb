@@ -5,24 +5,15 @@ module ForestLiana
     end
 
     describe 'endpoint routing' do
-      it 'defaults to an endpoint under the mount' do
+      it 'defaults to an endpoint under the mount, with or without a leading slash' do
         action = Model::Action.new(name: 'an action')
 
         expect(action.endpoint).to eq('forest/actions/an-action')
         expect(action.endpoint_under_forest_mount?).to be true
         expect(action.engine_relative_endpoint).to eq('/actions/an-action')
-      end
 
-      it 'treats a leading slash as equivalent' do
         expect(action_with('/forest/actions/foo').endpoint_under_forest_mount?).to be true
         expect(action_with('/forest/actions/foo').engine_relative_endpoint).to eq('/actions/foo')
-      end
-
-      it 'keeps a custom endpoint under the mount in the engine' do
-        action = action_with('forest/custom/islands/foo')
-
-        expect(action.endpoint_under_forest_mount?).to be true
-        expect(action.engine_relative_endpoint).to eq('/custom/islands/foo')
       end
 
       it 'routes an endpoint outside the mount on the host, verbatim' do

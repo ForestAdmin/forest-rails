@@ -129,10 +129,11 @@ module ForestLiana
       end
 
       # An endpoint outside the engine mount can only be served by the host router: a route drawn in
-      # the engine gets prefixed with the mount, where no client ever calls. Appended from here and
-      # not from config/routes/actions.rb, which is re-evaluated on every reload while appended
-      # blocks are never cleared — registering there would stack a duplicate block on each pass.
-      Rails.application.routes.append do
+      # the engine gets prefixed with the mount, where no client ever calls. Prepended so a host
+      # catch-all (SPA fallback) cannot shadow the hooks, and registered from here rather than from
+      # config/routes/actions.rb, which is re-evaluated on every reload and would stack a duplicate
+      # block per pass — prepended blocks persist across reloads on their own.
+      Rails.application.routes.prepend do
         ForestLiana.apimap.each do |collection|
           collection.actions.each do |action|
             next if action.endpoint_under_forest_mount?
