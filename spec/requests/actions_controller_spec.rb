@@ -170,6 +170,53 @@ describe 'Requesting Actions routes', :type => :request  do
       end
     end
 
+    describe 'on an endpoint declared outside the engine mount' do
+      params = {
+        data: {
+          attributes: { ids: [1], collection_name: 'Island' }
+        }
+      }
+
+      # The dummy app declares a `/api/*path` catch-all standing in for a host SPA fallback: these
+      # routes have to outrank it, or the 404 this fix removes comes straight back.
+      it 'should serve /load at the endpoint the client calls' do
+        post '/api/custom/islands/out_of_mount_action/hooks/load', params: JSON.dump(params), headers: headers
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)['fields'].map { |field| field['field'] }).to eq(['foo'])
+      end
+
+      it 'should let the host catch-all keep every other path under it' do
+        post '/api/custom/islands/something_else', params: JSON.dump(params), headers: headers
+        expect(JSON.parse(response.body)).to eq({'caught_by' => 'host catch-all'})
+      end
+
+      it 'should serve /change at the endpoint the client calls' do
+        action = island.actions.select { |action| action.name == 'out_of_mount_action' }.first
+        foo = action.fields.select { |field| field[:field] == 'foo' }.first
+        updated_foo = foo.clone.merge({:previousValue => nil, :value => 'bar'})
+        p = {
+          data: {
+            attributes: {
+              ids: [1],
+              fields: [updated_foo],
+              collection_name: 'Island',
+              changed_field: 'foo'
+            }
+          }
+        }
+
+        post '/api/custom/islands/out_of_mount_action/hooks/change', params: JSON.dump(p), headers: headers
+        expect(response.status).to eq(200)
+        expect(JSON.parse(response.body)['fields'].map { |field| field['field'] }).to eq(['foo'])
+      end
+
+      it 'should not expose the hooks under the engine mount' do
+        expect {
+          post '/forest/api/custom/islands/out_of_mount_action/hooks/load', params: JSON.dump(params), headers: headers
+        }.to raise_error(ActionController::RoutingError)
+      end
+    end
+
     describe 'call /change' do
       it 'should respond 200' do
         action = island.actions.select { |action| action.name == 'my_action' }.first

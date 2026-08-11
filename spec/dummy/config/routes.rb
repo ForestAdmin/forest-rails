@@ -7,4 +7,7 @@ Rails.application.routes.draw do
   end
 
   mount ForestLiana::Engine => "/forest"
+
+  # Stands in for a host SPA fallback: hooks routes on out-of-mount endpoints must still win.
+  match '/api/*path', to: 'host_catch_all#index', via: :all
 end

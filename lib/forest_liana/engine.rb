@@ -127,6 +127,32 @@ module ForestLiana
           end
         end
       end
+
+      ForestLiana::Engine.register_out_of_mount_hook_routes
+    end
+
+    # An endpoint outside the engine mount can only be served by the host router: a route drawn in
+    # the engine gets prefixed with the mount, where no client ever calls. Prepended so a host
+    # catch-all (SPA fallback) cannot shadow the hooks, and registered from after_initialize rather
+    # than from config/routes/actions.rb, which is re-evaluated on every reload and would stack a
+    # duplicate block per pass — prepended blocks persist across reloads on their own. Defined here
+    # so the block's closure captures this empty scope, not after_initialize's locals: the block is
+    # retained by the router for the process lifetime and would otherwise pin the bootstrapper.
+    def self.register_out_of_mount_hook_routes
+      Rails.application.routes.prepend do
+        ForestLiana.apimap.each do |collection|
+          collection.actions.each do |action|
+            next if action.endpoint_under_forest_mount?
+
+            post "#{action.absolute_endpoint}/hooks/load" => 'forest_liana/actions#load',
+              action_name: ActiveSupport::Inflector.parameterize(action.name)
+            if action.hooks && action.hooks[:change].present?
+              post "#{action.absolute_endpoint}/hooks/change" => 'forest_liana/actions#change',
+                action_name: ActiveSupport::Inflector.parameterize(action.name)
+            end
+          end
+        end
+      end
     end
   end
 end

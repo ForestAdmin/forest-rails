@@ -180,6 +180,20 @@ class Forest::Island
       }
     }
 
+  action 'out_of_mount_action',
+    endpoint: '/api/custom/islands/out_of_mount_action',
+    fields: [foo],
+    hooks: {
+      :load => -> (context) {
+        context[:fields]
+      },
+      :change => {
+        'on_foo_changed' => -> (context) {
+          context[:fields]
+        }
+      }
+    }
+
   action 'multiple_enums_action',
     fields: [foo, multiple_enum],
     hooks: {
