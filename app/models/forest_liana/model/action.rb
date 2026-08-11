@@ -82,6 +82,13 @@ class ForestLiana::Model::Action
     false
   end
 
+  # Normalized at the boundary so every consumer sees one canonical value: the schema sent to
+  # Forest (the UI appends /hooks/load to it), the permission lookup comparing request paths,
+  # and the routes drawn from it. Leading slash kept as declared — consumers tolerate both.
+  def endpoint=(value)
+    @endpoint = value && value.to_s.gsub(%r{/+}, '/').delete_suffix('/')
+  end
+
   def endpoint_under_forest_mount?
     normalized_endpoint.start_with?('forest/')
   end
@@ -97,6 +104,6 @@ class ForestLiana::Model::Action
   private
 
   def normalized_endpoint
-    endpoint.to_s.gsub(%r{/+}, '/').delete_prefix('/').delete_suffix('/')
+    endpoint.to_s.delete_prefix('/')
   end
 end

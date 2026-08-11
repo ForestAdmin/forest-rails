@@ -23,11 +23,14 @@ module ForestLiana
         expect(action.absolute_endpoint).to eq('/domains/organizations/suspensions/suspend')
       end
 
-      # A trailing or doubled slash would otherwise leak into the drawn route
-      # ('/x//hooks/load'), which never matches the client's request path.
-      it 'normalizes redundant slashes out of the declared endpoint' do
+      # A trailing or doubled slash would otherwise desynchronize the three consumers of the
+      # declared endpoint: the drawn route, the schema the UI appends /hooks/load to, and the
+      # permission lookup comparing request paths.
+      it 'normalizes redundant slashes at assignment, so every consumer sees one value' do
+        expect(action_with('/domains/x/suspend/').endpoint).to eq('/domains/x/suspend')
+        expect(action_with('//domains/x/suspend').endpoint).to eq('/domains/x/suspend')
         expect(action_with('/domains/x/suspend/').absolute_endpoint).to eq('/domains/x/suspend')
-        expect(action_with('//domains/x/suspend').absolute_endpoint).to eq('/domains/x/suspend')
+        expect(action_with('domains/x/suspend').endpoint).to eq('domains/x/suspend')
         expect(action_with('/forest/actions/foo/').engine_relative_endpoint).to eq('/actions/foo')
         expect(action_with('//forest/actions/foo').endpoint_under_forest_mount?).to be true
       end
