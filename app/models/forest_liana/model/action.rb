@@ -97,6 +97,6 @@ class ForestLiana::Model::Action
   private
 
   def normalized_endpoint
-    endpoint.to_s.delete_prefix('/')
+    endpoint.to_s.gsub(%r{/+}, '/').delete_prefix('/').delete_suffix('/')
   end
 end

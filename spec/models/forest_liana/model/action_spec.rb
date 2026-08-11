@@ -23,6 +23,15 @@ module ForestLiana
         expect(action.absolute_endpoint).to eq('/domains/organizations/suspensions/suspend')
       end
 
+      # A trailing or doubled slash would otherwise leak into the drawn route
+      # ('/x//hooks/load'), which never matches the client's request path.
+      it 'normalizes redundant slashes out of the declared endpoint' do
+        expect(action_with('/domains/x/suspend/').absolute_endpoint).to eq('/domains/x/suspend')
+        expect(action_with('//domains/x/suspend').absolute_endpoint).to eq('/domains/x/suspend')
+        expect(action_with('/forest/actions/foo/').engine_relative_endpoint).to eq('/actions/foo')
+        expect(action_with('//forest/actions/foo').endpoint_under_forest_mount?).to be true
+      end
+
       # `sub('forest', '')` used to match anywhere, mangling these into '/ry/actions/x' and '/my//x'.
       it 'does not treat a path merely containing "forest" as being under the mount' do
         expect(action_with('forestry/actions/x').endpoint_under_forest_mount?).to be false
