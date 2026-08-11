@@ -1,3 +1,14 @@
+## [9.20.10](https://github.com/ForestAdmin/forest-rails/compare/v9.20.9...v9.20.10) (2026-08-11)
+
+
+### Bug Fixes
+
+* **actions:** normalize declared endpoints and free the route block's closure ([6658fd2](https://github.com/ForestAdmin/forest-rails/commit/6658fd2b36c87f6c701f3cc79080f8fb6f918922))
+* **actions:** normalize the endpoint at assignment, not per consumer ([94bfa2b](https://github.com/ForestAdmin/forest-rails/commit/94bfa2b67409d58e1b27c17910f072977da1d3e3))
+* **actions:** prepend host hook routes and trim redundant specs ([74b3bec](https://github.com/ForestAdmin/forest-rails/commit/74b3becf6f53e256fe310af11e9ad8f2fbc3dbc2))
+* **actions:** serve hooks of out-of-mount custom endpoints [PRD-915] ([1279f64](https://github.com/ForestAdmin/forest-rails/commit/1279f646900842792c9f14517c77e45b7b4737e2))
+* **actions:** serve hooks of out-of-mount custom endpoints [PRD-915] ([9908344](https://github.com/ForestAdmin/forest-rails/commit/99083445405064df382162b43936b50a6d26fada))
+
 ## [9.20.9](https://github.com/ForestAdmin/forest-rails/compare/v9.20.8...v9.20.9) (2026-08-05)
 
 
