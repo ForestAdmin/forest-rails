@@ -189,6 +189,68 @@ module ForestLiana
             expect(subject.records.count).to eq 1
           end
         end
+
+        describe 'serializing the related records' do
+          let(:projection) { { 'Tree' => 'id,name,owner' } }
+
+          it 'serializes only the associations the projection asked for' do
+            expect(subject.includes_for_serialization).to eq ['owner']
+          end
+        end
+
+        describe 'serializing the related records when no projection was requested' do
+          it 'serializes every association the search reaches' do
+            expect(subject.includes_for_serialization)
+              .to match_array(%w[owner cutter island eponymous_island location])
+          end
+        end
+      end
+
+      describe 'when the related collection has an association in another database' do
+        let(:association) { Manufacturer.reflect_on_association(:products) }
+        let(:search) { 'zzz' }
+        let(:params) {
+          ActiveSupport::HashWithIndifferentAccess.new(
+            id: Manufacturer.first.id,
+            association_name: 'products',
+            search: search,
+            searchExtended: '1',
+            fields: { 'Product' => 'id,name' },
+            page: { size: 15, number: 1 },
+            timezone: 'America/Nome'
+          )
+        }
+
+        subject { described_class.new(Manufacturer, association, params, user) }
+
+        before(:each) do
+          manufacturer = Manufacturer.create!(name: 'Acme')
+          driver = Driver.create!(firstname: 'Zed')
+          Product.create!(
+            name: 'Widget', uri: 'https://widget.example',
+            manufacturer: manufacturer, driver: driver
+          )
+        end
+
+        after(:each) do
+          Product.destroy_all
+          Manufacturer.destroy_all
+          Driver.destroy_all
+        end
+
+        it 'does not search columns the eager load cannot join' do
+          expect(subject.count).to eq 0
+          expect(subject.records.count).to eq 0
+        end
+
+        describe 'when the search matches an association in the same database' do
+          let(:search) { 'acme' }
+
+          it 'still matches through that association' do
+            expect(subject.count).to eq 1
+            expect(subject.records.count).to eq 1
+          end
+        end
       end
 
       describe 'compute_includes' do

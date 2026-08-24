@@ -14,8 +14,7 @@ module ForestLiana
       @field_names_requested = field_names_requested
       @collection = get_collection(@collection_name)
       compute_includes()
-      includes_symbols = @includes.map { |include| include.to_sym }
-      @search_query_builder = SearchQueryBuilder.new(@params, includes_symbols, @collection, forest_user)
+      @search_query_builder = SearchQueryBuilder.new(@params, searchable_includes, @collection, forest_user)
 
       prepare_query()
     end
@@ -58,7 +57,21 @@ module ForestLiana
       @records.limit(limit).offset(offset)
     end
 
+    def includes_for_serialization
+      return super if @field_names_requested.empty?
+
+      super & @field_names_requested.map(&:to_s)
+    end
+
     private
+
+    # A search predicate can only name an association the eager load actually joins;
+    # analyze_associations drops the rest, leaving their table out of the FROM clause.
+    def searchable_includes
+      polymorphic, preload_loads = analyze_associations(model_association)
+
+      (@includes - polymorphic - preload_loads).map(&:to_sym)
+    end
 
     def compute_includes
       @optional_includes = []
