@@ -121,5 +121,77 @@ module ForestLiana
     def pagination?
       @params[:page] && @params[:page][:number]
     end
+
+    # Overrides BaseGetter#optimize_record_loading for the has-many relationship path.
+    #
+    # BaseGetter eager_loads every belongs_to/has_one/HABTM association of the target
+    # model in a single LEFT OUTER JOIN, and #records then applies LIMIT/OFFSET on top of
+    # it. When an association is declared `has_one` but is one-to-many in the data, Rails
+    # keeps it singular and does NOT switch to the limited-ids strategy, so LIMIT is applied
+    # directly to the row-multiplied JOIN output: a page collapses to fewer DISTINCT records
+    # than requested and records past the window are silently dropped (the count stays right
+    # because #count uses COUNT(DISTINCT id)).
+    #
+    # These associations are eager-loaded only to serialize the related-list columns, not
+    # for the query's WHERE/ORDER. So keep eager-loaded only the associations the current
+    # request needs a JOIN for (sort BY a relation column, or SearchQueryBuilder's extended
+    # search, which builds its OR conditions against the already-joined tables), and preload
+    # the remaining display-only associations (separate queries, no row multiplication).
+    # Filters on a relation column are unaffected: FiltersParser#apply_filters already calls
+    # `eager_load` for those associations itself, earlier in the pipeline (see #prepare_query),
+    # and that join composes fine with the one added here. LIMIT then applies to the
+    # un-multiplied base rows and returns the correct DISTINCT records.
+    def optimize_record_loading(resource, records, force_preload = true)
+      polymorphic, preload_loads = analyze_associations(resource)
+      display_includes = @includes.uniq - preload_loads - polymorphic - @optional_includes
+
+      keep_eager = display_includes & associations_to_keep_eager
+      move_to_preload = display_includes - keep_eager
+
+      result = records.eager_load(keep_eager)
+      return result unless force_preload
+
+      # NOTICE: mixing `eager_load` and `preload` in the same scope works fine on Rails 6 as
+      # long as the preloaded association isn't instance-dependent (see #567) — analyze_associations
+      # already routed those (and cross-DB ones) into `preload_loads`, so `move_to_preload` is
+      # always safe to preload; only `preload_loads` needs the Rails 7+ gate.
+      result = result.preload(move_to_preload)
+      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7
+
+      result
+    end
+
+    # Association names (symbols) whose JOIN the current request actually needs, so they must
+    # stay in `eager_load` rather than move to `preload`.
+    def associations_to_keep_eager
+      (associations_referenced_by_sort + associations_referenced_by_extended_search).uniq
+    end
+
+    # @params[:sort] is a comma-separated string; a leading '-' means descending and a '.'
+    # references a relation (the part before the dot). e.g. '-owner.name' => :owner
+    def associations_referenced_by_sort
+      sort = @params[:sort]
+      return [] if sort.nil? || sort.to_s.empty?
+
+      sort.to_s.split(',').map do |field|
+        field = field.strip.sub(/\A-/, '')
+        field.include?('.') ? field.split('.').first.to_sym : nil
+      end.compact
+    end
+
+    # SearchQueryBuilder#search_param, when `searchExtended=1`, adds `OR` conditions against
+    # every included one-association's columns and relies on its table already being joined.
+    # Mirror the associations it can reach so their JOIN stays eager instead of moving to
+    # preload (which never joins, on any Rails version).
+    def associations_referenced_by_extended_search
+      return [] unless @params[:search].present? && @params['searchExtended'].to_i == 1
+
+      target_model = model_association
+      includes_symbols = @includes.map(&:to_sym)
+      QueryHelper.get_one_association_names_symbol(target_model).select do |association_name|
+        includes_symbols.include?(association_name) &&
+          !SchemaUtils.polymorphic?(target_model.reflect_on_association(association_name))
+      end
+    end
   end
 end
