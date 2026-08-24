@@ -1,3 +1,10 @@
+## [9.20.11](https://github.com/ForestAdmin/forest-rails/compare/v9.20.10...v9.20.11) (2026-08-24)
+
+
+### Bug Fixes
+
+* **has-many-getter:** stop dropping records when a has_one is one-to-many in the data ([#790](https://github.com/ForestAdmin/forest-rails/issues/790)) ([ff04a74](https://github.com/ForestAdmin/forest-rails/commit/ff04a7406b39063570b4b5ad08ed20281ca06c0a))
+
 ## [9.20.10](https://github.com/ForestAdmin/forest-rails/compare/v9.20.9...v9.20.10) (2026-08-11)
 
 
