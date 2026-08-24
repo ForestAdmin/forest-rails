@@ -76,12 +76,18 @@ module ForestLiana
             inclusion = SchemaUtils.model_included?(association.klass)
           end
 
-          if @field_names_requested.any?
+          if @field_names_requested.any? && !search_extended?
             inclusion && @field_names_requested.include?(association.name)
           else
             inclusion
           end
         end.map(&:name)
+    end
+
+    # Extended search reaches the associated tables, so its footprint must not depend
+    # on the projection: a count carries none, and would otherwise search more than the list.
+    def search_extended?
+      @params['searchExtended'].to_i == 1
     end
 
     def field_names_requested
