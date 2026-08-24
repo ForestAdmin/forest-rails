@@ -134,33 +134,37 @@ module ForestLiana
     #
     # These associations are eager-loaded only to serialize the related-list columns, not
     # for the query's WHERE/ORDER. So keep eager-loaded only the associations the current
-    # request sorts or filters BY (their joins must resolve), and preload the remaining
-    # display-only associations (separate queries, no row multiplication). LIMIT then applies
-    # to the un-multiplied base rows and returns the correct DISTINCT records.
+    # request needs a JOIN for (sort BY a relation column, or SearchQueryBuilder's extended
+    # search, which builds its OR conditions against the already-joined tables), and preload
+    # the remaining display-only associations (separate queries, no row multiplication).
+    # Filters on a relation column are unaffected: FiltersParser#apply_filters already calls
+    # `eager_load` for those associations itself, earlier in the pipeline (see #prepare_query),
+    # and that join composes fine with the one added here. LIMIT then applies to the
+    # un-multiplied base rows and returns the correct DISTINCT records.
     def optimize_record_loading(resource, records, force_preload = true)
       polymorphic, preload_loads = analyze_associations(resource)
       display_includes = @includes.uniq - preload_loads - polymorphic - @optional_includes
 
-      keep_eager = display_includes & associations_referenced_by_sort_and_filters
+      keep_eager = display_includes & associations_to_keep_eager
       move_to_preload = display_includes - keep_eager
 
       result = records.eager_load(keep_eager)
+      return result unless force_preload
 
-      # NOTICE: Rails 6 cannot mix `eager_load` and `preload` in the same scope (see #567),
-      # so the display-only associations are preloaded on Rails 7+ and lazy-loaded on Rails 6.
-      # Either way LIMIT is no longer applied to a row-multiplied JOIN.
-      if Rails::VERSION::MAJOR >= 7 && force_preload
-        result = result.preload(move_to_preload + preload_loads)
-      end
+      # NOTICE: mixing `eager_load` and `preload` in the same scope works fine on Rails 6 as
+      # long as the preloaded association isn't instance-dependent (see #567) — analyze_associations
+      # already routed those (and cross-DB ones) into `preload_loads`, so `move_to_preload` is
+      # always safe to preload; only `preload_loads` needs the Rails 7+ gate.
+      result = result.preload(move_to_preload)
+      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7
 
       result
     end
 
-    # Association names (symbols) referenced by the request's sort and filters. Their joins
-    # must stay eager-loaded so SearchQueryBuilder#sort_query (ORDER BY a relation column)
-    # and relation filters resolve their columns.
-    def associations_referenced_by_sort_and_filters
-      (associations_referenced_by_sort + associations_referenced_by_filters).uniq
+    # Association names (symbols) whose JOIN the current request actually needs, so they must
+    # stay in `eager_load` rather than move to `preload`.
+    def associations_to_keep_eager
+      (associations_referenced_by_sort + associations_referenced_by_extended_search).uniq
     end
 
     # @params[:sort] is a comma-separated string; a leading '-' means descending and a '.'
@@ -175,40 +179,18 @@ module ForestLiana
       end.compact
     end
 
-    # @params[:filters] is a JSON string or a condition tree (Hash). A leaf field references
-    # a relation with ':' (belongs_to style) or '.' (nested); aggregation nodes nest under
-    # 'conditions'. e.g. 'owner:name' => :owner
-    def associations_referenced_by_filters
-      filters = @params[:filters]
-      return [] if filters.nil? || (filters.respond_to?(:empty?) && filters.empty?)
+    # SearchQueryBuilder#search_param, when `searchExtended=1`, adds `OR` conditions against
+    # every included one-association's columns and relies on its table already being joined.
+    # Mirror the associations it can reach so their JOIN stays eager instead of moving to
+    # preload (which never joins, on any Rails version).
+    def associations_referenced_by_extended_search
+      return [] unless @params[:search].present? && @params['searchExtended'].to_i == 1
 
-      tree = filters.is_a?(String) ? parse_filters_json(filters) : filters
-      tree = tree.to_unsafe_h if tree.respond_to?(:to_unsafe_h)
-      extract_filter_associations(tree)
-    end
-
-    def parse_filters_json(raw)
-      JSON.parse(raw)
-    rescue JSON::ParserError
-      nil
-    end
-
-    def extract_filter_associations(node)
-      return [] unless node.is_a?(Hash)
-
-      conditions = node['conditions'] || node[:conditions]
-      return Array(conditions).flat_map { |child| extract_filter_associations(child) } if conditions
-
-      field = node['field'] || node[:field]
-      return [] if field.nil? || field.to_s.empty?
-
-      field = field.to_s
-      if field.include?(':')
-        [field.split(':').first.to_sym]
-      elsif field.include?('.')
-        [field.split('.').first.to_sym]
-      else
-        []
+      target_model = model_association
+      includes_symbols = @includes.map(&:to_sym)
+      QueryHelper.get_one_association_names_symbol(target_model).select do |association_name|
+        includes_symbols.include?(association_name) &&
+          !SchemaUtils.polymorphic?(target_model.reflect_on_association(association_name))
       end
     end
   end

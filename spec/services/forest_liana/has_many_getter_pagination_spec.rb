@@ -133,5 +133,30 @@ module ForestLiana
         expect(records.map { |tree| tree.owner.name }.uniq).to eq(['Alice'])
       end
     end
+
+    describe 'with extended search across a display-only association' do
+      # Regression for review comment on #790: SearchQueryBuilder#search_param, with
+      # searchExtended=1, emits `OR LOWER("users"."name") LIKE ...` for every included
+      # one-association and relies on that table already being joined. `owner` isn't
+      # referenced by sort or filters here, so it would have moved to `preload` (which
+      # never joins) and blown up the query with a missing FROM-clause entry.
+      let(:params) do
+        {
+          id: island.id,
+          association_name: 'trees',
+          search: 'alice',
+          'searchExtended' => '1',
+          page: { size: 15, number: 1 },
+          timezone: 'America/Nome'
+        }
+      end
+
+      it 'keeps the searched association joined and returns only the matching records' do
+        subject.perform
+        records = subject.records.to_a
+
+        expect(records.map(&:name)).to contain_exactly('cedar', 'pine')
+      end
+    end
   end
 end
