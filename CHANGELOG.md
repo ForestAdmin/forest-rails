@@ -1,3 +1,10 @@
+## [9.20.13](https://github.com/ForestAdmin/forest-rails/compare/v9.20.12...v9.20.13) (2026-08-25)
+
+
+### Bug Fixes
+
+* **has-many-getter:** gate extended search on nil, not present, search ([#792](https://github.com/ForestAdmin/forest-rails/issues/792)) ([3d3c052](https://github.com/ForestAdmin/forest-rails/commit/3d3c05298349642a60a6f320f10abb9c81e2e070))
+
 ## [9.20.12](https://github.com/ForestAdmin/forest-rails/compare/v9.20.11...v9.20.12) (2026-08-25)
 
 
