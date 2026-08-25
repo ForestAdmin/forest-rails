@@ -664,7 +664,7 @@ module ForestLiana
           expect(list_getter.records.count).to eq 2
         end
 
-        it 'eager loads every one-association the search predicates reach' do
+        it 'keeps every one-association in the include set when no fields are requested' do
           expect(getter.includes).to contain_exactly(:owner, :cutter, :island, :eponymous_island, :location)
         end
       end
@@ -679,7 +679,7 @@ module ForestLiana
           expect(list_getter.records.count).to eq 2
         end
 
-        it 'eager loads the same associations as the request carrying no fields' do
+        it 'keeps the same include set when fields are requested' do
           expect(getter.includes).to contain_exactly(:owner, :cutter, :island, :eponymous_island, :location)
         end
       end
@@ -704,6 +704,33 @@ module ForestLiana
 
           expect(getter.count).to eq 5
           expect(list_getter.records.count).to eq 5
+        end
+      end
+
+      # NOTICE: Island's one-associations are `location` and the instance-dependent
+      #         `eponymous_tree`. Nothing else joins `trees`, so a predicate naming it
+      #         has no FROM entry — the shape `Tree` hides, since `eponymous_island`
+      #         resolves against the `isle` join `island` already contributes.
+      describe 'when a one-association carries an instance-dependent scope' do
+        let(:resource) { Island }
+        let(:search) { 'skull' }
+
+        it 'searches the own columns without failing on the un-joined association' do
+          list_getter.perform
+
+          expect(getter.count).to eq 1
+          expect(list_getter.records.count).to eq 1
+        end
+
+        describe 'when the search matches through an association the eager load does join' do
+          let(:search) { '12345' }
+
+          it 'still matches through that association' do
+            list_getter.perform
+
+            expect(getter.count).to eq 1
+            expect(list_getter.records.count).to eq 1
+          end
         end
       end
     end

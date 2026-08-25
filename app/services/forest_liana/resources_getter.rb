@@ -13,7 +13,7 @@ module ForestLiana
       @field_names_requested = field_names_requested
       @segment = get_segment
       compute_includes
-      @search_query_builder = SearchQueryBuilder.new(@params, @includes, @collection, @user)
+      @search_query_builder = SearchQueryBuilder.new(@params, searchable_includes(@resource), @collection, @user)
 
       prepare_query
       @base_records_for_batch = @records
