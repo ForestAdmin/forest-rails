@@ -114,6 +114,145 @@ module ForestLiana
         end
       end
 
+      describe 'when searching with extended search' do
+        # HashWithIndifferentAccess: the code reads @params['searchExtended'] (string),
+        # as the controller hands it an ActionController::Parameters.
+        let(:projection) { nil }
+        let(:searchExtended) { '1' }
+        let(:params) {
+          ActiveSupport::HashWithIndifferentAccess.new(
+            id: Island.first.id,
+            association_name: 'trees',
+            search: 'kiwi',
+            searchExtended: searchExtended,
+            fields: projection,
+            page: { size: 15, number: 1 },
+            timezone: 'America/Nome'
+          )
+        }
+
+        # NOTICE: `kiwi tree` matches on its own name and `coconut tree` matches only
+        #         through `owner.name`, so extended search matches 2 of madagascar's
+        #         trees where plain search matches 1.
+        before(:each) do
+          kiwi_grower = User.create(name: 'Kiwi Grower')
+          Tree.create(name: 'kiwi tree', island: Island.first)
+          Tree.create(name: 'coconut tree', island: Island.first, owner: kiwi_grower)
+        end
+
+        after(:each) do
+          User.destroy_all
+        end
+
+        describe 'when the request carries no fields' do
+          it 'counts the related records it returns' do
+            subject.perform
+
+            expect(subject.count).to eq 2
+            expect(subject.records.count).to eq 2
+          end
+        end
+
+        describe 'when the request carries fields' do
+          let(:projection) { { 'Tree' => 'id,name' } }
+
+          it 'counts the same related records as the request carrying no fields' do
+            subject.perform
+
+            expect(subject.count).to eq 2
+            expect(subject.records.count).to eq 2
+          end
+        end
+
+        describe 'when the count carries no fields and the list carries the projection' do
+          it 'announces the number of related records the list returns' do
+            listed = described_class.new(
+              Island,
+              association,
+              params.merge(fields: { 'Tree' => 'id,name' }),
+              user
+            )
+            listed.perform
+
+            expect(subject.count).to eq 2
+            expect(listed.records.count).to eq 2
+          end
+        end
+
+        describe 'when extended search is off' do
+          let(:searchExtended) { '0' }
+
+          it 'counts only the related records matching on their own columns' do
+            subject.perform
+
+            expect(subject.count).to eq 1
+            expect(subject.records.count).to eq 1
+          end
+        end
+
+        describe 'serializing the related records' do
+          let(:projection) { { 'Tree' => 'id,name,owner' } }
+
+          it 'serializes only the associations the projection asked for' do
+            expect(subject.includes_for_serialization).to eq ['owner']
+          end
+        end
+
+        describe 'serializing the related records when no projection was requested' do
+          it 'serializes every association the search reaches' do
+            expect(subject.includes_for_serialization)
+              .to match_array(%w[owner cutter island eponymous_island location])
+          end
+        end
+      end
+
+      describe 'when the related collection has an association in another database' do
+        let(:association) { Manufacturer.reflect_on_association(:products) }
+        let(:search) { 'zzz' }
+        let(:params) {
+          ActiveSupport::HashWithIndifferentAccess.new(
+            id: Manufacturer.first.id,
+            association_name: 'products',
+            search: search,
+            searchExtended: '1',
+            fields: { 'Product' => 'id,name' },
+            page: { size: 15, number: 1 },
+            timezone: 'America/Nome'
+          )
+        }
+
+        subject { described_class.new(Manufacturer, association, params, user) }
+
+        before(:each) do
+          manufacturer = Manufacturer.create!(name: 'Acme')
+          driver = Driver.create!(firstname: 'Zed')
+          Product.create!(
+            name: 'Widget', uri: 'https://widget.example',
+            manufacturer: manufacturer, driver: driver
+          )
+        end
+
+        after(:each) do
+          Product.destroy_all
+          Manufacturer.destroy_all
+          Driver.destroy_all
+        end
+
+        it 'does not search columns the eager load cannot join' do
+          expect(subject.count).to eq 0
+          expect(subject.records.count).to eq 0
+        end
+
+        describe 'when the search matches an association in the same database' do
+          let(:search) { 'acme' }
+
+          it 'still matches through that association' do
+            expect(subject.count).to eq 1
+            expect(subject.records.count).to eq 1
+          end
+        end
+      end
+
       describe 'compute_includes' do
         it 'should include has_one relation from association' do
           expect(subject.includes).to include(:location)
@@ -152,6 +291,21 @@ module ForestLiana
         it 'should exclude Tree associations when models not included' do
           allow(SchemaUtils).to receive(:model_included?).and_return(false)
           expect(subject.includes).to be_empty
+        end
+
+        it 'should not narrow the includes by the requested fields when extended search is on' do
+          extended_params = ActiveSupport::HashWithIndifferentAccess.new(
+            id: Island.first.id,
+            association_name: 'trees',
+            search: 'kiwi',
+            searchExtended: '1',
+            fields: { 'Tree' => 'owner,island' },
+            page: { size: 15, number: 1 },
+            timezone: 'America/Nome'
+          )
+          getter = described_class.new(Island, association, extended_params, user)
+
+          expect(getter.includes).to match_array(%i[owner cutter island eponymous_island location])
         end
 
         context 'on polymorphic associations' do
