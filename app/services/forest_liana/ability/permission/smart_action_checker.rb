@@ -2,6 +2,9 @@ module ForestLiana
   module Ability
     module Permission
       class SmartActionChecker
+        # Max number of records a "select all" approval request may target. Matches the Forest
+        # server's hard cap on approval record ids - keep in sync.
+        MAX_RECORDS_FOR_APPROVAL = 500
 
         def initialize(parameters, collection, smart_action, user)
           @parameters = parameters
@@ -36,13 +39,28 @@ module ForestLiana
             return true if condition_by_role_id(@smart_action['triggerConditions']).blank? || match_conditions('triggerConditions')
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
             if condition_by_role_id(@smart_action['approvalRequiredConditions']).blank? || match_conditions('approvalRequiredConditions')
-              raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'])
+              # On a "select all" trigger the frontend has no explicit id list to store in the
+              # approval request: resolve the selection here (capped) and hand the ids back
+              # through the error.
+              record_ids = select_all_record_ids if @parameters[:data][:attributes][:all_records]
+
+              raise ForestLiana::Ability::Exceptions::RequireApproval.new(@smart_action['userApprovalEnabled'], nil, record_ids)
             else
               return true if condition_by_role_id(@smart_action['triggerConditions']).blank? || match_conditions('triggerConditions')
             end
           end
 
           raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
+        end
+
+        def select_all_record_ids
+          ids = ForestLiana::ResourcesGetter.get_ids_from_request(@parameters, @user)
+
+          if ids.length > MAX_RECORDS_FOR_APPROVAL
+            raise ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge.new(MAX_RECORDS_FOR_APPROVAL)
+          end
+
+          ids
         end
 
         def match_conditions(condition_name)
