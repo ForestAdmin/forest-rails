@@ -171,11 +171,12 @@ module ForestLiana
         }
       end
 
-      it 'keeps the display association joined instead of raising on the un-joined table' do
+      it 'treats an empty search as a no-op instead of building predicates it cannot join' do
         subject.perform
 
         expect { subject.records.to_a }.not_to raise_error
         expect(subject.records.to_a.map(&:name)).to contain_exactly('cedar', 'olive', 'pine', 'fig')
+        expect(subject.count).to eq(@trees.size)
       end
 
       describe 'with a record whose searched columns are all NULL' do
