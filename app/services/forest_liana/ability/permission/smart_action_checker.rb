@@ -54,7 +54,12 @@ module ForestLiana
         end
 
         def select_all_record_ids
-          ids = ForestLiana::ResourcesGetter.get_ids_from_request(@parameters, @user)
+          # Fetch at most cap + excluded + 1 raw ids: enough to detect an over-cap selection
+          # after exclusions are filtered out, without materializing the whole table.
+          excluded_ids = @parameters[:data][:attributes][:all_records_ids_excluded] || []
+          ids = ForestLiana::ResourcesGetter.get_ids_from_request(
+            @parameters, @user, limit: MAX_RECORDS_FOR_APPROVAL + excluded_ids.length + 1
+          )
 
           if ids.length > MAX_RECORDS_FOR_APPROVAL
             raise ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge.new(MAX_RECORDS_FOR_APPROVAL)

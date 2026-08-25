@@ -166,6 +166,16 @@ module ForestLiana
       end
     end
 
+    describe '.fetch_ids' do
+      it 'returns all the matching ids when no limit is given' do
+        expect(described_class.fetch_ids(getter).length).to eq 30
+      end
+
+      it 'returns at most limit ids' do
+        expect(described_class.fetch_ids(getter, limit: 5).length).to eq 5
+      end
+    end
+
     describe 'when on a model having a reserved SQL word as name' do
       let(:resource) { Reference }
       let(:fields) { { resource.name => 'id' } }

@@ -19,13 +19,13 @@ module ForestLiana
       @base_records_for_batch = @records
     end
 
-    def self.get_ids_from_request(params, user)
+    def self.get_ids_from_request(params, user, limit: nil)
       attributes = params.dig('data', 'attributes')
       return attributes[:ids] if attributes&.fetch(:all_records, false) == false && attributes[:ids]
 
       attributes = merge_subset_query(attributes)
       resources_getter = initialize_resources_getter(attributes, user)
-      ids = fetch_ids(resources_getter)
+      ids = fetch_ids(resources_getter, limit: limit)
 
       filter_excluded_ids(ids, attributes[:all_records_ids_excluded])
     end
@@ -256,11 +256,14 @@ module ForestLiana
       ]
     end
 
-    def self.fetch_ids(resources_getter)
+    def self.fetch_ids(resources_getter, limit: nil)
       ids = []
-      resources_getter.query_for_batch.find_in_batches { |records| ids += records.map(&:id) }
+      resources_getter.query_for_batch.find_in_batches do |records|
+        ids += records.map(&:id)
+        break if limit && ids.length >= limit
+      end
 
-      ids
+      limit ? ids.first(limit) : ids
     end
 
     def self.filter_excluded_ids(ids, ids_excluded)

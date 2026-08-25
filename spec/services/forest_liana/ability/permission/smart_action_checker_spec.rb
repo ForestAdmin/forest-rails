@@ -201,6 +201,9 @@ module ForestLiana
             expect(error.data[:roleIdsAllowedToApprove]).to eq([7])
             expect(error.data[:recordIds]).to eq(%w[1 2 3])
           end
+          # cap + excluded ids (none here) + 1: bounds the fetch instead of materializing the table
+          expect(ForestLiana::ResourcesGetter).to have_received(:get_ids_from_request)
+            .with(anything, anything, limit: 501)
         end
 
         it 'should refuse a "select all" trigger resolving over 500 record ids' do
