@@ -6,7 +6,7 @@ module ForestLiana
       @resource = resource
       @params = params
       @user = forest_user
-      @count_needs_includes = !@params[:search].nil?
+      @count_needs_includes = @params[:search].present?
       @collection_name = ForestLiana.name_for(@resource)
       @collection = get_collection(@collection_name)
       @fields_to_serialize = get_fields_to_serialize

@@ -177,6 +177,16 @@ module ForestLiana
         expect { subject.records.to_a }.not_to raise_error
         expect(subject.records.to_a.map(&:name)).to contain_exactly('cedar', 'olive', 'pine', 'fig')
       end
+
+      describe 'with a record whose searched columns are all NULL' do
+        before(:each) { Tree.create!(name: nil, island: island) }
+
+        it 'is a no-op, not a filter: the record is still returned' do
+          subject.perform
+
+          expect(subject.records.to_a.map(&:name)).to contain_exactly('cedar', 'olive', 'pine', 'fig', nil)
+        end
+      end
     end
   end
 end
