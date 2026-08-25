@@ -9,7 +9,8 @@ module ForestLiana
       @includes = includes
       @collection = collection
       @fields_searched = []
-      @search = @params[:search]
+      # '' is truthy, so without .presence an empty search still builds LIKE '%%' predicates.
+      @search = @params[:search].presence
       @user = user
     end
 

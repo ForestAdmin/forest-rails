@@ -158,5 +158,36 @@ module ForestLiana
         expect(records.map(&:name)).to contain_exactly('cedar', 'pine')
       end
     end
+
+    describe 'with extended search and an empty search string' do
+      let(:params) do
+        {
+          id: island.id,
+          association_name: 'trees',
+          search: '',
+          'searchExtended' => '1',
+          page: { size: 15, number: 1 },
+          timezone: 'America/Nome'
+        }
+      end
+
+      it 'treats an empty search as a no-op instead of building predicates it cannot join' do
+        subject.perform
+
+        expect { subject.records.to_a }.not_to raise_error
+        expect(subject.records.to_a.map(&:name)).to contain_exactly('cedar', 'olive', 'pine', 'fig')
+        expect(subject.count).to eq(@trees.size)
+      end
+
+      describe 'with a record whose searched columns are all NULL' do
+        before(:each) { Tree.create!(name: nil, island: island) }
+
+        it 'is a no-op, not a filter: the record is still returned' do
+          subject.perform
+
+          expect(subject.records.to_a.map(&:name)).to contain_exactly('cedar', 'olive', 'pine', 'fig', nil)
+        end
+      end
+    end
   end
 end
