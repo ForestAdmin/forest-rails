@@ -1,3 +1,12 @@
+## [9.20.12](https://github.com/ForestAdmin/forest-rails/compare/v9.20.11...v9.20.12) (2026-08-25)
+
+
+### Bug Fixes
+
+* **count:** search the same columns for a count as for its list ([a11cc22](https://github.com/ForestAdmin/forest-rails/commit/a11cc22903f6a1fa9314035cd27ca13d88bf2357))
+* **search:** restore the related-list 200 and its requested projection ([575f05a](https://github.com/ForestAdmin/forest-rails/commit/575f05a46c6832a0030c1f8f535e8b7bb6d32778))
+* **search:** search only joined tables on top-level extended search ([9e553f8](https://github.com/ForestAdmin/forest-rails/commit/9e553f87a9306ea850517324fddcdab0a15a5d1e))
+
 ## [9.20.11](https://github.com/ForestAdmin/forest-rails/compare/v9.20.10...v9.20.11) (2026-08-24)
 
 
