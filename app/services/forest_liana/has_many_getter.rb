@@ -183,8 +183,11 @@ module ForestLiana
     # every included one-association's columns and relies on its table already being joined.
     # Mirror the associations it can reach so their JOIN stays eager instead of moving to
     # preload (which never joins, on any Rails version).
+    #
+    # NOTICE: `!nil?`, not `.present?` — search_param guards on `if @search`, and `''` is
+    # truthy, so an empty search string still needs the JOIN.
     def associations_referenced_by_extended_search
-      return [] unless @params[:search].present? && @params['searchExtended'].to_i == 1
+      return [] unless !@params[:search].nil? && @params['searchExtended'].to_i == 1
 
       target_model = model_association
       includes_symbols = @includes.map(&:to_sym)

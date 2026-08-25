@@ -158,5 +158,25 @@ module ForestLiana
         expect(records.map(&:name)).to contain_exactly('cedar', 'pine')
       end
     end
+
+    describe 'with extended search and an empty search string' do
+      let(:params) do
+        {
+          id: island.id,
+          association_name: 'trees',
+          search: '',
+          'searchExtended' => '1',
+          page: { size: 15, number: 1 },
+          timezone: 'America/Nome'
+        }
+      end
+
+      it 'keeps the display association joined instead of raising on the un-joined table' do
+        subject.perform
+
+        expect { subject.records.to_a }.not_to raise_error
+        expect(subject.records.to_a.map(&:name)).to contain_exactly('cedar', 'olive', 'pine', 'fig')
+      end
+    end
   end
 end
