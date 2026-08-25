@@ -628,5 +628,111 @@ module ForestLiana
         end
       end
     end
+
+    describe 'when searching with extended search' do
+      let(:resource) { Tree }
+      let(:search) { 'skull' }
+      let(:searchExtended) { '1' }
+      let(:requested_fields) { nil }
+
+      # HashWithIndifferentAccess: the code reads @params['searchExtended'] (string),
+      # as the controller hands it an ActionController::Parameters.
+      let(:search_params) {
+        ActiveSupport::HashWithIndifferentAccess.new(
+          page: { size: pageSize, number: pageNumber },
+          search: search,
+          searchExtended: searchExtended,
+          fields: requested_fields,
+          timezone: 'Europe/Paris',
+        )
+      }
+
+      # NOTICE: the count route builds a getter and calls #count on it without ever
+      #         calling #perform, so the list getter has to be a separate instance —
+      #         #perform rewrites @records with the eager loads and would hide the defect.
+      let(:getter) { described_class.new(resource, search_params, user) }
+      let(:list_getter) { described_class.new(resource, search_params, user) }
+
+      # NOTICE: `Lemon Tree` and `Ginger Tree` both grow on the island `Skull`, and no
+      #         tree carries `skull` in its own name — so extended search matches 2
+      #         records where plain search matches none.
+      describe 'when no fields are requested' do
+        it 'counts the records the list returns instead of failing on the un-joined association' do
+          list_getter.perform
+
+          expect(getter.count).to eq 2
+          expect(list_getter.records.count).to eq 2
+        end
+
+        it 'keeps every one-association in the include set when no fields are requested' do
+          expect(getter.includes).to contain_exactly(:owner, :cutter, :island, :eponymous_island, :location)
+        end
+      end
+
+      describe 'when fields are requested' do
+        let(:requested_fields) { { 'Tree' => 'id,name' } }
+
+        it 'counts the same records as the request carrying no fields' do
+          list_getter.perform
+
+          expect(getter.count).to eq 2
+          expect(list_getter.records.count).to eq 2
+        end
+
+        it 'keeps the same include set when fields are requested' do
+          expect(getter.includes).to contain_exactly(:owner, :cutter, :island, :eponymous_island, :location)
+        end
+      end
+
+      describe 'when extended search is off' do
+        let(:searchExtended) { '0' }
+
+        it 'matches on the own columns only and counts none of the associated records' do
+          list_getter.perform
+
+          expect(getter.count).to eq 0
+          expect(list_getter.records.count).to eq 0
+          expect(getter.includes).to eq []
+        end
+      end
+
+      describe 'when the search is nil' do
+        let(:search) { nil }
+
+        it 'counts every record' do
+          list_getter.perform
+
+          expect(getter.count).to eq 5
+          expect(list_getter.records.count).to eq 5
+        end
+      end
+
+      # NOTICE: Island's one-associations are `location` and the instance-dependent
+      #         `eponymous_tree`. Nothing else joins `trees`, so a predicate naming it
+      #         has no FROM entry — the shape `Tree` hides, since `eponymous_island`
+      #         resolves against the `isle` join `island` already contributes.
+      describe 'when a one-association carries an instance-dependent scope' do
+        let(:resource) { Island }
+        let(:search) { 'skull' }
+
+        it 'searches the own columns without failing on the un-joined association' do
+          list_getter.perform
+
+          expect(getter.count).to eq 1
+          expect(list_getter.records.count).to eq 1
+        end
+
+        describe 'when the search matches through an association the eager load does join' do
+          let(:search) { '12345' }
+
+          it 'still matches through that association' do
+            list_getter.perform
+
+            expect(getter.count).to eq 1
+            expect(list_getter.records.count).to eq 1
+          end
+        end
+      end
+    end
   end
 end

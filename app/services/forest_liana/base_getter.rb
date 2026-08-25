@@ -24,6 +24,14 @@ module ForestLiana
       @optional_includes = []
     end
 
+    # A search predicate can only name an association the eager load actually joins;
+    # analyze_associations drops the rest, leaving their table out of the FROM clause.
+    def searchable_includes(resource)
+      polymorphic, preload_loads = analyze_associations(resource)
+
+      (@includes - polymorphic - preload_loads).map(&:to_sym)
+    end
+
     def optimize_record_loading(resource, records, force_preload = true)
       polymorphic, preload_loads = analyze_associations(resource)
       result = records.eager_load(@includes.uniq - preload_loads - polymorphic - @optional_includes)
