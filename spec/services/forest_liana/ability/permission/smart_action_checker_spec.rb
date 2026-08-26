@@ -173,6 +173,138 @@ module ForestLiana
           expect{smart_action_checker.can_execute?}.to raise_error ForestLiana::Ability::Exceptions::RequireApproval
         end
 
+        it 'should expose the approver role ids and skip record ids on an explicit selection' do
+          parameters = ActionController::Parameters.new(params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval) do |error|
+            expect(error.data[:roleIdsAllowedToApprove]).to eq([7])
+            expect(error.data).not_to have_key(:recordIds)
+          end
+          expect(ForestLiana::ResourcesGetter).not_to have_received(:get_ids_from_request)
+        end
+
+        let(:forest_user) { { 'id' => 1, 'rendering_id' => 13 } }
+
+        it 'should include the resolved record ids in the error on a "select all" trigger' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request).and_return([1, 2, 3])
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval) do |error|
+            expect(error.data[:roleIdsAllowedToApprove]).to eq([7])
+            expect(error.data[:recordIds]).to eq(%w[1 2 3])
+          end
+          # cap + excluded ids (none here) + 1: bounds the fetch instead of materializing the table.
+          # The JWT user (not the permissions one) must be used: scopes need its rendering_id.
+          expect(ForestLiana::ResourcesGetter).to have_received(:get_ids_from_request)
+            .with(anything, forest_user, limit: 501)
+        end
+
+        it 'should widen the fetch limit by the exclusion list size' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          select_all_params['data']['attributes'][:all_records_ids_excluded] = (1..100).map(&:to_s)
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request).and_return((1..500).map(&:to_s))
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval)
+          # Without the excluded term, a 600-record / 100-excluded selection silently
+          # resolves to 401 ids instead of the full 500.
+          expect(ForestLiana::ResourcesGetter).to have_received(:get_ids_from_request)
+            .with(anything, forest_user, limit: 601)
+        end
+
+        it 'should encode composite primary keys the way the serializer builds record ids' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request).and_return([[1, 'abc'], [2, 'def']])
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval) do |error|
+            expect(error.data[:recordIds]).to eq(['[1,"abc"]', '[2,"def"]'])
+          end
+        end
+
+        it 'should not resolve record ids on a "select all" trigger of a global action' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, 'global')
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval) do |error|
+            expect(error.data).not_to have_key(:recordIds)
+          end
+          expect(ForestLiana::ResourcesGetter).not_to have_received(:get_ids_from_request)
+        end
+
+        it 'should refuse a "select all" trigger resolving over 500 record ids' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request).and_return((1..501).map(&:to_s))
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(
+            ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge,
+            /more than 500 records/
+          )
+        end
+
+        it 'should refuse a "select all" trigger with an oversized exclusion list without querying' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          select_all_params['data']['attributes'][:all_records_ids_excluded] = (1..501).map(&:to_s)
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(
+            ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge
+          )
+          expect(ForestLiana::ResourcesGetter).not_to have_received(:get_ids_from_request)
+        end
+
+        it 'should raise a 422 when the id resolution fails unexpectedly' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request)
+            .and_raise(StandardError.new('Unable to fetch scopes'))
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(
+            ForestLiana::Errors::HTTP422Error,
+            /Unable to resolve/
+          )
+        end
+
         it 'should raise RequireApproval error if match approvalRequiredConditions' do
           parameters = ActionController::Parameters.new(params).permit!
           action['approvalRequired'] = [1]

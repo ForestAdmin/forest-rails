@@ -2,6 +2,7 @@ module ForestLiana
   class SmartActionsController < ForestLiana::ApplicationController
     rescue_from ForestLiana::Ability::Exceptions::TriggerForbidden, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::RequireApproval, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4

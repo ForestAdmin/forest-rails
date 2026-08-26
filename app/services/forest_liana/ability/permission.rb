@@ -39,9 +39,9 @@ module ForestLiana
         collections_data = get_collections_permissions_data
         collection_name = ForestLiana.name_for(collection)
         begin
-          action = find_action_from_endpoint(collection_name, endpoint, http_method).name
+          schema_action = find_action_from_endpoint(collection_name, endpoint, http_method)
 
-          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection_name][:actions][action], user_data)
+          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection_name][:actions][schema_action.name], user_data, schema_action.type, user)
           smart_action_approval.can_execute?
         rescue ForestLiana::Errors::ExpectedError => exception
           raise exception
