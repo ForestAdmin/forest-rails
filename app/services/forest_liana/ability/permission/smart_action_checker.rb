@@ -68,7 +68,9 @@ module ForestLiana
             raise ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge.new(MAX_RECORDS_FOR_APPROVAL)
           end
 
-          ids
+          # Composite primary keys come back as arrays: encode them the way the serializer
+          # builds record ids (SerializerFactory#id), so the frontend gets the format it uses.
+          ids.map { |id| id.is_a?(Array) ? id.to_json : id }
         end
 
         def match_conditions(condition_name)
