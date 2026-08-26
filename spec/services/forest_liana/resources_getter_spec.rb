@@ -176,6 +176,22 @@ module ForestLiana
       end
     end
 
+    describe '.filter_excluded_ids' do
+      it 'removes excluded simple ids' do
+        expect(described_class.filter_excluded_ids([1, 2, 3], ['2'])).to eq [1, 3]
+      end
+
+      it 'removes excluded composite ids given in their serialized JSON form' do
+        expect(described_class.filter_excluded_ids([[1, 'abc'], [2, 'def']], ['[1,"abc"]']))
+          .to eq [[2, 'def']]
+      end
+
+      it 'returns the ids untouched without exclusions' do
+        expect(described_class.filter_excluded_ids([1, 2], [])).to eq [1, 2]
+        expect(described_class.filter_excluded_ids([1, 2], nil)).to eq [1, 2]
+      end
+    end
+
     describe 'when on a model having a reserved SQL word as name' do
       let(:resource) { Reference }
       let(:fields) { { resource.name => 'id' } }

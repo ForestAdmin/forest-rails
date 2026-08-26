@@ -267,7 +267,11 @@ module ForestLiana
     end
 
     def self.filter_excluded_ids(ids, ids_excluded)
-      ids_excluded ? ids.reject { |id| ids_excluded.map(&:to_s).include?(id.to_s) } : ids
+      return ids if ids_excluded.blank?
+
+      excluded = ids_excluded.map(&:to_s)
+      # Composite pks are arrays; the frontend excludes them in their serialized JSON form.
+      ids.reject { |id| excluded.include?(id.is_a?(Array) ? id.to_json : id.to_s) }
     end
 
     def search_query
