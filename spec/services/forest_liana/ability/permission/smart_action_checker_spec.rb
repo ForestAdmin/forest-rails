@@ -209,6 +209,24 @@ module ForestLiana
             .with(anything, forest_user, limit: 501)
         end
 
+        it 'should widen the fetch limit by the exclusion list size' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          select_all_params['data']['attributes'][:all_records_ids_excluded] = (1..100).map(&:to_s)
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request).and_return((1..500).map(&:to_s))
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, nil, forest_user)
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval)
+          # Without the excluded term, a 600-record / 100-excluded selection silently
+          # resolves to 401 ids instead of the full 500.
+          expect(ForestLiana::ResourcesGetter).to have_received(:get_ids_from_request)
+            .with(anything, forest_user, limit: 601)
+        end
+
         it 'should encode composite primary keys the way the serializer builds record ids' do
           select_all_params = params.deep_dup
           select_all_params['data']['attributes'][:all_records] = true
