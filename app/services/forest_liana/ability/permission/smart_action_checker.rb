@@ -5,12 +5,15 @@ module ForestLiana
         # The Forest server's hard cap on approval record ids - keep in sync.
         MAX_RECORDS_FOR_APPROVAL = 500
 
-        def initialize(parameters, collection, smart_action, user, action_type = nil)
+        # `user` is the permissions-API user (id/roleId); `forest_user` is the JWT user, the one
+        # ResourcesGetter needs (rendering_id for scopes).
+        def initialize(parameters, collection, smart_action, user, action_type = nil, forest_user = nil)
           @parameters = parameters
           @collection = collection
           @smart_action = smart_action
           @user = user
           @action_type = action_type
+          @forest_user = forest_user
         end
 
         def can_execute?
@@ -54,10 +57,16 @@ module ForestLiana
         end
 
         def select_all_record_ids
-          # cap + excluded + 1 raw ids suffice to detect an over-cap selection after exclusions.
           excluded_ids = @parameters[:data][:attributes][:all_records_ids_excluded] || []
+
+          # The exclusion list is client-controlled: it must not re-inflate the bounded fetch.
+          if excluded_ids.length > MAX_RECORDS_FOR_APPROVAL
+            raise ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge.new(MAX_RECORDS_FOR_APPROVAL)
+          end
+
+          # cap + excluded + 1 raw ids suffice to detect an over-cap selection after exclusions.
           ids = ForestLiana::ResourcesGetter.get_ids_from_request(
-            @parameters, @user, limit: MAX_RECORDS_FOR_APPROVAL + excluded_ids.length + 1
+            @parameters, @forest_user, limit: MAX_RECORDS_FOR_APPROVAL + excluded_ids.length + 1
           )
 
           if ids.length > MAX_RECORDS_FOR_APPROVAL
@@ -65,7 +74,12 @@ module ForestLiana
           end
 
           # Composite pks come back as arrays: encode them like SerializerFactory#id does.
-          ids.map { |id| id.is_a?(Array) ? id.to_json : id }
+          ids.map { |id| id.is_a?(Array) ? id.to_json : id.to_s }
+        rescue ForestLiana::Errors::ExpectedError
+          raise
+        rescue StandardError => exception
+          FOREST_LOGGER.error "Select all record ids resolution error: #{exception.message}"
+          raise ForestLiana::Errors::HTTP422Error.new('Unable to resolve the "select all" selection')
         end
 
         def match_conditions(condition_name)
