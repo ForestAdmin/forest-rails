@@ -206,6 +206,22 @@ module ForestLiana
             .with(anything, anything, limit: 501)
         end
 
+        it 'should not resolve record ids on a "select all" trigger of a global action' do
+          select_all_params = params.deep_dup
+          select_all_params['data']['attributes'][:all_records] = true
+          select_all_params['data']['attributes'][:ids] = []
+          parameters = ActionController::Parameters.new(select_all_params).permit!
+          action['approvalRequired'] = [1]
+          action['userApprovalEnabled'] = [7]
+          allow(ForestLiana::ResourcesGetter).to receive(:get_ids_from_request)
+          smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(parameters, Island, action, user, 'global')
+
+          expect{smart_action_checker.can_execute?}.to raise_error(ForestLiana::Ability::Exceptions::RequireApproval) do |error|
+            expect(error.data).not_to have_key(:recordIds)
+          end
+          expect(ForestLiana::ResourcesGetter).not_to have_received(:get_ids_from_request)
+        end
+
         it 'should refuse a "select all" trigger resolving over 500 record ids' do
           select_all_params = params.deep_dup
           select_all_params['data']['attributes'][:all_records] = true

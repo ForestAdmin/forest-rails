@@ -39,9 +39,11 @@ module ForestLiana
         collections_data = get_collections_permissions_data
         collection_name = ForestLiana.name_for(collection)
         begin
-          action = find_action_from_endpoint(collection_name, endpoint, http_method).name
+          schema_action = find_action_from_endpoint(collection_name, endpoint, http_method)
 
-          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection_name][:actions][action], user_data)
+          # The schema type rides along so the checker can skip select-all resolution for
+          # global actions, which target no specific records.
+          smart_action_approval = SmartActionChecker.new(parameters, collection, collections_data[collection_name][:actions][schema_action.name], user_data, schema_action.type)
           smart_action_approval.can_execute?
         rescue ForestLiana::Errors::ExpectedError => exception
           raise exception
