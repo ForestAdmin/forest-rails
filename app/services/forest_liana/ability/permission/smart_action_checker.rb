@@ -2,8 +2,7 @@ module ForestLiana
   module Ability
     module Permission
       class SmartActionChecker
-        # Max number of records a "select all" approval request may target. Matches the Forest
-        # server's hard cap on approval record ids - keep in sync.
+        # The Forest server's hard cap on approval record ids - keep in sync.
         MAX_RECORDS_FOR_APPROVAL = 500
 
         def initialize(parameters, collection, smart_action, user, action_type = nil)
@@ -40,9 +39,7 @@ module ForestLiana
             return true if condition_by_role_id(@smart_action['triggerConditions']).blank? || match_conditions('triggerConditions')
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
             if condition_by_role_id(@smart_action['approvalRequiredConditions']).blank? || match_conditions('approvalRequiredConditions')
-              # On a "select all" trigger the frontend has no explicit id list to store in the
-              # approval request: resolve the selection here (capped) and hand the ids back
-              # through the error. Global actions target no specific records — never resolve.
+              # Global actions target no specific records — never resolve.
               if @parameters[:data][:attributes][:all_records] && @action_type != 'global'
                 record_ids = select_all_record_ids
               end
@@ -57,8 +54,7 @@ module ForestLiana
         end
 
         def select_all_record_ids
-          # Fetch at most cap + excluded + 1 raw ids: enough to detect an over-cap selection
-          # after exclusions are filtered out, without materializing the whole table.
+          # cap + excluded + 1 raw ids suffice to detect an over-cap selection after exclusions.
           excluded_ids = @parameters[:data][:attributes][:all_records_ids_excluded] || []
           ids = ForestLiana::ResourcesGetter.get_ids_from_request(
             @parameters, @user, limit: MAX_RECORDS_FOR_APPROVAL + excluded_ids.length + 1
@@ -68,8 +64,7 @@ module ForestLiana
             raise ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge.new(MAX_RECORDS_FOR_APPROVAL)
           end
 
-          # Composite primary keys come back as arrays: encode them the way the serializer
-          # builds record ids (SerializerFactory#id), so the frontend gets the format it uses.
+          # Composite pks come back as arrays: encode them like SerializerFactory#id does.
           ids.map { |id| id.is_a?(Array) ? id.to_json : id }
         end
 
