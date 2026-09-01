@@ -50,6 +50,85 @@ module ForestLiana
         end
       end
 
+      def read_permissions(user, collection_names)
+        @read_permissions_cache ||= {}
+        to_fetch = collection_names.uniq - @read_permissions_cache.keys
+
+        unless to_fetch.empty?
+          # An absent permission system allows everything, so it is not queried: `is_crud_authorized?`
+          # short-circuits the same way, and answering anything else here would redact every relation
+          # on a deployment that granted nothing to check.
+          if has_permission_system?
+            collections_data = get_collections_permissions_data
+            user_data = get_user_data(user['id'])
+            to_fetch.each do |name|
+              allowed = collections_data.key?(name) && collections_data[name]['read'].include?(user_data['roleId'])
+              @read_permissions_cache[name] = allowed
+            end
+          else
+            to_fetch.each { |name| @read_permissions_cache[name] = true }
+          end
+        end
+
+        @read_permissions_cache.slice(*collection_names)
+      end
+
+      # +fields_hash+ is the shape `fields_per_model` already produces: `{ collection_name =>
+      # "field1,field2" }`, keyed by real collection names except for a polymorphic relation, whose
+      # entry is keyed by the association name on +root_model+ instead (no single target collection
+      # to key it by).
+      def redact_fields(user, root_model, fields_hash, named_collections:)
+        return fields_hash if fields_hash.nil?
+
+        resolved = fields_hash.to_h do |collection_key, csv|
+          collection_model = SchemaUtils.find_model_from_collection_name(collection_key)
+          field_names = csv.to_s.split(',').uniq
+
+          owners = if collection_model
+                     field_names.to_h { |field_name| [field_name, FieldPath.leaf_collection_names(collection_model, field_name)] }
+                   else
+                     # A polymorphic relation's own entry: the whole field list stands for the
+                     # relation itself, not individually-checkable sub-fields of an ambiguous target.
+                     { collection_key => FieldPath.leaf_collection_names(root_model, collection_key) }
+                   end
+
+          [collection_key, { field_names: field_names, owners: owners }]
+        end
+
+        allowed = read_permissions(user, resolved.values.flat_map { |entry| entry[:owners].values }.flatten)
+        readable_collection_names = allowed.filter_map { |name, ok| name if ok }
+        readable = ->(names) { FieldPath.readable_leaves?(names, readable_collection_names) }
+
+        denied = []
+        redacted = resolved.filter_map do |collection_key, entry|
+          named = named_collections.include?(collection_key)
+
+          if entry[:owners].key?(collection_key)
+            if readable.call(entry[:owners][collection_key])
+              [collection_key, entry[:field_names].join(',')]
+            else
+              denied << { path: collection_key, collections: entry[:owners][collection_key] } if named
+              nil
+            end
+          else
+            kept = entry[:field_names].select do |field_name|
+              if readable.call(entry[:owners][field_name])
+                true
+              else
+                denied << { path: field_name, collections: entry[:owners][field_name] } if named
+                false
+              end
+            end
+
+            kept.empty? ? nil : [collection_key, kept.join(',')]
+          end
+        end.to_h
+
+        raise ForestLiana::Ability::Exceptions::UnauthorizedFieldsError.new(denied) unless denied.empty?
+
+        redacted
+      end
+
       def is_chart_authorized?(user, parameters)
         parameters = parameters.to_h
         parameters.delete('timezone')

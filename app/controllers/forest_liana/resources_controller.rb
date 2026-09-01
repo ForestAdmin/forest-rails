@@ -27,6 +27,13 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+        render(serializer: nil, json: { errors: [{
+          status: error.error_code,
+          detail: error.message,
+          name: error.name,
+          data: error.data
+        }] }, status: error.status)
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -208,11 +215,9 @@ module ForestLiana
     end
 
     def render_record_jsonapi record
-      collection = ForestLiana::SchemaHelper.find_collection_from_model(@resource)
-      collection_fields = collection.fields.map { |field| field[:field] }
-      fields_to_serialize = {
-        ForestLiana.name_for(@resource) => collection_fields.join(',')
-      }
+      # `show`/`create`/`update` never read `params[:fields]` — every field this route serves is
+      # therefore part of the default expansion, not something the caller named.
+      fields_to_serialize = redact_fields(forest_user, @resource, default_fields_to_serialize(@resource, record_includes), named_collections: [])
 
       serialize_model(get_record(record), {
         include: record_includes,
@@ -222,7 +227,11 @@ module ForestLiana
 
     def render_jsonapi getter
       records = getter.records.map { |record| get_record(record) }
-      fields_to_serialize = fields_per_model(params[:fields], @resource)
+      requested_fields = fields_per_model(params[:fields], @resource)
+      fields_to_serialize = requested_fields || default_fields_to_serialize(@resource, includes(getter))
+      fields_to_serialize = redact_fields(
+        forest_user, @resource, fields_to_serialize, named_collections: requested_fields ? requested_fields.keys : []
+      )
 
       json = serialize_models(
         records,
@@ -235,6 +244,29 @@ module ForestLiana
       )
 
       render serializer: nil, json: json
+    end
+
+    # The full-schema field list `fields[...]` expands to when the caller never sent it — mirrors
+    # `render_record_jsonapi`'s own full-collection expansion, fanned out over the relations the
+    # response actually includes. A polymorphic relation is left out of this per-collection map: it
+    # has no single target collection to expand, and it already appears in the root's own field list
+    # (below), which is what makes the relationship link itself visible.
+    def default_fields_to_serialize(root_model, included_relation_names)
+      fields = { ForestLiana.name_for(root_model) => collection_field_names(root_model) }
+
+      Array(included_relation_names).each do |relation_name|
+        reflection = root_model.reflect_on_association(relation_name.to_sym)
+        next if reflection.nil? || reflection.polymorphic?
+
+        related_name = ForestLiana.name_for(reflection.klass)
+        fields[related_name] ||= collection_field_names(reflection.klass)
+      end
+
+      fields
+    end
+
+    def collection_field_names(model)
+      ForestLiana::SchemaHelper.find_collection_from_model(model).fields.map { |field| field[:field] }.join(',')
     end
 
     def get_collection
