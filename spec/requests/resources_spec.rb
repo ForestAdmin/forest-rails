@@ -21,6 +21,15 @@ describe 'Requesting Tree resources', :type => :request  do
           'delete'  => [1],
           'export'  => [1],
           'actions' => {}
+        },
+        'Location' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
         }
       }
     )
@@ -164,6 +173,87 @@ describe 'Requesting Tree resources', :type => :request  do
           }],
           "included" => []
         })
+      end
+    end
+  end
+
+  describe 'read-permission redaction' do
+    describe 'index, naming a field of a collection the role cannot read' do
+      params = {
+        fields: { 'Tree' => 'id,name,island' },
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'refuses with a 403 naming every offending field, not a silently shortened payload' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You are not allowed to read 'island' from the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('fields' => ['island'])
+      end
+    end
+
+    describe 'index, an ordinary listing that never named the unreadable relation' do
+      params = {
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'succeeds, with that relation silently absent rather than refusing the whole listing' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body['data'][0]['relationships']).not_to have_key('island')
+        expect(body['data'][0]['relationships']).to have_key('location')
+      end
+    end
+
+    it 'treats the very same denied path differently depending on whether the caller named it' do
+      unnamed_params = {
+        page: { 'number' => '1', 'size' => '10' }, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris'
+      }
+      named_params = unnamed_params.merge(fields: { 'Tree' => 'id,name,island' })
+
+      get '/forest/Tree', params: unnamed_params, headers: headers
+      expect(response.status).to eq(200)
+
+      get '/forest/Tree', params: named_params, headers: headers
+      expect(response.status).to eq(403)
+    end
+
+    describe 'show' do
+      it 'redacts the fields of a relation the role cannot read instead of refusing the whole record' do
+        tree_id = Tree.first.id
+
+        get "/forest/Tree/#{tree_id}", params: { timezone: 'Europe/Paris' }, headers: headers
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body['data']['relationships']).not_to have_key('island')
+        expect(body['data']['relationships']).to have_key('location')
+      end
+    end
+
+    describe 'update' do
+      it 'redacts the response of a write instead of refusing it' do
+        tree_id = Tree.first.id
+
+        put "/forest/Tree/#{tree_id}",
+              params: { data: { type: 'Tree', id: tree_id.to_s, attributes: { name: 'Renamed' } } },
+              headers: headers, as: :json
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body['data']['attributes']['name']).to eq('Renamed')
+        expect(body['data']['relationships']).not_to have_key('island')
       end
     end
   end
@@ -397,6 +487,15 @@ describe 'Requesting Address resources', :type => :request  do
       'forest.collections',
       {
         'Address' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
+        },
+        'User' => {
           'browse'  => [1],
           'read'    => [1],
           'edit'    => [1],

@@ -8,6 +8,7 @@ module ForestLiana
     rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnknownCollection, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnauthorizedFieldsError, with: :render_error
 
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
@@ -40,7 +41,7 @@ module ForestLiana
 
     def serialize_model(record, options = {})
       options[:is_collection] = false
-      options[:context] = { unoptimized: true }.merge(options[:context] || {})
+      options[:context] = { unoptimized: options[:fields].nil? }.merge(options[:context] || {})
 
       json = ForestAdmin::JSONAPI::Serializer.serialize(record, options)
 
@@ -49,7 +50,7 @@ module ForestLiana
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
-      if options[:params] && options[:params][:fields].nil?
+      if options[:fields].nil?
         options[:context] = { unoptimized: true }.merge(options[:context] || {})
       end
 

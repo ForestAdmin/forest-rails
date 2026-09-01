@@ -628,7 +628,7 @@ describe 'Requesting Actions routes', :type => :request  do
 
     context 'when params fields is present' do
       it 'leaves context unchanged' do
-        options = { params: { fields: 'id' }, context: { foo: 1 } }
+        options = { fields: { 'Island' => 'id' }, params: { fields: 'id' }, context: { foo: 1 } }
 
         expect(ForestAdmin::JSONAPI::Serializer)
           .to receive(:serialize) do |_, opts|

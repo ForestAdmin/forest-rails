@@ -1,5 +1,7 @@
 module ForestLiana
   class AssociationsController < ForestLiana::ApplicationController
+    include ForestLiana::Ability
+
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: :count
       before_filter :find_association, except: :count
@@ -17,6 +19,20 @@ module ForestLiana
           format.json { render_jsonapi(getter) }
           format.csv { render_csv(getter, @association.klass) }
         end
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+        render(serializer: nil, json: { errors: [{
+          status: error.error_code,
+          detail: error.message,
+          name: error.name,
+          data: error.data
+        }] }, status: error.status)
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index error: #{error}\n#{format_stacktrace(error)}"
@@ -127,14 +143,23 @@ module ForestLiana
     end
 
     def render_jsonapi getter
-      fields_to_serialize = fields_per_model(params[:fields], @association.klass)
-      records = getter.records.map { |record| get_record(record) }
-
       includes = getter.includes_for_serialization
-      if fields_to_serialize && includes.length > 0
-        association_name = ForestLiana.name_for(@association.klass)
-        fields_to_serialize[association_name] += ",#{includes.join(',')}"
+      requested_fields = fields_per_model(params[:fields], @association.klass)
+
+      # The getter may include a relation the caller's own field list omitted (search decoration,
+      # scoped includes); splice it in before redaction runs, so it is checked like any other field
+      # instead of bypassing the check entirely by being added back afterwards.
+      association_name = ForestLiana.name_for(@association.klass)
+      if requested_fields && includes.length > 0 && requested_fields[association_name]
+        requested_fields[association_name] += ",#{includes.join(',')}"
       end
+
+      fields_to_serialize = requested_fields || default_fields_to_serialize(@association.klass, includes)
+      fields_to_serialize = redact_fields(
+        forest_user, @association.klass, fields_to_serialize,
+        named_collections: requested_fields ? requested_fields.keys : []
+      )
+      records = getter.records.map { |record| get_record(record) }
 
       json = serialize_models(
         records,
@@ -153,6 +178,27 @@ module ForestLiana
       model_association = @resource.reflect_on_association(params[:association_name].to_sym).klass
       collection_name = ForestLiana.name_for(model_association)
       @collection ||= ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+    end
+
+    # See ResourcesController#default_fields_to_serialize for the rationale; duplicated rather than
+    # shared, matching how this controller already keeps its own render_jsonapi/get_record instead
+    # of reusing ResourcesController's.
+    def default_fields_to_serialize(root_model, included_relation_names)
+      fields = { ForestLiana.name_for(root_model) => collection_field_names(root_model) }
+
+      Array(included_relation_names).each do |relation_name|
+        reflection = root_model.reflect_on_association(relation_name.to_sym)
+        next if reflection.nil? || reflection.polymorphic?
+
+        related_name = ForestLiana.name_for(reflection.klass)
+        fields[related_name] ||= collection_field_names(reflection.klass)
+      end
+
+      fields
+    end
+
+    def collection_field_names(model)
+      ForestLiana::SchemaHelper.find_collection_from_model(model).fields.map { |field| field[:field] }.join(',')
     end
   end
 end
