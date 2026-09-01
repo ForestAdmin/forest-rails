@@ -26,6 +26,13 @@ module ForestLiana
           name: error.name,
           data: error.data
         }] }, status: error.status)
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index error: #{error}\n#{format_stacktrace(error)}"

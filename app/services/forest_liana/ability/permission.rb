@@ -85,7 +85,7 @@ module ForestLiana
           field_names = csv.to_s.split(',').uniq
 
           owners = if collection_model
-                     field_names.to_h { |field_name| [field_name, FieldPath.leaf_collection_names(collection_model, field_name)] }
+                     field_names.to_h { |field_name| [field_name, resolve_owner(collection_model, field_name)] }
                    else
                      # A polymorphic relation's own entry: the whole field list stands for the
                      # relation itself, not individually-checkable sub-fields of an ambiguous target.
@@ -235,6 +235,24 @@ module ForestLiana
         return nil unless collection
 
         collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
+      end
+
+      # A smart belongsTo field (`is_virtual`, backed by a `reference`) has no ActiveRecord
+      # association, so FieldPath would otherwise resolve it to a column of +model+ itself — the
+      # collection its `reference` actually points to is checked instead, the same target
+      # `fields_per_model` already resolves a caller-named smart relation to.
+      def resolve_owner(model, field_name)
+        smart_field = smart_belongs_to_field(model, field_name)
+
+        return [smart_field[:reference].split('.').first] if smart_field
+
+        FieldPath.leaf_collection_names(model, field_name)
+      end
+
+      def smart_belongs_to_field(model, field_name)
+        forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
+
+        forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
     end
   end

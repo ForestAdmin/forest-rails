@@ -153,6 +153,41 @@ module ForestLiana
             %w[subject subject= subject_id subject_type].each { |m| Tree.undef_method(m) rescue nil }
           end
         end
+
+        describe 'a smart belongsTo field (is_virtual, no ActiveRecord reflection)' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Tree')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return(
+              [{ field: :organization, reference: 'Organization.id', is_virtual: true, type: 'String' }]
+            )
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+          end
+
+          it 'checks read on the field\'s referenced collection, not on the root it is declared on' do
+            write_permissions('Tree' => true, 'Organization' => false)
+
+            expect { dummy_class.redact_fields(user, Tree, { 'Tree' => 'id,organization' }, named_collections: ['Tree']) }
+              .to raise_error(
+                ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+                "You are not allowed to read 'organization' from the 'Organization' collection."
+              )
+          end
+
+          it 'drops it silently, like any other unnamed field, when the target is unreadable' do
+            write_permissions('Tree' => true, 'Organization' => false)
+
+            expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'id,organization' }, named_collections: []))
+              .to eq('Tree' => 'id')
+          end
+
+          it 'keeps it when the referenced collection is readable' do
+            write_permissions('Tree' => true, 'Organization' => true)
+
+            expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'id,organization' }, named_collections: ['Tree']))
+              .to eq('Tree' => 'id,organization')
+          end
+        end
       end
     end
   end
