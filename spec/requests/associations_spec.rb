@@ -64,4 +64,15 @@ describe 'Requesting an association', :type => :request do
       expect(body['errors'][0]['data']).to eq('fields' => ['owner'])
     end
   end
+
+  describe 'index, a malformed explicit projection' do
+    it 'responds 422 naming the offending part, rather than a 500' do
+      get "/forest/Island/#{@island.id}/relationships/trees",
+          params: { fields: { 'Tree' => 'unknown:id' }, page: { 'number' => '1', 'size' => '10' }, timezone: 'Europe/Paris' },
+          headers: headers
+
+      expect(response.status).to eq(422)
+      expect(JSON.parse(response.body)['errors'][0]['detail']).to eq "Relation not found: 'Tree.unknown'"
+    end
+  end
 end
