@@ -112,5 +112,19 @@ module ForestLiana
         expect(FieldPath.readable_leaves?(%w[User Island], %w[User])).to be false
       end
     end
+
+    describe 'leaf_label' do
+      it 'names a single collection' do
+        expect(FieldPath.leaf_label(['User'])).to eq("the 'User' collection")
+      end
+
+      it 'joins several collections with or' do
+        expect(FieldPath.leaf_label(%w[User Island])).to eq("the 'User' or 'Island' collection")
+      end
+
+      it 'names an unresolved polymorphic relation for an empty list' do
+        expect(FieldPath.leaf_label([])).to eq('an unresolved polymorphic relation')
+      end
+    end
   end
 end
