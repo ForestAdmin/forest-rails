@@ -24,6 +24,11 @@ module ForestLiana
     subject { described_class.new(Island, association, params, user) }
 
     before(:each) do
+      # This file exercises SQL shaping, not permissions: without this, the read-permission
+      # guard on filters/sort hits the real permissions API through whatever the process-wide
+      # (file-backed) cache last left behind, rather than the "nothing to check" this file assumes.
+      Rails.cache.write('forest.has_permission', false)
+
       # A has_one declared on the target model that actually returns MANY rows: every tree
       # sharing the island. Eager-loading it turns one tree into N joined rows.
       Tree.class_eval do

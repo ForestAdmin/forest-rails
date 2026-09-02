@@ -10,6 +10,7 @@ module ForestLiana
       @resource = resource
       @association = association
       @params = params
+      @user = forest_user
       @collection_name = ForestLiana.name_for(model_association)
       @field_names_requested = field_names_requested
       @collection = get_collection(@collection_name)
@@ -24,6 +25,7 @@ module ForestLiana
     #         Only the relations optimize_record_loading actually joins can be projected — the
     #         display-only ones are preloaded on purpose, and come back whole.
     def perform
+      @search_query_builder.assert_sort_readable!(@user, model_association)
       return @records unless project?
 
       polymorphic_associations, preload_loads = analyze_associations(model_association)

@@ -31,6 +31,7 @@ module ForestLiana
     end
 
     def perform
+      @search_query_builder.assert_sort_readable!(@user, @resource)
       polymorphic_association, preload_loads = analyze_associations(@resource)
       includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
       has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|

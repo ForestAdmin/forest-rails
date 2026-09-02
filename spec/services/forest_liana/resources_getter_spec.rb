@@ -17,6 +17,13 @@ module ForestLiana
       filters: filters,
     }, user) }
 
+    before(:each) do
+      # This file exercises SQL shaping, not permissions: without this, the read-permission
+      # guard on filters/sort hits the real permissions API through whatever the process-wide
+      # (file-backed) cache last left behind, rather than the "nothing to check" this file assumes.
+      Rails.cache.write('forest.has_permission', false)
+    end
+
     def init_scopes
       ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)

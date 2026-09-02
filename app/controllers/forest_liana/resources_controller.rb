@@ -31,7 +31,8 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
         # A CSV request already has its response Content-Type/Content-Disposition set by the
         # respond_to format match before this rescue ever runs — force JSON back, or the client
         # downloads a ".csv" file whose content is this JSON error.
