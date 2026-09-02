@@ -525,6 +525,10 @@ describe 'Requesting Actions routes', :type => :request  do
     describe 'with scopes' do
       before(:each) do
         allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
+        # forest_authorize! is stubbed out above; the field-read-permission checks a select-all
+        # scope resolution runs independently of it must be bypassed the same way, or they hit the
+        # real permissions API with nothing cached to answer from.
+        Rails.cache.write('forest.has_permission', false)
       end
 
       describe 'when record is in scope' do

@@ -30,6 +30,15 @@ describe 'Requesting Tree resources', :type => :request  do
           'delete'  => [1],
           'export'  => [1],
           'actions' => {}
+        },
+        'User' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
         }
       }
     )
@@ -255,6 +264,93 @@ describe 'Requesting Tree resources', :type => :request  do
         expect(body['data']['attributes']['name']).to eq('Renamed')
         expect(body['data']['relationships']).not_to have_key('island')
       end
+    end
+  end
+
+  describe 'read-permission enforcement on filter and sort' do
+    describe 'filtering on a column of a collection the role cannot read' do
+      params = {
+        filters: JSON.generate({ 'field' => 'island:name', 'operator' => 'equal', 'value' => 'Lemon Island' }),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'refuses index with a 403 naming the path and the collection' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You cannot filter on 'island:name': you are not allowed to read the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name')
+      end
+
+      it 'refuses count the same way' do
+        get '/forest/Tree/count', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+      end
+
+      it 'refuses csv export the same way' do
+        get '/forest/Tree.csv', params: params.merge(header: 'id'), headers: headers
+
+        expect(response.status).to eq(403)
+      end
+    end
+
+    describe 'sorting on a column of a collection the role cannot read' do
+      params = {
+        sort: '-island.name',
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'refuses index' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        expect(JSON.parse(response.body)['errors'][0]['detail'])
+          .to eq "You cannot sort on 'island:name': you are not allowed to read the 'Island' collection."
+      end
+
+      it 'does not refuse count, which never applies the sort' do
+        get '/forest/Tree/count', params: params, headers: headers
+
+        expect(response.status).to eq(200)
+      end
+    end
+
+    it 'never checks a scope, even one referencing a column of an unreadable collection' do
+      allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(
+        'scopes' => {
+          'Tree' => { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'island:name', 'operator' => 'present' }] }
+        },
+        'team' => { 'id' => '1', 'name' => 'Operations' }
+      )
+      params = { page: { 'number' => '1', 'size' => '10' }, searchExtended: '0', timezone: 'Europe/Paris' }
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+    end
+
+    it 'never refuses a filter on the root collection, even when the root has no read permission of its own' do
+      # `browse` (not `read`) is what forest_authorize! gates the route on; a role can legitimately
+      # browse a collection without having its own `read` — the root is still pinned readable for
+      # this guard, which must not re-derive a denial for it from a permission it is not gated on.
+      Rails.cache.write('forest.collections', { 'Tree' => { 'browse' => [1], 'read' => [], 'edit' => [], 'add' => [], 'delete' => [], 'export' => [], 'actions' => {} } })
+      params = {
+        filters: JSON.generate({ 'field' => 'name', 'operator' => 'present' }),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response.status).to eq(200)
     end
   end
 

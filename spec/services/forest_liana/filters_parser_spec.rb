@@ -30,6 +30,33 @@ module ForestLiana
       Island.destroy_all
     }
 
+    describe '.field_paths' do
+      it 'answers an empty list for a blank filter' do
+        expect(described_class.field_paths(nil)).to eq([])
+      end
+
+      it 'answers the single field of a leaf condition' do
+        expect(described_class.field_paths(presence_condition)).to eq(['name'])
+      end
+
+      it 'answers every leaf field of a deeply nested aggregation' do
+        filters = {
+          'aggregator' => 'or',
+          'conditions' => [
+            {
+              'aggregator' => 'and', 'conditions' => [
+                { 'aggregator' => 'or', 'conditions' => [date_condition_1, simple_condition_1] },
+                simple_condition_2
+              ]
+            },
+            belongs_to_condition
+          ]
+        }
+
+        expect(described_class.field_paths(filters)).to eq(%w[created_at name name trees:age])
+      end
+    end
+
     describe 'apply_filters' do
       let(:parsed_filters) { filter_parser.apply_filters }
 

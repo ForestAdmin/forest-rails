@@ -2,6 +2,15 @@ module ForestLiana
   class FiltersParser
     AGGREGATOR_OPERATOR = %w(and or).freeze
 
+    # The `field` of every leaf in a filter tree, however deeply nested — the same tree
+    # `apply_filters` will walk, read rather than re-derived.
+    def self.field_paths(filter)
+      return [] if filter.nil?
+      return filter['conditions'].flat_map { |condition| field_paths(condition) } if filter['aggregator']
+
+      [filter['field']]
+    end
+
     def initialize(filters, resource, timezone, params = nil)
       @filters = filters
       @params = params
