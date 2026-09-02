@@ -268,6 +268,20 @@ describe 'Requesting Tree resources', :type => :request  do
   end
 
   describe 'read-permission enforcement on filter and sort' do
+    it 'lets a malformed filter reach the parser\'s own 422, rather than crashing this guard' do
+      params = {
+        filters: JSON.generate({ 'operator' => 'equal', 'value' => 'x' }),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response.status).to eq(422)
+      expect(JSON.parse(response.body)['errors'][0]['detail']).to eq 'Invalid condition format'
+    end
+
     describe 'filtering on a column of a collection the role cannot read' do
       params = {
         filters: JSON.generate({ 'field' => 'island:name', 'operator' => 'equal', 'value' => 'Lemon Island' }),
