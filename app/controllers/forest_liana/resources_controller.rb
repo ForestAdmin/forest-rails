@@ -27,7 +27,8 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,

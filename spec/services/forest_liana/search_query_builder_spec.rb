@@ -8,7 +8,7 @@ module ForestLiana
 
     before do
       allow(ForestLiana::ScopeManager)
-        .to receive(:append_scope_for_user)
+        .to receive(:append_scope)
         .and_return(nil)
       allow(ForestLiana)
         .to receive(:schema_for_resource)
@@ -86,6 +86,87 @@ module ForestLiana
           result = builder.perform(Tree.all)
           expect(result.to_sql).to match(/"external_id"\s+=\s+'#{search_uuid}'/i)
         end
+      end
+    end
+
+    describe '#assert_sort_readable!' do
+      let(:params) { { sort: sort } }
+      let(:user) { { 'id' => '1', 'roleId' => 1, 'rendering_id' => 1 } }
+
+      def write_permissions(collection_reads)
+        permissions = collection_reads.to_h do |name, readable|
+          [name, { 'browse' => readable ? [1] : [], 'read' => readable ? [1] : [], 'edit' => [], 'add' => [], 'delete' => [], 'export' => [], :actions => {} }]
+        end
+
+        Rails.cache.write('forest.collections', permissions)
+      end
+
+      before do
+        Rails.cache.write('forest.users', { '1' => user })
+        Rails.cache.write('forest.has_permission', true)
+        builder.perform(Tree.all)
+      end
+
+      context 'sorting on a column of an unreadable relation' do
+        let(:sort) { '-owner.name' }
+
+        it 'refuses, naming the path the sort actually reads' do
+          write_permissions('Tree' => true, 'User' => false)
+
+          expect { builder.assert_sort_readable!(user, Tree) }.to raise_error(
+            ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+            "You cannot sort on 'owner:name': you are not allowed to read the 'User' collection."
+          )
+        end
+
+        it 'is served once the relation is readable' do
+          write_permissions('Tree' => true, 'User' => true)
+
+          expect { builder.assert_sort_readable!(user, Tree) }.not_to raise_error
+        end
+      end
+
+      context 'sorting on a path crossing two relations' do
+        # detect_reference's own `ref, field = param.split('.')` only ever resolves the first two
+        # segments; the guard checks exactly that, not the segment the query never reaches.
+        let(:sort) { '-owner.name.extra' }
+
+        it 'checks the same two segments detect_reference resolves, not the dropped third one' do
+          write_permissions('Tree' => true, 'User' => false)
+
+          expect { builder.assert_sort_readable!(user, Tree) }.to raise_error(
+            ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+            "You cannot sort on 'owner:name': you are not allowed to read the 'User' collection."
+          )
+        end
+      end
+    end
+
+    describe 'the tree it authorizes' do
+      let(:raw_filter) { { 'field' => 'name', 'operator' => 'equal', 'value' => 'Oak' } }
+      let(:params) { { filters: JSON.generate(raw_filter) } }
+
+      before do
+        Rails.cache.write('forest.has_permission', false)
+        allow(ForestLiana::ScopeManager).to receive(:append_scope).and_call_original
+        allow(ForestLiana::ScopeManager).to receive(:get_scope).and_return(nil)
+      end
+
+      # The path guard reads `ScopeManager.inject_context_variables(@params[:filters], @user)`
+      # once and hands that same object on to `append_scope`/`FiltersParser` — proving the tree
+      # FiltersParser applies is identical to the one the guard read, not a second, independent
+      # parse of the same query string that could drift from it.
+      it 'hands FiltersParser exactly what it authorized, byte for byte' do
+        expected_tree = ForestLiana::ScopeManager.inject_context_variables(params[:filters], user)
+        received_tree = nil
+        allow(FiltersParser).to receive(:new).and_wrap_original do |original, filters, *rest|
+          received_tree = filters
+          original.call(filters, *rest)
+        end
+
+        builder.perform(Tree.all)
+
+        expect(received_tree).to eq(expected_tree)
       end
     end
   end

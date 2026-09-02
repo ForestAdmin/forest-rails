@@ -75,4 +75,49 @@ describe 'Requesting an association', :type => :request do
       expect(JSON.parse(response.body)['errors'][0]['detail']).to eq "Relation not found: 'Tree.unknown'"
     end
   end
+
+  describe 'filtering on a column of a collection the role cannot read' do
+    params = {
+      filters: JSON.generate({ 'field' => 'owner:name', 'operator' => 'equal', 'value' => 'Michel' }),
+      page: { 'number' => '1', 'size' => '10' },
+      timezone: 'Europe/Paris'
+    }
+
+    it 'refuses index with a 403 naming the path and the collection' do
+      get "/forest/Island/#{@island.id}/relationships/trees", params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      body = JSON.parse(response.body)
+      expect(body['errors'][0]['detail'])
+        .to eq "You cannot filter on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+
+    # This is the route that had no ExpectedError rescue at all before this guard: anything it
+    # raised surfaced as a bare 500, not the 403 every other route already gave the same denial.
+    it 'refuses count the same way, not with a bodiless 500' do
+      get "/forest/Island/#{@island.id}/relationships/trees/count", params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot filter on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+  end
+
+  describe 'sorting on a column of a collection the role cannot read' do
+    params = { sort: '-owner.name', page: { 'number' => '1', 'size' => '10' }, timezone: 'Europe/Paris' }
+
+    it 'refuses index' do
+      get "/forest/Island/#{@island.id}/relationships/trees", params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot sort on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+
+    it 'does not refuse count, which never applies the sort' do
+      get "/forest/Island/#{@island.id}/relationships/trees/count", params: params, headers: headers
+
+      expect(response.status).to eq(200)
+    end
+  end
 end

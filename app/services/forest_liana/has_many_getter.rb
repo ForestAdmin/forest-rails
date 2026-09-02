@@ -10,6 +10,7 @@ module ForestLiana
       @resource = resource
       @association = association
       @params = params
+      @user = forest_user
       @collection_name = ForestLiana.name_for(model_association)
       @field_names_requested = field_names_requested
       @collection = get_collection(@collection_name)
@@ -20,6 +21,7 @@ module ForestLiana
     end
 
     def perform
+      @search_query_builder.assert_sort_readable!(@user, model_association)
       @records
     end
 

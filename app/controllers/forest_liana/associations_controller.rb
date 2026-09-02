@@ -19,7 +19,8 @@ module ForestLiana
           format.json { render_jsonapi(getter) }
           format.csv { render_csv(getter, @association.klass) }
         end
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,
@@ -53,6 +54,21 @@ module ForestLiana
         getter.count
 
         render serializer: nil, json: { count: getter.records_count }
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
+        render(serializer: nil, json: { errors: [{
+          status: error.error_code,
+          detail: error.message,
+          name: error.name,
+          data: error.data
+        }] }, status: error.status)
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index Count error: #{error}\n#{format_stacktrace(error)}"
