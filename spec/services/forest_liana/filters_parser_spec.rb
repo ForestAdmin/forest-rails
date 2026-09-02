@@ -39,6 +39,25 @@ module ForestLiana
         expect(described_class.field_paths(presence_condition)).to eq(['name'])
       end
 
+      # A malformed leaf must reach FiltersParser#ensure_valid_condition's own 422, not crash a
+      # caller that expects every path to be a String (FieldPath in particular).
+      it 'leaves out a leaf with no field, rather than answering a nil path' do
+        expect(described_class.field_paths({ 'operator' => 'equal', 'value' => 'x' })).to eq([])
+      end
+
+      it 'leaves out a leaf whose field is not a String' do
+        expect(described_class.field_paths({ 'field' => ['name'], 'operator' => 'equal', 'value' => 'x' })).to eq([])
+      end
+
+      it 'keeps the valid leaves of an aggregation that also has a malformed one' do
+        filters = {
+          'aggregator' => 'and',
+          'conditions' => [{ 'operator' => 'equal', 'value' => 'x' }, presence_condition]
+        }
+
+        expect(described_class.field_paths(filters)).to eq(['name'])
+      end
+
       it 'answers every leaf field of a deeply nested aggregation' do
         filters = {
           'aggregator' => 'or',
