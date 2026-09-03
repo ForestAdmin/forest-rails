@@ -24,6 +24,10 @@ module ForestLiana
       @records = search_param
 
       caller_filter = @params[:filters].present? ? ForestLiana::ScopeManager.inject_context_variables(@params[:filters], @user) : nil
+      # A bare recorded path is by construction a root column (never a caller-named field), so it's
+      # dropped here rather than resolved: FieldPath would otherwise treat a root column whose name
+      # collides with an association name (e.g. a `location` column alongside a `location`
+      # association) as a traversal into that association, checking the wrong collection.
       assert_can_read_query_fields(
         @user,
         root_model,
@@ -46,6 +50,10 @@ module ForestLiana
               FOREST_REPORTER.report exception
               FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \
                 "#{exception}"
+              # A failed lambda is the same "cannot be evaluated" case as no column matching at
+              # all: answering no records keeps the guarantee this file makes elsewhere, that a
+              # search that cannot be resolved never falls through to the unfiltered table.
+              @records = @records.none
             end
           end
         end
@@ -104,6 +112,12 @@ module ForestLiana
         end
 
         # ActsAsTaggable
+        # Root-owned by construction: `condition` below both gates the `push_condition` call and
+        # is the exact string it pushes, so the recorded path and the SQL can't diverge. Not
+        # covered by a live spec — acts_as_taggable_on isn't installed in the dummy app, and
+        # stubbing `taggable?`/`acts_as_taggable` on the real Tree model to simulate it permanently
+        # corrupts ActiveRecord::Delegation's per-class method cache for the rest of the process,
+        # regardless of the stubbing method used.
         if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@search.downcase)
@@ -112,7 +126,7 @@ module ForestLiana
           end
         end
 
-        if (@params['searchExtended'].to_i == 1)
+        if extended_search?
           ForestLiana::QueryHelper.get_one_association_names_symbol(@resource).each do |association|
             if @collection.search_fields
               association_search = @collection.search_fields.map do |field|
@@ -140,7 +154,13 @@ module ForestLiana
           end
 
           if @collection.search_fields
-            SchemaUtils.many_associations(@resource).map(&:name).each do
+            # Unlike QueryHelper.get_one_associations, SchemaUtils.many_associations does not
+            # filter out a target the agent doesn't expose — an association named by search_fields
+            # but pointing at such a model would otherwise be searched, then reported as an
+            # "unexposed" path nobody could ever have granted read on.
+            SchemaUtils.many_associations(@resource)
+              .select { |reflection| SchemaUtils.model_included?(reflection.klass) }
+              .map(&:name).each do
               |association|
               association_search = @collection.search_fields.map do |field|
                 if field.include?('.') && field.split('.')[0] == association.to_s
@@ -166,15 +186,11 @@ module ForestLiana
         if conditions.empty?
           # NOTICE: a malformed-UUID search suppresses the only conditions it could
           #         have produced (text LIKE scans); match nothing rather than fall
-          #         through to an unfiltered query that returns the whole table.
-          if malformed_uuid_search?
-            @records = @resource.none
-          elsif !smart_search_declared?
-            # A term no condition could match answers no records rather than the whole table; a
-            # declared smart-search lambda ORs its own conditions in after this, so a collection
-            # whose only search surface is that lambda stays unfiltered here.
-            @records = @resource.none
-          end
+          #         through to an unfiltered query that returns the whole table. A declared
+          #         smart-search lambda is the one exception: it ORs its own conditions in right
+          #         after this, so a collection whose only search surface is that lambda is left
+          #         unfiltered here rather than pre-emptied to none.
+          @records = @resource.none if malformed_uuid_search? || !smart_search_declared?
         else
           @records = @resource.where(
             conditions.join(' OR '),

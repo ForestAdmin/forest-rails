@@ -19,16 +19,8 @@ module ForestLiana
           format.json { render_jsonapi(getter) }
           format.csv { render_csv(getter, @association.klass) }
         end
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
-             ForestLiana::Ability::Exceptions::UndescribableSearchError,
-             ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError => error
-        render(serializer: nil, json: { errors: [{
-          status: error.error_code,
-          detail: error.message,
-          name: error.name,
-          data: error.data
-        }] }, status: error.status)
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -56,16 +48,8 @@ module ForestLiana
         getter.count
 
         render serializer: nil, json: { count: getter.records_count }
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
-             ForestLiana::Ability::Exceptions::UndescribableSearchError,
-             ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError => error
-        render(serializer: nil, json: { errors: [{
-          status: error.error_code,
-          detail: error.message,
-          name: error.name,
-          data: error.data
-        }] }, status: error.status)
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -119,6 +103,8 @@ module ForestLiana
         head :no_content
       rescue ActiveRecord::RecordNotDestroyed => error
         render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Dissociate error: #{error}\n#{format_stacktrace(error)}"

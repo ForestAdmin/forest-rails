@@ -13,6 +13,16 @@ module ForestLiana
     rescue_from ForestLiana::Ability::Exceptions::UndescribableSearchError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError, with: :render_error
 
+    # `render_error` above already gives these their 403 + name/data payload — every list here is
+    # for an action whose own `begin/rescue` would otherwise let a bare `rescue => error` swallow
+    # them into a 500 first. Those actions catch this list and re-`raise`, letting it reach here.
+    QUERY_PERMISSION_ERRORS = [
+      ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+      ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+      ForestLiana::Ability::Exceptions::UndescribableSearchError,
+      ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError,
+    ].freeze
+
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
     end

@@ -5,7 +5,7 @@ module ForestLiana
         attr_reader :data
 
         def initialize(action, path, collections, backtrace = nil)
-          @data = { action: action, field: path }
+          @data = { action: action, field: path, collections: collections }
 
           super(
             403,

@@ -285,8 +285,8 @@ module ForestLiana
         forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
 
-      # No role can ever be granted `read` on a collection absent from the permission payload — a
-      # denial message naming it as unreadable would point at a permission nobody can grant.
+      # No role can ever be granted `read` on a collection absent from the apimap — a denial
+      # message naming it as unreadable would point at a permission nobody can grant.
       def collection_exposed?(collection_name)
         ForestLiana.apimap.any? { |collection| collection.name.to_s == collection_name }
       end

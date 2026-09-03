@@ -207,6 +207,31 @@ module ForestLiana
         end
       end
 
+      context 'search_fields naming a to-many association the agent does not expose' do
+        # Unlike QueryHelper.get_one_associations (used for the to-one block above),
+        # SchemaUtils.many_associations does not filter by model_included? on its own — the search
+        # site has to, or a search on this collection would report a path into a collection nobody
+        # can ever be granted read on, refused as "unexposed" for a config the caller never wrote.
+        let(:collection) do
+          ForestLiana::Model::Collection.new(name: 'Island', fields: [], search_fields: %w[name trees.name])
+        end
+        let(:params) { ActiveSupport::HashWithIndifferentAccess.new(search: 'Oak', searchExtended: '1') }
+
+        before do
+          Tree.create!(name: 'Oak', island: Island.create!(name: 'Réunion'))
+          allow(ForestLiana).to receive(:excluded_models).and_return(['Tree'])
+        end
+
+        after { Tree.destroy_all; Island.destroy_all }
+
+        it 'does not search it, rather than reporting a path into an unexposed collection' do
+          records = builder.perform(Island.all)
+
+          expect(builder.search_field_paths.grep(/\Atrees:/)).to be_empty
+          expect(records.to_sql).not_to match(/"trees"/)
+        end
+      end
+
       context 'a malformed UUID search' do
         let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
 
@@ -234,16 +259,8 @@ module ForestLiana
         end
       end
 
-      # acts_as_taggable_on isn't loaded in the dummy app, and stubbing `taggable?`/
-      # `acts_as_taggable` on the real Tree class to simulate it is unsafe here: the first
-      # successful `Tree.all.taggable?` call makes ActiveRecord::Delegation permanently cache a
-      # generated delegator for `taggable?` on Tree's relation class, which survives the stub's
-      # teardown and breaks every later spec that reaches this branch on a real, non-taggable Tree.
-      #
-      # Root-ownership of the taggable-gem push is instead guaranteed by construction: the single
-      # `condition` local both gates `push_condition`'s call (`if condition`) and is the exact
-      # string appended to the SQL, so the two can't diverge — see `search_param`'s ActsAsTaggable
-      # block.
+      # No case here for acts_as_taggable_on's push site — see the comment on `search_param`'s
+      # ActsAsTaggable block for why it's guaranteed by construction rather than spec-covered.
     end
 
     describe 'when no column can match the search term' do
@@ -270,10 +287,27 @@ module ForestLiana
           expect(builder.perform(Tree.all).to_sql).not_to match(/\bWHERE\b/i)
         end
       end
+
+      context 'when the declared smart search lambda raises' do
+        before do
+          allow(ForestLiana).to receive(:schema_for_resource).and_return(
+            ForestLiana::Model::Collection.new(
+              name: 'Tree',
+              fields: [{ field: :custom, type: 'String', search: ->(_query, _search) { raise 'boom' } }]
+            )
+          )
+          allow(FOREST_REPORTER).to receive(:report)
+          allow(FOREST_LOGGER).to receive(:error)
+        end
+
+        it 'answers no records rather than silently falling through to the unfiltered table' do
+          expect(builder.perform(Tree.all).count).to eq(0)
+        end
+      end
     end
 
     describe 'a blank or whitespace-only search' do
-      let(:params) { { search: '   ', searchExtended: '1' } }
+      let(:params) { ActiveSupport::HashWithIndifferentAccess.new(search: '   ', searchExtended: '1') }
 
       before { Rails.cache.write('forest.has_permission', false) }
 

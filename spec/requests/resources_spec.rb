@@ -297,7 +297,7 @@ describe 'Requesting Tree resources', :type => :request  do
         body = JSON.parse(response.body)
         expect(body['errors'][0]['detail'])
           .to eq "You cannot filter on 'island:name': you are not allowed to read the 'Island' collection."
-        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name')
+        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name', 'collections' => ['Island'])
       end
 
       it 'refuses count the same way' do
@@ -384,7 +384,7 @@ describe 'Requesting Tree resources', :type => :request  do
         body = JSON.parse(response.body)
         expect(body['errors'][0]['detail'])
           .to eq "You cannot search on 'island:name': you are not allowed to read the 'Island' collection."
-        expect(body['errors'][0]['data']).to eq('action' => 'search on', 'field' => 'island:name')
+        expect(body['errors'][0]['data']).to eq('action' => 'search on', 'field' => 'island:name', 'collections' => ['Island'])
       end
 
       # `resources#count` had no specific rescue for this family of errors: pins that it carries
@@ -395,7 +395,7 @@ describe 'Requesting Tree resources', :type => :request  do
         expect(response.status).to eq(403)
         body = JSON.parse(response.body)
         expect(body['errors'][0]['name']).to eq('UnauthorizedQueryFieldError')
-        expect(body['errors'][0]['data']).to eq('action' => 'search on', 'field' => 'island:name')
+        expect(body['errors'][0]['data']).to eq('action' => 'search on', 'field' => 'island:name', 'collections' => ['Island'])
       end
     end
 

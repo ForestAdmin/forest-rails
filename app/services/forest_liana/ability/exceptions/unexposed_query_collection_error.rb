@@ -11,7 +11,7 @@ module ForestLiana
             403,
             :forbidden,
             "You cannot #{action} '#{path}': it reaches #{FieldPath.leaf_label(unexposed_collection_names)}, " \
-              'which is not exposed to Forest Admin — no role can be granted read on it until the collection ' \
+              'which is not exposed to Forest Admin. No role can be granted read on it until the collection ' \
               'is exposed.',
             'UnexposedQueryCollectionError',
             backtrace,

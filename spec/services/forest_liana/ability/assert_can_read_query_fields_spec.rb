@@ -126,7 +126,18 @@ module ForestLiana
               .to raise_error(
                 ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError,
                 "You cannot filter on 'island:name': it reaches the 'Island' collection, which is not " \
-                  'exposed to Forest Admin — no role can be granted read on it until the collection is exposed.'
+                  'exposed to Forest Admin. No role can be granted read on it until the collection is exposed.'
+              )
+          end
+
+          it 'refuses a search the same way, since all three usage kinds share the same denial site' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['island:name']) }
+              .to raise_error(
+                ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError,
+                "You cannot search on 'island:name': it reaches the 'Island' collection, which is not " \
+                  'exposed to Forest Admin. No role can be granted read on it until the collection is exposed.'
               )
           end
         end
