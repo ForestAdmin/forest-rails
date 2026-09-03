@@ -9,6 +9,7 @@
 /test/version_tmp/
 /test/dummy/log/
 /test/dummy/db/*.sqlite3
+/test/dummy/tmp/
 /spec/dummy/log/
 /spec/dummy/db/*.sqlite3
 /spec/dummy/tmp/
@@ -29,6 +30,8 @@ build/
 
 ## Environment normalisation:
 /.bundle/
+/gemfiles/.bundle/
+/gemfiles/vendor/
 /vendor/bundle
 /lib/bundler/man/
 

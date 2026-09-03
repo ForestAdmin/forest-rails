@@ -1,0 +1,31 @@
+# Dependencies shared by the root Gemfile and every gemfiles/rails_*.gemfile. Rails-version-sensitive
+# gems (rails, sqlite3, concurrent-ruby, groupdate) are declared by the including gemfile, never here.
+
+gemspec path: '..'
+
+group :development, :test do
+  gem 'byebug'
+  gem 'rspec-rails'
+  gem 'timecop'
+end
+
+group :test do
+  gem 'rake'
+  gem 'simplecov', '~> 0.22', require: false
+  gem 'simplecov_json_formatter', '~> 0.1.4'
+  gem 'rdoc'
+  gem 'minitest', '~> 5.25'
+end
+
+gem 'forestadmin-jsonapi-serializers'
+gem 'rack-cors'
+gem 'useragent'
+gem 'jwt'
+gem 'bcrypt'
+gem 'httparty', '0.21.0'
+gem 'ipaddress', '0.8.3'
+gem 'openid_connect', '1.4.2'
+gem 'json'
+gem 'json-jwt', '>= 1.16'
+gem 'deepsort'
+gem 'ostruct'
