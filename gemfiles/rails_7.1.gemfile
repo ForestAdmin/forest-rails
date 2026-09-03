@@ -1,0 +1,12 @@
+# Rails 7.1 leg of the CI matrix. Locally:
+#   export BUNDLE_GEMFILE=$PWD/gemfiles/rails_7.1.gemfile
+#   bundle install && RAILS_ENV=test bundle exec rake test db:migrate && bundle exec rspec
+source 'https://rubygems.org'
+
+eval_gemfile File.expand_path('common.gemfile', __dir__)
+
+gem 'rails', '~> 7.1.5'
+
+group :test do
+  gem 'sqlite3', '>= 2.1'
+end

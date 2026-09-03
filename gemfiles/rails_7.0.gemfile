@@ -1,0 +1,15 @@
+# Rails 7.0 leg of the CI matrix. Locally:
+#   export BUNDLE_GEMFILE=$PWD/gemfiles/rails_7.0.gemfile
+#   bundle install && RAILS_ENV=test bundle exec rake test db:migrate && bundle exec rspec
+source 'https://rubygems.org'
+
+eval_gemfile File.expand_path('common.gemfile', __dir__)
+
+gem 'rails', '~> 7.0.8'
+# concurrent-ruby 1.3.5 dropped its `logger` dependency, which Rails < 7.1 relied on.
+gem 'concurrent-ruby', '1.3.4'
+
+group :test do
+  # Rails < 7.1 pins the sqlite3 adapter to the 1.x line.
+  gem 'sqlite3', '~> 1.4'
+end
