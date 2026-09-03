@@ -58,10 +58,16 @@ module ForestLiana
           @original_apimap = ForestLiana.apimap.dup
           @original_models = ForestLiana.models.dup
 
+          # The keyword form is the only one Rails 6.1 knows; Rails 8 only keeps the positional one.
           Object.const_set(:EnumFieldModel, Class.new(ActiveRecord::Base) do
             self.table_name = 'enum_field_models'
-            enum status: { inactive: 0, active: 1, archived: 2 }
-            enum role: { user: "0", admin: "1", superadmin: "2" }
+            if Rails.gem_version >= Gem::Version.new('7.0')
+              enum :status, { inactive: 0, active: 1, archived: 2 }
+              enum :role, { user: "0", admin: "1", superadmin: "2" }
+            else
+              enum status: { inactive: 0, active: 1, archived: 2 }
+              enum role: { user: "0", admin: "1", superadmin: "2" }
+            end
           end)
 
           ActiveRecord::Migration.suppress_messages do

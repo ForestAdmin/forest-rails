@@ -19,7 +19,16 @@ module ForestLiana
           rails_models.any? { |rails_model| model <= rails_model }
         end
       end
-      let(:rails_models) { [ActiveRecord::InternalMetadata, ActiveRecord::SchemaMigration] }
+      # Rails 7.1 stopped making these ActiveRecord::Base descendants (they became per-connection,
+      # dynamically generated), so ForestLiana.models — walked via ActiveRecord::Base.descendants —
+      # never sees them there in the first place.
+      let(:rails_models) do
+        if Rails.gem_version >= Gem::Version.new('7.1')
+          []
+        else
+          [ActiveRecord::InternalMetadata, ActiveRecord::SchemaMigration]
+        end
+      end
 
       let(:expected_application_models) do
         [
@@ -42,7 +51,7 @@ module ForestLiana
         ForestLiana::Bootstrapper.new
 
         expect(ForestLiana.models).to match_array(ForestLiana.models.uniq)
-        expect(ForestLiana.models).to include(*rails_models)
+        expect(ForestLiana.models).to include(*rails_models) if rails_models.any?
         expect(application_models).to match_array(expected_application_models)
       end
 

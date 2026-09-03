@@ -167,6 +167,16 @@ Please ensure that the **tests** are passing before submitting any pull request:
 $ RAILS_ENV=test bundle exec rake --trace db:migrate test; bundle exec rspec
 ```
 
+The default `Gemfile` targets Rails 6.1, the oldest version this gem supports. CI also runs the
+suite against every newer Rails minor the gemspec accepts; to reproduce one of those legs locally,
+point Bundler at its gemfile before running the same commands:
+
+```
+$ export BUNDLE_GEMFILE=$PWD/gemfiles/rails_8.0.gemfile
+$ bundle install
+$ RAILS_ENV=test bundle exec rake db:migrate test; bundle exec rspec
+```
+
 ## Community
 
 👇 Join our Developers community for support and more
