@@ -87,6 +87,50 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::HTTP422Error, "Relation not found: 'Tree.unknown'")
         end
 
+        it 'refuses a search on a column of an unreadable collection, naming the path and collection' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['island:name']) }
+            .to raise_error(
+              ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+              "You cannot search on 'island:name': you are not allowed to read the 'Island' collection."
+            )
+        end
+
+        it 'serves a search reaching a readable collection' do
+          write_permissions('Tree' => true, 'Island' => true)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['island:name']) }
+            .not_to raise_error
+        end
+
+        it 'raises for a search path FieldPath cannot resolve, since search paths are agent-derived' do
+          write_permissions('Tree' => true)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['unknown:id']) }
+            .to raise_error(ForestLiana::Errors::HTTP422Error, "Relation not found: 'Tree.unknown'")
+        end
+
+        describe 'a collection absent from the apimap' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Tree')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+          end
+
+          it 'refuses as unexposed rather than as denied, since no role can be granted read on it' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:name']) }
+              .to raise_error(
+                ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError,
+                "You cannot filter on 'island:name': it reaches the 'Island' collection, which is not " \
+                  'exposed to Forest Admin — no role can be granted read on it until the collection is exposed.'
+              )
+          end
+        end
+
         describe 'polymorphic' do
           it 'serves a filter on a relation whose every target is readable' do
             write_permissions('Address' => true, 'User' => true, 'Island' => true)
@@ -133,7 +177,10 @@ module ForestLiana
             allow(forest_collection).to receive(:fields_smart_belongs_to).and_return(
               [{ field: :organization, reference: 'Organization.id', is_virtual: true, type: 'String' }]
             )
-            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+            organization_collection = double('organization_collection')
+            allow(organization_collection).to receive(:name).and_return('Organization')
+            allow(organization_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection, organization_collection])
           end
 
           it 'checks read on the referenced collection, not on the root it is declared on' do

@@ -20,7 +20,9 @@ module ForestLiana
           format.csv { render_csv(getter, @association.klass) }
         end
       rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+             ForestLiana::Ability::Exceptions::UndescribableSearchError,
+             ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError => error
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,
@@ -55,7 +57,9 @@ module ForestLiana
 
         render serializer: nil, json: { count: getter.records_count }
       rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+             ForestLiana::Ability::Exceptions::UndescribableSearchError,
+             ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError => error
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,

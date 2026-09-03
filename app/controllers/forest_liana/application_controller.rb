@@ -10,6 +10,8 @@ module ForestLiana
     rescue_from ForestLiana::Ability::Exceptions::UnknownCollection, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnauthorizedFieldsError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UndescribableSearchError, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError, with: :render_error
 
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
