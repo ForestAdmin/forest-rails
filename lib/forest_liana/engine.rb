@@ -14,7 +14,9 @@ module Rack
     class Resource
       def to_preflight_headers(env)
         h = to_headers(env)
-        h['Access-Control-Allow-Private-Network'] = 'true' if env['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'] == 'true'
+        # HTTP header names are case-insensitive, but Rack 3 stopped normalizing casing on the way
+        # out: an uppercase key here reaches the server as-is, and Rack::Lint rejects it.
+        h['access-control-allow-private-network'] = 'true' if env['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'] == 'true'
         if env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS]
           h.merge!('Access-Control-Allow-Headers' => env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS])
         end
