@@ -132,11 +132,12 @@ module ForestLiana
       # Refused rather than redacted, unlike +redact_fields+: dropping a filter condition widens
       # the result set, and dropping a sort clause silently reorders it. +root_model+ is pinned
       # readable — +browse+/+read+ already gate it upstream — so it is never itself a refusal.
-      def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [])
+      def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [], search_paths: [])
         root_name = ForestLiana.name_for(root_model)
 
         usages = filter_paths.filter_map { |path| query_usage('filter on', root_model, path) } +
-                 sort_paths.map { |path| { action: 'sort on', path: path, collections: resolve_owner(root_model, path) } }
+                 sort_paths.map { |path| { action: 'sort on', path: path, collections: resolve_owner(root_model, path) } } +
+                 search_paths.map { |path| { action: 'search on', path: path, collections: resolve_owner(root_model, path) } }
 
         return if usages.empty?
 
@@ -145,6 +146,13 @@ module ForestLiana
 
         denied = usages.find { |usage| !FieldPath.readable_leaves?(usage[:collections], readable_collection_names) }
         return unless denied
+
+        unexposed = denied[:collections].reject { |name| collection_exposed?(name) }
+        if unexposed.any?
+          raise ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError.new(
+            denied[:action], denied[:path], unexposed
+          )
+        end
 
         raise ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError.new(
           denied[:action], denied[:path], denied[:collections]
@@ -275,6 +283,12 @@ module ForestLiana
         forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
 
         forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
+      end
+
+      # No role can ever be granted `read` on a collection absent from the apimap — a denial
+      # message naming it as unreadable would point at a permission nobody can grant.
+      def collection_exposed?(collection_name)
+        ForestLiana.apimap.any? { |collection| collection.name.to_s == collection_name }
       end
 
       # An unresolvable filter path is left unchecked here: the parser that runs right after this

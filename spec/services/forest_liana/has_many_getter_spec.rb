@@ -28,6 +28,7 @@ module ForestLiana
         Tree.create(name: 'banana tree', island: re)
         ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
         allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+        Rails.cache.write('forest.has_permission', false)
       end
 
       after(:each) do

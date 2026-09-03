@@ -4,7 +4,7 @@ module ForestLiana
 
     REGEX_UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
-    attr_reader :fields_searched
+    attr_reader :fields_searched, :search_field_paths
 
     def initialize(params, includes, collection, user)
       @params = params
@@ -20,10 +20,20 @@ module ForestLiana
       @resource = @records = resource
       @tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
+      assert_extended_search_describable!
       @records = search_param
 
       caller_filter = @params[:filters].present? ? ForestLiana::ScopeManager.inject_context_variables(@params[:filters], @user) : nil
-      assert_can_read_query_fields(@user, root_model, filter_paths: FiltersParser.field_paths(caller_filter))
+      # A bare recorded path is by construction a root column (never a caller-named field), so it's
+      # dropped here rather than resolved: FieldPath would otherwise treat a root column whose name
+      # collides with an association name (e.g. a `location` column alongside a `location`
+      # association) as a traversal into that association, checking the wrong collection.
+      assert_can_read_query_fields(
+        @user,
+        root_model,
+        filter_paths: FiltersParser.field_paths(caller_filter),
+        search_paths: @search_field_paths.select { |path| path.include?(':') },
+      )
       filters = ForestLiana::ScopeManager.append_scope(caller_filter, @user, @collection.name)
 
       unless filters.blank?
@@ -40,6 +50,10 @@ module ForestLiana
               FOREST_REPORTER.report exception
               FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \
                 "#{exception}"
+              # A failed lambda is the same "cannot be evaluated" case as no column matching at
+              # all: answering no records keeps the guarantee this file makes elsewhere, that a
+              # search that cannot be resolved never falls through to the unfiltered table.
+              @records = @records.none
             end
           end
         end
@@ -63,6 +77,8 @@ module ForestLiana
     end
 
     def search_param
+      @search_field_paths = []
+
       if @search
         conditions = []
 
@@ -74,37 +90,43 @@ module ForestLiana
           elsif column.name == 'id'
             if column.type == :integer
               value = @search.to_i
-              conditions << "#{@resource.table_name}.id = #{value}" if value > 0
+              push_condition(conditions, "#{@resource.table_name}.id = #{value}", column.name) if value > 0
             elsif REGEX_UUID.match(@search)
-              conditions << "#{@resource.table_name}.id = :search_value_for_uuid"
+              push_condition(conditions, "#{@resource.table_name}.id = :search_value_for_uuid", column.name)
             end
           # NOTICE: Rails 3 do not have a defined_enums method
           elsif REGEX_UUID.match(@search) && column.type == :uuid
             if column.respond_to?(:array) && column.array
-              conditions << ":search_value_for_uuid = ANY(#{column_name})"
+              push_condition(conditions, ":search_value_for_uuid = ANY(#{column_name})", column.name)
             else
-              conditions << "#{column_name}  = :search_value_for_uuid"
+              push_condition(conditions, "#{column_name}  = :search_value_for_uuid", column.name)
             end
           elsif @resource.respond_to?(:defined_enums) &&
             @resource.defined_enums.has_key?(column.name) &&
             !@resource.defined_enums[column.name][@search.downcase].nil?
-            conditions << "#{column_name} =
-              #{@resource.defined_enums[column.name][@search.downcase]}"
+            push_condition(conditions, "#{column_name} =
+              #{@resource.defined_enums[column.name][@search.downcase]}", column.name)
           elsif !(column.respond_to?(:array) && column.array) && text_type?(column.type) && !malformed_uuid_search?
-            conditions << "LOWER(#{column_name}) LIKE :search_value_for_string"
+            push_condition(conditions, "LOWER(#{column_name}) LIKE :search_value_for_string", column.name)
           end
         end
 
         # ActsAsTaggable
+        # Root-owned by construction: `condition` below both gates the `push_condition` call and
+        # is the exact string it pushes, so the recorded path and the SQL can't diverge. Not
+        # covered by a live spec — acts_as_taggable_on isn't installed in the dummy app, and
+        # stubbing `taggable?`/`acts_as_taggable` on the real Tree model to simulate it permanently
+        # corrupts ActiveRecord::Delegation's per-class method cache for the rest of the process,
+        # regardless of the stubbing method used.
         if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@search.downcase)
             condition = acts_as_taggable_query(tagged_records)
-            conditions << condition if condition
+            push_condition(conditions, condition, @resource.primary_key.to_s) if condition
           end
         end
 
-        if (@params['searchExtended'].to_i == 1)
+        if extended_search?
           ForestLiana::QueryHelper.get_one_association_names_symbol(@resource).each do |association|
             if @collection.search_fields
               association_search = @collection.search_fields.map do |field|
@@ -122,8 +144,8 @@ module ForestLiana
                   if !(column.respond_to?(:array) && column.array) && text_type?(column.type) && !malformed_uuid_search?
                     if @collection.search_fields.nil? || (association_search &&
                       association_search.include?(column.name))
-                      conditions << association_search_condition(resource.table_name,
-                        column.name)
+                      push_condition(conditions, association_search_condition(resource.table_name,
+                        column.name), "#{association}:#{column.name}")
                     end
                   end
                 end
@@ -132,7 +154,13 @@ module ForestLiana
           end
 
           if @collection.search_fields
-            SchemaUtils.many_associations(@resource).map(&:name).each do
+            # Unlike QueryHelper.get_one_associations, SchemaUtils.many_associations does not
+            # filter out a target the agent doesn't expose — an association named by search_fields
+            # but pointing at such a model would otherwise be searched, then reported as an
+            # "unexposed" path nobody could ever have granted read on.
+            SchemaUtils.many_associations(@resource)
+              .select { |reflection| SchemaUtils.model_included?(reflection.klass) }
+              .map(&:name).each do
               |association|
               association_search = @collection.search_fields.map do |field|
                 if field.include?('.') && field.split('.')[0] == association.to_s
@@ -145,8 +173,8 @@ module ForestLiana
                 resource.klass.columns.each do |column|
                   if !(column.respond_to?(:array) && column.array) && text_type?(column.type) && !malformed_uuid_search?
                     if association_search.include?(column.name)
-                      conditions << association_search_condition(resource.table_name,
-                        column.name)
+                      push_condition(conditions, association_search_condition(resource.table_name,
+                        column.name), "#{association}:#{column.name}")
                     end
                   end
                 end
@@ -158,8 +186,11 @@ module ForestLiana
         if conditions.empty?
           # NOTICE: a malformed-UUID search suppresses the only conditions it could
           #         have produced (text LIKE scans); match nothing rather than fall
-          #         through to an unfiltered query that returns the whole table.
-          @records = @resource.none if malformed_uuid_search?
+          #         through to an unfiltered query that returns the whole table. A declared
+          #         smart-search lambda is the one exception: it ORs its own conditions in right
+          #         after this, so a collection whose only search surface is that lambda is left
+          #         unfiltered here rather than pre-emptied to none.
+          @records = @resource.none if malformed_uuid_search? || !smart_search_declared?
         else
           @records = @resource.where(
             conditions.join(' OR '),
@@ -273,6 +304,34 @@ module ForestLiana
     # Relation/CollectionProxy (HasManyGetter) — FieldPath needs the class either way.
     def root_model
       @resource.respond_to?(:klass) ? @resource.klass : @resource
+    end
+
+    # The single site every search condition is added at, so the footprint reported to the
+    # permission guard can never drift from what the generated SQL actually reads.
+    def push_condition(conditions, condition, path)
+      return unless condition
+
+      @search_field_paths << path
+      conditions << condition
+    end
+
+    def extended_search?
+      @params['searchExtended'].to_i == 1
+    end
+
+    def smart_search_declared?
+      ForestLiana.schema_for_resource(root_model)&.fields&.any? { |field| field.try(:[], :search) }
+    end
+
+    # A smart-field search lambda can read anything, so an extended search on a collection that
+    # declares one has no footprint to check against permissions — refused before anything runs,
+    # rather than left to compare a partial footprint. A plain search on the same collection is
+    # unaffected: what it reads besides the lambda is root-only and pinned readable, so nothing
+    # checkable is skipped by serving it.
+    def assert_extended_search_describable!
+      return unless @search && extended_search? && smart_search_declared? && has_permission_system?
+
+      raise ForestLiana::Ability::Exceptions::UndescribableSearchError.new(ForestLiana.name_for(root_model))
     end
   end
 end

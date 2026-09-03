@@ -27,14 +27,8 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
-        render(serializer: nil, json: { errors: [{
-          status: error.error_code,
-          detail: error.message,
-          name: error.name,
-          data: error.data
-        }] }, status: error.status)
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -61,6 +55,8 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -170,6 +166,8 @@ module ForestLiana
         end
       rescue ActiveRecord::RecordNotDestroyed => error
         render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"

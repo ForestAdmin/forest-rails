@@ -297,7 +297,7 @@ describe 'Requesting Tree resources', :type => :request  do
         body = JSON.parse(response.body)
         expect(body['errors'][0]['detail'])
           .to eq "You cannot filter on 'island:name': you are not allowed to read the 'Island' collection."
-        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name')
+        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name', 'collections' => ['Island'])
       end
 
       it 'refuses count the same way' do
@@ -359,6 +359,51 @@ describe 'Requesting Tree resources', :type => :request  do
         filters: JSON.generate({ 'field' => 'name', 'operator' => 'present' }),
         page: { 'number' => '1', 'size' => '10' },
         searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+    end
+  end
+
+  describe 'read-permission enforcement on search' do
+    describe 'an extended search reaching a column of a collection the role cannot read' do
+      params = {
+        search: 'Lemon',
+        searchExtended: '1',
+        page: { 'number' => '1', 'size' => '10' },
+        timezone: 'Europe/Paris'
+      }
+
+      it 'refuses index with a 403 naming the path and the collection' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You cannot search on 'island:name': you are not allowed to read the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('action' => 'search on', 'field' => 'island:name', 'collections' => ['Island'])
+      end
+
+      # `resources#count` had no specific rescue for this family of errors: pins that it carries
+      # the same `name`/`data` payload as index, not the generic ExpectedError shape it fell into.
+      it 'refuses count the same way, with the same name/data payload as index' do
+        get '/forest/Tree/count', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['name']).to eq('UnauthorizedQueryFieldError')
+        expect(body['errors'][0]['data']).to eq('action' => 'search on', 'field' => 'island:name', 'collections' => ['Island'])
+      end
+    end
+
+    it 'serves a plain search reaching the same column, since search stays root-only unless extended' do
+      params = {
+        search: 'Lemon',
+        searchExtended: '0',
+        page: { 'number' => '1', 'size' => '10' },
         timezone: 'Europe/Paris'
       }
 
@@ -504,6 +549,41 @@ describe 'Requesting User resources', :type => :request  do
         ],
         "included" => [],
         "meta" => { 'decorators' => { '0' => { 'id' => "1", 'search' => %w[name cap_name] } } }
+      )
+    end
+
+    it 'refuses an extended search on a collection whose only search surface beyond it is a smart field lambda' do
+      token = JWT.encode({
+        id: 1,
+        email: 'michael.kelso@that70.show',
+        first_name: 'Michael',
+        last_name: 'Kelso',
+        team: 'Operations',
+        rendering_id: 16,
+        exp: Time.now.to_i + 2.weeks.to_i,
+        permission_level: 'admin'
+      }, ForestLiana.auth_secret, 'HS256')
+
+      headers = {
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/json',
+        'Authorization' => "Bearer #{token}"
+      }
+
+      params = {
+        fields: { 'User' => 'id,name,cap_name' },
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '1',
+        search: 'JOHN',
+        timezone: 'Europe/Paris'
+      }
+
+      get '/forest/User', params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail']).to eq(
+        "You cannot run an extended search on the 'User' collection: the fields it reaches cannot " \
+          'be determined, so they cannot be checked against your permissions.'
       )
     end
   end

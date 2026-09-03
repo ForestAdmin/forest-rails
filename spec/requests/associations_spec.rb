@@ -120,4 +120,24 @@ describe 'Requesting an association', :type => :request do
       expect(response.status).to eq(200)
     end
   end
+
+  describe 'an extended search reaching a column of a collection the role cannot read' do
+    params = { search: 'Michel', searchExtended: '1', page: { 'number' => '1', 'size' => '10' }, timezone: 'Europe/Paris' }
+
+    it 'refuses index with a 403 naming the path and the collection' do
+      get "/forest/Island/#{@island.id}/relationships/trees", params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot search on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+
+    it 'refuses count the same way, since search (unlike sort) applies to it too' do
+      get "/forest/Island/#{@island.id}/relationships/trees/count", params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot search on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+  end
 end
