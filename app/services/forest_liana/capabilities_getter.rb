@@ -112,9 +112,11 @@ module ForestLiana
 
     # NOTICE: Grouping happens in SQL on the collection's own connection, which rules out Smart
     #         Fields, cross-database belongsTo (left unfilterable by SchemaUtils) and polymorphic
-    #         relations, whose foreign key is meaningless without its type column.
+    #         relations, whose foreign key is meaningless without its type column. A primary key
+    #         is excluded because the frontend never offers it: Field#isGroupable returns false on
+    #         one before it even reads this, so announcing true only inflates supportGroups.
     def groupable?(field)
-      return false if field[:is_virtual] || polymorphic?(field)
+      return false if field[:is_primary_key] || field[:is_virtual] || polymorphic?(field)
 
       !!field[:is_filterable]
     end

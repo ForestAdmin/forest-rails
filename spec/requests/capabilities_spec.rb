@@ -149,6 +149,19 @@ describe 'Capabilities', type: :request do
       )
     end
 
+    # NOTICE: Field#isGroupable returns false on a primary key before it reads the announcement,
+    #         so claiming true here would only inflate supportGroups.
+    it 'announces the primary key as not groupable' do
+      body = fetch_capabilities(['Tree'])
+
+      expect(field(body, 'Tree', 'id')).to eq(
+        'name' => 'id',
+        'type' => 'Number',
+        'operators' => %w(equal not_equal present blank in greater_than less_than),
+        'isGroupable' => false
+      )
+    end
+
     it 'announces no operator on a field the liana cannot filter' do
       body = fetch_capabilities(['Address'])
 
