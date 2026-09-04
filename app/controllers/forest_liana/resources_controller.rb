@@ -73,7 +73,7 @@ module ForestLiana
         getter = ForestLiana::ResourceGetter.new(@resource, params, forest_user)
         getter.perform
 
-        render serializer: nil, json: render_record_jsonapi(getter.record)
+        render serializer: nil, json: render_record_jsonapi(getter.record, getter)
       rescue ActiveRecord::RecordNotFound
         render serializer: nil, json: { status: 404 }, status: :not_found
       rescue => error
@@ -207,7 +207,16 @@ module ForestLiana
       is_sti_model? ? record.becomes(@resource) : record
     end
 
-    def render_record_jsonapi record
+    # NOTICE: create and update answer with the whole record: they carry no projection, so the
+    #         getter is absent and every field of the collection is serialized as before.
+    def render_record_jsonapi record, getter = nil
+      if getter&.projection?
+        return serialize_model(get_record(record), {
+          include: getter.includes_for_serialization,
+          fields: fields_per_model(params[:fields], @resource)
+        })
+      end
+
       collection = ForestLiana::SchemaHelper.find_collection_from_model(@resource)
       collection_fields = collection.fields.map { |field| field[:field] }
       fields_to_serialize = {

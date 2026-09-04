@@ -4,6 +4,7 @@ require 'csv'
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
     rescue_from ForestLiana::Ability::Exceptions::AccessDenied, with: :render_error
+    rescue_from ForestLiana::Errors::HTTP400Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP403Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
@@ -19,9 +20,11 @@ module ForestLiana
     #         changes made using Forest with PaperTrail.
     if Rails::VERSION::MAJOR < 4
       before_filter :authenticate_user_from_jwt
+      before_filter :apply_projection_header
       before_filter :set_paper_trail_whodunnit if self.papertrail?
     else
       before_action :authenticate_user_from_jwt
+      before_action :apply_projection_header
       before_action :set_paper_trail_whodunnit if self.papertrail?
     end
 
@@ -111,6 +114,36 @@ module ForestLiana
     end
 
     private
+
+    # NOTICE: Header-then-query fallback, decided here and nowhere else: the header is rewritten
+    #         into params[:fields], so every route keeps reading the projection it always read
+    #         and the header wins over the query params without any route knowing about it.
+    def apply_projection_header
+      header = request.headers[ForestLiana::ProjectionParser::HEADER_NAME]
+      return if header.nil?
+
+      root_model = projection_root_model
+      # NOTICE: An unresolvable collection is left to the route, which answers its own 404.
+      return if root_model.nil?
+
+      fields = ForestLiana::ProjectionParser.new(header, ForestLiana.name_for(root_model)).perform
+      params[:fields] = ActionController::Parameters.new(fields)
+    end
+
+    # NOTICE: A projection is rooted on the collection the records come from, which is the
+    #         association target on the relationships routes, not the collection in the URL.
+    def projection_root_model
+      return nil if params[:collection].blank?
+
+      model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collection])
+      return nil unless model.respond_to?(:reflect_on_association)
+      return model if params[:association_name].blank?
+
+      association = model.reflect_on_association(params[:association_name].to_sym)
+      return nil if association.nil? || ForestLiana::SchemaUtils.polymorphic?(association)
+
+      association.klass
+    end
 
     def render_error(exception)
       errors = {
