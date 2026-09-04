@@ -2,11 +2,18 @@ module ForestLiana
   class CapabilitiesGetter
     # NOTICE: A flag stays false until the matching behaviour actually ships; the frontend
     #         turns the feature on for every request as soon as it reads true here.
+    #
+    #         canUseProjectionViaHeaderOnList is held back although the routes do honour the
+    #         header on the list: the frontend also reads it as a version floor for pruning
+    #         projections by the role's read permission, a policy this agent does not implement
+    #         (PRD-1083). Flipping it here would ship that policy to every v1 project, and the
+    #         rollback would be a frontend deploy. The list keeps projecting through the fields
+    #         query params in the meantime.
     AGENT_CAPABILITIES = {
-      canUseProjectionOnGetOne: false,
-      canUseProjectionViaHeader: false,
+      canUseProjectionOnGetOne: true,
+      canUseProjectionViaHeader: true,
       canUseProjectionViaHeaderOnList: false,
-      canUseMultipleFieldsProjectionOnRelation: false,
+      canUseMultipleFieldsProjectionOnRelation: true,
       canUseAuditTrail: false
     }.freeze
 
