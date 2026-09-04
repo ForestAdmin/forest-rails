@@ -117,6 +117,32 @@ module ForestLiana
             let(:filters) { { 'field' => 'cutter_id', 'operator' => 'blank', 'value' => nil } }
             it { expect(parsed_filters.count).to eq 2 }
           end
+
+          context 'in on a Rails enum column' do
+            # The enum mapping has to happen value by value: looking the whole payload up in
+            # the enum would find nothing and produce an `IN (NULL)` matching no row.
+            let(:resource) { User }
+
+            context 'on a comma separated list' do
+              let(:filters) { { 'field' => 'title', 'operator' => 'in', 'value' => 'king,villager' } }
+              it { expect(parsed_filters.map(&:title)).to match_array(%w(king villager)) }
+            end
+
+            context 'on an array' do
+              let(:filters) { { 'field' => 'title', 'operator' => 'in', 'value' => ['villager'] } }
+              it { expect(parsed_filters.map(&:title)).to eq(['villager']) }
+            end
+
+            context 'on a single value' do
+              let(:filters) { { 'field' => 'title', 'operator' => 'in', 'value' => 'king' } }
+              it { expect(parsed_filters.map(&:title)).to eq(['king']) }
+            end
+
+            context 'on an unknown enum value' do
+              let(:filters) { { 'field' => 'title', 'operator' => 'in', 'value' => 'not_a_title' } }
+              it { expect(parsed_filters.count).to eq 0 }
+            end
+          end
         end
 
         context 'belongsTo conditions' do
