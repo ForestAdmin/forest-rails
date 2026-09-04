@@ -19,8 +19,17 @@ module ForestLiana
       prepare_query()
     end
 
+    # NOTICE: The projection is applied here and not in prepare_query: count builds its own
+    #         getter and never calls perform, and query_for_batch keeps the unprojected query.
+    #         Only the relations optimize_record_loading actually joins can be projected — the
+    #         display-only ones are preloaded on purpose, and come back whole.
     def perform
-      @records
+      return @records unless project?
+
+      polymorphic_associations, preload_loads = analyze_associations(model_association)
+      display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
+
+      @records = apply_projection(@records, display_includes & associations_to_keep_eager)
     end
 
     def count
@@ -50,7 +59,7 @@ module ForestLiana
     end
 
     def query_for_batch
-      @records
+      @base_records_for_batch
     end
 
     def records
@@ -100,6 +109,18 @@ module ForestLiana
       Array(fields&.split(',')).map(&:to_sym)
     end
 
+    # NOTICE: A projection naming a Smart Field is dropped: computing one may read any column of
+    #         the record, as ResourcesGetter#perform already assumes for the list.
+    def project?
+      return false if @field_names_requested.empty?
+
+      @field_names_requested.none? { |field| ForestLiana::SchemaHelper.is_smart_field?(model_association, field.to_s) }
+    end
+
+    def projected_resource
+      model_association
+    end
+
     def model_association
       @resource.reflect_on_association(@params[:association_name].to_sym).klass
     end
@@ -108,6 +129,7 @@ module ForestLiana
       parent_record = find_record(get_resource(), @resource, @params[:id])
       association = parent_record.send(@params[:association_name])
       @records = optimize_record_loading(association, @search_query_builder.perform(association))
+      @base_records_for_batch = @records
     end
 
     def offset
