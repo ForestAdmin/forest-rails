@@ -79,16 +79,18 @@ describe 'Capabilities', type: :request do
   end
 
   describe 'agentCapabilities' do
-    # NOTICE: This liana implements none of the announced behaviours yet; each flag flips
-    #         in the ticket that implements it.
-    it 'announces every flag as false' do
+    # NOTICE: Each flag flips in the ticket that implements it. canUseProjectionViaHeaderOnList
+    #         stays false on purpose even though the list honours the header: the frontend also
+    #         reads it as the floor for pruning projections by the role's read permission, which
+    #         this liana does not implement yet.
+    it 'announces the projection flags the routes honour' do
       body = fetch_capabilities(['Tree'])
 
       expect(body['agentCapabilities']).to eq(
-        'canUseProjectionOnGetOne' => false,
-        'canUseProjectionViaHeader' => false,
+        'canUseProjectionOnGetOne' => true,
+        'canUseProjectionViaHeader' => true,
         'canUseProjectionViaHeaderOnList' => false,
-        'canUseMultipleFieldsProjectionOnRelation' => false,
+        'canUseMultipleFieldsProjectionOnRelation' => true,
         'canUseAuditTrail' => false
       )
     end
