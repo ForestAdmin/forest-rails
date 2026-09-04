@@ -47,7 +47,15 @@ module ForestLiana
         ]
       end
 
+      # A real SerializerFactory rebuilds every model's serializer class from scratch, which
+      # discards the smart-field attributes any Forest::* collection file attached to the
+      # previous generation (that DSL only runs once, when the file is first loaded) — so any
+      # example not asserting on serializers still stubs the factory to avoid corrupting the
+      # smart fields every other spec in the run relies on.
       it 'should populate the models correctly' do
+        allow(ForestLiana::SerializerFactory).to receive(:new)
+          .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
+
         ForestLiana::Bootstrapper.new
 
         expect(ForestLiana.models).to match_array(ForestLiana.models.uniq)
@@ -67,6 +75,8 @@ module ForestLiana
       end
 
       it 'should generate controllers for all models' do
+        allow(ForestLiana::SerializerFactory).to receive(:new)
+          .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
         factory = instance_double(ForestLiana::ControllerFactory, controller_for: nil)
         allow(ForestLiana::ControllerFactory).to receive(:new).and_return(factory)
 
@@ -171,6 +181,9 @@ module ForestLiana
 
 
       it "Should return actions hooks empty for the island collection" do
+        allow(ForestLiana::SerializerFactory).to receive(:new)
+          .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
+
         bootstrapper = Bootstrapper.new
         content = JSON.parse(schema)
         bootstrapper.instance_variable_set(:@collections_sent, content['collections'])
