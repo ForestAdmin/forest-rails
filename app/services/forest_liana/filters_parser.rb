@@ -98,7 +98,7 @@ module ForestLiana
       # NOTICE: Set the integer value instead of a string if "enum" type
       # NOTICE: Rails 3 do not have a defined_enums method
       if current_resource.respond_to?(:defined_enums) && current_resource.defined_enums.has_key?(association_field)
-        value = current_resource.defined_enums[association_field][value]
+        value = map_enum_value(current_resource.defined_enums[association_field], operator, value)
       end
 
       case_insensitive = operator == 'i_contains'
@@ -305,6 +305,16 @@ module ForestLiana
     end
 
     private
+
+    # NOTICE: `in` carries several values, so each one has to be mapped on its own. Mapping the
+    #         whole payload would look up "king,villager" in the enum, find nothing and produce
+    #         an `IN (NULL)` matching no row at all.
+    def map_enum_value(enums, operator, value)
+      return enums[value] unless operator == 'in'
+
+      values = value.is_a?(String) ? value.split(',').map(&:strip) : Array(value)
+      values.map { |item| enums[item] }
+    end
 
     def prepare_value_for_operator(operator, value)
       # parenthesis around the parsed_value are required to make the `IN` operator work
