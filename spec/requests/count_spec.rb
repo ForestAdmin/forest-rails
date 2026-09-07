@@ -131,6 +131,80 @@ describe 'Requesting Owner', :type => :request  do
   end
 end
 
+describe 'a collection declaring countable: false', :type => :request do
+  before(:each) do
+    Product.destroy_all
+    Manufacturer.destroy_all
+
+    @manufacturer = Manufacturer.create(name: 'maker')
+    Product.create(name: 'thing', uri: 'https://example.test', manufacturer: @manufacturer)
+
+    allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
+    allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
+    allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
+
+    allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
+
+    allow(ForestLiana::ScopeManager).to receive(:fetch_scopes)
+      .and_return({ 'scopes' => {}, 'team' => { 'id' => '1', 'name' => 'Operations' } })
+  end
+
+  after(:each) { Product.destroy_all; Manufacturer.destroy_all }
+
+  token = JWT.encode({
+                       id: 38,
+                       email: 'michael.kelso@that70.show',
+                       first_name: 'Michael',
+                       last_name: 'Kelso',
+                       team: 'Operations',
+                       rendering_id: 16,
+                       exp: Time.now.to_i + 2.weeks.to_i,
+                       permission_level: 'admin'
+                     }, ForestLiana.auth_secret, 'HS256')
+
+  headers = {
+    'Accept' => 'application/json',
+    'Content-Type' => 'application/json',
+    'Authorization' => "Bearer #{token}"
+  }
+
+  it 'answers deactivated without issuing a count query' do
+    queries = capture_queries do
+      get '/forest/Product/count', params: { timezone: 'Europe/Paris' }, headers: headers
+    end
+
+    expect(response.status).to eq(200)
+    expect(response.body).to eq('{"meta":{"count":"deactivated"}}')
+    expect(queries).to be_empty
+  end
+
+  it 'answers deactivated on the related count without loading the parent' do
+    queries = capture_queries do
+      get "/forest/Manufacturer/#{@manufacturer.id}/relationships/products/count",
+        params: { timezone: 'Europe/Paris' }, headers: headers
+    end
+
+    expect(response.status).to eq(200)
+    expect(response.body).to eq('{"meta":{"count":"deactivated"}}')
+    expect(queries).to be_empty
+  end
+
+  it 'leaves a collection that does not declare it unchanged' do
+    Tree.destroy_all
+    User.destroy_all
+    user = User.create(name: 'owner')
+    Tree.create(name: 'tree', owner: user, cutter: user)
+
+    get '/forest/Tree/count', params: { timezone: 'Europe/Paris' }, headers: headers
+
+    expect(response.status).to eq(200)
+    expect(response.body).to eq('{"count":1}')
+
+    Tree.destroy_all
+    User.destroy_all
+  end
+end
+
 describe 'Requesting Tree count with extended search', :type => :request do
   let(:scope_filters) { { 'scopes' => {}, 'team' => { 'id' => '1', 'name' => 'Operations' } } }
 

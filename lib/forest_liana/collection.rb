@@ -14,7 +14,7 @@ module ForestLiana::Collection
       self.is_searchable = opts[:is_searchable] || false
       # Only the keys actually passed — `model` (re)applies them each time it runs, since
       # SchemaAdapter already creates a real AR-backed collection's entry before this loads.
-      self.collection_opts = opts.slice(:read_only, :is_searchable)
+      self.collection_opts = opts.slice(:read_only, :is_searchable, :countable)
 
       # NOTICE: Creates dynamically the serializer if it's a Smart Collection.
       if smart_collection? &&
@@ -227,6 +227,7 @@ module ForestLiana::Collection
 
       collection.is_read_only = collection_opts[:read_only] if collection_opts.key?(:read_only)
       collection.is_searchable = collection_opts[:is_searchable] if collection_opts.key?(:is_searchable)
+      collection.is_countable = collection_opts[:countable] if collection_opts.key?(:countable)
     end
 
     def active_record_class
