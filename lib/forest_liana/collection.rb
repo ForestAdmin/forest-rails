@@ -6,11 +6,15 @@ module ForestLiana::Collection
     attr_accessor :collection_name
     attr_accessor :is_read_only
     attr_accessor :is_searchable
+    attr_accessor :collection_opts
 
     def collection(collection_name, opts = {})
       self.collection_name = find_name(collection_name).to_s
       self.is_read_only = opts[:read_only] || false
       self.is_searchable = opts[:is_searchable] || false
+      # Only the keys actually passed — `model` (re)applies them each time it runs, since
+      # SchemaAdapter already creates a real AR-backed collection's entry before this loads.
+      self.collection_opts = opts.slice(:read_only, :is_searchable)
 
       # NOTICE: Creates dynamically the serializer if it's a Smart Collection.
       if smart_collection? &&
@@ -21,6 +25,8 @@ module ForestLiana::Collection
         ForestLiana::SerializerFactory.new(is_smart_collection: true)
           .serializer_for(self)
       end
+
+      model
     end
 
     def action(name, opts = {})
@@ -211,7 +217,16 @@ module ForestLiana::Collection
         ForestLiana.apimap << collection
       end
 
+      apply_collection_opts(collection)
+
       collection
+    end
+
+    def apply_collection_opts(collection)
+      return unless collection_opts
+
+      collection.is_read_only = collection_opts[:read_only] if collection_opts.key?(:read_only)
+      collection.is_searchable = collection_opts[:is_searchable] if collection_opts.key?(:is_searchable)
     end
 
     def active_record_class
