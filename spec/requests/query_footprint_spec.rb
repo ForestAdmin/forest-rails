@@ -149,7 +149,7 @@ describe 'SQL footprint of a front call', type: :request do
       expect(join_count(result.grown, 'users')).to eq(1)
     end
 
-    it 'counts in one statement that still joins the projected relation' do
+    it 'counts in one statement without a join it does not need' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Tree/count', params: params, headers: headers
         expect(response).to have_http_status(200)
@@ -158,8 +158,31 @@ describe 'SQL footprint of a front call', type: :request do
 
       expect(result.per_row_delta).to eq(0)
       expect(selects_from(result.grown, 'trees').size).to eq(1)
-      expect(join_count(result.grown, 'users')).to eq(1)
+      expect(join_count(result.grown, 'users')).to eq(0)
+      expect(selects_from(result.grown, 'trees').first).to match(/COUNT\(/)
+    end
+
+    it 'still joins the count when the extended search only matches through the relation' do
+      extended_params = params.merge(search: 'owner', searchExtended: '1')
+
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree/count', params: extended_params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(JSON.parse(response.body)['count']).to eq(rows)
+      end
+
+      # Extended search always joins every has-one association (compute_includes falls
+      # back to all of them once searchExtended is on, regardless of what was requested)
+      # — owner and cutter both point at users, so the table is joined twice.
+      expect(join_count(result.grown, 'users')).to eq(2)
       expect(selects_from(result.grown, 'trees').first).to match(/COUNT\(DISTINCT/)
+    end
+
+    it 'matches nothing on the same term when the search stays on the root column' do
+      get '/forest/Tree/count', params: params.merge(search: 'owner'), headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)['count']).to eq(0)
     end
   end
 
