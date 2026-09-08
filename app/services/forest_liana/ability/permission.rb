@@ -83,12 +83,12 @@ module ForestLiana
       def redact_fields(user, root_model, fields_hash, named_collections:)
         return fields_hash if fields_hash.nil?
 
-        resolved = fields_hash.to_h do |collection_key, csv|
+        resolved = fields_hash.each_with_object({}) do |(collection_key, csv), acc|
           collection_model = SchemaUtils.find_model_from_collection_name(collection_key)
           field_names = csv.to_s.split(',').uniq
 
           owners = if collection_model
-                     field_names.to_h { |field_name| [field_name, resolve_owner(collection_model, field_name)] }
+                     field_names.each_with_object({}) { |field_name, o| o[field_name] = resolve_owner(collection_model, field_name) }
                    else
                      # A polymorphic relation's own entry: the whole field list stands for the
                      # relation itself, not individually-checkable sub-fields of an ambiguous target.
@@ -97,23 +97,22 @@ module ForestLiana
                      { collection_key => resolve_owner(root_model, collection_key) }
                    end
 
-          [collection_key, { field_names: field_names, owners: owners }]
+          acc[collection_key] = { field_names: field_names, owners: owners }
         end
 
         allowed = read_permissions(user, resolved.values.flat_map { |entry| entry[:owners].values }.flatten)
-        readable_collection_names = allowed.filter_map { |name, ok| name if ok }
+        readable_collection_names = allowed.each_with_object([]) { |(name, ok), acc| acc << name if ok }
         readable = ->(names) { FieldPath.readable_leaves?(names, readable_collection_names) }
 
         denied = []
-        redacted = resolved.filter_map do |collection_key, entry|
+        redacted = resolved.each_with_object({}) do |(collection_key, entry), acc|
           named = named_collections.include?(collection_key)
 
           if entry[:owners].key?(collection_key)
             if readable.call(entry[:owners][collection_key])
-              [collection_key, entry[:field_names].join(',')]
+              acc[collection_key] = entry[:field_names].join(',')
             else
               denied << { path: collection_key, collections: entry[:owners][collection_key] } if named
-              nil
             end
           else
             kept = entry[:field_names].select do |field_name|
@@ -125,9 +124,9 @@ module ForestLiana
               end
             end
 
-            kept.empty? ? nil : [collection_key, kept.join(',')]
+            acc[collection_key] = kept.join(',') unless kept.empty?
           end
-        end.to_h
+        end
 
         raise ForestLiana::Ability::Exceptions::UnauthorizedFieldsError.new(denied) unless denied.empty?
 
