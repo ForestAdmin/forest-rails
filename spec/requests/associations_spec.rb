@@ -80,4 +80,30 @@ describe 'Requesting an association', :type => :request do
       expect(JSON.parse(response.body)['errors'][0]['detail']).to eq "Relation not found: 'Tree.unknown'"
     end
   end
+
+  describe 'csv export, naming a field of a collection the role cannot read' do
+    it 'refuses with a 403 instead of leaking unredacted data' do
+      get "/forest/Island/#{@island.id}/relationships/trees.csv",
+          params: { fields: { 'Tree' => 'id,name,owner' }, header: 'id,name,owner' },
+          headers: headers
+
+      expect(response.status).to eq(403)
+      body = JSON.parse(response.body)
+      expect(body['errors'][0]['detail']).to eq "You are not allowed to read 'owner' from the 'User' collection."
+      expect(body['errors'][0]['data']).to eq('fields' => ['owner'])
+    end
+  end
+
+  describe 'csv export, an ordinary request naming only readable fields' do
+    it 'serves the csv normally' do
+      get "/forest/Island/#{@island.id}/relationships/trees.csv",
+          params: { fields: { 'Tree' => 'id,name' }, header: 'id,name' },
+          headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      csv_lines = response.body.split("\n")
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
+    end
+  end
 end

@@ -19,7 +19,8 @@ describe 'Requesting Tree resources', :type => :request  do
       .with('/liana/v4/permissions/environment').and_return(
         'collections' => {
           'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
-          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+          'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
         }
       )
 
@@ -291,6 +292,19 @@ describe 'Requesting Tree resources', :type => :request  do
       expect(csv_lines.first).to eq(params[:header])
       expect(csv_lines[1]).to eq('1,Lemon Tree')
     end
+
+    it 'refuses with a 403 instead of leaking unredacted data for a field of an unreadable collection' do
+      params = {
+        fields: { 'Tree' => 'id,name,island' },
+        header: 'id,name,island',
+      }
+      get '/forest/Tree.csv', params: params, headers: headers
+
+      expect(response.status).to eq(403)
+      body = JSON.parse(response.body)
+      expect(body['errors'][0]['detail']).to eq "You are not allowed to read 'island' from the 'Island' collection."
+      expect(body['errors'][0]['data']).to eq('fields' => ['island'])
+    end
   end
 end
 
@@ -400,6 +414,15 @@ describe 'Requesting Island resources', :type => :request  do
       'forest.collections',
       {
         'Island' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
+        },
+        'Location' => {
           'browse'  => [1],
           'read'    => [1],
           'edit'    => [1],
