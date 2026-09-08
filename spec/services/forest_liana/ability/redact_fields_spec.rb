@@ -108,6 +108,24 @@ module ForestLiana
           end
         end
 
+        # 'name' lives in the 'User' entry, not root_model's own 'Tree' entry — the message
+        # prefixes it with 'User' so it doesn't read as a bare field of Tree, while data[:fields]
+        # (consumed by the caller to identify which fields it named) keeps the bare 'name'.
+        it 'prefixes a denied field with the relation it was reached through, unlike a root field' do
+          write_permissions('Tree' => true, 'Island' => false, 'User' => false)
+
+          expect do
+            dummy_class.redact_fields(
+              user, Tree, { 'Tree' => 'name,island', 'User' => 'name' }, named_collections: %w[Tree User]
+            )
+          end.to raise_error(
+            ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+            "You are not allowed to read 'island' from the 'Island' collection, 'User:name' from the 'User' collection."
+          ) do |error|
+            expect(error.data[:fields]).to match_array(%w[island name])
+          end
+        end
+
         it 'drops a denied field silently when the caller never named it' do
           write_permissions('Tree' => true, 'Island' => false)
 

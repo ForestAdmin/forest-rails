@@ -83,6 +83,8 @@ module ForestLiana
       def redact_fields(user, root_model, fields_hash, named_collections:)
         return fields_hash if fields_hash.nil?
 
+        root_name = ForestLiana.name_for(root_model)
+
         resolved = fields_hash.each_with_object({}) do |(collection_key, csv), acc|
           collection_model = SchemaUtils.find_model_from_collection_name(collection_key)
           field_names = csv.to_s.split(',').uniq
@@ -119,7 +121,11 @@ module ForestLiana
               if readable.call(entry[:owners][field_name])
                 true
               else
-                denied << { path: field_name, collections: entry[:owners][field_name] } if named
+                # collection_key is a related entry, not root_model's own fields, whenever it
+                # differs from root_name — prefix the message so it doesn't read as if 'field_name'
+                # were a bare field of the root.
+                display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
+                denied << { path: field_name, display_path: display_path, collections: entry[:owners][field_name] } if named
                 false
               end
             end
