@@ -16,15 +16,17 @@ module ForestLiana
         collection_name = ForestLiana.name_for(collection)
 
         begin
-          is_allowed = (collections_data.key?(collection_name) && collections_data[collection_name][action].include?(user_data['roleId']))
+          # A user absent from the permissions system (removed since the JWT was issued) is denied
+          # outright, not a crash on a nil roleId.
+          is_allowed = user_data && collections_data.key?(collection_name) && collections_data[collection_name][action].include?(user_data['roleId'])
 
           # re-fetch if user permission is not allowed (may have been changed)
           unless is_allowed
             collections_data = get_collections_permissions_data(true)
-            is_allowed = collections_data[collection_name][action].include? user_data['roleId']
+            is_allowed = user_data && collections_data[collection_name][action].include?(user_data['roleId'])
           end
 
-          is_allowed
+          !!is_allowed
         rescue ForestLiana::Errors::ExpectedError => exception
           raise exception
         rescue => exception
@@ -59,12 +61,13 @@ module ForestLiana
           # short-circuits the same way, and answering anything else here would redact every relation
           # on a deployment that granted nothing to check.
           if has_permission_system?
-            collections_data = get_collections_permissions_data
             user_data = get_user_data(user['id'])
-            to_fetch.each do |name|
-              allowed = collections_data.key?(name) && collections_data[name]['read'].include?(user_data['roleId'])
-              @read_permissions_cache[name] = allowed
-            end
+            denied = fetch_read_permissions(to_fetch, get_collections_permissions_data, user_data)
+
+            # A denial may be a stale (up to TTL-old) cache behind a permission granted moments
+            # ago rather than an actual refusal — re-fetch once before trusting it, the same
+            # rescue is_crud_authorized? already gives the CRUD check.
+            fetch_read_permissions(denied, get_collections_permissions_data(true), user_data) unless denied.empty?
           else
             to_fetch.each { |name| @read_permissions_cache[name] = true }
           end
@@ -89,7 +92,9 @@ module ForestLiana
                    else
                      # A polymorphic relation's own entry: the whole field list stands for the
                      # relation itself, not individually-checkable sub-fields of an ambiguous target.
-                     { collection_key => FieldPath.leaf_collection_names(root_model, collection_key) }
+                     # resolve_owner (not FieldPath directly) so a smart belongsTo reached this way
+                     # still resolves to its reference collection instead of falling back to root_model.
+                     { collection_key => resolve_owner(root_model, collection_key) }
                    end
 
           [collection_key, { field_names: field_names, owners: owners }]
@@ -149,6 +154,20 @@ module ForestLiana
       end
 
       private
+
+      def fetch_read_permissions(names, collections_data, user_data)
+        denied = []
+
+        names.each do |name|
+          # A user absent from the permissions system (removed since the JWT was issued) reads
+          # as denied everywhere, not as a crash on a nil roleId.
+          allowed = !!(user_data && collections_data.key?(name) && collections_data[name]['read'].include?(user_data['roleId']))
+          @read_permissions_cache[name] = allowed
+          denied << name unless allowed
+        end
+
+        denied
+      end
 
       def get_user_data(user_id, force_fetch = true)
         cache = Rails.cache.fetch('forest.users', expires_in: TTL) do

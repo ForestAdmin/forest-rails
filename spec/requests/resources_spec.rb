@@ -10,29 +10,18 @@ describe 'Requesting Tree resources', :type => :request  do
 
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
-    Rails.cache.write(
-      'forest.collections',
-      {
-        'Tree' => {
-          'browse'  => [1],
-          'read'    => [1],
-          'edit'    => [1],
-          'add'     => [1],
-          'delete'  => [1],
-          'export'  => [1],
-          'actions' => {}
-        },
-        'Location' => {
-          'browse'  => [1],
-          'read'    => [1],
-          'edit'    => [1],
-          'add'     => [1],
-          'delete'  => [1],
-          'export'  => [1],
-          'actions' => {}
+    Rails.cache.delete('forest.collections') # force a fresh fetch through the stub below, not a leftover from an earlier example
+    enabled = { 'roles' => [1] }
+    # read_permissions may force a real refetch on a denial (a stale cache may sit behind a
+    # just-granted permission) — stub the source instead of writing the derived cache directly,
+    # so that refetch sees the same permissions rather than hitting the network.
+    allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+      .with('/liana/v4/permissions/environment').and_return(
+        'collections' => {
+          'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
         }
-      }
-    )
+      )
 
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }

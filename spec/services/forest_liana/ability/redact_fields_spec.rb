@@ -5,11 +5,23 @@ module ForestLiana
       let(:user) { { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' } }
 
       def write_permissions(collection_reads)
-        permissions = collection_reads.to_h do |name, readable|
-          [name, { 'browse' => readable ? [1] : [], 'read' => readable ? [1] : [], 'edit' => [], 'add' => [], 'delete' => [], 'export' => [], :actions => {} }]
+        raw_collections = collection_reads.to_h do |name, readable|
+          enabled = { 'roles' => readable ? [1] : [] }
+          disabled = { 'roles' => [] }
+          [name, {
+            'collection' => {
+              'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => disabled,
+              'addEnabled' => disabled, 'deleteEnabled' => disabled, 'exportEnabled' => disabled
+            },
+            'actions' => {}
+          }]
         end
 
-        Rails.cache.write('forest.collections', permissions)
+        # read_permissions may force a real refetch on a denial (a stale cache may sit behind a
+        # just-granted permission) — stub the source instead of writing the derived cache directly,
+        # so that refetch sees the same permissions rather than hitting the network.
+        allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+          .with('/liana/v4/permissions/environment').and_return('collections' => raw_collections)
       end
 
       before do
@@ -37,6 +49,32 @@ module ForestLiana
 
           expect_any_instance_of(ForestLiana::Ability::Fetch).not_to receive(:get_permissions)
           expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => true)
+        end
+
+        it 're-fetches once and grants a collection denied by a stale cache but allowed by a fresh one' do
+          write_permissions('Tree' => false)
+          fetch = instance_double(ForestLiana::Ability::Fetch)
+          allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions) do |instance, endpoint|
+            fetch.get_permissions(endpoint)
+          end
+          allow(fetch).to receive(:get_permissions).with('/liana/v4/permissions/environment').and_return(
+            { 'collections' => { 'Tree' => { 'collection' => { 'browseEnabled' => { 'roles' => [] }, 'readEnabled' => { 'roles' => [] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } } },
+            { 'collections' => { 'Tree' => { 'collection' => { 'browseEnabled' => { 'roles' => [1] }, 'readEnabled' => { 'roles' => [1] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } } }
+          )
+
+          expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => true)
+          expect(fetch).to have_received(:get_permissions).with('/liana/v4/permissions/environment').twice
+        end
+
+        it 'denies every requested collection, without raising, for a user absent from the permissions system' do
+          write_permissions('Tree' => true)
+          Rails.cache.write('forest.users', {})
+          # A missing user triggers get_user_data's own force-refetch-once — stub it empty too, a
+          # removed-since-JWT-issued user stays absent on the retry.
+          allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+            .with('/liana/v4/permissions/users').and_return([])
+
+          expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => false)
         end
       end
 
@@ -186,6 +224,20 @@ module ForestLiana
 
             expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'id,organization' }, named_collections: ['Tree']))
               .to eq('Tree' => 'id,organization')
+          end
+
+          # No v1 caller sends a smart belongsTo's own name as a top-level fields_hash key today
+          # (fields_per_model only does this for a self-reference, where reference == root_model
+          # and the bug's fallback happened to match) — hand-built here to prove resolve_owner,
+          # not the fallback to root_model, resolves it even when the two collections differ.
+          it 'checks read on the referenced collection when reached as its own top-level entry, not on root_model' do
+            write_permissions('Tree' => true, 'Organization' => false)
+
+            expect { dummy_class.redact_fields(user, Tree, { 'organization' => 'id' }, named_collections: ['organization']) }
+              .to raise_error(
+                ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+                "You are not allowed to read 'organization' from the 'Organization' collection."
+              )
           end
         end
       end
