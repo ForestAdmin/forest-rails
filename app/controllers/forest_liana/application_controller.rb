@@ -208,10 +208,11 @@ module ForestLiana
     end
 
     def render_csv getter, model
-      # Every column here is caller-named (params[:fields] is required above), never a default
-      # expansion, so an unreadable one always refuses rather than being silently dropped.
+      # Every column reaching CSV::Row below is caller-named — params[:fields] is required by
+      # the CSV writer itself a few lines down, never defaulted — so an unreadable one always
+      # refuses rather than being silently dropped.
       requested_fields = fields_per_model(params[:fields], model)
-      fields_to_serialize = redact_fields(forest_user, model, requested_fields, named_collections: requested_fields.keys)
+      fields_to_serialize = redact_fields(forest_user, model, requested_fields, named_collections: requested_fields&.keys || [])
 
       set_headers_file
       set_headers_streaming

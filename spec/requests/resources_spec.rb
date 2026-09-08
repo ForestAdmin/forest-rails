@@ -301,6 +301,10 @@ describe 'Requesting Tree resources', :type => :request  do
       get '/forest/Tree.csv', params: params, headers: headers
 
       expect(response.status).to eq(403)
+      # Not a CSV download of the JSON error: respond_to already set these for the matched
+      # format.csv before the rescue ran, so the error render must override them explicitly.
+      expect(response.headers['Content-Type']).to include('application/json')
+      expect(response.headers['Content-Disposition']).to be_nil
       body = JSON.parse(response.body)
       expect(body['errors'][0]['detail']).to eq "You are not allowed to read 'island' from the 'Island' collection."
       expect(body['errors'][0]['data']).to eq('fields' => ['island'])

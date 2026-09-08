@@ -20,12 +20,16 @@ module ForestLiana
           format.csv { render_csv(getter, @association.klass) }
         end
       rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+        # A CSV request already has its response Content-Type/Content-Disposition set by the
+        # respond_to format match before this rescue ever runs — force JSON back, or the client
+        # downloads a ".csv" file whose content is this JSON error.
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,
           name: error.name,
           data: error.data
-        }] }, status: error.status)
+        }] }, status: error.status, content_type: 'application/json')
+        response.headers.delete('Content-Disposition')
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
