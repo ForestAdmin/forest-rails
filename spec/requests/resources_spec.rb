@@ -293,21 +293,21 @@ describe 'Requesting Tree resources', :type => :request  do
       expect(csv_lines[1]).to eq('1,Lemon Tree')
     end
 
-    it 'refuses with a 403 instead of leaking unredacted data for a field of an unreadable collection' do
+    # Unlike index/show/update, an explicitly named but unreadable column drops silently instead
+    # of refusing the whole file — matching agent-nodejs's own CSV route (same redactProjection,
+    # same named-vs-not distinction it already applies to its JSON list, not a CSV-specific rule).
+    it 'drops an unreadable column silently instead of refusing the whole export' do
       params = {
         fields: { 'Tree' => 'id,name,island' },
         header: 'id,name,island',
       }
       get '/forest/Tree.csv', params: params, headers: headers
 
-      expect(response.status).to eq(403)
-      # Not a CSV download of the JSON error: respond_to already set these for the matched
-      # format.csv before the rescue ran, so the error render must override them explicitly.
-      expect(response.headers['Content-Type']).to include('application/json')
-      expect(response.headers['Content-Disposition']).to be_nil
-      body = JSON.parse(response.body)
-      expect(body['errors'][0]['detail']).to eq "You are not allowed to read 'island' from the 'Island' collection."
-      expect(body['errors'][0]['data']).to eq('fields' => ['island'])
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      csv_lines = response.body.split("\n")
+      expect(csv_lines.first).to eq('id,name')
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
     end
   end
 end
