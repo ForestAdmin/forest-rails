@@ -106,8 +106,11 @@ module ForestLiana
       field[:relationship].to_s == 'BelongsTo'
     end
 
+    # NOTICE: A polymorphic relation carries polymorphic_referenced_models, while the two columns
+    #         behind it are declared with polymorphic_key. Neither half is announced groupable:
+    #         the foreign key is meaningless without its type column.
     def polymorphic?(field)
-      field[:polymorphic_referenced_models].present?
+      field[:polymorphic_referenced_models].present? || !!field[:polymorphic_key]
     end
 
     # NOTICE: Grouping happens in SQL on the collection's own connection, which rules out Smart

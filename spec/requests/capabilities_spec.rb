@@ -149,6 +149,15 @@ describe 'Capabilities', type: :request do
       )
     end
 
+    # NOTICE: Both columns behind the relation are declared with polymorphic_key, and neither
+    #         groups on its own — the foreign key needs its type column to mean anything.
+    it 'announces the columns behind it as not groupable either' do
+      body = fetch_capabilities(['Address'])
+
+      expect(field(body, 'Address', 'addressable_id')['isGroupable']).to eq(false)
+      expect(field(body, 'Address', 'addressable_type')['isGroupable']).to eq(false)
+    end
+
     # NOTICE: Field#isGroupable returns false on a primary key before it reads the announcement,
     #         so claiming true here would only inflate supportGroups.
     it 'announces the primary key as not groupable' do
@@ -180,6 +189,49 @@ describe 'Capabilities', type: :request do
 
       expect(body['collections'].first['aggregationCapabilities']).to eq(
         'supportGroups' => true,
+        'supportedDateOperations' => %w(Day Week Month Year)
+      )
+    end
+  end
+
+  # NOTICE: SQLite has no array column, and every collection of the dummy app has at least one
+  #         groupable field, so both cases are announced off a stubbed apimap.
+  describe 'a schema the dummy app cannot express' do
+    def collection(name, fields)
+      ForestLiana::Model::Collection.new(name: name, fields: fields)
+    end
+
+    before do
+      allow(ForestLiana).to receive(:apimap).and_return([
+        collection('WithAnArrayColumn', [
+          { field: 'id', type: 'Number', is_primary_key: true },
+          { field: 'tags', type: ['String'] }
+        ]),
+        collection('WithNothingGroupable', [
+          { field: 'id', type: 'Number', is_primary_key: true },
+          { field: 'computed', type: 'String', is_virtual: true }
+        ])
+      ])
+    end
+
+    # NOTICE: includes_all is the only operator the frontend offers on an array, and
+    #         FiltersParser does not implement it.
+    it 'announces no operator on an array column' do
+      body = fetch_capabilities(['WithAnArrayColumn'])
+
+      expect(field(body, 'WithAnArrayColumn', 'tags')).to eq(
+        'name' => 'tags',
+        'type' => ['String'],
+        'operators' => [],
+        'isGroupable' => true
+      )
+    end
+
+    it 'announces no group support when nothing is groupable' do
+      body = fetch_capabilities(['WithNothingGroupable'])
+
+      expect(body['collections'].first['aggregationCapabilities']).to eq(
+        'supportGroups' => false,
         'supportedDateOperations' => %w(Day Week Month Year)
       )
     end
