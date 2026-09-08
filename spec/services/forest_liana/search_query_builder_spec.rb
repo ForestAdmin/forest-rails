@@ -94,16 +94,29 @@ module ForestLiana
       let(:user) { { 'id' => '1', 'roleId' => 1, 'rendering_id' => 1 } }
 
       def write_permissions(collection_reads)
-        permissions = collection_reads.to_h do |name, readable|
-          [name, { 'browse' => readable ? [1] : [], 'read' => readable ? [1] : [], 'edit' => [], 'add' => [], 'delete' => [], 'export' => [], :actions => {} }]
+        raw_collections = collection_reads.to_h do |name, readable|
+          enabled = { 'roles' => readable ? [1] : [] }
+          disabled = { 'roles' => [] }
+          [name, {
+            'collection' => {
+              'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => disabled,
+              'addEnabled' => disabled, 'deleteEnabled' => disabled, 'exportEnabled' => disabled
+            },
+            'actions' => {}
+          }]
         end
 
-        Rails.cache.write('forest.collections', permissions)
+        # read_permissions may force a real refetch on a denial (a stale cache may sit behind a
+        # just-granted permission) — stub the source instead of writing the derived cache directly,
+        # so that refetch sees the same permissions rather than hitting the network.
+        allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+          .with('/liana/v4/permissions/environment').and_return('collections' => raw_collections)
       end
 
       before do
         Rails.cache.write('forest.users', { '1' => user })
         Rails.cache.write('forest.has_permission', true)
+        Rails.cache.delete('forest.collections') # force a fresh fetch through the stub below, not a leftover from an earlier example
         builder.perform(Tree.all)
       end
 
