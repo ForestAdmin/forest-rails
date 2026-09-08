@@ -133,6 +133,23 @@ module ForestLiana
             .to eq('Tree' => 'name')
         end
 
+        # Repeats "from the 'Island' collection" per field rather than grouping them, matching
+        # agent-nodejs's own redactProjection for this same case (parity, not a v1 quirk).
+        it 'repeats the "from" clause per field even when two fields reach the same collection' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect do
+            dummy_class.redact_fields(
+              user, Tree, { 'Tree' => 'island', 'Island' => 'name' }, named_collections: %w[Tree Island]
+            )
+          end.to raise_error(
+            ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+            "You are not allowed to read 'island' from the 'Island' collection, 'Island:name' from the 'Island' collection."
+          ) do |error|
+            expect(error.data[:fields]).to match_array(%w[island name])
+          end
+        end
+
         # Pins the branch itself, not just each outcome in isolation: a later refactor collapsing
         # "named" and "unnamed" into one path would still pass the two examples above individually.
         it 'treats the very same denied field differently depending on whether it was named' do
