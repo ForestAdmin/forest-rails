@@ -125,6 +125,9 @@ module ForestLiana
     #         one before it even reads this, so announcing true only inflates supportGroups.
     def groupable?(field)
       return false if field[:is_primary_key] || field[:is_virtual] || polymorphic?(field)
+      # NOTICE: The group by reaches the database as a bare column, which a json column has no
+      #         equality operator for — and the schema cannot tell it from a jsonb one.
+      return false if field[:type] == 'Json'
 
       !!field[:is_filterable]
     end

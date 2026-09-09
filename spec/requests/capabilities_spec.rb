@@ -231,15 +231,16 @@ describe 'Capabilities', type: :request do
       )
     end
 
-    # NOTICE: An equality on a json column reaches the database as a bare `=`, which it refuses.
-    it 'announces only the presence operators on a json column' do
+    # NOTICE: Both an equality and a group by reach a json column as a bare column, which the
+    #         database has no equality operator for, and the schema cannot tell it from a jsonb.
+    it 'announces a json column on presence only, and not groupable' do
       body = fetch_capabilities(['WithAJsonColumn'])
 
       expect(field(body, 'WithAJsonColumn', 'payload')).to eq(
         'name' => 'payload',
         'type' => 'Json',
         'operators' => %w(present blank),
-        'isGroupable' => true
+        'isGroupable' => false
       )
     end
 
