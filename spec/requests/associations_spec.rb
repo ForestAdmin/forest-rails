@@ -156,6 +156,39 @@ describe 'Requesting an association', :type => :request do
     end
   end
 
+  describe 'listing/counting a relation on a collection the role has zero permission on' do
+    before do
+      enabled = { 'roles' => [1] }
+      disabled = { 'roles' => [] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Tree' => { 'collection' => { 'browseEnabled' => disabled, 'readEnabled' => disabled, 'editEnabled' => disabled, 'addEnabled' => disabled, 'deleteEnabled' => disabled, 'exportEnabled' => disabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+    end
+
+    it 'refuses index with a 403, rather than serving it unauthorized' do
+      get "/forest/Island/#{@island.id}/relationships/trees",
+          params: { page: { 'number' => '1', 'size' => '10' }, timezone: 'Europe/Paris' }, headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail']).to eq "You don't have permission to access this resource"
+    end
+
+    # Without forest_authorize!, a filtered count on a collection the role cannot even browse
+    # answered with the real, filtered row count — letting the filter value be guessed one probe
+    # at a time (0 vs a positive count) without ever touching a field-level read check.
+    it 'refuses count with a 403, instead of a filtered count that leaks whether a value matches' do
+      params = { filters: JSON.generate({ 'field' => 'name', 'operator' => 'equal', 'value' => 'Lemon Tree' }), timezone: 'Europe/Paris' }
+      get "/forest/Island/#{@island.id}/relationships/trees/count", params: params, headers: headers
+
+      expect(response.status).to eq(403)
+    end
+  end
+
   describe 'select-all dissociate naming a filter on a collection the role cannot read' do
     it 'refuses with a 403 body instead of a bodiless 500' do
       params = {

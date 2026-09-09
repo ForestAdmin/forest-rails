@@ -16,6 +16,11 @@ module ForestLiana
 
     def index
       begin
+        # Unlike ResourcesController#index, nothing upstream gates this route on any permission —
+        # matches agent-nodejs's list-related route, which checks browse (or export for CSV) on
+        # the foreign collection, not the parent, before listing it.
+        action = request.format == 'csv' ? 'export' : 'browse'
+        forest_authorize!(action, forest_user, @association.klass)
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.perform
 
@@ -58,6 +63,7 @@ module ForestLiana
       #         a double-render / 500 rather than the intended 404.
       return if performed?
       begin
+        forest_authorize!('browse', forest_user, @association.klass)
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count
 
