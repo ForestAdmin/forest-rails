@@ -155,4 +155,26 @@ describe 'Requesting an association', :type => :request do
       expect(response.status).to eq(200)
     end
   end
+
+  describe 'select-all dissociate naming a filter on a collection the role cannot read' do
+    it 'refuses with a 403 body instead of a bodiless 500' do
+      params = {
+        data: {
+          attributes: {
+            collection_name: 'Tree',
+            all_records: true,
+            all_records_subset_query: {
+              filters: JSON.generate({ 'field' => 'owner:name', 'operator' => 'equal', 'value' => 'Michel' })
+            }
+          }
+        }
+      }
+
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot filter on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+  end
 end

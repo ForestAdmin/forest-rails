@@ -123,6 +123,13 @@ module ForestLiana
         head :no_content
       rescue ActiveRecord::RecordNotDestroyed => error
         render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Dissociate error: #{error}\n#{format_stacktrace(error)}"

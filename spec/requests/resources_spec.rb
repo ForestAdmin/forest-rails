@@ -363,6 +363,28 @@ describe 'Requesting Tree resources', :type => :request  do
     end
   end
 
+  describe 'select-all destroy naming a filter on a collection the role cannot read' do
+    it 'refuses with a 403 body instead of a bodiless 500' do
+      params = {
+        data: {
+          attributes: {
+            collection_name: 'Tree',
+            all_records: true,
+            all_records_subset_query: {
+              filters: JSON.generate({ 'field' => 'island:name', 'operator' => 'equal', 'value' => 'Lemon Island' })
+            }
+          }
+        }
+      }
+
+      delete '/forest/Tree', params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot filter on 'island:name': you are not allowed to read the 'Island' collection."
+    end
+  end
+
   describe 'csv' do
     it 'should return CSV with correct headers and data' do
       params = {
