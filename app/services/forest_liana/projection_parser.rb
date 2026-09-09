@@ -4,7 +4,10 @@ module ForestLiana
   # header exists and the header simply wins over the query params.
   #
   # Contract: "f1,rel:sub" — comma-separated paths, ':' traversing a to-one relation. One
-  # traversal deep, which is all the frontend ever projects.
+  # traversal deep, which is all the frontend can build: serializeProjectionAsHeader
+  # (app/utils/projection-header.js) serializes the fields[] params, a root list plus one lookup
+  # per relation name, so a second ':' has no source there — and the getters project one join
+  # deep anyway. agent-nodejs accepts a deeper path; nothing emits one.
   class ProjectionParser
     HEADER_NAME = 'Forest-Projection'
 
@@ -15,7 +18,9 @@ module ForestLiana
 
     # NOTICE: A malformed header is a 400 naming what is wrong, never a silent fallback to the
     #         full projection: falling back would make an agent that does not understand the
-    #         header indistinguishable from one that does.
+    #         header indistinguishable from one that does. The frontend reaches none of these
+    #         cases — takeProjectionAsHeader keeps the query params and sends no header at all
+    #         when the projection serializes empty — so they answer a hand-written client.
     def perform
       reject('it is empty') if @header_value.strip.empty?
 
