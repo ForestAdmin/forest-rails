@@ -106,11 +106,13 @@ module ForestLiana
           if order_value.is_a?(Arel::Nodes::Ordering)
             # Extract column name from Arel node
             column_name = order_value.expr.name if order_value.expr.respond_to?(:name)
-            select << "#{projected_resource.table_name}.#{column_name}" if column_name
+            select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
           elsif order_value.is_a?(String) || order_value.is_a?(Symbol)
-            # Handle simple column names
+            # NOTICE: Only a bare column name can be table-qualified. An ordering expression such
+            #         as "LOWER(name) ASC" is left out: qualifying it would reach the SQL as
+            #         table.LOWER(name).
             column_name = order_value.to_s.split(' ').first.split('.').last
-            select << "#{projected_resource.table_name}.#{column_name}"
+            select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
           end
         end
       end
@@ -130,13 +132,8 @@ module ForestLiana
           select << "#{table_name}.#{column_name}"
         end
 
-        # Include the foreign key from the main resource (e.g., blob_id, record_id)
-        if association.macro == :belongs_to || association.macro == :has_one
-          foreign_keys = Array(association.foreign_key)
-          foreign_keys.each do |fk|
-            select << "#{projected_resource.table_name}.#{fk}"
-          end
-        end
+        # Include the foreign key linking the attachment to its owner
+        select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
 
         active_storage_associations_processed.add(association.name)
       end
@@ -165,20 +162,10 @@ module ForestLiana
                   direct_through_name = through_assoc.options[:through]
                   direct_assoc = current_resource.reflect_on_association(direct_through_name)
 
-                  if direct_assoc && (direct_assoc.macro == :belongs_to || direct_assoc.macro == :has_one)
-                    fks = Array(direct_assoc.foreign_key)
-                    fks.each do |fk|
-                      select << "#{current_resource.table_name}.#{fk}"
-                    end
-                  end
+                  select_foreign_keys(select, current_resource, direct_assoc) if direct_assoc
                 else
                   # Direct association (not nested through)
-                  if through_assoc.macro == :belongs_to || through_assoc.macro == :has_one
-                    fks = Array(through_assoc.foreign_key)
-                    fks.each do |fk|
-                      select << "#{current_resource.table_name}.#{fk}"
-                    end
-                  end
+                  select_foreign_keys(select, current_resource, through_assoc)
                 end
 
                 # Move to the next level in the chain
@@ -191,12 +178,7 @@ module ForestLiana
               select << "#{projected_resource.table_name}.#{association.foreign_type}"
             end
 
-            if association.macro == :belongs_to || association.macro == :has_one
-              fks = Array(association.foreign_key)
-              fks.each do |fk|
-                select << "#{projected_resource.table_name}.#{fk}"
-              end
-            end
+            select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
           end
         end
 
@@ -222,20 +204,46 @@ module ForestLiana
 
             if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
               association.klass.attribute_names.each { |attribute| select << "#{table_name}.#{attribute}" }
-            else
+            elsif column?(association.klass, association_path)
               select << "#{table_name}.#{association_path}"
             end
           end
         else
           # Only add as column if it's not an association
           # Associations are handled by the through chain logic above
+          #
+          # NOTICE: Only a real column reaches the select. A name the collection does not hold is
+          #         dropped, exactly as the serializer already drops it — reaching the SQL it
+          #         would raise, and since the Forest-Projection header feeds this it would carry
+          #         whatever text the caller wrote into the select list.
           unless association
-            select << "#{projected_resource.table_name}.#{path}"
+            select << "#{projected_resource.table_name}.#{path}" if column?(projected_resource, path)
           end
         end
       end
 
       select.uniq
+    end
+
+    def column?(model, name)
+      !name.nil? && model.column_names.include?(name.to_s)
+    end
+
+    def joined?(association, joined_relations)
+      joined_relations.nil? || joined_relations.include?(association.name)
+    end
+
+    # NOTICE: A belongs_to carries its foreign key on the owner row, a has_one on the target row.
+    #         Qualifying a has_one key with the owner table names a column that does not exist,
+    #         and the target table only reaches the FROM clause when the query joins it — a
+    #         preloaded relation is read by a SELECT of its own and needs nothing here, the
+    #         owner primary key already being selected.
+    def select_foreign_keys(select, owner, association, joined = true)
+      if association.macro == :belongs_to
+        Array(association.foreign_key).each { |fk| select << "#{owner.table_name}.#{fk}" }
+      elsif association.macro == :has_one && joined
+        Array(association.foreign_key).each { |fk| select << "#{association.table_name}.#{fk}" }
+      end
     end
 
     def get_one_association(name)

@@ -286,4 +286,100 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       expect(body['errors'].first['detail']).to include('it is empty')
     end
   end
+
+  # NOTICE: A name the collection does not hold is dropped, the way the fields query params
+  #         already drop it. It used to reach the SQL as a column and answer a 500 — the list
+  #         never showed it because its eager load hands the select list to the JoinDependency,
+  #         which quietly discards what matches no joined table.
+  describe 'on a projection naming something the collection does not hold' do
+    it 'drops an unknown field on get-one' do
+      selected = selects_of('trees') do
+        get "/forest/Tree/#{@tree.id}", headers: projecting('id,does_not_exist')
+      end
+
+      expect(response.status).to eq 200
+      expect(body['data']['attributes']).to eq('id' => @tree.id)
+      expect(selected).not_to include('does_not_exist')
+    end
+
+    it 'drops an unknown field on a relationship list' do
+      get "/forest/Island/#{@island.id}/relationships/trees",
+        params: list_params,
+        headers: projecting('id,does_not_exist')
+
+      expect(response.status).to eq 200
+      expect(body['data'].first['attributes']).to eq('id' => @tree.id)
+    end
+
+    it 'drops an unknown field on a relation' do
+      selected = selects_of('users') do
+        get "/forest/Tree/#{@tree.id}", headers: projecting('id,owner:name,owner:does_not_exist')
+      end
+
+      expect(response.status).to eq 200
+      expect(selected).to include('"users"."name"')
+      expect(selected).not_to include('does_not_exist')
+    end
+
+    # NOTICE: The header feeds the select list, so anything but a real column name reaching it
+    #         would carry whatever text the caller wrote straight into the SQL.
+    it 'keeps a header naming SQL out of the select list' do
+      selected = selects_of('trees') do
+        get "/forest/Tree/#{@tree.id}", headers: projecting('id,name FROM users--')
+      end
+
+      expect(response.status).to eq 200
+      expect(selected).not_to include('users')
+      expect(selected).not_to include('--')
+    end
+  end
+
+  # NOTICE: A belongs_to carries its foreign key on the owner row, a has_one on the target row,
+  #         and the target table is only in the FROM clause when the query joins it.
+  describe 'on a projection naming a has_one' do
+    it 'reads the foreign key from the target table when the query joins it' do
+      selected = selects_of('locations') do
+        get "/forest/Island/#{@island.id}", headers: projecting('id,name,location:id')
+      end
+
+      expect(response.status).to eq 200
+      expect(selected).to include('"locations"."island_id"')
+      expect(selected).not_to include('"isle"."island_id"')
+    end
+
+    # NOTICE: An instance dependent scope cannot be joined, so the relation is read by a query of
+    #         its own and the owner select needs nothing for it — its primary key already covers
+    #         the link.
+    it 'names no foreign key for a relation the query does not join' do
+      selected = selects_of('isle') do
+        get "/forest/Island/#{@island.id}", headers: projecting('id,name,eponymous_tree')
+      end
+
+      expect(response.status).to eq 200
+      expect(selected).to include('"isle"."name"')
+      expect(selected).not_to include('island_id')
+    end
+  end
+
+  # NOTICE: Only a bare column name can be table-qualified. An ordering expression would reach
+  #         the SQL as table.LOWER(name) and raise.
+  describe 'on a collection ordered by an expression' do
+    around(:each) do |example|
+      previous = Owner.default_scopes
+      Owner.default_scopes = []
+      Owner.send(:default_scope) { order(Arel.sql('LOWER(name) ASC')) }
+      example.run
+      Owner.default_scopes = previous
+    end
+
+    it 'leaves the ordering expression out of the select' do
+      getter = ForestLiana::ResourceGetter.new(
+        Owner, ActionController::Parameters.new(id: 1, fields: { 'Owner' => 'id,name' }), nil
+      )
+
+      expect(getter.send(:compute_select_fields, [])).to eq(
+        ['_forest_admin_eager_load', 'owners.id', 'owners.name']
+      )
+    end
+  end
 end

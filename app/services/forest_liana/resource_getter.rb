@@ -51,7 +51,9 @@ module ForestLiana
       # NOTICE: Nothing to join, so no eager load either. Polymorphic targets are still loaded one
       #         by one, out of this query, from the type and foreign key columns it selects.
       records = get_resource()
-      records = records.preload(preload_loads) if preload_loads.any?
+      # NOTICE: Same version guard as optimize_record_loading — Rails 6 refuses to preload an
+      #         instance dependent scope, and answers it lazily at serialization instead.
+      records = records.preload(preload_loads) if preload_loads.any? && Rails::VERSION::MAJOR >= 7
       apply_projection(records, eager_loads)
     end
 
