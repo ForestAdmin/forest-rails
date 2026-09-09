@@ -308,12 +308,14 @@ module ForestLiana
       # guard raises its own, already-pinned message for it, and the query never runs either way.
       # Sort has no such downstream validator, so its own path is resolved without this rescue.
       #
-      # FiltersParser only ever reads one association hop (+assoc:field+); a deeper path such as
-      # +island:location:name+ still resolves here (FieldPath recurses as far as the reflections
-      # go), but the parser would reject it as a malformed/unknown field regardless of permission,
-      # so checking a collection the query itself can never reach is left unchecked too.
+      # FiltersParser#parse_field_name only ever reads one association hop (+assoc:field+) — it
+      # builds the quoted field from segment 1 but validates existence against the *last* segment,
+      # so a deeper path such as +island:name:id+ (a real column at 1, a real column at -1) slips
+      # its own validation and runs as a live filter on segment 1's table. Truncating to the same
+      # two segments the parser actually reads — mirroring +sort_field_path+ below — checks
+      # permission on the collection the query really touches, instead of skipping it outright.
       def query_usage(action, root_model, path)
-        return nil if path.count(':') > 1
+        path = path.split(':').first(2).join(':')
 
         { action: action, path: path, collections: resolve_owner(root_model, path) }
       rescue ForestLiana::Errors::HTTP422Error

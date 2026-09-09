@@ -114,11 +114,25 @@ module ForestLiana
             .not_to raise_error
         end
 
-        it 'does not raise for a filter path deeper than FiltersParser reads, even one FieldPath resolves to a denied collection' do
+        it 'refuses a filter path truncated to a real relation name, even though the parser would only ever crash on it' do
+          # island:location:name truncates to island:location, which fully resolves to Location
+          # (location is itself a real reflection) — the parser instead quotes segment 1
+          # ("location") as a raw column of Island's own table, which doesn't exist, so it can only
+          # ever 500. Denying here trades that crash for a clean 403 without ever reaching the query.
           write_permissions('Tree' => true, 'Island' => true, 'Location' => false)
 
           expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:location:name']) }
-            .not_to raise_error
+            .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
+        end
+
+        it 'refuses a filter path where a later segment names a real column of the collection the parser actually filters on' do
+          # island:name:id: the parser quotes segment 1 (name) but validates existence against the
+          # last one (id, present on every model) — 'id' always passing let this run as a live,
+          # unchecked filter on Island.name, one starts_with guess per request, on a denied Island.
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:name:id']) }
+            .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
         end
 
         it 'raises for a sort path FieldPath cannot resolve, since nothing else validates it' do
