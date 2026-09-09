@@ -194,8 +194,8 @@ describe 'Capabilities', type: :request do
     end
   end
 
-  # NOTICE: SQLite has no array column, and every collection of the dummy app has at least one
-  #         groupable field, so both cases are announced off a stubbed apimap.
+  # NOTICE: SQLite has neither an array nor a json column, and every collection of the dummy app
+  #         has at least one groupable field, so those cases are announced off a stubbed apimap.
   describe 'a schema the dummy app cannot express' do
     def collection(name, fields)
       ForestLiana::Model::Collection.new(name: name, fields: fields)
@@ -206,6 +206,10 @@ describe 'Capabilities', type: :request do
         collection('WithAnArrayColumn', [
           { field: 'id', type: 'Number', is_primary_key: true },
           { field: 'tags', type: ['String'] }
+        ]),
+        collection('WithAJsonColumn', [
+          { field: 'id', type: 'Number', is_primary_key: true },
+          { field: 'payload', type: 'Json' }
         ]),
         collection('WithNothingGroupable', [
           { field: 'id', type: 'Number', is_primary_key: true },
@@ -223,6 +227,18 @@ describe 'Capabilities', type: :request do
         'name' => 'tags',
         'type' => ['String'],
         'operators' => [],
+        'isGroupable' => true
+      )
+    end
+
+    # NOTICE: An equality on a json column reaches the database as a bare `=`, which it refuses.
+    it 'announces only the presence operators on a json column' do
+      body = fetch_capabilities(['WithAJsonColumn'])
+
+      expect(field(body, 'WithAJsonColumn', 'payload')).to eq(
+        'name' => 'payload',
+        'type' => 'Json',
+        'operators' => %w(present blank),
         'isGroupable' => true
       )
     end

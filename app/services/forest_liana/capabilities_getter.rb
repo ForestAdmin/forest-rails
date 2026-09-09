@@ -19,6 +19,9 @@ module ForestLiana
     #         announcing more hands the user a filter the agent rejects, announcing less
     #         removes one that works today.
     COMMON_OPERATORS = %w(equal not_equal present blank).freeze
+    # NOTICE: FiltersParser compares with a bare `=`, which the database refuses against a
+    #         json/jsonb/hstore column, so equality would answer a 500 instead of a filtered list.
+    PRESENCE_OPERATORS = %w(present blank).freeze
     IN_OPERATOR = %w(in).freeze
     COMPARISON_OPERATORS = %w(greater_than less_than).freeze
     STRING_OPERATORS = %w(starts_with ends_with contains i_contains not_contains).freeze
@@ -36,7 +39,7 @@ module ForestLiana
       'Dateonly' => COMMON_OPERATORS + DATE_OPERATORS,
       'Enum' => COMMON_OPERATORS + IN_OPERATOR,
       'File' => COMMON_OPERATORS + IN_OPERATOR + STRING_OPERATORS,
-      'Json' => COMMON_OPERATORS,
+      'Json' => PRESENCE_OPERATORS,
       'Number' => COMMON_OPERATORS + IN_OPERATOR + COMPARISON_OPERATORS,
       'String' => COMMON_OPERATORS + IN_OPERATOR + STRING_OPERATORS,
       'Time' => COMMON_OPERATORS + COMPARISON_OPERATORS,
