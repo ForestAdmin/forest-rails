@@ -20,12 +20,16 @@ module ForestLiana
       prepare_query()
     end
 
+    def assert_sort_readable!
+      @search_query_builder.assert_sort_readable!(@user, model_association)
+    end
+
     # NOTICE: The projection is applied here and not in prepare_query: count builds its own
     #         getter and never calls perform, and query_for_batch keeps the unprojected query.
     #         Only the relations optimize_record_loading actually joins can be projected — the
     #         display-only ones are preloaded on purpose, and come back whole.
     def perform
-      @search_query_builder.assert_sort_readable!(@user, model_association)
+      assert_sort_readable!
       return @records unless project?
 
       polymorphic_associations, preload_loads = analyze_associations(model_association)

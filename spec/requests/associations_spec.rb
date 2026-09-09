@@ -372,6 +372,33 @@ describe 'Requesting an association', :type => :request do
       expect(JSON.parse(response.body)['errors'][0]['detail'])
         .to eq "You cannot sort on 'owner:name': you are not allowed to read the 'User' collection."
     end
+
+    # Naming parent_collection_id/parent_collection_name/parent_association_name (rather than a
+    # plain collection_name) is what actually routes get_ids_from_request through HasManyGetter —
+    # the branch the sort-readability fix in initialize_resources_getter exists for in the first
+    # place, and the only one of the two get_ids_from_request branches the other example above
+    # doesn't reach.
+    it 'refuses with a 403 through the related/HasManyGetter branch too, not just the plain collection one' do
+      params = {
+        data: {
+          attributes: {
+            parent_collection_id: @island.id.to_s,
+            parent_collection_name: 'Island',
+            parent_association_name: 'trees',
+            all_records: true,
+            all_records_subset_query: {
+              sort: '-owner.name'
+            }
+          }
+        }
+      }
+
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot sort on 'owner:name': you are not allowed to read the 'User' collection."
+    end
   end
 
   describe 'associating a has_many :through relation' do

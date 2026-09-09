@@ -429,9 +429,9 @@ describe 'Requesting Tree resources', :type => :request  do
   end
 
   describe 'select-all destroy sorting on a collection the role cannot read' do
-    # ResourcesGetter.get_ids_from_request never calls #perform (only .query_for_batch, built
-    # in the constructor) — assert_sort_readable! lived only in #perform, so a sort on a denied
-    # collection reordered the batch of ids to delete without ever being checked.
+    # ResourcesGetter.get_ids_from_request never called #perform (only .query_for_batch, built in
+    # the constructor), and assert_sort_readable! used to live only inside #perform — a sort on a
+    # denied collection reordered the batch of ids to delete without ever being checked.
     it 'refuses with a 403, instead of reordering the ids to delete by an unreadable column' do
       params = {
         data: {

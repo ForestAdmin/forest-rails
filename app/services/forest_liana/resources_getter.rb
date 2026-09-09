@@ -30,8 +30,12 @@ module ForestLiana
       filter_excluded_ids(ids, attributes[:all_records_ids_excluded])
     end
 
-    def perform
+    def assert_sort_readable!
       @search_query_builder.assert_sort_readable!(@user, @resource)
+    end
+
+    def perform
+      assert_sort_readable!
       polymorphic_association, preload_loads = analyze_associations(@resource)
       includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
       has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
@@ -233,12 +237,9 @@ module ForestLiana
     end
 
     # query_for_batch below serves @base_records_for_batch/@records as built by the constructor,
-    # never by #perform — but #perform is the only thing that calls assert_sort_readable!, so
-    # every other caller of get_ids_from_request (destroy_bulk, a select-all dissociate, a smart
-    # action's select-all) would otherwise carry a sort param past this guard entirely. Calling
-    # #perform here for its check alone is safe: it mutates @records for includes/select, which
-    # query_for_batch on ResourcesGetter never reads, and which HasManyGetter's own #perform
-    # leaves untouched either way.
+    # never by #perform — but #perform is the only thing that used to call assert_sort_readable!,
+    # so every other caller of get_ids_from_request (destroy_bulk, a select-all dissociate, a
+    # smart action's select-all) carried a sort param past this guard entirely.
     def self.initialize_resources_getter(attributes, user)
       resources_getter =
         if related_data?(attributes)
@@ -247,7 +248,7 @@ module ForestLiana
           ResourcesGetter.new(SchemaUtils.find_model_from_collection_name(attributes[:collection_name]), attributes, user)
         end
 
-      resources_getter.perform
+      resources_getter.assert_sort_readable!
       resources_getter
     end
 
