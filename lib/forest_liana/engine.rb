@@ -18,7 +18,7 @@ module Rack
         # out: an uppercase key here reaches the server as-is, and Rack::Lint rejects it.
         h['access-control-allow-private-network'] = 'true' if env['HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK'] == 'true'
         if env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS]
-          h.merge!('Access-Control-Allow-Headers' => env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS])
+          h.merge!('access-control-allow-headers' => env[HTTP_ACCESS_CONTROL_REQUEST_HEADERS])
         end
         h
       end
