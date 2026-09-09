@@ -134,6 +134,9 @@ module ForestLiana
 
     def operators_for(field)
       return [] unless field[:is_filterable]
+      # NOTICE: FiltersParser answers 501 on a smart field whose declaration carries no
+      #         :filter callback, so announcing an operator would promise a filter that errors.
+      return [] if field[:is_virtual] && field[:filter].nil?
       # NOTICE: Array columns would only get includes_all, which FiltersParser does not implement.
       return [] if field[:type].is_a?(Array)
 

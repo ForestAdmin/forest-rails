@@ -194,8 +194,9 @@ describe 'Capabilities', type: :request do
     end
   end
 
-  # NOTICE: SQLite has neither an array nor a json column, and every collection of the dummy app
-  #         has at least one groupable field, so those cases are announced off a stubbed apimap.
+  # NOTICE: SQLite has neither an array nor a json column, every collection of the dummy app has
+  #         at least one groupable field, and none declares a filterable Smart Field, so those
+  #         cases are announced off a stubbed apimap.
   describe 'a schema the dummy app cannot express' do
     def collection(name, fields)
       ForestLiana::Model::Collection.new(name: name, fields: fields)
@@ -214,6 +215,11 @@ describe 'Capabilities', type: :request do
         collection('WithNothingGroupable', [
           { field: 'id', type: 'Number', is_primary_key: true },
           { field: 'computed', type: 'String', is_virtual: true }
+        ]),
+        collection('WithSmartFields', [
+          { field: 'id', type: 'Number', is_primary_key: true },
+          { field: 'computed', type: 'String', is_virtual: true },
+          { field: 'filtered', type: 'String', is_virtual: true, filter: ->(condition, where) { where } }
         ])
       ])
     end
@@ -240,6 +246,32 @@ describe 'Capabilities', type: :request do
         'name' => 'payload',
         'type' => 'Json',
         'operators' => %w(present blank),
+        'isGroupable' => false
+      )
+    end
+
+    # NOTICE: FiltersParser answers 501 on a smart field declared without a :filter callback.
+    it 'announces no operator on a smart field that cannot be filtered' do
+      body = fetch_capabilities(['WithSmartFields'])
+
+      expect(field(body, 'WithSmartFields', 'computed')).to eq(
+        'name' => 'computed',
+        'type' => 'String',
+        'operators' => [],
+        'isGroupable' => false
+      )
+    end
+
+    it 'announces the operators of a smart field carrying a filter callback' do
+      body = fetch_capabilities(['WithSmartFields'])
+
+      expect(field(body, 'WithSmartFields', 'filtered')).to eq(
+        'name' => 'filtered',
+        'type' => 'String',
+        'operators' => %w(
+          equal not_equal present blank in
+          starts_with ends_with contains i_contains not_contains
+        ),
         'isGroupable' => false
       )
     end
