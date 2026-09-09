@@ -180,6 +180,7 @@ describe 'Requesting an association', :type => :request do
 
       expect(response.status).to eq(403)
       expect(JSON.parse(response.body)['errors'][0]['detail']).to eq "You don't have permission to access this resource"
+      expect(JSON.parse(response.body)['errors'][0]['name']).to eq('AccessDenied')
     end
 
     # Without forest_authorize!, a filtered count on a collection the role cannot even browse
@@ -190,6 +191,7 @@ describe 'Requesting an association', :type => :request do
       get "/forest/Island/#{@island.id}/relationships/trees/count", params: params, headers: headers
 
       expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['name']).to eq('AccessDenied')
     end
 
     it 'refuses updating a belongsTo with a 403, checking edit on the parent (Tree)' do

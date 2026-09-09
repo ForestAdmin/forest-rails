@@ -15,10 +15,13 @@ module ForestLiana
     end
 
     def index
+      # Parity with agent-nodejs's list-related route: browse/export on the foreign collection.
+      # Authorized outside the begin, like update/associate/dissociate, so a denial reaches
+      # ApplicationController's rescue_from and keeps its name/data instead of falling into the
+      # generic ExpectedError rescue below.
+      action = request.format == 'csv' ? 'export' : 'browse'
+      forest_authorize!(action, forest_user, @association.klass)
       begin
-        # Parity with agent-nodejs's list-related route: browse/export on the foreign collection.
-        action = request.format == 'csv' ? 'export' : 'browse'
-        forest_authorize!(action, forest_user, @association.klass)
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.perform
 
@@ -60,8 +63,9 @@ module ForestLiana
       #         through and dereferencing a nil @association, which surfaced as
       #         a double-render / 500 rather than the intended 404.
       return if performed?
+      # Authorized outside the begin, like index above, so a denial keeps its name/data.
+      forest_authorize!('browse', forest_user, @association.klass)
       begin
-        forest_authorize!('browse', forest_user, @association.klass)
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count
 
