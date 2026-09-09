@@ -6,8 +6,11 @@ module ForestLiana
 
         def initialize(denied_fields, backtrace = nil)
           @data = { fields: denied_fields.map { |denied| denied[:path] } }
+
+          # Same per-field "from the 'X' collection" repetition agent-nodejs uses for this same
+          # case (authorization.ts's redactProjection) — kept for parity rather than grouped.
           fields_description = denied_fields.map do |denied|
-            "'#{denied[:path]}' from #{FieldPath.leaf_label(denied[:collections])}"
+            "'#{denied[:display_path] || denied[:path]}' from #{FieldPath.leaf_label(denied[:collections])}"
           end
 
           super(

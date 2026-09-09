@@ -108,11 +108,46 @@ module ForestLiana
           end
         end
 
+        # 'name' lives in the 'User' entry, not root_model's own 'Tree' entry — the message
+        # prefixes it with 'User' so it doesn't read as a bare field of Tree, while data[:fields]
+        # (consumed by the caller to identify which fields it named) keeps the bare 'name'.
+        it 'prefixes a denied field with the relation it was reached through, unlike a root field' do
+          write_permissions('Tree' => true, 'Island' => false, 'User' => false)
+
+          expect do
+            dummy_class.redact_fields(
+              user, Tree, { 'Tree' => 'name,island', 'User' => 'name' }, named_collections: %w[Tree User]
+            )
+          end.to raise_error(
+            ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+            "You are not allowed to read 'island' from the 'Island' collection, 'User:name' from the 'User' collection."
+          ) do |error|
+            expect(error.data[:fields]).to match_array(%w[island name])
+          end
+        end
+
         it 'drops a denied field silently when the caller never named it' do
           write_permissions('Tree' => true, 'Island' => false)
 
           expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: []))
             .to eq('Tree' => 'name')
+        end
+
+        # Repeats "from the 'Island' collection" per field rather than grouping them, matching
+        # agent-nodejs's own redactProjection for this same case (parity, not a v1 quirk).
+        it 'repeats the "from" clause per field even when two fields reach the same collection' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect do
+            dummy_class.redact_fields(
+              user, Tree, { 'Tree' => 'island', 'Island' => 'name' }, named_collections: %w[Tree Island]
+            )
+          end.to raise_error(
+            ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+            "You are not allowed to read 'island' from the 'Island' collection, 'Island:name' from the 'Island' collection."
+          ) do |error|
+            expect(error.data[:fields]).to match_array(%w[island name])
+          end
         end
 
         # Pins the branch itself, not just each outcome in isolation: a later refactor collapsing

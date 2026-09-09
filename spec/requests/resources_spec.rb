@@ -19,7 +19,8 @@ describe 'Requesting Tree resources', :type => :request  do
       .with('/liana/v4/permissions/environment').and_return(
         'collections' => {
           'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
-          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+          'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
         }
       )
 
@@ -291,6 +292,23 @@ describe 'Requesting Tree resources', :type => :request  do
       expect(csv_lines.first).to eq(params[:header])
       expect(csv_lines[1]).to eq('1,Lemon Tree')
     end
+
+    # Unlike index/show/update, an explicitly named but unreadable column drops silently instead
+    # of refusing the whole file — matching agent-nodejs's own CSV route (same redactProjection,
+    # same named-vs-not distinction it already applies to its JSON list, not a CSV-specific rule).
+    it 'drops an unreadable column silently instead of refusing the whole export' do
+      params = {
+        fields: { 'Tree' => 'id,name,island' },
+        header: 'id,name,island',
+      }
+      get '/forest/Tree.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      csv_lines = response.body.split("\n")
+      expect(csv_lines.first).to eq('id,name')
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
+    end
   end
 end
 
@@ -400,6 +418,15 @@ describe 'Requesting Island resources', :type => :request  do
       'forest.collections',
       {
         'Island' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
+        },
+        'Location' => {
           'browse'  => [1],
           'read'    => [1],
           'edit'    => [1],

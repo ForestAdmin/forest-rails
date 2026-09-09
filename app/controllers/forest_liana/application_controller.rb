@@ -208,14 +208,27 @@ module ForestLiana
     end
 
     def render_csv getter, model
+      # Unlike index/show/update, an unreadable column here is dropped rather than refusing the
+      # whole export (named_collections: [] — nothing is ever "named") — matching agent-nodejs's
+      # own CSV route, which runs the same redactProjection as its JSON list but drops a denied
+      # column instead of 403ing the file whenever it doesn't error there either.
+      requested_fields = fields_per_model(params[:fields], model)
+      fields_to_serialize = redact_fields(forest_user, model, requested_fields, named_collections: [])
+
       set_headers_file
       set_headers_streaming
 
       response.status = 200
-      csv_header = params[:header].split(',')
       collection_name = ForestLiana.name_for(model)
-      field_names_requested = params[:fields][collection_name].split(',').map { |name| name.to_s }
-      fields_to_serialize = fields_per_model(params[:fields], model)
+      requested_field_names = params[:fields][collection_name].split(',').map { |name| name.to_s }
+      requested_header = params[:header].split(',')
+
+      # Keep the header row aligned with whatever redact_fields left in fields_to_serialize,
+      # the same way agent-nodejs's CsvGenerator.filterHeader drops a redacted column's label.
+      surviving = (fields_to_serialize[collection_name] || '').split(',')
+      kept = requested_field_names.zip(requested_header).select { |name, _| surviving.include?(name) }
+      field_names_requested = kept.map(&:first)
+      csv_header = kept.map(&:last)
 
       self.response_body = Enumerator.new do |content|
         content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s

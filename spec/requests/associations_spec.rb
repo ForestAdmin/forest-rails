@@ -80,4 +80,34 @@ describe 'Requesting an association', :type => :request do
       expect(JSON.parse(response.body)['errors'][0]['detail']).to eq "Relation not found: 'Tree.unknown'"
     end
   end
+
+  # Unlike index/show/update, an explicitly named but unreadable column drops silently instead
+  # of refusing the whole file — matching agent-nodejs's own CSV route (same redactProjection,
+  # same named-vs-not distinction it already applies to its JSON list, not a CSV-specific rule).
+  describe 'csv export, naming a field of a collection the role cannot read' do
+    it 'drops the unreadable column silently instead of refusing the whole export' do
+      get "/forest/Island/#{@island.id}/relationships/trees.csv",
+          params: { fields: { 'Tree' => 'id,name,owner' }, header: 'id,name,owner' },
+          headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      csv_lines = response.body.split("\n")
+      expect(csv_lines.first).to eq('id,name')
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
+    end
+  end
+
+  describe 'csv export, an ordinary request naming only readable fields' do
+    it 'serves the csv normally' do
+      get "/forest/Island/#{@island.id}/relationships/trees.csv",
+          params: { fields: { 'Tree' => 'id,name' }, header: 'id,name' },
+          headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      csv_lines = response.body.split("\n")
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
+    end
+  end
 end
