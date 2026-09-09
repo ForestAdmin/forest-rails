@@ -12,9 +12,13 @@ module ForestLiana
     end
 
     # The collection a plain unlink actually writes to: the join collection for a through
-    # association (see destroys_on_unlink?), the far collection otherwise.
+    # association (see destroys_on_unlink?), the far collection otherwise. Falls back to the far
+    # collection when the join model is hidden from the schema (ForestLiana.excluded_models, the
+    # normal way to keep a join table out of the UI) — the alternative is a permission check
+    # against a collection that doesn't exist, which breaks the route rather than gating it.
     def self.destroy_target(association)
-      association.options[:through] ? association.through_reflection.klass : association.klass
+      join = association.options[:through] && association.through_reflection.klass
+      join && SchemaUtils.model_included?(join) ? join : association.klass
     end
 
     def initialize(resource, association, params, forest_user)

@@ -3,9 +3,12 @@ module ForestLiana
     include ForestLiana::RecordFindable
 
     # A through association's `<<` creates a row in the join collection, never touching the far
-    # one — the far record found by id already exists and is left untouched.
+    # one — the far record found by id already exists and is left untouched. Falls back to the
+    # far collection when the join model is hidden from the schema (ForestLiana.excluded_models),
+    # same reasoning as HasManyDissociator.destroy_target.
     def self.authorize_target(association)
-      association.options[:through] ? association.through_reflection.klass : association.klass
+      join = association.options[:through] && association.through_reflection.klass
+      join && SchemaUtils.model_included?(join) ? join : association.klass
     end
 
     def initialize(resource, association, params)

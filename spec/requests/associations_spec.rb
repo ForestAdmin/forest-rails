@@ -443,6 +443,79 @@ describe 'Requesting an association', :type => :request do
     end
   end
 
+  describe 'a has_many :through relation whose join model is excluded from the schema' do
+    around do |example|
+      previous = ForestLiana.excluded_models
+      ForestLiana.excluded_models = ['Membership']
+      example.run
+    ensure
+      ForestLiana.excluded_models = previous
+    end
+
+    after do
+      Membership.destroy_all
+    end
+
+    it 'associate falls back to checking the far collection (User) instead of 409ing' do
+      no_role = { 'roles' => [] }
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => no_role, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      post "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Membership.where(island: @island, user: @user)).to be_empty
+    end
+
+    it 'associate still works end to end when the far collection (User) grants edit' do
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      post "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(Membership.where(island: @island, user: @user)).not_to be_empty
+    end
+
+    # Island.members has no dependent: option, so a plain unlink destroys the join row (see
+    # HasManyDissociator.destroys_on_unlink?) — the action checked here is delete, not edit.
+    it 'dissociate falls back to checking the far collection (User) instead of 409ing' do
+      @membership = Membership.create(island: @island, user: @user)
+      no_role = { 'roles' => [] }
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => no_role, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      delete "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Membership.exists?(@membership.id)).to be true
+    end
+  end
+
   describe 'dissociating a has_many :through relation' do
     before do
       @membership = Membership.create(island: @island, user: @user)
