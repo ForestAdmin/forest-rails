@@ -30,6 +30,39 @@ module ForestLiana
 
         expect(described_class.destroys_on_unlink?(association)).to be false
       end
+
+      it 'is true for a through association with no dependent option (Rails hard-deletes the join row by default)' do
+        association = double('association', macro: :has_many, options: { through: :memberships })
+
+        expect(described_class.destroys_on_unlink?(association)).to be true
+      end
+
+      it 'is true for a through association with dependent: :destroy' do
+        association = double('association', macro: :has_many, options: { through: :memberships, dependent: :destroy })
+
+        expect(described_class.destroys_on_unlink?(association)).to be true
+      end
+
+      it 'is false for a through association with dependent: :nullify' do
+        association = double('association', macro: :has_many, options: { through: :memberships, dependent: :nullify })
+
+        expect(described_class.destroys_on_unlink?(association)).to be false
+      end
+    end
+
+    describe '.destroy_target' do
+      it 'is the far collection for a plain has_many' do
+        association = double('association', klass: Tree, options: {})
+
+        expect(described_class.destroy_target(association)).to eq(Tree)
+      end
+
+      it 'is the join collection for a through association, not the far one' do
+        through_reflection = double('through_reflection', klass: Membership)
+        association = double('association', klass: User, through_reflection: through_reflection, options: { through: :memberships })
+
+        expect(described_class.destroy_target(association)).to eq(Membership)
+      end
     end
   end
 end

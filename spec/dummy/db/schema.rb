@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_11_17_084236) do
+ActiveRecord::Schema.define(version: 2026_09_09_120000) do
 
   create_table "addresses", force: :cascade do |t|
     t.string "line1"
@@ -40,6 +40,15 @@ ActiveRecord::Schema.define(version: 2023_11_17_084236) do
 
   create_table "manufacturers", force: :cascade do |t|
     t.string "name"
+  end
+
+  create_table "memberships", force: :cascade do |t|
+    t.integer "island_id", null: false
+    t.integer "user_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["island_id"], name: "index_memberships_on_island_id"
+    t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
   create_table "owners", force: :cascade do |t|

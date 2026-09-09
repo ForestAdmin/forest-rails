@@ -140,8 +140,15 @@ module ForestLiana
 
     def dissociate
       begin
-        action = (params[:delete].to_s == 'true' || HasManyDissociator.destroys_on_unlink?(@association)) ? 'delete' : 'edit'
-        forest_authorize!(action, forest_user, @association.klass)
+        if params[:delete].to_s == 'true'
+          # Explicit delete destroys the far record directly, regardless of association shape.
+          action = 'delete'
+          authorize_target = @association.klass
+        else
+          action = HasManyDissociator.destroys_on_unlink?(@association) ? 'delete' : 'edit'
+          authorize_target = HasManyDissociator.destroy_target(@association)
+        end
+        forest_authorize!(action, forest_user, authorize_target)
         dissociator = HasManyDissociator.new(@resource, @association, params, forest_user)
         dissociator.perform
 

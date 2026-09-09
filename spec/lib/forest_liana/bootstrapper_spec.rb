@@ -27,6 +27,7 @@ module ForestLiana
           Island,
           Location,
           Manufacturer,
+          Membership,
           Owner,
           Product,
           Reference,

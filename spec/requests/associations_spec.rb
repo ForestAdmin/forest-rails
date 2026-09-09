@@ -346,4 +346,56 @@ describe 'Requesting an association', :type => :request do
         .to eq "You cannot filter on 'owner:name': you are not allowed to read the 'User' collection."
     end
   end
+
+  describe 'dissociating a has_many :through relation' do
+    before do
+      @membership = Membership.create(island: @island, user: @user)
+    end
+
+    after do
+      Membership.destroy_all
+    end
+
+    # A plain unlink on a through association only ever touches the join collection (Membership),
+    # never the far one (User) — so that's what edit/delete has to be checked on, not User.
+    it 'refuses a plain dissociate with a 403, checking delete on the join collection (Membership)' do
+      enabled = { 'roles' => [1] }
+      no_role = { 'roles' => [] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Membership' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => no_role, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      delete "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Membership.exists?(@membership.id)).to be true
+    end
+
+    it 'lets an authorized role dissociate it, deleting the join row but leaving User intact' do
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Membership' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      delete "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(Membership.exists?(@membership.id)).to be false
+      expect(User.exists?(@user.id)).to be true
+    end
+  end
 end
