@@ -12,10 +12,18 @@ module ForestLiana
       compute_includes()
     end
 
+    # NOTICE: The projection is applied on the scoped records and not before: a scope filtering
+    #         on a relation makes FiltersParser add an eager load of its own, and the
+    #         _forest_admin_eager_load marker heading the select has to be there whenever the
+    #         query that finally runs eager loads at all. Projecting first would decide on the
+    #         marker against a query that does not join yet, drop it, and leave the record
+    #         missing the foreign key the join then reads.
     def perform
       scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(
-        fetch_records, @user, @collection_name, @params[:timezone]
+        optimize_record_loading(@resource, get_resource()), @user, @collection_name, @params[:timezone]
       )
+      scoped_records = apply_projection(scoped_records, eager_loads) if project?
+
       @record = find_record(scoped_records, @resource, @params[:id])
     end
 
@@ -40,21 +48,15 @@ module ForestLiana
       fields.split(',').map(&:to_sym)
     end
 
-    def fetch_records
-      return optimize_record_loading(@resource, get_resource()) unless project?
+    # NOTICE: The relations this query joins, and so the only ones whose own columns the
+    #         projection can name. A polymorphic or preloaded relation is read by a query of its
+    #         own; the eager load a scope adds is none of the projection's business.
+    def eager_loads
+      @eager_loads ||= begin
+        polymorphic_associations, preload_loads = analyze_associations(@resource)
 
-      polymorphic_associations, preload_loads = analyze_associations(@resource)
-      eager_loads = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
-
-      return apply_projection(optimize_record_loading(@resource, get_resource()), eager_loads) if eager_loads.any?
-
-      # NOTICE: Nothing to join, so no eager load either. Polymorphic targets are still loaded one
-      #         by one, out of this query, from the type and foreign key columns it selects.
-      records = get_resource()
-      # NOTICE: Same version guard as optimize_record_loading — Rails 6 refuses to preload an
-      #         instance dependent scope, and answers it lazily at serialization instead.
-      records = records.preload(preload_loads) if preload_loads.any? && Rails::VERSION::MAJOR >= 7
-      apply_projection(records, eager_loads)
+        @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
+      end
     end
 
     # NOTICE: A projection naming a Smart Field is dropped: computing one may read any column of

@@ -181,6 +181,50 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     end
   end
 
+  # NOTICE: A scope filtering on a relation makes FiltersParser eager load it, on a query the
+  #         projection has already been applied to. The projection has to be decided after the
+  #         scopes: deciding before leaves the select without the _forest_admin_eager_load
+  #         marker, and the record without the foreign key that join reads.
+  describe 'on get-one under a scope filtering on a relation' do
+    before(:each) do
+      allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(
+        'scopes' => {
+          'Tree' => {
+            'aggregator' => 'and',
+            'conditions' => [{ 'field' => 'owner:name', 'operator' => 'equal', 'value' => 'Michel' }]
+          }
+        },
+        'team' => { 'id' => '1', 'name' => 'Operations' }
+      )
+    end
+
+    it 'answers the projected record when the projection names no relation' do
+      get "/forest/Tree/#{@tree.id}", headers: projecting('id,name')
+
+      expect(response.status).to eq 200
+      expect(body['data']['attributes']).to eq('id' => @tree.id, 'name' => 'Lemon Tree')
+    end
+
+    it 'reads the columns the projection names and the key the scope joins on' do
+      selected = selects_of('trees') do
+        get "/forest/Tree/#{@tree.id}", headers: projecting('id,name')
+      end
+
+      expect(response.status).to eq 200
+      expect(selected).to include('"trees"."name"')
+      expect(selected).to include('"trees"."owner_id"')
+      expect(selected).not_to include('"trees"."age"')
+    end
+
+    it 'answers the projected record when the projection names the scoped relation' do
+      get "/forest/Tree/#{@tree.id}", headers: projecting('id,name,owner:name')
+
+      expect(response.status).to eq 200
+      expect(body['data']['attributes']).to eq('id' => @tree.id, 'name' => 'Lemon Tree')
+      expect(body['included'].first['attributes']).to eq('name' => 'Michel')
+    end
+  end
+
   describe 'on a relationship list' do
     it 'roots the projection on the association target' do
       get "/forest/Island/#{@island.id}/relationships/trees",
