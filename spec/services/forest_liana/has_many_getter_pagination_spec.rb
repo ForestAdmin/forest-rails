@@ -44,8 +44,15 @@ module ForestLiana
     end
 
     after(:each) do
+      # Rails 7.2 switched _reflections/reflections to symbol keys; deleting only the string form
+      # is a silent no-op there. Rails 7.2 also memoizes reflect_on_all_associations and only busts
+      # that cache from add_reflection, never on a direct _reflections mutation — without the
+      # explicit clear, the deleted association keeps leaking into every later spec.
       Tree._reflections.delete('island_neighbour')
+      Tree._reflections.delete(:island_neighbour)
       Tree.reflections.delete('island_neighbour')
+      Tree.reflections.delete(:island_neighbour)
+      Tree.clear_reflections_cache
       %w[island_neighbour island_neighbour= build_island_neighbour
          create_island_neighbour create_island_neighbour! reload_island_neighbour].each do |m|
         Tree.undef_method(m) rescue nil
