@@ -97,8 +97,6 @@ module ForestLiana
 
           dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['name'], sort_paths: ['id'])
 
-          # root_name is the only usage here and is excluded before read_permissions ever sees it,
-          # so read_permissions has nothing left to fetch: no call reaches the permissions source.
           expect(environment_fetch_count).to eq(0)
         end
 

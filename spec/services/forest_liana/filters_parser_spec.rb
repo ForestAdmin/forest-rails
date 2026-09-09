@@ -67,6 +67,21 @@ module ForestLiana
         expect(described_class.field_paths(filters)).to eq([])
       end
 
+      it 'answers an empty list for an aggregation whose conditions is nil' do
+        filters = { 'aggregator' => 'and', 'conditions' => nil }
+
+        expect(described_class.field_paths(filters)).to eq([])
+      end
+
+      it 'answers an empty list for a malformed aggregation nested inside a well-formed one' do
+        filters = {
+          'aggregator' => 'and',
+          'conditions' => [presence_condition, { 'aggregator' => 'or', 'conditions' => { 'field' => 'name' } }]
+        }
+
+        expect(described_class.field_paths(filters)).to eq(['name'])
+      end
+
       it 'answers every leaf field of a deeply nested aggregation' do
         filters = {
           'aggregator' => 'or',

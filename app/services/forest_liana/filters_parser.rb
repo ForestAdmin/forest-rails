@@ -308,6 +308,12 @@ module ForestLiana
     def ensure_valid_aggregation(node)
       raise ForestLiana::Errors::HTTP422Error.new('Filters cannot be a raw value') unless node.is_a?(Hash)
       raise_empty_condition_in_filter_error if node.empty?
+      # A Hash `conditions` degrades into this same error by accident, via Hash#each yielding
+      # [key, value] pairs one level down — every other non-Array shape (nil in particular)
+      # would otherwise crash uncaught instead of answering this 422.
+      if node['aggregator'] && !node['conditions'].is_a?(Array)
+        raise ForestLiana::Errors::HTTP422Error.new('Filters cannot be a raw value')
+      end
     end
 
     def ensure_valid_condition(condition)
