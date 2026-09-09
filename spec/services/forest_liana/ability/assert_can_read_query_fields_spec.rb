@@ -4,6 +4,10 @@ module ForestLiana
       let(:dummy_class) { Class.new { extend ForestLiana::Ability } }
       let(:user) { { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' } }
 
+      def environment_fetch_count
+        @environment_fetch_counter[:calls]
+      end
+
       def write_permissions(collection_reads)
         raw_collections = collection_reads.to_h do |name, readable|
           enabled = { 'roles' => readable ? [1] : [] }
@@ -17,11 +21,18 @@ module ForestLiana
           }]
         end
 
+        # A block passed to allow_any_instance_of runs with `self` bound to whichever instance
+        # receives the call, not this example — count through a closure instead of an ivar.
+        counter = { calls: 0 }
+        @environment_fetch_counter = counter
         # read_permissions may force a real refetch on a denial (a stale cache may sit behind a
         # just-granted permission) — stub the source instead of writing the derived cache directly,
         # so that refetch sees the same permissions rather than hitting the network.
         allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
-          .with('/liana/v4/permissions/environment').and_return('collections' => raw_collections)
+          .with('/liana/v4/permissions/environment') do
+            counter[:calls] += 1
+            { 'collections' => raw_collections }
+          end
       end
 
       before do
@@ -76,6 +87,19 @@ module ForestLiana
 
           expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['name'], sort_paths: ['id']) }
             .not_to raise_error
+        end
+
+        it 'does not pay for the root pin with a wasted retry-on-denial refetch' do
+          # A root usage would resolve to `root_name` itself and, before this fix, get handed to
+          # read_permissions anyway — which sees it "denied" (absent here) and force-refetches, even
+          # though the very next line was always going to override it back to readable regardless.
+          write_permissions('Location' => true)
+
+          dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['name'], sort_paths: ['id'])
+
+          # root_name is the only usage here and is excluded before read_permissions ever sees it,
+          # so read_permissions has nothing left to fetch: no call reaches the permissions source.
+          expect(environment_fetch_count).to eq(0)
         end
 
         it 'raises on the first denied usage rather than collecting every one of them' do

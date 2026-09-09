@@ -150,7 +150,10 @@ module ForestLiana
 
         return if usages.empty?
 
-        allowed = read_permissions(user, usages.flat_map { |usage| usage[:collections] }).merge(root_name => true)
+        # root_name is pinned readable above already; leaving it in would make a denial for it
+        # (the only way it could ever appear in usages: an owner resolves back to the root itself)
+        # trigger read_permissions' retry-on-denial refetch on every single request.
+        allowed = read_permissions(user, usages.flat_map { |usage| usage[:collections] }.uniq - [root_name]).merge(root_name => true)
         readable_collection_names = allowed.filter_map { |name, ok| name if ok }
 
         denied = usages.find { |usage| !FieldPath.readable_leaves?(usage[:collections], readable_collection_names) }
