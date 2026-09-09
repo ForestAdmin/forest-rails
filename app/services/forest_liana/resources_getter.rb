@@ -159,7 +159,10 @@ module ForestLiana
 
       conditions = []
 
-      if filters.is_a?(Hash) && filters.key?('conditions')
+      # A non-Array `conditions` (a malformed aggregator node) is left out rather than iterated:
+      # Hash#each would yield [key, value] pairs, and condition['field'] on one raises a TypeError
+      # instead of letting FiltersParser's own ensure_valid_aggregation answer its usual 422.
+      if filters.is_a?(Hash) && filters['conditions'].is_a?(Array)
         conditions = filters['conditions']
       elsif filters.is_a?(Hash) && filters.key?('field')
         conditions = [filters]

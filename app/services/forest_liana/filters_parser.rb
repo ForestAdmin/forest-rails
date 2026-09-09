@@ -8,7 +8,10 @@ module ForestLiana
     # this is read, and a non-String value would otherwise reach FieldPath, which expects one.
     def self.field_paths(filter)
       return [] if filter.nil?
-      return filter['conditions'].flat_map { |condition| field_paths(condition) } if filter['aggregator']
+      if filter['aggregator']
+        return [] unless filter['conditions'].is_a?(Array)
+        return filter['conditions'].flat_map { |condition| field_paths(condition) }
+      end
 
       filter['field'].is_a?(String) ? [filter['field']] : []
     end

@@ -58,6 +58,15 @@ module ForestLiana
         expect(described_class.field_paths(filters)).to eq(['name'])
       end
 
+      # A non-Array `conditions` (a raw Hash, here) must reach ensure_valid_aggregation's own
+      # 422 the same way a malformed leaf reaches ensure_valid_condition's — not crash this guard
+      # with a bare Hash#each yielding [key, value] pairs where a condition Hash is expected.
+      it 'answers an empty list for an aggregation whose conditions is not an Array' do
+        filters = { 'aggregator' => 'and', 'conditions' => { 'field' => 'name' } }
+
+        expect(described_class.field_paths(filters)).to eq([])
+      end
+
       it 'answers every leaf field of a deeply nested aggregation' do
         filters = {
           'aggregator' => 'or',

@@ -42,9 +42,13 @@ module ForestLiana
         return nil unless filter
 
         if filter.key? 'aggregator'
+          # A non-Array `conditions` is left untouched rather than mapped over (which would
+          # otherwise iterate Hash#each's own [key, value] pairs) — FiltersParser's own
+          # ensure_valid_aggregation raises its usual 422 for it right after this.
+          conditions = filter['conditions']
           return {
             'aggregator' => filter['aggregator'],
-            'conditions' => filter['conditions'].map { |condition| inject_context_in_filter(condition, context_variables) }
+            'conditions' => conditions.is_a?(Array) ? conditions.map { |condition| inject_context_in_filter(condition, context_variables) } : conditions
           }
         end
 
