@@ -89,12 +89,13 @@ module ForestLiana
     end
 
     def update
+      # BelongsToUpdater's writer saves the FK on the target for a has_one, on @resource only
+      # for a belongsTo. Authorized outside the begin, like ResourcesController's own actions, so
+      # a denial reaches ApplicationController's rescue_from and keeps its name/data.
+      edit_subject = @association.macro == :has_one ? @association.klass : @resource
+      forest_authorize!('edit', forest_user, edit_subject)
+      forest_authorize!('delete', forest_user, @association.klass) if BelongsToUpdater.replaces_destructively?(@association)
       begin
-        # BelongsToUpdater's writer saves the FK on the target for a has_one, on @resource only
-        # for a belongsTo.
-        edit_subject = @association.macro == :has_one ? @association.klass : @resource
-        forest_authorize!('edit', forest_user, edit_subject)
-        forest_authorize!('delete', forest_user, @association.klass) if BelongsToUpdater.replaces_destructively?(@association)
         updater = BelongsToUpdater.new(@resource, @association, params)
         updater.perform
 
@@ -119,8 +120,8 @@ module ForestLiana
     end
 
     def associate
+      forest_authorize!('edit', forest_user, HasManyAssociator.authorize_target(@association))
       begin
-        forest_authorize!('edit', forest_user, HasManyAssociator.authorize_target(@association))
         associator = HasManyAssociator.new(@resource, @association, params)
         associator.perform
 
@@ -140,16 +141,16 @@ module ForestLiana
     end
 
     def dissociate
+      if params[:delete].to_s == 'true'
+        # Explicit delete destroys the far record directly, regardless of association shape.
+        action = 'delete'
+        authorize_target = @association.klass
+      else
+        action = HasManyDissociator.destroys_on_unlink?(@association) ? 'delete' : 'edit'
+        authorize_target = HasManyDissociator.destroy_target(@association)
+      end
+      forest_authorize!(action, forest_user, authorize_target)
       begin
-        if params[:delete].to_s == 'true'
-          # Explicit delete destroys the far record directly, regardless of association shape.
-          action = 'delete'
-          authorize_target = @association.klass
-        else
-          action = HasManyDissociator.destroys_on_unlink?(@association) ? 'delete' : 'edit'
-          authorize_target = HasManyDissociator.destroy_target(@association)
-        end
-        forest_authorize!(action, forest_user, authorize_target)
         dissociator = HasManyDissociator.new(@resource, @association, params, forest_user)
         dissociator.perform
 

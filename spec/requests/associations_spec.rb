@@ -199,6 +199,7 @@ describe 'Requesting an association', :type => :request do
       put "/forest/Tree/#{@tree.id}/relationships/owner", params: JSON.dump(params), headers: headers
 
       expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['name']).to eq('AccessDenied')
       expect(@tree.reload.owner).to eq(@user)
     end
 
@@ -209,6 +210,7 @@ describe 'Requesting an association', :type => :request do
       post "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
 
       expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['name']).to eq('AccessDenied')
       expect(other_tree.reload.island).to be_nil
     end
 
@@ -218,6 +220,7 @@ describe 'Requesting an association', :type => :request do
       delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
 
       expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['name']).to eq('AccessDenied')
       expect(@tree.reload.island).to eq(@island)
     end
 
