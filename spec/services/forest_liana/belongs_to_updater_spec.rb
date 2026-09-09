@@ -24,6 +24,12 @@ module ForestLiana
 
         expect(described_class.replaces_destructively?(association)).to be false
       end
+
+      it 'is false for a has_one :through with dependent: :destroy (Rails ignores dependent: there)' do
+        association = double('association', macro: :has_one, options: { through: :island, dependent: :destroy })
+
+        expect(described_class.replaces_destructively?(association)).to be false
+      end
     end
   end
 end
