@@ -140,6 +140,9 @@ module ForestLiana
       return model if params[:association_name].blank?
 
       association = model.reflect_on_association(params[:association_name].to_sym)
+      # NOTICE: klass raises on a polymorphic reflection, and this runs in a before_action: the
+      #         guard is what keeps a 500 from replacing the 404 the route answers on its own. A
+      #         relationships index rejects a belongs_to, which a polymorphic relation always is.
       return nil if association.nil? || ForestLiana::SchemaUtils.polymorphic?(association)
 
       association.klass
