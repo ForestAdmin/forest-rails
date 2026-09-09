@@ -124,7 +124,10 @@ module ForestLiana
         association = path.is_a?(Symbol) ? projected_resource.reflect_on_association(path) : get_one_association(path)
         next unless association
         next if active_storage_associations_processed.include?(association.name)
-        next unless is_active_storage_association?(association)
+        # NOTICE: Same rule as every other relation below — a relation the query does not join is
+        #         read by a SELECT of its own, and naming its table here would leave it out of the
+        #         FROM clause. The relationships route preloads its display-only relations.
+        next unless is_active_storage_association?(association) && joined?(association, joined_relations)
 
         # Include all columns from ActiveStorage tables to avoid initialization errors
         table_name = association.table_name
