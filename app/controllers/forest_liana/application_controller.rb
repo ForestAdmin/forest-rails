@@ -131,6 +131,13 @@ module ForestLiana
 
       fields = ForestLiana::ProjectionParser.new(header, ForestLiana.name_for(root_model)).perform
       params[:fields] = ActionController::Parameters.new(fields)
+    rescue ForestLiana::Errors::ExpectedError
+      # NOTICE: The deliberate 400 on a malformed header, which render_error answers.
+      raise
+    rescue => error
+      FOREST_REPORTER.report error
+      FOREST_LOGGER.error "Forest-Projection header error: #{error}\n#{format_stacktrace(error)}"
+      internal_server_error
     end
 
     # NOTICE: A projection is rooted on the collection the records come from, which is the

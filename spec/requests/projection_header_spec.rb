@@ -440,6 +440,22 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     end
   end
 
+  # NOTICE: The 400 on a malformed header is deliberate and travels through render_error; nothing
+  #         else may escape the before_action as a raw 500 without being reported.
+  describe 'when the header handling fails unexpectedly' do
+    before(:each) do
+      allow(ForestLiana::ProjectionParser).to receive(:new).and_raise(NoMethodError.new('boom'))
+    end
+
+    it 'reports the error and answers a 500' do
+      expect(FOREST_REPORTER).to receive(:report)
+
+      get "/forest/Tree/#{@tree.id}", headers: projecting('id,name')
+
+      expect(response.status).to eq 500
+    end
+  end
+
   # NOTICE: Only a bare column name can be table-qualified. An ordering expression would reach
   #         the SQL as table.LOWER(name) and raise.
   describe 'on a collection ordered by an expression' do
