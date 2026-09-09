@@ -428,6 +428,31 @@ describe 'Requesting Tree resources', :type => :request  do
     end
   end
 
+  describe 'select-all destroy sorting on a collection the role cannot read' do
+    # ResourcesGetter.get_ids_from_request never calls #perform (only .query_for_batch, built
+    # in the constructor) — assert_sort_readable! lived only in #perform, so a sort on a denied
+    # collection reordered the batch of ids to delete without ever being checked.
+    it 'refuses with a 403, instead of reordering the ids to delete by an unreadable column' do
+      params = {
+        data: {
+          attributes: {
+            collection_name: 'Tree',
+            all_records: true,
+            all_records_subset_query: {
+              sort: '-island.name'
+            }
+          }
+        }
+      }
+
+      delete '/forest/Tree', params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot sort on 'island:name': you are not allowed to read the 'Island' collection."
+    end
+  end
+
   describe 'csv' do
     it 'should return CSV with correct headers and data' do
       params = {

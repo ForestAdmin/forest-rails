@@ -232,12 +232,23 @@ module ForestLiana
       attributes.merge(attributes[:all_records_subset_query].dup.to_unsafe_h)
     end
 
+    # query_for_batch below serves @base_records_for_batch/@records as built by the constructor,
+    # never by #perform — but #perform is the only thing that calls assert_sort_readable!, so
+    # every other caller of get_ids_from_request (destroy_bulk, a select-all dissociate, a smart
+    # action's select-all) would otherwise carry a sort param past this guard entirely. Calling
+    # #perform here for its check alone is safe: it mutates @records for includes/select, which
+    # query_for_batch on ResourcesGetter never reads, and which HasManyGetter's own #perform
+    # leaves untouched either way.
     def self.initialize_resources_getter(attributes, user)
-      if related_data?(attributes)
-        HasManyGetter.new(*related_data_params(attributes, user))
-      else
-        ResourcesGetter.new(SchemaUtils.find_model_from_collection_name(attributes[:collection_name]), attributes, user)
-      end
+      resources_getter =
+        if related_data?(attributes)
+          HasManyGetter.new(*related_data_params(attributes, user))
+        else
+          ResourcesGetter.new(SchemaUtils.find_model_from_collection_name(attributes[:collection_name]), attributes, user)
+        end
+
+      resources_getter.perform
+      resources_getter
     end
 
     def self.related_data?(attributes)

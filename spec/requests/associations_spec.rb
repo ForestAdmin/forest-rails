@@ -352,6 +352,28 @@ describe 'Requesting an association', :type => :request do
     end
   end
 
+  describe 'select-all dissociate sorting on a collection the role cannot read' do
+    it 'refuses with a 403, instead of reordering the ids to dissociate by an unreadable column' do
+      params = {
+        data: {
+          attributes: {
+            collection_name: 'Tree',
+            all_records: true,
+            all_records_subset_query: {
+              sort: '-owner.name'
+            }
+          }
+        }
+      }
+
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['detail'])
+        .to eq "You cannot sort on 'owner:name': you are not allowed to read the 'User' collection."
+    end
+  end
+
   describe 'associating a has_many :through relation' do
     after do
       Membership.destroy_all
