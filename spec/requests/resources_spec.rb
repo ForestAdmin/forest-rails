@@ -295,10 +295,14 @@ describe 'Requesting Tree resources', :type => :request  do
         expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name')
       end
 
-      it 'refuses count the same way' do
+      it 'refuses count the same way, naming the path and the collection' do
         get '/forest/Tree/count', params: params, headers: headers
 
         expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You cannot filter on 'island:name': you are not allowed to read the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name')
       end
 
       it 'refuses csv export the same way' do
