@@ -145,8 +145,8 @@ module ForestLiana
       def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [])
         root_name = ForestLiana.name_for(root_model)
 
-        usages = filter_paths.filter_map { |path| query_usage('filter on', root_model, path) } +
-                 sort_paths.map { |path| { action: 'sort on', path: path, collections: resolve_owner(root_model, path) } }
+        usages = filter_paths.map { |path| query_usage('filter on', root_model, path) } +
+                 sort_paths.map { |path| { action: 'sort on', path: path, collections: query_target_collections(root_model, path) } }
 
         return if usages.empty?
 
@@ -304,22 +304,17 @@ module ForestLiana
         forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
 
-      # An unresolvable filter path is left unchecked here: the parser that runs right after this
-      # guard raises its own, already-pinned message for it, and the query never runs either way.
-      # Sort has no such downstream validator, so its own path is resolved without this rescue.
-      #
-      # FiltersParser#parse_field_name only ever reads one association hop (+assoc:field+) — it
-      # builds the quoted field from segment 1 but validates existence against the *last* segment,
-      # so a deeper path such as +island:name:id+ (a real column at 1, a real column at -1) slips
-      # its own validation and runs as a live filter on segment 1's table. Truncating to the same
-      # two segments the parser actually reads — mirroring +sort_field_path+ below — checks
-      # permission on the collection the query really touches, instead of skipping it outright.
-      def query_usage(action, root_model, path)
-        path = path.split(':').first(2).join(':')
+      # Both FiltersParser and sort_query/detect_reference treat segment 2 as a plain column of
+      # segment 1's collection, never recursing further — resolving the full path would recurse
+      # past segment 1 whenever segment 2 also happens to name a real association, checking a
+      # collection neither a filter nor a sort ever actually reaches. partition (not split) so an
+      # empty or colon-only path resolves to '' (the root, pinned readable) instead of nil.
+      def query_target_collections(root_model, path)
+        resolve_owner(root_model, path.partition(':').first)
+      end
 
-        { action: action, path: path, collections: resolve_owner(root_model, path) }
-      rescue ForestLiana::Errors::HTTP422Error
-        nil
+      def query_usage(action, root_model, path)
+        { action: action, path: path, collections: query_target_collections(root_model, path) }
       end
     end
   end

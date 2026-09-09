@@ -68,6 +68,17 @@ module ForestLiana
             )
         end
 
+        it 'refuses a sort naming segment 1s own collection, even when segment 2 also happens to be a real relation' do
+          # sort=island.location.name truncates (sort_field_path) to island:location — segment 2
+          # ("location") is itself a real reflection, but detect_reference still only ever formats
+          # it as a column of Island's own table (isle."location"), the same segment-2 ambiguity
+          # closed for filters. Location being readable is irrelevant; Island is what's touched.
+          write_permissions('Tree' => true, 'Island' => false, 'Location' => true)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, sort_paths: ['island:location']) }
+            .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
+        end
+
         it 'serves a filter reaching a readable collection' do
           write_permissions('Tree' => true, 'Island' => true)
 
@@ -75,11 +86,14 @@ module ForestLiana
             .not_to raise_error
         end
 
-        it 'serves a filter reaching a readable column through an unreadable collection' do
+        it 'refuses a filter naming a column past segment 1, on segment 1s own collection, not the one the path fully resolves to' do
+          # FiltersParser never actually joins two hops deep — island:location:coordinates only
+          # ever filters (or, here, since Island has no "location" column, 422s) on Island itself.
+          # Location being readable is irrelevant; Island is what the query would really touch.
           write_permissions('Tree' => true, 'Island' => false, 'Location' => true)
 
           expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:location:coordinates']) }
-            .not_to raise_error
+            .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
         end
 
         it 'never checks the root collection, even when it is absent from the permission payload' do
@@ -107,25 +121,23 @@ module ForestLiana
             .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
         end
 
-        it 'does not raise for a filter path FieldPath cannot resolve, leaving it to the parser that runs next' do
+        it 'does not raise for a filter path naming an unresolvable segment 1, since it resolves to the pinned-readable root' do
           write_permissions('Tree' => true)
 
           expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['unknown:id']) }
             .not_to raise_error
         end
 
-        it 'refuses a filter path truncated to a real relation name, even though the parser would only ever crash on it' do
-          # island:location:name truncates to island:location, which fully resolves to Location
-          # (location is itself a real reflection) — the parser instead quotes segment 1
-          # ("location") as a raw column of Island's own table, which doesn't exist, so it can only
-          # ever 500. Denying here trades that crash for a clean 403 without ever reaching the query.
-          write_permissions('Tree' => true, 'Island' => true, 'Location' => false)
+        it 'does not raise for an empty or colon-only filter path, leaving it to the parser rather than crashing on nil' do
+          # ''.split(':').first is nil, and FieldPath.leaf_collection_names(nil) blows up on
+          # nil.partition — partition(':').first returns '' instead, which resolves to the root.
+          write_permissions('Tree' => true)
 
-          expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:location:name']) }
-            .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['', ':', '::']) }
+            .not_to raise_error
         end
 
-        it 'refuses a filter path where a later segment names a real column of the collection the parser actually filters on' do
+        it 'refuses a filter path where a later segment names a real column, on the segment 1 collection the parser actually filters on' do
           # island:name:id: the parser quotes segment 1 (name) but validates existence against the
           # last one (id, present on every model) — 'id' always passing let this run as a live,
           # unchecked filter on Island.name, one starts_with guess per request, on a denied Island.
@@ -135,11 +147,14 @@ module ForestLiana
             .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
         end
 
-        it 'raises for a sort path FieldPath cannot resolve, since nothing else validates it' do
+        it 'does not raise for a sort path naming an unresolvable segment 1 either, checking only segment 1 like a filter' do
+          # Segment 1 is checked, not the full path resolved: nothing downstream validates a sort
+          # path (unlike a filter, which FiltersParser still validates on its own), so a genuinely
+          # malformed one here surfaces as sort_query's own error later, not a 422 from this guard.
           write_permissions('Tree' => true)
 
           expect { dummy_class.assert_can_read_query_fields(user, Tree, sort_paths: ['unknown:id']) }
-            .to raise_error(ForestLiana::Errors::HTTP422Error, "Relation not found: 'Tree.unknown'")
+            .not_to raise_error
         end
 
         describe 'polymorphic' do
