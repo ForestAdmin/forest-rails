@@ -307,7 +307,14 @@ module ForestLiana
       # An unresolvable filter path is left unchecked here: the parser that runs right after this
       # guard raises its own, already-pinned message for it, and the query never runs either way.
       # Sort has no such downstream validator, so its own path is resolved without this rescue.
+      #
+      # FiltersParser only ever reads one association hop (+assoc:field+); a deeper path such as
+      # +island:location:name+ still resolves here (FieldPath recurses as far as the reflections
+      # go), but the parser would reject it as a malformed/unknown field regardless of permission,
+      # so checking a collection the query itself can never reach is left unchecked too.
       def query_usage(action, root_model, path)
+        return nil if path.count(':') > 1
+
         { action: action, path: path, collections: resolve_owner(root_model, path) }
       rescue ForestLiana::Errors::HTTP422Error
         nil

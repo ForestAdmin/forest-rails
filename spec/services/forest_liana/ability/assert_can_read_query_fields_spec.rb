@@ -114,6 +114,13 @@ module ForestLiana
             .not_to raise_error
         end
 
+        it 'does not raise for a filter path deeper than FiltersParser reads, even one FieldPath resolves to a denied collection' do
+          write_permissions('Tree' => true, 'Island' => true, 'Location' => false)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:location:name']) }
+            .not_to raise_error
+        end
+
         it 'raises for a sort path FieldPath cannot resolve, since nothing else validates it' do
           write_permissions('Tree' => true)
 
