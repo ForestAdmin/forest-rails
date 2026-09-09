@@ -2,6 +2,12 @@ module ForestLiana
   class HasManyDissociator
     include ForestLiana::RecordFindable
 
+    # A plain unlink still destroys the associated record when the reflection itself says so —
+    # the delete param passed by the caller isn't the only thing that decides it.
+    def self.destroys_on_unlink?(association)
+      association.macro == :has_many && %i[destroy delete_all].include?(association.options[:dependent])
+    end
+
     def initialize(resource, association, params, forest_user)
       @resource = resource
       @association = association

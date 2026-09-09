@@ -16,9 +16,7 @@ module ForestLiana
 
     def index
       begin
-        # Unlike ResourcesController#index, nothing upstream gates this route on any permission —
-        # matches agent-nodejs's list-related route, which checks browse (or export for CSV) on
-        # the foreign collection, not the parent, before listing it.
+        # Parity with agent-nodejs's list-related route: browse/export on the foreign collection.
         action = request.format == 'csv' ? 'export' : 'browse'
         forest_authorize!(action, forest_user, @association.klass)
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
@@ -92,6 +90,10 @@ module ForestLiana
 
     def update
       begin
+        # BelongsToUpdater's writer saves the FK on the target for a has_one, on @resource only
+        # for a belongsTo.
+        edit_subject = @association.macro == :has_one ? @association.klass : @resource
+        forest_authorize!('edit', forest_user, edit_subject)
         updater = BelongsToUpdater.new(@resource, @association, params)
         updater.perform
 
@@ -101,6 +103,13 @@ module ForestLiana
         else
           head :no_content
         end
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Update error: #{error}\n#{format_stacktrace(error)}"
@@ -110,10 +119,18 @@ module ForestLiana
 
     def associate
       begin
+        forest_authorize!('edit', forest_user, @association.klass)
         associator = HasManyAssociator.new(@resource, @association, params)
         associator.perform
 
         head :no_content
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Associate error: #{error}\n#{format_stacktrace(error)}"
@@ -123,6 +140,8 @@ module ForestLiana
 
     def dissociate
       begin
+        action = (params[:delete].to_s == 'true' || HasManyDissociator.destroys_on_unlink?(@association)) ? 'delete' : 'edit'
+        forest_authorize!(action, forest_user, @association.klass)
         dissociator = HasManyDissociator.new(@resource, @association, params, forest_user)
         dissociator.perform
 

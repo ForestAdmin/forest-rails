@@ -33,6 +33,7 @@ describe 'Requesting an association', :type => :request do
     User.destroy_all
     Tree.destroy_all
     Island.destroy_all
+    Location.destroy_all
   end
 
   token = JWT.encode({
@@ -164,7 +165,10 @@ describe 'Requesting an association', :type => :request do
         .with('/liana/v4/permissions/environment').and_return(
           'collections' => {
             'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
-            'Tree' => { 'collection' => { 'browseEnabled' => disabled, 'readEnabled' => disabled, 'editEnabled' => disabled, 'addEnabled' => disabled, 'deleteEnabled' => disabled, 'exportEnabled' => disabled }, 'actions' => {} }
+            'Tree' => { 'collection' => { 'browseEnabled' => disabled, 'readEnabled' => disabled, 'editEnabled' => disabled, 'addEnabled' => disabled, 'deleteEnabled' => disabled, 'exportEnabled' => disabled }, 'actions' => {} },
+            # Fully enabled so a wrong-collection check (User instead of Tree) shows up as a 204,
+            # not an incidental 409 from an absent collection.
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
           }
         )
       Rails.cache.delete('forest.collections')
@@ -186,6 +190,138 @@ describe 'Requesting an association', :type => :request do
       get "/forest/Island/#{@island.id}/relationships/trees/count", params: params, headers: headers
 
       expect(response.status).to eq(403)
+    end
+
+    it 'refuses updating a belongsTo with a 403, checking edit on the parent (Tree)' do
+      other_user = User.create(name: 'Other')
+      params = { data: { type: 'User', id: other_user.id.to_s } }
+
+      put "/forest/Tree/#{@tree.id}/relationships/owner", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(@tree.reload.owner).to eq(@user)
+    end
+
+    it 'refuses associating with a 403, checking edit on the related collection (Tree)' do
+      other_tree = Tree.create(name: 'Other Tree', owner: @user, cutter: @user)
+      params = { data: [{ type: 'Tree', id: other_tree.id.to_s }] }
+
+      post "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(other_tree.reload.island).to be_nil
+    end
+
+    it 'refuses dissociating with a 403, checking edit (not delete) on the related collection (Tree)' do
+      params = { data: [{ type: 'Tree', id: @tree.id.to_s }] }
+
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(@tree.reload.island).to eq(@island)
+    end
+
+    it 'refuses a dissociate-and-delete with a 403, checking delete instead of edit' do
+      params = { delete: 'true', data: [{ type: 'Tree', id: @tree.id.to_s }] }
+
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Tree.exists?(@tree.id)).to be true
+    end
+
+    it 'refuses updating a has_one relation with a 403, checking edit on the target (Location), not the parent (Island)' do
+      other_location = Location.create(coordinates: '9,9')
+      params = { data: { type: 'Location', id: other_location.id.to_s } }
+
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => { 'roles' => [1] }, 'readEnabled' => { 'roles' => [1] }, 'editEnabled' => { 'roles' => [1] }, 'addEnabled' => { 'roles' => [1] }, 'deleteEnabled' => { 'roles' => [1] }, 'exportEnabled' => { 'roles' => [1] } }, 'actions' => {} },
+            'Location' => { 'collection' => { 'browseEnabled' => { 'roles' => [] }, 'readEnabled' => { 'roles' => [] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      put "/forest/Island/#{@island.id}/relationships/location", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(@island.reload.location).to be_nil
+    end
+  end
+
+  describe 'write actions on a relation, with edit granted but delete denied on the related collection' do
+    before do
+      enabled = { 'roles' => [1] }
+      no_role = { 'roles' => [] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => no_role, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+    end
+
+    # Island.trees has no dependent: option, so a plain unlink only nullifies Tree#island_id.
+    it 'allows a plain dissociate (edit) but refuses the same call with delete: true' do
+      params = { data: [{ type: 'Tree', id: @tree.id.to_s }] }
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(@tree.reload.island).to be_nil
+
+      params = { delete: 'true', data: [{ type: 'Tree', id: @tree.id.to_s }] }
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Tree.exists?(@tree.id)).to be true
+    end
+  end
+
+  describe 'write actions on a relation, with the necessary permission granted' do
+    before do
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+    end
+
+    it 'lets an authorized role update a belongsTo' do
+      other_user = User.create(name: 'Other')
+      params = { data: { type: 'User', id: other_user.id.to_s } }
+
+      put "/forest/Tree/#{@tree.id}/relationships/owner", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(@tree.reload.owner).to eq(other_user)
+    end
+
+    it 'lets an authorized role associate an existing record' do
+      other_tree = Tree.create(name: 'Other Tree', owner: @user, cutter: @user)
+      params = { data: [{ type: 'Tree', id: other_tree.id.to_s }] }
+
+      post "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(other_tree.reload.island).to eq(@island)
+    end
+
+    it 'lets an authorized role dissociate a record' do
+      params = { data: [{ type: 'Tree', id: @tree.id.to_s }] }
+
+      delete "/forest/Island/#{@island.id}/relationships/trees", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(@tree.reload.island).to be_nil
     end
   end
 
