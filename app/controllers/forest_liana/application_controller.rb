@@ -20,11 +20,9 @@ module ForestLiana
     #         changes made using Forest with PaperTrail.
     if Rails::VERSION::MAJOR < 4
       before_filter :authenticate_user_from_jwt
-      before_filter :apply_projection_header
       before_filter :set_paper_trail_whodunnit if self.papertrail?
     else
       before_action :authenticate_user_from_jwt
-      before_action :apply_projection_header
       before_action :set_paper_trail_whodunnit if self.papertrail?
     end
 
@@ -118,6 +116,11 @@ module ForestLiana
     # NOTICE: Header-then-query fallback, decided here and nowhere else: the header is rewritten
     #         into params[:fields], so every route keeps reading the projection it always read
     #         and the header wins over the query params without any route knowing about it.
+    #
+    #         Declared as a before_action by the routes that project, and by them only: a count,
+    #         a stats or a write carries no projection, must not have its params rewritten by a
+    #         header meant for the list next to it, and must not answer a 400 for one. The same
+    #         rule as agent-nodejs, whose own suite pins the header ignored on count.
     def apply_projection_header
       header = request.headers[ForestLiana::ProjectionParser::HEADER_NAME]
       return if header.nil?

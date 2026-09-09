@@ -8,10 +8,14 @@ module ForestLiana
 
     rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
 
+    # NOTICE: index covers the list and the CSV export, show the get-one. Every other action
+    #         here answers no projection, count included.
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: :count
+      before_filter :apply_projection_header, only: [:index, :show]
     else
       before_action :find_resource, except: :count
+      before_action :apply_projection_header, only: [:index, :show]
     end
 
     def index

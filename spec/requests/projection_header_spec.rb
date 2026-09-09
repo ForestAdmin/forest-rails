@@ -405,6 +405,41 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     end
   end
 
+  # NOTICE: A count answers no projection: the header travels with the list request next to it,
+  #         and reading it there would rewrite the params the count query is built from — and
+  #         answer a 400 for a request that projects nothing. agent-nodejs pins the same rule.
+  describe 'on a count' do
+    it 'ignores a malformed header on the list count' do
+      get '/forest/Tree/count', params: list_params, headers: projecting('id,,name')
+
+      expect(response.status).to eq 200
+      expect(body['count']).to eq 1
+    end
+
+    it 'ignores a malformed header on a relationship count' do
+      get "/forest/Island/#{@island.id}/relationships/trees/count",
+        params: list_params,
+        headers: projecting('id,,name')
+
+      expect(response.status).to eq 200
+      expect(body['count']).to eq 1
+    end
+
+    # NOTICE: A searched count eager loads the relations params[:fields] names, and a count
+    #         carries none. Rewriting them from the header would have it join, and search, a
+    #         table the count never joined.
+    it 'joins the relations it always joined' do
+      selected = selects_of('trees') do
+        get '/forest/Tree/count',
+          params: list_params.merge(search: 'Michel'),
+          headers: projecting('id,name,owner:name')
+      end
+
+      expect(response.status).to eq 200
+      expect(selected).not_to include('"users"')
+    end
+  end
+
   # NOTICE: Only a bare column name can be table-qualified. An ordering expression would reach
   #         the SQL as table.LOWER(name) and raise.
   describe 'on a collection ordered by an expression' do
