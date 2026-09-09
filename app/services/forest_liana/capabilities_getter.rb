@@ -14,10 +14,12 @@ module ForestLiana
     #         would come back with unlabelled points.
     SUPPORTED_DATE_OPERATIONS = %w(Day Week Month Year).freeze
 
-    # NOTICE: The announced operators replace the frontend defaults for the field, so this
+    # NOTICE: The announced operators are intersected with the frontend's own per-type table,
+    #         never substituted for it, so the announcement can only narrow its defaults. This
     #         has to mirror FiltersParser#parse_operator and OperatorDateIntervalParser:
-    #         announcing more hands the user a filter the agent rejects, announcing less
-    #         removes one that works today.
+    #         announcing less removes a filter that works today, announcing an operator the
+    #         frontend does not list for that type is a no-op, and announcing one it does list
+    #         but the liana mishandles hands the user a broken filter.
     COMMON_OPERATORS = %w(equal not_equal present blank).freeze
     # NOTICE: FiltersParser compares with a bare `=`, which the database refuses against a
     #         json/jsonb/hstore column, so equality would answer a 500 instead of a filtered list.
