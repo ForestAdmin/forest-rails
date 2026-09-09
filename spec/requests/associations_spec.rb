@@ -347,6 +347,102 @@ describe 'Requesting an association', :type => :request do
     end
   end
 
+  describe 'associating a has_many :through relation' do
+    after do
+      Membership.destroy_all
+    end
+
+    # associate on a through association creates a join row (Membership), never touches the far
+    # one (User) — so that's what edit has to be checked on, not User.
+    it 'refuses with a 403, checking edit on the join collection (Membership)' do
+      enabled = { 'roles' => [1] }
+      no_role = { 'roles' => [] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Membership' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => no_role, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      post "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Membership.where(island: @island, user: @user)).to be_empty
+    end
+
+    it 'lets an authorized role associate it, creating the join row' do
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Membership' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: [{ type: 'User', id: @user.id.to_s }] }
+      post "/forest/Island/#{@island.id}/relationships/members", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(Membership.where(island: @island, user: @user)).not_to be_empty
+    end
+  end
+
+  describe 'updating a has_one relation whose reflection destroys the previous target' do
+    after do
+      Flag.destroy_all
+    end
+
+    it 'refuses with a 403, requiring delete in addition to edit on the target (Flag)' do
+      old_flag = Flag.create(island: @island, color: 'red')
+      new_flag = Flag.create(color: 'blue')
+      enabled = { 'roles' => [1] }
+      edit_only = { 'roles' => [1] }
+      no_role = { 'roles' => [] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Flag' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => edit_only, 'addEnabled' => enabled, 'deleteEnabled' => no_role, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: { type: 'Flag', id: new_flag.id.to_s } }
+      put "/forest/Island/#{@island.id}/relationships/flag", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(403)
+      expect(Flag.exists?(old_flag.id)).to be true
+    end
+
+    it 'lets an authorized role replace it, destroying the previous target' do
+      old_flag = Flag.create(island: @island, color: 'red')
+      new_flag = Flag.create(color: 'blue')
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Flag' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      params = { data: { type: 'Flag', id: new_flag.id.to_s } }
+      put "/forest/Island/#{@island.id}/relationships/flag", params: JSON.dump(params), headers: headers
+
+      expect(response.status).to eq(204)
+      expect(Flag.exists?(old_flag.id)).to be false
+      expect(@island.reload.flag).to eq(new_flag)
+    end
+  end
+
   describe 'dissociating a has_many :through relation' do
     before do
       @membership = Membership.create(island: @island, user: @user)

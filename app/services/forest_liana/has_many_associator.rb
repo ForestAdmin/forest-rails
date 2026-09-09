@@ -2,6 +2,12 @@ module ForestLiana
   class HasManyAssociator
     include ForestLiana::RecordFindable
 
+    # A through association's `<<` creates a row in the join collection, never touching the far
+    # one — the far record found by id already exists and is left untouched.
+    def self.authorize_target(association)
+      association.options[:through] ? association.through_reflection.klass : association.klass
+    end
+
     def initialize(resource, association, params)
       @resource = resource
       @association = association

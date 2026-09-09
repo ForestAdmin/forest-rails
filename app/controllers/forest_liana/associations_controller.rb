@@ -94,6 +94,7 @@ module ForestLiana
         # for a belongsTo.
         edit_subject = @association.macro == :has_one ? @association.klass : @resource
         forest_authorize!('edit', forest_user, edit_subject)
+        forest_authorize!('delete', forest_user, @association.klass) if BelongsToUpdater.replaces_destructively?(@association)
         updater = BelongsToUpdater.new(@resource, @association, params)
         updater.perform
 
@@ -119,7 +120,7 @@ module ForestLiana
 
     def associate
       begin
-        forest_authorize!('edit', forest_user, @association.klass)
+        forest_authorize!('edit', forest_user, HasManyAssociator.authorize_target(@association))
         associator = HasManyAssociator.new(@resource, @association, params)
         associator.perform
 

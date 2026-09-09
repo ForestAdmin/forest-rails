@@ -24,6 +24,7 @@ module ForestLiana
       let(:expected_application_models) do
         [
           Address,
+          Flag,
           Island,
           Location,
           Manufacturer,

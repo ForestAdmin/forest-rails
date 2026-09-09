@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_09_120000) do
+ActiveRecord::Schema.define(version: 2026_09_09_130000) do
 
   create_table "addresses", force: :cascade do |t|
     t.string "line1"
@@ -21,6 +21,14 @@ ActiveRecord::Schema.define(version: 2026_09_09_120000) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable_type_and_addressable_id"
+  end
+
+  create_table "flags", force: :cascade do |t|
+    t.integer "island_id"
+    t.string "color"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["island_id"], name: "index_flags_on_island_id"
   end
 
   create_table "isle", force: :cascade do |t|

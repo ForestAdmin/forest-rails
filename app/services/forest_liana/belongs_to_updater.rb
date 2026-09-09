@@ -4,6 +4,12 @@ module ForestLiana
 
     attr_accessor :errors
 
+    # Replacing a has_one target only destroys the previous one when the reflection's own
+    # dependent option says so (:destroy or :delete) — the default just nullifies its FK.
+    def self.replaces_destructively?(association)
+      association.macro == :has_one && %i[destroy delete].include?(association.options[:dependent])
+    end
+
     def initialize(resource, association, params)
       @resource = resource
       @association = association
