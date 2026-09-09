@@ -23,6 +23,9 @@ ForestLiana::Engine.routes.draw do
   # Scopes
   post '/scope-cache-invalidation' => 'scopes#invalidate_scope_cache'
 
+  # Capabilities: what the frontend is allowed to turn on for this agent.
+  post '_internal/capabilities' => 'capabilities#index'
+
   # Workflow executor proxy: single catch-all forwarding every verb/sub-path verbatim.
   # Mounted only when ForestLiana.workflow_executor_url is set.
   if ForestLiana.workflow_executor_url.present?
