@@ -456,6 +456,39 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     end
   end
 
+  # NOTICE: The dummy app declares no attachment, and adding one would rewrite the apimap every
+  #         other spec reads. The branch is keyed on the klass name alone, so a relation standing
+  #         in for one pins the rule it has to follow: the columns of a relation the query does
+  #         not join cannot reach the root select, its table not being in the FROM clause.
+  describe 'on an ActiveStorage relation' do
+    let(:getter) do
+      ForestLiana::ResourceGetter.new(
+        Island,
+        ActionController::Parameters.new(id: 1, fields: { 'Island' => 'id,name,location' }),
+        nil
+      )
+    end
+
+    before(:each) do
+      allow(getter).to receive(:is_active_storage_association?) do |association|
+        association&.name == :location
+      end
+    end
+
+    it 'projects its columns when the query joins it' do
+      select = getter.send(:compute_select_fields, [:location])
+
+      expect(select).to include('locations.island_id')
+      expect(select).to include('locations.coordinates')
+    end
+
+    it 'keeps them out of the select when the query does not join it' do
+      select = getter.send(:compute_select_fields, [])
+
+      expect(select.select { |column| column.start_with?('locations.') }).to be_empty
+    end
+  end
+
   # NOTICE: Only a bare column name can be table-qualified. An ordering expression would reach
   #         the SQL as table.LOWER(name) and raise.
   describe 'on a collection ordered by an expression' do

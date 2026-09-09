@@ -73,10 +73,10 @@ describe ForestLiana::ProjectionParser do
     end
 
     it 'answers a 400' do
-      parse('id,,name')
-    rescue ForestLiana::Errors::HTTP400Error => error
-      expect(error.error_code).to eq 400
-      expect(error.status).to eq :bad_request
+      expect { parse('id,,name') }.to raise_error(ForestLiana::Errors::HTTP400Error) do |error|
+        expect(error.error_code).to eq 400
+        expect(error.status).to eq :bad_request
+      end
     end
   end
 end
