@@ -381,7 +381,18 @@ describe 'Requesting Tree resources', :type => :request  do
       # `browse` (not `read`) is what forest_authorize! gates the route on; a role can legitimately
       # browse a collection without having its own `read` — the root is still pinned readable for
       # this guard, which must not re-derive a denial for it from a permission it is not gated on.
-      Rails.cache.write('forest.collections', { 'Tree' => { 'browse' => [1], 'read' => [], 'edit' => [], 'add' => [], 'delete' => [], 'export' => [], 'actions' => {} } })
+      # Stubbed at the source (persistently denied), not written to the derived cache directly —
+      # the forced retry-on-denial would otherwise re-read this same outer before block's stub,
+      # which grants Tree read, and mask whether the pin actually held.
+      enabled = { 'roles' => [1] }
+      disabled = { 'roles' => [] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => disabled, 'editEnabled' => disabled, 'addEnabled' => disabled, 'deleteEnabled' => disabled, 'exportEnabled' => disabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
       params = {
         filters: JSON.generate({ 'field' => 'name', 'operator' => 'present' }),
         page: { 'number' => '1', 'size' => '10' },
