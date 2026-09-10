@@ -41,8 +41,26 @@ module ForestLiana::Collection
       model.search_fields = fields
     end
 
+    # A key absent from opts stays absent (collection_spec.rb pins the exact field hash a smart
+    # field with no dependencies produces) — only a *present* dependencies: is ever touched here.
+    def normalize_dependencies!(opts, name)
+      return unless opts.key?(:dependencies)
+      return opts.delete(:dependencies) if opts[:dependencies].nil?
+
+      normalized = ForestLiana::SmartFieldDependencies.normalize(opts[:dependencies])
+      if normalized.nil?
+        FOREST_LOGGER.warn "Invalid dependencies declared on field \"#{name}\": expected a " \
+          'String, Symbol, or Array of them. Ignored — the field is treated as if it declared ' \
+          'no dependencies at all.'
+        opts.delete(:dependencies)
+      else
+        opts[:dependencies] = normalized
+      end
+    end
+
     def field(name, opts, &block)
       # TODO: Handle empty name
+      normalize_dependencies!(opts, name)
 
       if opts.key?(:isRequired)
         FOREST_LOGGER.warn "DEPRECATION WARNING: isRequired on field \"#{name}\" is deprecated. Please use is_required."
@@ -123,6 +141,8 @@ module ForestLiana::Collection
     end
 
     def has_many(name, opts, &block)
+      normalize_dependencies!(opts, name)
+
       field = opts.merge({
         field: name,
         is_virtual: true,
@@ -143,6 +163,8 @@ module ForestLiana::Collection
     end
 
     def belongs_to(name, opts, &block)
+      normalize_dependencies!(opts, name)
+
       field = opts.merge({
         field: name,
         is_virtual: true,

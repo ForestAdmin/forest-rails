@@ -70,4 +70,32 @@ class ForestLiana::Model::Collection
       .select { |field| field[:'is_virtual'] && field[:type] == 'String' }
       .map { |field| field[:field].to_s }
   end
+
+  # is_virtual alone also matches a smart relation (has_many/belongs_to, whose reference/
+  # integration is set) — dependencies only ever govern what a computed getter's own `select`
+  # needs, so those are excluded here.
+  def computed_smart_fields
+    fields.select { |field| field[:is_virtual] && field[:reference].nil? && field[:integration].nil? }
+  end
+
+  def smart_field_dependencies_declared?
+    computed_smart_fields.all? { |field| field.key?(:dependencies) }
+  end
+
+  def smart_fields_projectable?(field_names)
+    return false unless smart_field_dependencies_declared?
+
+    requested_names = field_names.map(&:to_s)
+    computed_smart_fields
+      .select { |field| requested_names.include?(field[:field].to_s) }
+      .all? { |field| field.key?(:dependencies) }
+  end
+
+  def smart_field_dependency_columns(field_names)
+    requested_names = field_names.map(&:to_s)
+    computed_smart_fields
+      .select { |field| requested_names.include?(field[:field].to_s) }
+      .flat_map { |field| ForestLiana::SmartFieldDependencies.for(field).columns }
+      .uniq
+  end
 end

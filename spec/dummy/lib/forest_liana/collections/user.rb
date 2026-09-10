@@ -13,7 +13,7 @@ class Forest::User
     query.or(User.where("name = '#{search}'"))
   end
 
-  field :cap_name, type: 'String', filter: filter_cap_name, search: search_cap_name do
+  field :cap_name, type: 'String', filter: filter_cap_name, search: search_cap_name, dependencies: ['name'] do
     object.name.upcase
   end
 
