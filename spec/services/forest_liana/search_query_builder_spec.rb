@@ -15,6 +15,36 @@ module ForestLiana
         .and_return(ForestLiana::Model::Collection.new(name: 'Tree', fields: []))
     end
 
+    # acts_as_taggable_on isn't installed in the dummy app (see the comment on search_param's
+    # ActsAsTaggable block), so exercised directly against a plain relation standing in for
+    # `tagged_records` rather than through a real taggable model.
+    describe '#acts_as_taggable_query' do
+      # Only #perform sets @resource (root_model in particular is used by both the columns loop
+      # and this method) — a blank/no-op search is enough to establish it without exercising the
+      # rest of search_param.
+      before { builder.perform(Tree.all) }
+
+      it 'produces a single-column, table-qualified subquery even when the relation already selects columns of its own' do
+        tagged_records = Tree.where(name: 'Oak').select('trees.*')
+
+        sql = builder.acts_as_taggable_query(tagged_records)
+
+        expect(sql).to eq(%(trees.id IN (SELECT "trees"."id" FROM "trees" WHERE "trees"."name" = 'Oak')))
+      end
+
+      # The regression this guards against: joining this string into the same `where(sql, binds)`
+      # call as the rest of search_param's conditions would have Rails scan the WHOLE thing for a
+      # `:word` bind placeholder — including one living inside a tag name's own already-quoted SQL
+      # text — raising "missing value for :bar" instead of searching.
+      it 'never produces a bind-placeholder-shaped colon, even when the search term has one' do
+        tagged_records = Tree.where(name: 'foo:bar').select('trees.*')
+
+        sql = builder.acts_as_taggable_query(tagged_records)
+
+        expect { Tree.where(sql).to_sql }.not_to raise_error
+      end
+    end
+
     describe '#perform' do
       context 'when the search is a malformed UUID' do
         # UUID-shaped but fails the strict REGEX_UUID (mistyped/truncated group).
@@ -280,7 +310,7 @@ module ForestLiana
       context 'a malformed UUID search' do
         let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
 
-        it 'reports nothing, matching the WHERE-less query it falls through to' do
+        it 'reports nothing, matching the .none it falls through to' do
           records = builder.perform(Tree.all)
 
           expect(builder.search_field_paths).to be_empty

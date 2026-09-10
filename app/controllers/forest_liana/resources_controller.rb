@@ -35,8 +35,10 @@ module ForestLiana
              ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
         # A CSV request already has its response Content-Type/Content-Disposition set by the
         # respond_to format match before this rescue ever runs — force JSON back, or the client
-        # downloads a ".csv" file whose content is this JSON error. The other QUERY_PERMISSION_ERRORS
-        # below are raised before respond_to ever picks a format, so they don't need this.
+        # downloads a ".csv" file whose content is this JSON error. UnauthorizedQueryFieldError is
+        # raised earlier (before respond_to picks a format) and doesn't strictly need this fix, but
+        # is caught here anyway since UnauthorizedFieldsError (raised during serialization, after
+        # the format is already picked) does — same response shape either way.
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,

@@ -93,10 +93,14 @@ module ForestLiana
     # condition this method builds. `IN (subquery)` with no match is `IN ()`, same as omitting the
     # condition — no behavior change for a search that tags nothing.
     def acts_as_taggable_query(tagged_records)
-      # Qualified with the resource's own table: unqualified, this SELECTs an ambiguous "id" once
-      # the join through taggings (which has its own "id" primary key) is added to the subquery.
+      # Qualified with the resource's own table on both sides: unqualified, this SELECTs (and
+      # compares against) an ambiguous "id" once the join through taggings (which has its own "id"
+      # primary key) is added to the subquery. `reselect`, not `select`: some acts_as_taggable_on
+      # query builders already select their own columns (`tagged_records` already carries a SELECT,
+      # not just a WHERE) — `select` would append to that, not replace it, leaving a multi-column
+      # subquery an `IN` can't use.
       qualified_pk = "#{@resource.table_name}.#{@resource.primary_key}"
-      "#{@resource.primary_key} IN (#{tagged_records.select(qualified_pk).to_sql})"
+      "#{qualified_pk} IN (#{tagged_records.reselect(qualified_pk).to_sql})"
     end
 
     def search_param
@@ -104,6 +108,12 @@ module ForestLiana
 
       if @search
         conditions = []
+        # Kept apart from +conditions+: a tag name can itself contain a colon (":search_value...
+        # is exactly that shape), and the final `where(sql, binds)` call scans the WHOLE string
+        # for a `:word` pattern to substitute — one living inside this subquery's own already-quoted
+        # SQL text would either raise "missing value for :whatever" or, worse, silently swallow a
+        # legitimate bind if the tag name happened to collide with one of ours.
+        tag_conditions = []
 
         @resource.columns.each_with_index do |column, index|
           @fields_searched << column.name if text_type?(column.type) || column.type == :uuid
@@ -146,7 +156,7 @@ module ForestLiana
         if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@search.downcase)
-            push_condition(conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
+            push_condition(tag_conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
           end
         end
 
@@ -207,12 +217,19 @@ module ForestLiana
           end
         end
 
-        unless conditions.empty?
-          @records = @resource.where(
-            conditions.join(' OR '),
-            search_value_for_string: "%#{@search.downcase}%",
-            search_value_for_uuid: @search.to_s
-          )
+        unless conditions.empty? && tag_conditions.empty?
+          # The two arrays never share a `where` call: substituting binds into +conditions+ here,
+          # before joining in +tag_conditions+, is what keeps a tag name's own colon out of the
+          # bind-scanning pass below — by the time they're joined, there's nothing left to scan for.
+          bound = unless conditions.empty?
+            root_model.sanitize_sql_array([
+              conditions.join(' OR '),
+              search_value_for_string: "%#{@search.downcase}%",
+              search_value_for_uuid: @search.to_s
+            ])
+          end
+
+          @records = @resource.where([bound, *tag_conditions].compact.join(' OR '))
         end
       end
 
