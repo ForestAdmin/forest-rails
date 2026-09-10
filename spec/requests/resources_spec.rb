@@ -10,20 +10,19 @@ describe 'Requesting Tree resources', :type => :request  do
 
     Rails.cache.write('forest.users', {'1' => { 'id' => 1, 'roleId' => 1, 'rendering_id' => '1' }})
     Rails.cache.write('forest.has_permission', true)
-    Rails.cache.write(
-      'forest.collections',
-      {
-        'Tree' => {
-          'browse'  => [1],
-          'read'    => [1],
-          'edit'    => [1],
-          'add'     => [1],
-          'delete'  => [1],
-          'export'  => [1],
-          'actions' => {}
+    Rails.cache.delete('forest.collections') # force a fresh fetch through the stub below, not a leftover from an earlier example
+    enabled = { 'roles' => [1] }
+    # read_permissions may force a real refetch on a denial (a stale cache may sit behind a
+    # just-granted permission) — stub the source instead of writing the derived cache directly,
+    # so that refetch sees the same permissions rather than hitting the network.
+    allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+      .with('/liana/v4/permissions/environment').and_return(
+        'collections' => {
+          'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+          'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
         }
-      }
-    )
+      )
 
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
@@ -168,6 +167,101 @@ describe 'Requesting Tree resources', :type => :request  do
     end
   end
 
+  describe 'read-permission redaction' do
+    describe 'index, naming a field of a collection the role cannot read' do
+      params = {
+        fields: { 'Tree' => 'id,name,island' },
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'refuses with a 403 naming every offending field, not a silently shortened payload' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You are not allowed to read 'island' from the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('fields' => ['island'])
+      end
+    end
+
+    describe 'index, an ordinary listing that never named the unreadable relation' do
+      params = {
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+
+      it 'succeeds, with that relation silently absent rather than refusing the whole listing' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body['data'][0]['relationships']).not_to have_key('island')
+        expect(body['data'][0]['relationships']).to have_key('location')
+      end
+    end
+
+    it 'treats the very same denied path differently depending on whether the caller named it' do
+      unnamed_params = {
+        page: { 'number' => '1', 'size' => '10' }, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris'
+      }
+      named_params = unnamed_params.merge(fields: { 'Tree' => 'id,name,island' })
+
+      get '/forest/Tree', params: unnamed_params, headers: headers
+      expect(response.status).to eq(200)
+
+      get '/forest/Tree', params: named_params, headers: headers
+      expect(response.status).to eq(403)
+    end
+
+    describe 'show' do
+      it 'redacts the fields of a relation the role cannot read instead of refusing the whole record' do
+        tree_id = Tree.first.id
+
+        get "/forest/Tree/#{tree_id}", params: { timezone: 'Europe/Paris' }, headers: headers
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body['data']['relationships']).not_to have_key('island')
+        expect(body['data']['relationships']).to have_key('location')
+      end
+
+      # Same distinction as index: a field the caller named (here, via the projection header
+      # rather than fields[]) is refused rather than silently redacted if unreadable.
+      it 'refuses with a 403 when the projection header names a relation the role cannot read' do
+        tree_id = Tree.first.id
+
+        get "/forest/Tree/#{tree_id}", headers: headers.merge('Forest-Projection' => 'id,name,island')
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You are not allowed to read 'island' from the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('fields' => ['island'])
+      end
+    end
+
+    describe 'update' do
+      it 'redacts the response of a write instead of refusing it' do
+        tree_id = Tree.first.id
+
+        put "/forest/Tree/#{tree_id}",
+              params: { data: { type: 'Tree', id: tree_id.to_s, attributes: { name: 'Renamed' } } },
+              headers: headers, as: :json
+
+        expect(response.status).to eq(200)
+        body = JSON.parse(response.body)
+        expect(body['data']['attributes']['name']).to eq('Renamed')
+        expect(body['data']['relationships']).not_to have_key('island')
+      end
+    end
+  end
+
   describe 'csv' do
     it 'should return CSV with correct headers and data' do
       params = {
@@ -210,6 +304,23 @@ describe 'Requesting Tree resources', :type => :request  do
       csv_lines = csv_content.split("\n")
 
       expect(csv_lines.first).to eq(params[:header])
+      expect(csv_lines[1]).to eq('1,Lemon Tree')
+    end
+
+    # Unlike index/show/update, an explicitly named but unreadable column drops silently instead
+    # of refusing the whole file — matching agent-nodejs's own CSV route (same redactProjection,
+    # same named-vs-not distinction it already applies to its JSON list, not a CSV-specific rule).
+    it 'drops an unreadable column silently instead of refusing the whole export' do
+      params = {
+        fields: { 'Tree' => 'id,name,island' },
+        header: 'id,name,island',
+      }
+      get '/forest/Tree.csv', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+      expect(response.headers['Content-Type']).to include('text/csv')
+      csv_lines = response.body.split("\n")
+      expect(csv_lines.first).to eq('id,name')
       expect(csv_lines[1]).to eq('1,Lemon Tree')
     end
   end
@@ -328,6 +439,15 @@ describe 'Requesting Island resources', :type => :request  do
           'delete'  => [1],
           'export'  => [1],
           'actions' => {}
+        },
+        'Location' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
         }
       }
     )
@@ -397,6 +517,15 @@ describe 'Requesting Address resources', :type => :request  do
       'forest.collections',
       {
         'Address' => {
+          'browse'  => [1],
+          'read'    => [1],
+          'edit'    => [1],
+          'add'     => [1],
+          'delete'  => [1],
+          'export'  => [1],
+          'actions' => {}
+        },
+        'User' => {
           'browse'  => [1],
           'read'    => [1],
           'edit'    => [1],

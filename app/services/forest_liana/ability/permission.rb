@@ -16,15 +16,17 @@ module ForestLiana
         collection_name = ForestLiana.name_for(collection)
 
         begin
-          is_allowed = (collections_data.key?(collection_name) && collections_data[collection_name][action].include?(user_data['roleId']))
+          # A user absent from the permissions system (removed since the JWT was issued) is denied
+          # outright, not a crash on a nil roleId.
+          is_allowed = user_data && collections_data.key?(collection_name) && collections_data[collection_name][action].include?(user_data['roleId'])
 
           # re-fetch if user permission is not allowed (may have been changed)
           unless is_allowed
             collections_data = get_collections_permissions_data(true)
-            is_allowed = collections_data[collection_name][action].include? user_data['roleId']
+            is_allowed = user_data && collections_data[collection_name][action].include?(user_data['roleId'])
           end
 
-          is_allowed
+          !!is_allowed
         rescue ForestLiana::Errors::ExpectedError => exception
           raise exception
         rescue => exception
@@ -50,6 +52,93 @@ module ForestLiana
         end
       end
 
+      def read_permissions(user, collection_names)
+        @read_permissions_cache ||= {}
+        to_fetch = collection_names.uniq - @read_permissions_cache.keys
+
+        unless to_fetch.empty?
+          # An absent permission system allows everything, so it is not queried: `is_crud_authorized?`
+          # short-circuits the same way, and answering anything else here would redact every relation
+          # on a deployment that granted nothing to check.
+          if has_permission_system?
+            user_data = get_user_data(user['id'])
+            denied = fetch_read_permissions(to_fetch, get_collections_permissions_data, user_data)
+
+            # A denial may be a stale (up to TTL-old) cache behind a permission granted moments
+            # ago rather than an actual refusal — re-fetch once before trusting it, the same
+            # rescue is_crud_authorized? already gives the CRUD check.
+            fetch_read_permissions(denied, get_collections_permissions_data(true), user_data) unless denied.empty?
+          else
+            to_fetch.each { |name| @read_permissions_cache[name] = true }
+          end
+        end
+
+        @read_permissions_cache.slice(*collection_names)
+      end
+
+      # +fields_hash+ is the shape `fields_per_model` already produces: `{ collection_name =>
+      # "field1,field2" }`, keyed by real collection names except for a polymorphic relation, whose
+      # entry is keyed by the association name on +root_model+ instead (no single target collection
+      # to key it by).
+      def redact_fields(user, root_model, fields_hash, named_collections:)
+        return fields_hash if fields_hash.nil?
+
+        root_name = ForestLiana.name_for(root_model)
+
+        resolved = fields_hash.each_with_object({}) do |(collection_key, csv), acc|
+          collection_model = SchemaUtils.find_model_from_collection_name(collection_key)
+          field_names = csv.to_s.split(',').uniq
+
+          owners = if collection_model
+                     field_names.each_with_object({}) { |field_name, o| o[field_name] = resolve_owner(collection_model, field_name) }
+                   else
+                     # A polymorphic relation's own entry: the whole field list stands for the
+                     # relation itself, not individually-checkable sub-fields of an ambiguous target.
+                     # resolve_owner (not FieldPath directly) so a smart belongsTo reached this way
+                     # still resolves to its reference collection instead of falling back to root_model.
+                     { collection_key => resolve_owner(root_model, collection_key) }
+                   end
+
+          acc[collection_key] = { field_names: field_names, owners: owners }
+        end
+
+        allowed = read_permissions(user, resolved.values.flat_map { |entry| entry[:owners].values }.flatten)
+        readable_collection_names = allowed.each_with_object([]) { |(name, ok), acc| acc << name if ok }
+        readable = ->(names) { FieldPath.readable_leaves?(names, readable_collection_names) }
+
+        denied = []
+        redacted = resolved.each_with_object({}) do |(collection_key, entry), acc|
+          named = named_collections.include?(collection_key)
+
+          if entry[:owners].key?(collection_key)
+            if readable.call(entry[:owners][collection_key])
+              acc[collection_key] = entry[:field_names].join(',')
+            else
+              denied << { path: collection_key, collections: entry[:owners][collection_key] } if named
+            end
+          else
+            kept = entry[:field_names].select do |field_name|
+              if readable.call(entry[:owners][field_name])
+                true
+              else
+                # collection_key is a related entry, not root_model's own fields, whenever it
+                # differs from root_name — prefix the message so it doesn't read as if 'field_name'
+                # were a bare field of the root.
+                display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
+                denied << { path: field_name, display_path: display_path, collections: entry[:owners][field_name] } if named
+                false
+              end
+            end
+
+            acc[collection_key] = kept.join(',') unless kept.empty?
+          end
+        end
+
+        raise ForestLiana::Ability::Exceptions::UnauthorizedFieldsError.new(denied) unless denied.empty?
+
+        redacted
+      end
+
       def is_chart_authorized?(user, parameters)
         parameters = parameters.to_h
         parameters.delete('timezone')
@@ -70,6 +159,20 @@ module ForestLiana
       end
 
       private
+
+      def fetch_read_permissions(names, collections_data, user_data)
+        denied = []
+
+        names.each do |name|
+          # A user absent from the permissions system (removed since the JWT was issued) reads
+          # as denied everywhere, not as a crash on a nil roleId.
+          allowed = !!(user_data && collections_data.key?(name) && collections_data[name]['read'].include?(user_data['roleId']))
+          @read_permissions_cache[name] = allowed
+          denied << name unless allowed
+        end
+
+        denied
+      end
 
       def get_user_data(user_id, force_fetch = true)
         cache = Rails.cache.fetch('forest.users', expires_in: TTL) do
@@ -156,6 +259,24 @@ module ForestLiana
         return nil unless collection
 
         collection.actions.find { |action| (action.endpoint == endpoint || "/#{action.endpoint}" == endpoint) && action.http_method == http_method }
+      end
+
+      # A smart belongsTo field (`is_virtual`, backed by a `reference`) has no ActiveRecord
+      # association, so FieldPath would otherwise resolve it to a column of +model+ itself — the
+      # collection its `reference` actually points to is checked instead, the same target
+      # `fields_per_model` already resolves a caller-named smart relation to.
+      def resolve_owner(model, field_name)
+        smart_field = smart_belongs_to_field(model, field_name)
+
+        return [smart_field[:reference].split('.').first] if smart_field
+
+        FieldPath.leaf_collection_names(model, field_name)
+      end
+
+      def smart_belongs_to_field(model, field_name)
+        forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
+
+        forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
     end
   end

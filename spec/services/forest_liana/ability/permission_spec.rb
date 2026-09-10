@@ -286,6 +286,31 @@ module ForestLiana
 
           expect(dummy_class.is_crud_authorized?('browse', user, Island)).to be false
         end
+
+        it 'denies, without raising, a user absent from the permissions system' do
+          Rails.cache.delete('forest.users')
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .with('/liana/v4/permissions/users')
+            .and_return([])
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .with('/liana/v4/permissions/environment')
+            .and_return(
+              'collections' => {
+                'Island' => {
+                  'collection' => {
+                    'browseEnabled' => { 'roles' => [1] }, 'readEnabled' => { 'roles' => [1] },
+                    'editEnabled' => { 'roles' => [1] }, 'addEnabled' => { 'roles' => [1] },
+                    'deleteEnabled' => { 'roles' => [1] }, 'exportEnabled' => { 'roles' => [1] }
+                  },
+                  'actions' => {}
+                }
+              }
+            )
+
+          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to be false
+        end
       end
 
       describe 'is_chart_authorized?' do

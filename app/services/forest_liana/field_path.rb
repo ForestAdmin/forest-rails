@@ -29,5 +29,11 @@ module ForestLiana
     def self.readable_leaves?(collection_names, readable_collection_names)
       collection_names.any? && collection_names.all? { |name| readable_collection_names.include?(name) }
     end
+
+    def self.leaf_label(collection_names)
+      return 'an unresolved polymorphic relation' if collection_names.empty?
+
+      "the '#{collection_names.join("' or '")}' collection"
+    end
   end
 end
