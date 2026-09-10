@@ -209,7 +209,7 @@ describe 'SQL footprint of a front call', type: :request do
 
     after { Address.destroy_all; User.destroy_all }
 
-    it 'never joins the target and resolves it per row on Rails 6, in one batch from Rails 7' do
+    it 'never joins the target, and batch-resolves it in one query on every supported Rails version' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Address', params: params, headers: headers
         expect(response).to have_http_status(200)
@@ -219,15 +219,12 @@ describe 'SQL footprint of a front call', type: :request do
       expect(join_count(result.grown, 'users')).to eq(0)
       expect(selects_from(result.grown, 'addresses').size).to eq(1)
 
-      # The batch loader for polymorphic targets in ResourcesGetter#records is gated on Rails 7,
-      # mirroring the same version fork the production code makes (resources_getter.rb).
-      if Rails.gem_version >= Gem::Version.new('7.0')
-        expect(result.per_row_delta).to eq(0)
-        expect(selects_from(result.grown, 'users').size).to eq(1)
-      else
-        expect(result.per_row_delta).to eq(1)
-        expect(result.per_row_delta(table: 'users')).to eq(1)
-      end
+      # Before this fix: 1+N queries on Rails 6.1 (one per row, via each record's own belongs_to
+      # lazy load), 1+1 from Rails 7 (BaseGetter#preload_polymorphic_associations's own branch,
+      # unchanged here). Now 1+1 on every supported version - the batch loader no longer forks on
+      # Rails::VERSION::MAJOR.
+      expect(result.per_row_delta).to eq(0)
+      expect(selects_from(result.grown, 'users').size).to eq(1)
     end
   end
 end

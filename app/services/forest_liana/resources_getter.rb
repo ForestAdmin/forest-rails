@@ -71,21 +71,7 @@ module ForestLiana
       records = @records.offset(offset).limit(limit).to_a
       polymorphic_association, preload_loads = analyze_associations(@resource)
 
-      if polymorphic_association.any? && Rails::VERSION::MAJOR >= 7
-        preloader = ActiveRecord::Associations::Preloader.new(records: records, associations: polymorphic_association)
-        preloader.loaders
-        preloader.branches.each do |branch|
-          branch.loaders.each do |loader|
-            records_by_owner = loader.records_by_owner
-            records_by_owner.each do |record, association|
-              record_index =  records.find_index { |r| r.id == record.id }
-              records[record_index].define_singleton_method(branch.association) do
-                association.first
-              end
-            end
-          end
-        end
-      end
+      preload_polymorphic_associations(records, polymorphic_association)
 
       records
     end

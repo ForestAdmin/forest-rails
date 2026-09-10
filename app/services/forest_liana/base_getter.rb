@@ -41,6 +41,37 @@ module ForestLiana
       result
     end
 
+    # Rails 7 introduced records:/associations: keyword preloading with a branches/loaders
+    # structure this method walks to define a singleton accessor per polymorphic target; 6.1's
+    # Preloader#preload takes the same records/associations positionally and returns the loaders
+    # directly (one per target class among the polymorphic records), without that branch grouping
+    # - preloaded one association at a time here so its name is already known, not read back off
+    # a branch this version's Preloader doesn't expose.
+    def preload_polymorphic_associations(records, associations)
+      return if associations.empty? || records.empty?
+
+      if Rails::VERSION::MAJOR >= 7
+        preloader = ActiveRecord::Associations::Preloader.new(records: records, associations: associations)
+        preloader.loaders
+        preloader.branches.each do |branch|
+          branch.loaders.each { |loader| assign_preloaded_targets(records, branch.association, loader.records_by_owner) }
+        end
+      else
+        associations.each do |association|
+          ActiveRecord::Associations::Preloader.new.preload(records, association).each do |loader|
+            assign_preloaded_targets(records, association, loader.records_by_owner)
+          end
+        end
+      end
+    end
+
+    def assign_preloaded_targets(records, association_name, records_by_owner)
+      records_by_owner.each do |record, target|
+        record_index = records.find_index { |r| r.id == record.id }
+        records[record_index].define_singleton_method(association_name) { target.first }
+      end
+    end
+
     def analyze_associations(resource)
       polymorphic = []
       preload_loads = @includes.uniq.select do |name|

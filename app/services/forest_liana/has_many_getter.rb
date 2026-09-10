@@ -75,7 +75,16 @@ module ForestLiana
     end
 
     def records
-      @records.limit(limit).offset(offset)
+      records = @records.limit(limit).offset(offset)
+      polymorphic_associations, = analyze_associations(model_association)
+
+      # Left a Relation (not resolved yet) when there is nothing to preload - some callers still
+      # want #to_sql off this, and paid for nothing before this fix.
+      return records if polymorphic_associations.empty?
+
+      records = records.to_a
+      preload_polymorphic_associations(records, polymorphic_associations)
+      records
     end
 
     def includes_for_serialization
