@@ -20,8 +20,10 @@ module ForestLiana
     # `tagged_records` rather than through a real taggable model.
     describe '#acts_as_taggable_query' do
       # Only #perform sets @resource (root_model in particular is used by both the columns loop
-      # and this method) — a blank/no-op search is enough to establish it without exercising the
-      # rest of search_param.
+      # and this method) — a nil search short-circuits search_param's own column loop, establishing
+      # it without exercising the rest of search_param.
+      let(:params) { { search: nil } }
+
       before { builder.perform(Tree.all) }
 
       it 'produces a single-column, table-qualified subquery even when the relation already selects columns of its own' do
@@ -32,16 +34,20 @@ module ForestLiana
         expect(sql).to eq(%(trees.id IN (SELECT "trees"."id" FROM "trees" WHERE "trees"."name" = 'Oak')))
       end
 
-      # The regression this guards against: joining this string into the same `where(sql, binds)`
-      # call as the rest of search_param's conditions would have Rails scan the WHOLE thing for a
-      # `:word` bind placeholder — including one living inside a tag name's own already-quoted SQL
-      # text — raising "missing value for :bar" instead of searching.
-      it 'never produces a bind-placeholder-shaped colon, even when the search term has one' do
-        tagged_records = Tree.where(name: 'foo:bar').select('trees.*')
+      # The regression this guards against: a single-String `where` never scans for a bind
+      # placeholder, but `where(sql, binds_hash)` does, over the WHOLE string — including a tag
+      # name's own already-quoted SQL text once joined into it. search_param avoids that by
+      # substituting binds into its own conditions before ever joining the tag condition in;
+      # joining first (the bug) reintroduces exactly this crash.
+      it 'stays safe joined into a bind-substituted string, but would crash joined before substitution' do
+        tag_sql = builder.acts_as_taggable_query(Tree.where(name: 'foo:bar'))
+        column_condition = 'LOWER("trees"."name") LIKE :search_value_for_string'
 
-        sql = builder.acts_as_taggable_query(tagged_records)
+        bound = Tree.sanitize_sql_array([column_condition, search_value_for_string: '%x%'])
+        expect { Tree.where([bound, tag_sql].join(' OR ')).to_sql }.not_to raise_error
 
-        expect { Tree.where(sql).to_sql }.not_to raise_error
+        expect { Tree.where("#{column_condition} OR #{tag_sql}", search_value_for_string: '%x%').to_sql }
+          .to raise_error(ActiveRecord::PreparedStatementInvalid)
       end
     end
 
