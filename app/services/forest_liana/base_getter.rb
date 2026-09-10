@@ -100,6 +100,12 @@ module ForestLiana
         select << "#{projected_resource.table_name}.#{pk}"
       end
 
+      # An STI model needs its own type column projected regardless of what's requested: without
+      # it, .becomes(subclass) later has nothing to key off, and every row loads as the base class.
+      if column?(projected_resource, projected_resource.inheritance_column)
+        select << "#{projected_resource.table_name}.#{projected_resource.inheritance_column}"
+      end
+
       # Include columns used in default ordering for batch cursor compatibility
       if projected_resource.respond_to?(:default_scoped) && projected_resource.default_scoped.order_values.any?
         projected_resource.default_scoped.order_values.each do |order_value|

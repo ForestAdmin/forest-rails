@@ -30,6 +30,11 @@ module ForestLiana
     #         display-only ones are preloaded on purpose, and come back whole.
     def perform
       assert_sort_readable!
+      # Captured even on the early return: a `.select` naming more than one column makes Rails
+      # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection
+      # instead — count builds its own getter today and never calls perform, so this is a guard
+      # against that changing, not a live gap.
+      @unprojected_records = @records
       return @records unless project?
 
       polymorphic_associations, preload_loads = analyze_associations(model_association)
@@ -40,6 +45,7 @@ module ForestLiana
 
     def count
       association_class = model_association
+      records = unprojected_records
 
       if association_class.primary_key.is_a?(Array)
         adapter_name = association_class.connection.adapter_name.downcase
@@ -53,14 +59,14 @@ module ForestLiana
             "#{association_class.table_name}.#{pk}"
           end.join(" || '|' || ")
 
-          @records_count = @records.distinct.count(Arel.sql(pk_concat))
+          @records_count = records.distinct.count(Arel.sql(pk_concat))
         elsif adapter_name.include?('postgresql')
-          @records_count = @records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
+          @records_count = records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
         else
-          @records_count = @records.distinct.count(Arel.sql(pk_columns))
+          @records_count = records.distinct.count(Arel.sql(pk_columns))
         end
       else
-        @records_count = @records.count
+        @records_count = records.count
       end
     end
 
@@ -125,6 +131,12 @@ module ForestLiana
 
     def projected_resource
       model_association
+    end
+
+    # perform may never have run on this instance (count builds its own getter) — falls back to
+    # @records, the filtered-but-unprojected query prepare_query already built.
+    def unprojected_records
+      @unprojected_records || @records
     end
 
     def model_association

@@ -36,24 +36,28 @@ module ForestLiana
 
     def perform
       assert_sort_readable!
-      polymorphic_association, preload_loads = analyze_associations(@resource)
-      includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
+      # Captured before any select narrows @records: count/optimized_count must build its COUNT
+      # off this, never off @records past this point — a `.select` naming more than one column
+      # makes Rails emit `COUNT(col1, col2)`, invalid SQL, if `.count` ever ran off it instead.
+      @unprojected_records = optimize_record_loading(@resource, @records, false)
+
       has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
         ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
       end
 
-      if includes.empty? || has_smart_fields
-        @records = optimize_record_loading(@resource, @records, false)
+      @records = if has_smart_fields
+        @unprojected_records
       else
-        select = compute_select_fields
-        @records = optimize_record_loading(@resource, @records, false).references(includes).select(*select)
+        polymorphic_association, preload_loads = analyze_associations(@resource)
+        includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
+        apply_projection(@unprojected_records, includes)
       end
 
       @records
     end
 
     def count
-      @records_count = @count_needs_includes ? optimized_count : @records.count
+      @records_count = @count_needs_includes ? optimized_count : unprojected_records.count
     end
 
     def query_for_batch
@@ -200,7 +204,14 @@ module ForestLiana
     end
 
     def optimized_count
-      optimize_record_loading(@resource, @records).count
+      optimize_record_loading(@resource, unprojected_records).count
+    end
+
+    # perform may never have run on this instance (the count HTTP action builds its own getter
+    # and calls #count directly) — falls back to @records, the filtered-but-unselected query
+    # prepare_query already built.
+    def unprojected_records
+      @unprojected_records || @records
     end
 
     def apply_segment(records)

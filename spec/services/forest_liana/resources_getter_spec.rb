@@ -139,6 +139,18 @@ module ForestLiana
       end
     end
 
+    describe 'when the collection has no relation at all in the request' do
+      let(:fields) { { 'User' => 'id,name' } }
+
+      it 'still projects the select, narrowed to the requested columns' do
+        sql = getter.perform.to_sql
+
+        expect(sql).to include('"users"."name"')
+        expect(sql).not_to include('"title"')
+        expect(sql).not_to include('"users".*')
+      end
+    end
+
     describe 'when there are more records than the page size' do
       describe 'when asking for the 1st page and 15 records' do
         let(:pageSize) { 15 }
@@ -217,6 +229,7 @@ module ForestLiana
     describe 'when sorting by a specific field' do
       let(:pageSize) { 5 }
       let(:sort) { '-name' }
+      let(:fields) { { resource.name => 'id,name' } }
 
       it 'should get only the expected records' do
         getter.perform
@@ -288,7 +301,7 @@ module ForestLiana
 
     describe 'when getting instance dependent associations' do
       let(:resource) { Island }
-      let(:fields) { { 'Island' => 'id,eponymous_tree', 'eponymous_tree' => 'id,name'} }
+      let(:fields) { { 'Island' => 'id,name,eponymous_tree', 'eponymous_tree' => 'id,name'} }
 
       it 'should get only the expected records' do
         getter.perform
@@ -348,7 +361,7 @@ module ForestLiana
 
     describe 'when filtering on before x hours ago' do
       let(:resource) { Tree }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name' } }
       let(:filters) { {
         field: 'created_at',
         operator: 'before_x_hours_ago',
@@ -368,7 +381,7 @@ module ForestLiana
 
     describe 'when filtering on after x hours ago' do
       let(:resource) { Tree }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name' } }
       let(:filters) { {
         field: 'created_at',
         operator: 'after_x_hours_ago',
@@ -409,6 +422,7 @@ module ForestLiana
 
     describe 'when filtering on an updated_at field of the main collection' do
       let(:resource) { Island }
+      let(:fields) { { 'Island' => 'id,name' } }
       let(:filters) { {
         field: 'updated_at',
         operator: 'previous_year'
@@ -492,6 +506,7 @@ module ForestLiana
     end
 
     describe 'when filtering on a smart field' do
+      let(:fields) { { 'User' => 'id,name' } }
       let(:filters) { {
         field: 'cap_name',
         operator: 'equal',
@@ -529,7 +544,7 @@ module ForestLiana
     describe 'when scopes are defined' do
       let(:resource) { Island }
       let(:pageSize) { 15 }
-      let(:fields) { { resource.name => 'id' } }
+      let(:fields) { { resource.name => 'id,name' } }
       let(:filters) { }
       let(:scopes) {
         {
