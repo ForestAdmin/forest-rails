@@ -3,11 +3,13 @@ module ForestLiana
     AGGREGATOR_OPERATOR = %w(and or).freeze
 
     # The `field` of every leaf in a filter tree, however deeply nested — the same tree
-    # `apply_filters` will walk, read rather than re-derived. A leaf with no valid `field` is left
-    # out rather than forwarded: `ensure_valid_condition` raises its own 422 for it right after
-    # this is read, and a non-String value would otherwise reach FieldPath, which expects one.
+    # `apply_filters` will walk, read rather than re-derived. A non-Hash node (a top-level
+    # `filters=[]`, say) is left out rather than crashing on `node['aggregator']`: it still reaches
+    # `ensure_valid_aggregation`'s own 422 once `apply_filters` runs. A leaf with no valid `field`
+    # is likewise left out: `ensure_valid_condition` raises its own 422 for it right after this is
+    # read, and a non-String value would otherwise reach FieldPath, which expects one.
     def self.field_paths(filter)
-      return [] if filter.nil?
+      return [] unless filter.is_a?(Hash)
       if filter['aggregator']
         return [] unless filter['conditions'].is_a?(Array)
         return filter['conditions'].flat_map { |condition| field_paths(condition) }

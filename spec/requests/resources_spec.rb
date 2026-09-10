@@ -305,6 +305,36 @@ describe 'Requesting Tree resources', :type => :request  do
       expect(JSON.parse(response.body)['errors'][0]['detail']).to eq 'Filters cannot be a raw value'
     end
 
+    it 'lets a non-blank top-level non-Hash filter reach the parser\'s own 422, rather than crashing this guard' do
+      params = {
+        filters: JSON.generate(5),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response.status).to eq(422)
+      expect(JSON.parse(response.body)['errors'][0]['detail']).to eq 'Filters cannot be a raw value'
+    end
+
+    # An empty Array is `blank?`, same as no filter at all: it's dropped before reaching
+    # FiltersParser (long-standing behavior, unrelated to this guard) — this only pins that it no
+    # longer crashes on filter.key?/node['aggregator'], not the 422 the non-blank case above gets.
+    it 'does not crash on a top-level empty-Array filter' do
+      params = {
+        filters: JSON.generate([]),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response.status).to eq(200)
+    end
+
     describe 'filtering on a column of a collection the role cannot read' do
       params = {
         filters: JSON.generate({ 'field' => 'island:name', 'operator' => 'equal', 'value' => 'Lemon Island' }),

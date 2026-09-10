@@ -40,6 +40,10 @@ module ForestLiana
 
       def self.inject_context_in_filter(filter, context_variables)
         return nil unless filter
+        # A non-Hash filter (a top-level `filters=[]`, say) is left untouched rather than crashing
+        # on filter.key? — FiltersParser's own ensure_valid_aggregation raises its usual 422 for it
+        # once apply_filters runs, same as the non-Array `conditions` case just below.
+        return filter unless filter.is_a?(Hash)
 
         if filter.key? 'aggregator'
           # A non-Array `conditions` is left untouched rather than mapped over (which would

@@ -49,6 +49,13 @@ module ForestLiana
         expect(described_class.field_paths({ 'field' => ['name'], 'operator' => 'equal', 'value' => 'x' })).to eq([])
       end
 
+      # A non-Hash node (a top-level `filters=[]`, say) must reach ensure_valid_aggregation's own
+      # 422 once apply_filters runs, not crash here on node['aggregator'] first.
+      it 'answers an empty list for a non-Hash filter' do
+        expect(described_class.field_paths([])).to eq([])
+        expect(described_class.field_paths('foo')).to eq([])
+      end
+
       it 'keeps the valid leaves of an aggregation that also has a malformed one' do
         filters = {
           'aggregator' => 'and',
