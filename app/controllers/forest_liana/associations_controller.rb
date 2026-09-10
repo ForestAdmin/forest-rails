@@ -33,7 +33,8 @@ module ForestLiana
              ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
         # A CSV request already has its response Content-Type/Content-Disposition set by the
         # respond_to format match before this rescue ever runs — force JSON back, or the client
-        # downloads a ".csv" file whose content is this JSON error.
+        # downloads a ".csv" file whose content is this JSON error. The other QUERY_PERMISSION_ERRORS
+        # below are raised before respond_to ever picks a format, so they don't need this.
         render(serializer: nil, json: { errors: [{
           status: error.error_code,
           detail: error.message,
@@ -41,6 +42,8 @@ module ForestLiana
           data: error.data
         }] }, status: error.status, content_type: 'application/json')
         response.headers.delete('Content-Disposition')
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -70,14 +73,8 @@ module ForestLiana
         getter.count
 
         render serializer: nil, json: { count: getter.records_count }
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
-        render(serializer: nil, json: { errors: [{
-          status: error.error_code,
-          detail: error.message,
-          name: error.name,
-          data: error.data
-        }] }, status: error.status)
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -161,6 +158,8 @@ module ForestLiana
         head :no_content
       rescue ActiveRecord::RecordNotDestroyed => error
         render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
