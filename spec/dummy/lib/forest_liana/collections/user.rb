@@ -17,4 +17,10 @@ class Forest::User
     object.name.upcase
   end
 
+  # Deliberately incomplete: reads title too, which its own dependencies: never names — the
+  # MissingAttributeValve regression fixture (spec/requests/missing_attribute_valve_spec.rb).
+  field :name_with_title, type: 'String', dependencies: ['name'] do
+    "#{object.name} (#{object.title})"
+  end
+
 end

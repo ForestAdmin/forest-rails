@@ -93,7 +93,8 @@ module ForestLiana
               "location",
               "name",
               "owner",
-              "updated_at"
+              "updated_at",
+              "name_with_age"
             ]
           )
         end

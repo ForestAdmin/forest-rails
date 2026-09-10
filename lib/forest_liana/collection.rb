@@ -123,6 +123,11 @@ module ForestLiana::Collection
             compute_value = lambda do |object|
               begin
                 object.instance_eval(&block)
+              rescue ActiveModel::MissingAttributeError
+                # Left to propagate: MissingAttributeValve (wrapping evaluate_attr_or_block, the
+                # caller of this lambda) is the one place that can tell a genuine mistake apart
+                # from a dependencies: declaration merely incomplete, and retry only the latter.
+                raise
               rescue => exception
                 FOREST_REPORTER.report exception
                 FOREST_LOGGER.error "Cannot retrieve the " + name.to_s + " value because of an " \
