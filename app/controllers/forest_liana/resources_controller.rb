@@ -91,6 +91,10 @@ module ForestLiana
         render serializer: nil, json: render_record_jsonapi(getter.record, getter)
       rescue ActiveRecord::RecordNotFound
         render serializer: nil, json: { status: 404 }, status: :not_found
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError
+        # Let ApplicationController's rescue_from render it, with its name/data — the generic
+        # rescue below would otherwise strip both and turn a 403 into a 500.
+        raise
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"

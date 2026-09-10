@@ -230,6 +230,20 @@ describe 'Requesting Tree resources', :type => :request  do
         expect(body['data']['relationships']).not_to have_key('island')
         expect(body['data']['relationships']).to have_key('location')
       end
+
+      # Same distinction as index: a field the caller named (here, via the projection header
+      # rather than fields[]) is refused rather than silently redacted if unreadable.
+      it 'refuses with a 403 when the projection header names a relation the role cannot read' do
+        tree_id = Tree.first.id
+
+        get "/forest/Tree/#{tree_id}", headers: headers.merge('Forest-Projection' => 'id,name,island')
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['detail'])
+          .to eq "You are not allowed to read 'island' from the 'Island' collection."
+        expect(body['errors'][0]['data']).to eq('fields' => ['island'])
+      end
     end
 
     describe 'update' do
