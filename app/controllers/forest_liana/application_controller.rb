@@ -11,7 +11,6 @@ module ForestLiana
     rescue_from ForestLiana::Ability::Exceptions::UnknownCollection, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnauthorizedFieldsError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError, with: :render_error
-    rescue_from ForestLiana::Ability::Exceptions::UndescribableSearchError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError, with: :render_error
 
     # `render_error` above already gives these their 403 + name/data payload — every list here is
@@ -20,7 +19,6 @@ module ForestLiana
     QUERY_PERMISSION_ERRORS = [
       ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
       ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
-      ForestLiana::Ability::Exceptions::UndescribableSearchError,
       ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError,
     ].freeze
 

@@ -684,7 +684,7 @@ describe 'Requesting User resources', :type => :request  do
       )
     end
 
-    it 'refuses an extended search on a collection whose only search surface beyond it is a smart field lambda' do
+    it 'serves an extended search on a collection whose only search surface beyond it is a smart field lambda' do
       token = JWT.encode({
         id: 1,
         email: 'michael.kelso@that70.show',
@@ -712,11 +712,10 @@ describe 'Requesting User resources', :type => :request  do
 
       get '/forest/User', params: params, headers: headers
 
-      expect(response.status).to eq(403)
-      expect(JSON.parse(response.body)['errors'][0]['detail']).to eq(
-        "You cannot run an extended search on the 'User' collection: the fields it reaches cannot " \
-          'be determined, so they cannot be checked against your permissions.'
-      )
+      # Deliberately never refused, in either mode: a smart-field search lambda's reach is outside
+      # the checked footprint by construction, and gating a refusal on searchExtended would only
+      # cost every customer of this hook their extended search (see search_query_builder.rb#perform).
+      expect(response.status).to eq(200)
     end
   end
 end

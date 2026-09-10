@@ -220,6 +220,24 @@ module ForestLiana
         end
       end
 
+      context 'a plain search on a collection whose only search_fields entry is dotted' do
+        # A dotted search_fields entry only ever contributes a condition on an extended search
+        # (gated by extended_search? above) — a plain one has no column to fall back on either,
+        # deliberately: an extended-only search surface answers no records rather than searching
+        # nothing scoped and matching everything.
+        let(:collection) do
+          ForestLiana::Model::Collection.new(name: 'Island', fields: [], search_fields: ['trees.name'])
+        end
+        let(:params) { ActiveSupport::HashWithIndifferentAccess.new(search: 'Oak', searchExtended: '0') }
+
+        before { Tree.create!(name: 'Oak', island: Island.create!(name: 'Réunion')) }
+        after { Tree.destroy_all; Island.destroy_all }
+
+        it 'answers no records rather than the whole table' do
+          expect(builder.perform(Island.all).count).to eq(0)
+        end
+      end
+
       context 'search_fields naming a to-many association the agent does not expose' do
         # Unlike QueryHelper.get_one_associations (used for the to-one block above),
         # SchemaUtils.many_associations does not filter by model_included? on its own — the search
@@ -319,6 +337,33 @@ module ForestLiana
       end
     end
 
+    describe 'when a column matches the search term and a declared smart search lambda raises' do
+      let(:collection) { ForestLiana::Model::Collection.new(name: 'Tree', fields: []) }
+      let(:params) { { search: 'Oak', searchExtended: '0' } }
+
+      before do
+        Tree.create!(name: 'Oak')
+        Tree.create!(name: 'Elm')
+        allow(ForestLiana).to receive(:schema_for_resource).and_return(
+          ForestLiana::Model::Collection.new(
+            name: 'Tree',
+            fields: [{ field: :custom, type: 'String', search: ->(_query, _search) { raise 'boom' } }]
+          )
+        )
+        allow(FOREST_REPORTER).to receive(:report)
+        allow(FOREST_LOGGER).to receive(:error)
+      end
+
+      after { Tree.destroy_all }
+
+      # The regression a rescue overwriting @records with .none unconditionally would introduce:
+      # the column match search_param already found must survive a later lambda's own failure,
+      # not be discarded by it.
+      it 'still serves the column match, rather than discarding it for the failed lambda' do
+        expect(builder.perform(Tree.all).pluck(:name)).to eq(['Oak'])
+      end
+    end
+
     describe 'a blank or whitespace-only search' do
       let(:params) { ActiveSupport::HashWithIndifferentAccess.new(search: '   ', searchExtended: '1') }
 
@@ -332,10 +377,15 @@ module ForestLiana
       end
     end
 
+    # A smart-field search lambda can read anything, in both modes alike — deliberately never
+    # refused (see the comment in #perform): gating a refusal on searchExtended would only cost
+    # every customer of this hook their extended search, without closing anything a caller
+    # couldn't already reach on the default (plain) path.
     describe 'an extended search on a collection declaring a smart search lambda' do
       let(:params) { ActiveSupport::HashWithIndifferentAccess.new(search: 'Robin', searchExtended: extended) }
 
       before do
+        Rails.cache.write('forest.has_permission', true)
         allow(ForestLiana).to receive(:schema_for_resource).and_return(
           ForestLiana::Model::Collection.new(
             name: 'Tree', fields: [{ field: :custom, type: 'String', search: ->(query, _search) { query } }]
@@ -346,19 +396,7 @@ module ForestLiana
       context 'when extended' do
         let(:extended) { '1' }
 
-        it 'is refused, since the lambda can read anything and nothing describes what' do
-          Rails.cache.write('forest.has_permission', true)
-
-          expect { builder.perform(Tree.all) }.to raise_error(
-            ForestLiana::Ability::Exceptions::UndescribableSearchError,
-            "You cannot run an extended search on the 'Tree' collection: the fields it reaches " \
-              'cannot be determined, so they cannot be checked against your permissions.'
-          )
-        end
-
-        it 'is served when there is no permission system to check against' do
-          Rails.cache.write('forest.has_permission', false)
-
+        it 'is served, not refused' do
           expect { builder.perform(Tree.all) }.not_to raise_error
         end
       end
@@ -367,8 +405,6 @@ module ForestLiana
         let(:extended) { '0' }
 
         it 'is served, since what it reads besides the lambda is root-only and pinned readable' do
-          Rails.cache.write('forest.has_permission', true)
-
           expect { builder.perform(Tree.all) }.not_to raise_error
         end
       end

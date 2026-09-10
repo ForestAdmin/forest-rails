@@ -20,7 +20,12 @@ module ForestLiana
       @resource = @records = resource
       @tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
-      assert_extended_search_describable!
+      # Set by push_condition (the single funnel every column/tag/association condition goes
+      # through) and by a smart-search lambda that runs without raising — the one true answer to
+      # "did anything actually constrain this query", decided once below rather than guessed at
+      # both search_param (which doesn't yet know whether a lambda will run) and the lambda loop
+      # (which no longer knows what the columns already produced).
+      @search_constrained = false
       @records = search_param
 
       caller_filter = @params[:filters].present? ? ForestLiana::ScopeManager.inject_context_variables(@params[:filters], @user) : nil
@@ -43,23 +48,36 @@ module ForestLiana
       end
 
       if @search
+        # A smart-field `search:` lambda can read anything — by construction, its reach is outside
+        # the footprint assert_can_read_query_fields checks above, in both plain and extended
+        # search. Deliberately never refused: the lambda runs identically regardless of
+        # `searchExtended`, so gating a refusal on that param would only cost every customer of
+        # this documented hook their extended search, without closing anything a caller couldn't
+        # already reach on the default path.
         ForestLiana.schema_for_resource(@resource).fields.each do |field|
           if field.try(:[], :search)
             begin
               @records = field[:search].call(@records, @search)
+              @search_constrained = true
               (@fields_searched << field[:field].to_s) if field[:type] == 'String'
             rescue => exception
               FOREST_REPORTER.report exception
               FOREST_LOGGER.error "Cannot search properly on Smart Field:\n" \
                 "#{exception}"
-              # A failed lambda is the same "cannot be evaluated" case as no column matching at
-              # all: answering no records keeps the guarantee this file makes elsewhere, that a
-              # search that cannot be resolved never falls through to the unfiltered table.
-              @records = @records.none
+              # Nothing else: a failed lambda simply doesn't count as a contributor, rather than
+              # emptying @records here — a later field's own lambda (or the columns search_param
+              # already matched) must still be free to serve the request.
             end
           end
         end
+
+        # A malformed-UUID search is emptied unconditionally: its rationale (LIKE scans that could
+        # hit the statement timeout, and never serving the whole table for a mistyped UUID) holds
+        # even when a lambda ran. Otherwise, nothing having constrained the query — no column, tag,
+        # association or lambda — is the one case left to fall through to the unfiltered table.
+        @records = @records.none if malformed_uuid_search? || !@search_constrained
       end
+
       @records = sort_query
       @records
     end
@@ -185,15 +203,7 @@ module ForestLiana
           end
         end
 
-        if conditions.empty?
-          # NOTICE: a malformed-UUID search suppresses the only conditions it could
-          #         have produced (text LIKE scans); match nothing rather than fall
-          #         through to an unfiltered query that returns the whole table. A declared
-          #         smart-search lambda is the one exception: it ORs its own conditions in right
-          #         after this, so a collection whose only search surface is that lambda is left
-          #         unfiltered here rather than pre-emptied to none.
-          @records = @resource.none if malformed_uuid_search? || !smart_search_declared?
-        else
+        unless conditions.empty?
           @records = @resource.where(
             conditions.join(' OR '),
             search_value_for_string: "%#{@search.downcase}%",
@@ -314,26 +324,12 @@ module ForestLiana
       return unless condition
 
       @search_field_paths << path
+      @search_constrained = true
       conditions << condition
     end
 
     def extended_search?
       @params['searchExtended'].to_i == 1
-    end
-
-    def smart_search_declared?
-      ForestLiana.schema_for_resource(root_model)&.fields&.any? { |field| field.try(:[], :search) }
-    end
-
-    # A smart-field search lambda can read anything, so an extended search on a collection that
-    # declares one has no footprint to check against permissions — refused before anything runs,
-    # rather than left to compare a partial footprint. A plain search on the same collection is
-    # unaffected: what it reads besides the lambda is root-only and pinned readable, so nothing
-    # checkable is skipped by serving it.
-    def assert_extended_search_describable!
-      return unless @search && extended_search? && smart_search_declared? && has_permission_system?
-
-      raise ForestLiana::Ability::Exceptions::UndescribableSearchError.new(ForestLiana.name_for(root_model))
     end
   end
 end
