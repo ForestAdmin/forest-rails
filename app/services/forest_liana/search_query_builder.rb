@@ -92,7 +92,10 @@ module ForestLiana
     # condition this method builds. `IN (subquery)` with no match is `IN ()`, same as omitting the
     # condition — no behavior change for a search that tags nothing.
     def acts_as_taggable_query(tagged_records)
-      "#{@resource.primary_key} IN (#{tagged_records.select(@resource.primary_key).to_sql})"
+      # Qualified with the resource's own table: unqualified, this SELECTs an ambiguous "id" once
+      # the join through taggings (which has its own "id" primary key) is added to the subquery.
+      qualified_pk = "#{@resource.table_name}.#{@resource.primary_key}"
+      "#{@resource.primary_key} IN (#{tagged_records.select(qualified_pk).to_sql})"
     end
 
     def search_param
