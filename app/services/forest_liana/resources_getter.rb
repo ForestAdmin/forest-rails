@@ -41,19 +41,22 @@ module ForestLiana
       # makes Rails emit `COUNT(col1, col2)`, invalid SQL, if `.count` ever ran off it instead.
       @unprojected_records = optimize_record_loading(@resource, @records, false)
 
-      has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
-        ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
-      end
-
-      @records = if has_smart_fields
-        @unprojected_records
-      else
+      @records = if project?
         polymorphic_association, preload_loads = analyze_associations(@resource)
         includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
         apply_projection(@unprojected_records, includes)
+      else
+        @unprojected_records
       end
 
       @records
+    end
+
+    # NOTICE: Without a fields[] param at all, serialization is unoptimized (every field of every
+    #         relation the request touches) — projecting would starve fields the caller never
+    #         named but still expects back.
+    def projection?
+      !@params.dig(:fields, @collection_name).nil?
     end
 
     def count
@@ -142,6 +145,14 @@ module ForestLiana
     end
 
     private
+
+    # NOTICE: A projection naming an undeclared Smart Field is dropped: computing one may read
+    #         any column of the record. A Smart Field whose every dependency is declared, on a
+    #         collection where every one of them is, is safe to narrow instead —
+    #         compute_select_fields adds the columns it needs.
+    def project?
+      projection? && @collection.smart_fields_projectable?(@fields_to_serialize)
+    end
 
     def get_fields_to_serialize
       @params.dig(:fields, @collection_name)&.split(',')&.map(&:to_sym) || []

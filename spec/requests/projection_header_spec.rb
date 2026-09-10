@@ -4,6 +4,7 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
   before(:each) do
     Address.destroy_all
     Tree.destroy_all
+    Location.destroy_all
     Island.destroy_all
     User.destroy_all
 
@@ -159,19 +160,34 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       expect(selected).not_to include('_forest_admin_eager_load')
     end
 
-    # NOTICE: Computing a Smart Field may read any column of the record, so a projection naming
-    #         one is dropped rather than starving it, exactly as the list already does.
-    it 'reads every column when the projection names a Smart Field' do
-      allow(ForestLiana::SchemaHelper).to receive(:is_smart_field?).and_call_original
-      allow(ForestLiana::SchemaHelper).to receive(:is_smart_field?).with(User, 'cap_name').and_return(true)
+    # NOTICE: A Smart Field with no declared dependencies may read any column of the record, so a
+    #         projection naming one is dropped rather than starving it, exactly as the list
+    #         already does. User#cap_name declares its dependencies (spec/dummy's fixture) and is
+    #         therefore projectable — Location#alter_coordinates deliberately does not, pinning
+    #         the undeclared case instead.
+    it 'reads every column when the projection names a Smart Field with no declared dependencies' do
+      location = Location.create(coordinates: '1,2', island: @island)
 
-      selected = selects_of('users') do
-        get "/forest/User/#{@user.id}", headers: projecting('id,name,cap_name')
+      selected = selects_of('locations') do
+        get "/forest/Location/#{location.id}", headers: projecting('id,coordinates,alter_coordinates')
       end
 
       expect(response.status).to eq 200
-      expect(body['data']['attributes']).to include('name' => 'Michel')
-      expect(selected).to include('"users".*')
+      expect(selected).to include('"locations".*')
+    end
+
+    # User#cap_name declares dependencies: ['name'] (spec/dummy's fixture) — narrows instead of
+    # starving it, unlike the undeclared case just above.
+    it 'narrows the select to a Smart Field\'s own declared dependency, rather than reading every column' do
+      selected = selects_of('users') do
+        get "/forest/User/#{@user.id}", headers: projecting('id,cap_name')
+      end
+
+      expect(response.status).to eq 200
+      expect(body['data']['attributes']).to include('cap_name' => 'MICHEL')
+      expect(selected).to include('"users"."name"')
+      expect(selected).not_to include('"users"."title"')
+      expect(selected).not_to include('"users".*')
     end
 
     it 'serializes the whole record when the header is absent' do

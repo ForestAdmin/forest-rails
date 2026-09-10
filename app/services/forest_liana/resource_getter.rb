@@ -59,14 +59,12 @@ module ForestLiana
       end
     end
 
-    # NOTICE: A projection naming a Smart Field is dropped: computing one may read any column of
-    #         the record, as ResourcesGetter#perform already assumes for the list.
+    # NOTICE: A projection naming an undeclared Smart Field is dropped: computing one may read
+    #         any column of the record, as ResourcesGetter#perform already assumes for the list.
+    #         A Smart Field whose every dependency is declared, on a collection where every one of
+    #         them is, is safe to narrow instead — compute_select_fields adds the columns it needs.
     def project?
-      projection? && !smart_field_requested?
-    end
-
-    def smart_field_requested?
-      @field_names_requested.any? { |field| ForestLiana::SchemaHelper.is_smart_field?(@resource, field.to_s) }
+      projection? && @collection.smart_fields_projectable?(@field_names_requested)
     end
   end
 end
