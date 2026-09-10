@@ -8,10 +8,14 @@ module ForestLiana
 
     rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
 
+    # NOTICE: index covers the list and the CSV export, show the get-one. Every other action
+    #         here answers no projection, count included.
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: :count
+      before_filter :apply_projection_header, only: [:index, :show]
     else
       before_action :find_resource, except: :count
+      before_action :apply_projection_header, only: [:index, :show]
     end
 
     def index
@@ -84,7 +88,7 @@ module ForestLiana
         getter = ForestLiana::ResourceGetter.new(@resource, params, forest_user)
         getter.perform
 
-        render serializer: nil, json: render_record_jsonapi(getter.record)
+        render serializer: nil, json: render_record_jsonapi(getter.record, getter)
       rescue ActiveRecord::RecordNotFound
         render serializer: nil, json: { status: 404 }, status: :not_found
       rescue => error
@@ -218,13 +222,20 @@ module ForestLiana
       is_sti_model? ? record.becomes(@resource) : record
     end
 
-    def render_record_jsonapi record
-      # `show`/`create`/`update` never read `params[:fields]` — every field this route serves is
-      # therefore part of the default expansion, not something the caller named.
-      fields_to_serialize = redact_fields(forest_user, @resource, default_fields_to_serialize(@resource, record_includes), named_collections: [])
+    # NOTICE: create and update answer with the whole record: they carry no projection, so the
+    #         getter is absent and every field is part of the default expansion, not something the
+    #         caller named. show passes a getter; a field named through the projection header is
+    #         refused rather than redacted if unreadable, same as index's own render_jsonapi below.
+    def render_record_jsonapi record, getter = nil
+      requested_fields = getter&.projection? ? fields_per_model(params[:fields], @resource) : nil
+      fields_to_serialize = redact_fields(
+        forest_user, @resource,
+        requested_fields || default_fields_to_serialize(@resource, record_includes),
+        named_collections: requested_fields ? requested_fields.keys : []
+      )
 
       serialize_model(get_record(record), {
-        include: record_includes,
+        include: requested_fields ? getter.includes_for_serialization : record_includes,
         fields: fields_to_serialize
       })
     end

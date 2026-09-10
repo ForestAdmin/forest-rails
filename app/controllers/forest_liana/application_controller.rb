@@ -4,6 +4,7 @@ require 'csv'
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
     rescue_from ForestLiana::Ability::Exceptions::AccessDenied, with: :render_error
+    rescue_from ForestLiana::Errors::HTTP400Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP403Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
@@ -112,6 +113,51 @@ module ForestLiana
     end
 
     private
+
+    # NOTICE: Header-then-query fallback, decided here and nowhere else: the header is rewritten
+    #         into params[:fields], so every route keeps reading the projection it always read
+    #         and the header wins over the query params without any route knowing about it.
+    #
+    #         Declared as a before_action by the routes that project, and by them only: a count,
+    #         a stats or a write carries no projection, must not have its params rewritten by a
+    #         header meant for the list next to it, and must not answer a 400 for one. The same
+    #         rule as agent-nodejs, whose own suite pins the header ignored on count.
+    def apply_projection_header
+      header = request.headers[ForestLiana::ProjectionParser::HEADER_NAME]
+      return if header.nil?
+
+      root_model = projection_root_model
+      # NOTICE: An unresolvable collection is left to the route, which answers its own 404.
+      return if root_model.nil?
+
+      fields = ForestLiana::ProjectionParser.new(header, ForestLiana.name_for(root_model)).perform
+      params[:fields] = ActionController::Parameters.new(fields)
+    rescue ForestLiana::Errors::ExpectedError
+      # NOTICE: The deliberate 400 on a malformed header, which render_error answers.
+      raise
+    rescue => error
+      FOREST_REPORTER.report error
+      FOREST_LOGGER.error "Forest-Projection header error: #{error}\n#{format_stacktrace(error)}"
+      internal_server_error
+    end
+
+    # NOTICE: A projection is rooted on the collection the records come from, which is the
+    #         association target on the relationships routes, not the collection in the URL.
+    def projection_root_model
+      return nil if params[:collection].blank?
+
+      model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collection])
+      return nil unless model.respond_to?(:reflect_on_association)
+      return model if params[:association_name].blank?
+
+      association = model.reflect_on_association(params[:association_name].to_sym)
+      # NOTICE: klass raises on a polymorphic reflection, and this runs in a before_action: the
+      #         guard is what keeps a 500 from replacing the 404 the route answers on its own. A
+      #         relationships index rejects a belongs_to, which a polymorphic relation always is.
+      return nil if association.nil? || ForestLiana::SchemaUtils.polymorphic?(association)
+
+      association.klass
+    end
 
     def render_error(exception)
       errors = {
