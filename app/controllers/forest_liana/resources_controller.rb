@@ -31,7 +31,8 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError => error
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
         # A CSV request already has its response Content-Type/Content-Disposition set by the
         # respond_to format match before this rescue ever runs — force JSON back, or the client
         # downloads a ".csv" file whose content is this JSON error.
@@ -68,6 +69,14 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
+        render(serializer: nil, json: { errors: [{
+          status: error.error_code,
+          detail: error.message,
+          name: error.name,
+          data: error.data
+        }] }, status: error.status)
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -181,6 +190,13 @@ module ForestLiana
         end
       rescue ActiveRecord::RecordNotDestroyed => error
         render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"

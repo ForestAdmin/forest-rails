@@ -1,5 +1,7 @@
 module ForestLiana
   class SearchQueryBuilder
+    include ForestLiana::Ability::Permission
+
     REGEX_UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
     attr_reader :fields_searched
@@ -20,7 +22,9 @@ module ForestLiana
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       @records = search_param
 
-      filters = ForestLiana::ScopeManager.append_scope_for_user(@params[:filters], @user, @collection.name)
+      caller_filter = @params[:filters].present? ? ForestLiana::ScopeManager.inject_context_variables(@params[:filters], @user) : nil
+      assert_can_read_query_fields(@user, root_model, filter_paths: FiltersParser.field_paths(caller_filter))
+      filters = ForestLiana::ScopeManager.append_scope(caller_filter, @user, @collection.name)
 
       unless filters.blank?
         @records = FiltersParser.new(filters, @records, @params[:timezone]).apply_filters
@@ -175,12 +179,19 @@ module ForestLiana
 
     end
 
+    # Recorded here, checked separately by +assert_sort_readable!+: a count route runs this same
+    # parsing (Rails strips the ORDER BY from the emitted COUNT SQL on its own) but must not refuse
+    # a sort it never actually applies, so the two are split rather than checked inline.
     def sort_query
+      @sort_field_paths = []
+
       if @params[:sort]
         @params[:sort].split(',').each do |field|
           order_detected = detect_sort_order(field)
           order = order_detected.upcase
           field.slice!(0) if order_detected == :desc
+
+          @sort_field_paths << sort_field_path(field)
 
           field = detect_reference(field)
           if field.index('.').nil?
@@ -216,6 +227,10 @@ module ForestLiana
       return (if field[0] == '-' then :desc else :asc end)
     end
 
+    def assert_sort_readable!(user, root_model)
+      assert_can_read_query_fields(user, root_model, sort_paths: @sort_field_paths || [])
+    end
+
     def association_search_condition table_name, column_name
       column_name = format_column_name(table_name, column_name)
       "LOWER(#{column_name}) LIKE :search_value_for_string"
@@ -242,6 +257,22 @@ module ForestLiana
 
       @search.match?(/\A[0-9a-f]+-[0-9a-f]+-[0-9a-f]+-[0-9a-f]+-[0-9a-f]+\z/i) &&
         !REGEX_UUID.match?(@search)
+    end
+
+    # Mirrors detect_reference's own `ref, field = param.split('.')` destructuring: a path deeper
+    # than one relation silently drops everything past the second segment there, so the same
+    # truncation is checked here — checking more than what actually reaches the query would refuse
+    # a request the extra segments never touch.
+    def sort_field_path(field)
+      head, dot, tail = field.partition('.')
+
+      dot.empty? ? head : "#{head}:#{tail.split('.').first}"
+    end
+
+    # `@resource` is either the model class (ResourcesGetter) or an already-scoped
+    # Relation/CollectionProxy (HasManyGetter) — FieldPath needs the class either way.
+    def root_model
+      @resource.respond_to?(:klass) ? @resource.klass : @resource
     end
   end
 end

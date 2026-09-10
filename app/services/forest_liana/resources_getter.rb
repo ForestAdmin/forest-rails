@@ -30,7 +30,12 @@ module ForestLiana
       filter_excluded_ids(ids, attributes[:all_records_ids_excluded])
     end
 
+    def assert_sort_readable!
+      @search_query_builder.assert_sort_readable!(@user, @resource)
+    end
+
     def perform
+      assert_sort_readable!
       polymorphic_association, preload_loads = analyze_associations(@resource)
       includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
       has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
@@ -158,7 +163,10 @@ module ForestLiana
 
       conditions = []
 
-      if filters.is_a?(Hash) && filters.key?('conditions')
+      # A non-Array `conditions` (a malformed aggregator node) is left out rather than iterated:
+      # Hash#each would yield [key, value] pairs, and condition['field'] on one raises a TypeError
+      # instead of letting FiltersParser's own ensure_valid_aggregation answer its usual 422.
+      if filters.is_a?(Hash) && filters['conditions'].is_a?(Array)
         conditions = filters['conditions']
       elsif filters.is_a?(Hash) && filters.key?('field')
         conditions = [filters]
@@ -228,12 +236,20 @@ module ForestLiana
       attributes.merge(attributes[:all_records_subset_query].dup.to_unsafe_h)
     end
 
+    # query_for_batch below serves @base_records_for_batch/@records as built by the constructor,
+    # never by #perform — but #perform is the only thing that used to call assert_sort_readable!,
+    # so every other caller of get_ids_from_request (destroy_bulk, a select-all dissociate, a
+    # smart action's select-all) carried a sort param past this guard entirely.
     def self.initialize_resources_getter(attributes, user)
-      if related_data?(attributes)
-        HasManyGetter.new(*related_data_params(attributes, user))
-      else
-        ResourcesGetter.new(SchemaUtils.find_model_from_collection_name(attributes[:collection_name]), attributes, user)
-      end
+      resources_getter =
+        if related_data?(attributes)
+          HasManyGetter.new(*related_data_params(attributes, user))
+        else
+          ResourcesGetter.new(SchemaUtils.find_model_from_collection_name(attributes[:collection_name]), attributes, user)
+        end
+
+      resources_getter.assert_sort_readable!
+      resources_getter
     end
 
     def self.related_data?(attributes)

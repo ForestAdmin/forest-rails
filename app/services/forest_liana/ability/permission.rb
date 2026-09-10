@@ -139,6 +139,31 @@ module ForestLiana
         redacted
       end
 
+      # Refused rather than redacted, unlike +redact_fields+: dropping a filter condition widens
+      # the result set, and dropping a sort clause silently reorders it. +root_model+ is pinned
+      # readable — +browse+/+read+ already gate it upstream — so it is never itself a refusal.
+      def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [])
+        root_name = ForestLiana.name_for(root_model)
+
+        usages = filter_paths.map { |path| query_usage('filter on', root_model, path) } +
+                 sort_paths.map { |path| { action: 'sort on', path: path, collections: query_target_collections(root_model, path) } }
+
+        return if usages.empty?
+
+        # root_name is pinned readable above already; leaving it in would make a denial for it
+        # (the only way it could ever appear in usages: an owner resolves back to the root itself)
+        # trigger read_permissions' retry-on-denial refetch on every single request.
+        allowed = read_permissions(user, usages.flat_map { |usage| usage[:collections] }.uniq - [root_name]).merge(root_name => true)
+        readable_collection_names = allowed.filter_map { |name, ok| name if ok }
+
+        denied = usages.find { |usage| !FieldPath.readable_leaves?(usage[:collections], readable_collection_names) }
+        return unless denied
+
+        raise ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError.new(
+          denied[:action], denied[:path], denied[:collections]
+        )
+      end
+
       def is_chart_authorized?(user, parameters)
         parameters = parameters.to_h
         parameters.delete('timezone')
@@ -277,6 +302,19 @@ module ForestLiana
         forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
 
         forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
+      end
+
+      # Both FiltersParser and sort_query/detect_reference treat segment 2 as a plain column of
+      # segment 1's collection, never recursing further — resolving the full path would recurse
+      # past segment 1 whenever segment 2 also happens to name a real association, checking a
+      # collection neither a filter nor a sort ever actually reaches. partition (not split) so an
+      # empty or colon-only path resolves to '' (the root, pinned readable) instead of nil.
+      def query_target_collections(root_model, path)
+        resolve_owner(root_model, path.partition(':').first)
+      end
+
+      def query_usage(action, root_model, path)
+        { action: action, path: path, collections: query_target_collections(root_model, path) }
       end
     end
   end

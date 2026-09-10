@@ -30,6 +30,83 @@ module ForestLiana
       Island.destroy_all
     }
 
+    describe '.field_paths' do
+      it 'answers an empty list for a blank filter' do
+        expect(described_class.field_paths(nil)).to eq([])
+      end
+
+      it 'answers the single field of a leaf condition' do
+        expect(described_class.field_paths(presence_condition)).to eq(['name'])
+      end
+
+      # A malformed leaf must reach FiltersParser#ensure_valid_condition's own 422, not crash a
+      # caller that expects every path to be a String (FieldPath in particular).
+      it 'leaves out a leaf with no field, rather than answering a nil path' do
+        expect(described_class.field_paths({ 'operator' => 'equal', 'value' => 'x' })).to eq([])
+      end
+
+      it 'leaves out a leaf whose field is not a String' do
+        expect(described_class.field_paths({ 'field' => ['name'], 'operator' => 'equal', 'value' => 'x' })).to eq([])
+      end
+
+      # A non-Hash node (a top-level `filters=[]`, say) must reach ensure_valid_aggregation's own
+      # 422 once apply_filters runs, not crash here on node['aggregator'] first.
+      it 'answers an empty list for a non-Hash filter' do
+        expect(described_class.field_paths([])).to eq([])
+        expect(described_class.field_paths('foo')).to eq([])
+      end
+
+      it 'keeps the valid leaves of an aggregation that also has a malformed one' do
+        filters = {
+          'aggregator' => 'and',
+          'conditions' => [{ 'operator' => 'equal', 'value' => 'x' }, presence_condition]
+        }
+
+        expect(described_class.field_paths(filters)).to eq(['name'])
+      end
+
+      # A non-Array `conditions` (a raw Hash, here) must reach ensure_valid_aggregation's own
+      # 422 the same way a malformed leaf reaches ensure_valid_condition's — not crash this guard
+      # with a bare Hash#each yielding [key, value] pairs where a condition Hash is expected.
+      it 'answers an empty list for an aggregation whose conditions is not an Array' do
+        filters = { 'aggregator' => 'and', 'conditions' => { 'field' => 'name' } }
+
+        expect(described_class.field_paths(filters)).to eq([])
+      end
+
+      it 'answers an empty list for an aggregation whose conditions is nil' do
+        filters = { 'aggregator' => 'and', 'conditions' => nil }
+
+        expect(described_class.field_paths(filters)).to eq([])
+      end
+
+      it 'answers an empty list for a malformed aggregation nested inside a well-formed one' do
+        filters = {
+          'aggregator' => 'and',
+          'conditions' => [presence_condition, { 'aggregator' => 'or', 'conditions' => { 'field' => 'name' } }]
+        }
+
+        expect(described_class.field_paths(filters)).to eq(['name'])
+      end
+
+      it 'answers every leaf field of a deeply nested aggregation' do
+        filters = {
+          'aggregator' => 'or',
+          'conditions' => [
+            {
+              'aggregator' => 'and', 'conditions' => [
+                { 'aggregator' => 'or', 'conditions' => [date_condition_1, simple_condition_1] },
+                simple_condition_2
+              ]
+            },
+            belongs_to_condition
+          ]
+        }
+
+        expect(described_class.field_paths(filters)).to eq(%w[created_at name name trees:age])
+      end
+    end
+
     describe 'apply_filters' do
       let(:parsed_filters) { filter_parser.apply_filters }
 
