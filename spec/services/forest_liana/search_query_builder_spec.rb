@@ -34,6 +34,20 @@ module ForestLiana
         end
       end
 
+      context 'when the malformed UUID also happens to match a real id' do
+        # Starts with digits, so #to_i produces a real integer-id condition alongside the
+        # suppressed LIKE scans — malformed_uuid_search? only ever suppressed the latter, so this
+        # match must still be served, not discarded by the search being UUID-shaped.
+        let(:params) { { search: "#{tree.id.to_s.rjust(8, '0')}-1234-9abc-1234-1234567890ab", searchExtended: '0' } }
+        let!(:tree) { Tree.create!(name: 'Oak') }
+
+        after { Tree.destroy_all }
+
+        it 'still serves the id match' do
+          expect(builder.perform(Tree.all).pluck(:id)).to eq([tree.id])
+        end
+      end
+
       context 'when searchExtended is on and the search is a malformed UUID' do
         # HashWithIndifferentAccess: the code reads @params['searchExtended'] (string).
         let(:params) do
@@ -333,6 +347,31 @@ module ForestLiana
 
         it 'answers no records rather than silently falling through to the unfiltered table' do
           expect(builder.perform(Tree.all).count).to eq(0)
+        end
+      end
+
+      context 'when one declared lambda raises and a later one succeeds' do
+        # @search_constrained only ever moves false -> true, never reset — an earlier lambda's
+        # failure must not un-set what a later one's success already established.
+        before do
+          Tree.create!(name: 'Oak')
+          allow(ForestLiana).to receive(:schema_for_resource).and_return(
+            ForestLiana::Model::Collection.new(
+              name: 'Tree',
+              fields: [
+                { field: :first, type: 'String', search: ->(_query, _search) { raise 'boom' } },
+                { field: :second, type: 'String', search: ->(query, _search) { query } }
+              ]
+            )
+          )
+          allow(FOREST_REPORTER).to receive(:report)
+          allow(FOREST_LOGGER).to receive(:error)
+        end
+
+        after { Tree.destroy_all }
+
+        it 'is served, since the later lambda still constrained the query' do
+          expect(builder.perform(Tree.all).to_sql).not_to match(/\bWHERE\b/i)
         end
       end
     end

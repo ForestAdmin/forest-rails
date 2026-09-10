@@ -71,11 +71,12 @@ module ForestLiana
           end
         end
 
-        # A malformed-UUID search is emptied unconditionally: its rationale (LIKE scans that could
-        # hit the statement timeout, and never serving the whole table for a mistyped UUID) holds
-        # even when a lambda ran. Otherwise, nothing having constrained the query — no column, tag,
-        # association or lambda — is the one case left to fall through to the unfiltered table.
-        @records = @records.none if malformed_uuid_search? || !@search_constrained
+        # malformed_uuid_search? needs no separate check here: every LIKE-scan branch above already
+        # excludes itself on it (the only condition it ever suppressed), so it can never be the
+        # reason @search_constrained is true — an id/enum/tag exact match or a lambda still can be,
+        # and must still be served. Nothing having constrained the query at all is the one case
+        # left to fall through to the unfiltered table.
+        @records = @records.none unless @search_constrained
       end
 
       @records = sort_query
