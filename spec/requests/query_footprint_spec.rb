@@ -179,7 +179,7 @@ describe 'SQL footprint of a front call', type: :request do
 
     after { Tree.destroy_all; Owner.destroy_all }
 
-    it 'reads the relation once per row and loads every column of the root' do
+    it 'reads the relation once per row and narrows the root select to what was actually requested' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Owner', params: params, headers: headers
         expect(response).to have_http_status(200)
@@ -189,7 +189,11 @@ describe 'SQL footprint of a front call', type: :request do
       expect(result.per_row_delta).to eq(1)
       expect(result.per_row_delta(table: 'trees')).to eq(1)
       expect(join_count(result.grown, 'trees')).to eq(0)
-      expect(selects_from(result.grown, 'owners').first).to include('"owners".*')
+      # tree_names now declares dependencies: (['trees:name'], a relation path this ticket doesn't
+      # add to the select - PRD-1089's concern) so Owner is projectable; `name` is narrowed to
+      # because the request names it directly, same as any other requested column.
+      expect(selects_from(result.grown, 'owners').first).not_to include('"owners".*')
+      expect(selects_from(result.grown, 'owners').first).to include(column_ref('owners', 'name'))
     end
   end
 
