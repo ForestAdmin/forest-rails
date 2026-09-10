@@ -1,11 +1,15 @@
 module ForestLiana
   class AssociationsController < ForestLiana::ApplicationController
+    # NOTICE: index covers the relationship list and its CSV export. count answers no
+    #         projection, and update/associate/dissociate none either.
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: :count
       before_filter :find_association, except: :count
+      before_filter :apply_projection_header, only: :index
     else
       before_action :find_resource, except: :count
       before_action :find_association, except: :count
+      before_action :apply_projection_header, only: :index
     end
 
     def index
