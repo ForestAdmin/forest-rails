@@ -54,21 +54,23 @@ module ForestLiana
         preloader = ActiveRecord::Associations::Preloader.new(records: records, associations: associations)
         preloader.loaders
         preloader.branches.each do |branch|
-          branch.loaders.each { |loader| assign_preloaded_targets(records, branch.association, loader.records_by_owner) }
+          branch.loaders.each { |loader| assign_preloaded_targets(branch.association, loader.records_by_owner) }
         end
       else
         associations.each do |association|
           ActiveRecord::Associations::Preloader.new.preload(records, association).each do |loader|
-            assign_preloaded_targets(records, association, loader.records_by_owner)
+            assign_preloaded_targets(association, loader.records_by_owner)
           end
         end
       end
     end
 
-    def assign_preloaded_targets(records, association_name, records_by_owner)
+    # records_by_owner's keys are the exact objects the Preloader was given, not copies — no need
+    # to re-find them by id, which would also mis-assign on a nil or duplicate id (composite
+    # primary keys are supported elsewhere in this gem).
+    def assign_preloaded_targets(association_name, records_by_owner)
       records_by_owner.each do |record, target|
-        record_index = records.find_index { |r| r.id == record.id }
-        records[record_index].define_singleton_method(association_name) { target.first }
+        record.define_singleton_method(association_name) { target.first }
       end
     end
 
@@ -116,6 +118,13 @@ module ForestLiana
       #         JoinDependency override, which runs when the query really eager loads; it would
       #         otherwise reach the SQL as a column name.
       records.eager_loading? ? records.select(*select) : records.select(*select.drop(1))
+    end
+
+    # count may never have run #perform on this instance (it builds its own getter and calls
+    # #count directly) — falls back to @records, the filtered-but-unprojected query prepare_query
+    # already built, so a narrowed multi-column select is never handed to COUNT.
+    def unprojected_records
+      @unprojected_records || @records
     end
 
     # NOTICE: joined_relations names the relations this query joins, and so the only ones whose
@@ -176,6 +185,19 @@ module ForestLiana
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
 
         active_storage_associations_processed.add(association.name)
+      end
+
+      # preload_polymorphic_associations reads a polymorphic association's own foreign_type
+      # internally to resolve its target class, whether or not that association was itself
+      # requested as a projected field — @includes already carries every one it might preload
+      # (searchExtended widens it beyond @field_names_requested for exactly this reason), so this
+      # runs over @includes rather than only the requested subset the loop below covers.
+      @includes.each do |path|
+        association = path.is_a?(Symbol) ? projected_resource.reflect_on_association(path) : get_one_association(path)
+        next unless association && SchemaUtils.polymorphic?(association)
+
+        select << "#{projected_resource.table_name}.#{association.foreign_type}"
+        select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
       end
 
       @field_names_requested.each do |path|
@@ -263,11 +285,23 @@ module ForestLiana
       end
 
       # A requested Smart Field's own declared columns — never its relation paths, which name a
-      # relation to preload rather than a column this select could name (PRD-1089's concern, not
-      # this one's). project? already refused this whole projection unless every computed Smart
-      # Field on the collection declares, so a requested-but-undeclared one can't reach here.
+      # relation to preload rather than a column this select could name (unimplemented today).
+      # project? already refused this whole projection unless every computed Smart Field on the
+      # collection declares, so a requested-but-undeclared one can't reach here.
       @collection.smart_field_dependency_columns(@field_names_requested).each do |column_name|
         select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
+      end
+
+      # A relation path's own preload is unimplemented today — but a belongs_to's
+      # foreign key still has to be selected here, or reading the association at all (before ever
+      # reaching the column beyond it) already raises on this record's own missing FK. get_one_
+      # association answers nil for a has_many first hop (e.g. trees:name) — select_foreign_keys
+      # only ever acts on belongs_to/has_one anyway, so that case is a no-op here, correctly.
+      @collection.smart_field_dependency_relation_paths(@field_names_requested).each do |relation_path|
+        association = get_one_association(relation_path.relations.first)
+        next unless association
+
+        select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
       end
 
       select.uniq

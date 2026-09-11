@@ -189,9 +189,9 @@ describe 'SQL footprint of a front call', type: :request do
       expect(result.per_row_delta).to eq(1)
       expect(result.per_row_delta(table: 'trees')).to eq(1)
       expect(join_count(result.grown, 'trees')).to eq(0)
-      # tree_names now declares dependencies: (['trees:name'], a relation path this ticket doesn't
-      # add to the select - PRD-1089's concern) so Owner is projectable; `name` is narrowed to
-      # because the request names it directly, same as any other requested column.
+      # tree_names now declares dependencies: (['trees:name'], a relation path that adds nothing
+      # to the select — its own preload is unimplemented today) so Owner is projectable; `name`
+      # is narrowed to because the request names it directly, same as any other requested column.
       expect(selects_from(result.grown, 'owners').first).not_to include('"owners".*')
       expect(selects_from(result.grown, 'owners').first).to include(column_ref('owners', 'name'))
     end
@@ -229,6 +229,22 @@ describe 'SQL footprint of a front call', type: :request do
       # Rails::VERSION::MAJOR.
       expect(result.per_row_delta).to eq(0)
       expect(selects_from(result.grown, 'users').size).to eq(1)
+    end
+  end
+
+  describe 'a projected list with extended search, on a collection with a polymorphic relation the request never names' do
+    let!(:resident) { User.create!(name: 'resident') }
+    let!(:address) { Address.create!(line1: '1 Main St', city: 'Town', zipcode: '00000', addressable: resident) }
+
+    after { Address.destroy_all; User.destroy_all }
+
+    it "still selects the polymorphic association's own foreign_type, needed to preload it even though it was never requested" do
+      params = { fields: { 'Address' => 'id,line1' }, page: page, searchExtended: '1', timezone: 'Europe/Paris' }
+
+      get '/forest/Address', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(listed_rows).to eq(1)
     end
   end
 end

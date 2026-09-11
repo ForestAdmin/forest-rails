@@ -30,17 +30,6 @@ module ForestLiana
       end
     end
 
-    # Never actually raised by SmartFieldDependencies.validate! today, which warns and degrades
-    # to undeclared instead (an invalid dependency is a developer mistake worth surfacing loudly
-    # in the logs, but not worth crashing every request on) — kept for the same shape every other
-    # Smart*InvalidFieldError in this file has, and for a caller that wants to raise explicitly.
-    class SmartFieldInvalidDependencyError < StandardError
-      def initialize(field_name=nil, collection_name=nil, dependency=nil)
-        super("Invalid dependency \"#{dependency}\" declared on field \"#{field_name}\" of the " \
-          "\"#{collection_name}\" collection.")
-      end
-    end
-
     class AuthenticationOpenIdClientException < StandardError
       attr_reader :error, :error_description, :state
 

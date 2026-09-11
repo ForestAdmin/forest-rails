@@ -82,13 +82,11 @@ class ForestLiana::Model::Collection
     computed_smart_fields.all? { |field| field.key?(:dependencies) }
   end
 
-  def smart_fields_projectable?(field_names)
-    return false unless smart_field_dependencies_declared?
-
-    requested_names = field_names.map(&:to_s)
-    computed_smart_fields
-      .select { |field| requested_names.include?(field[:field].to_s) }
-      .all? { |field| field.key?(:dependencies) }
+  # All-or-nothing, deliberately: an undeclared computed smart field poisons projection for the
+  # whole collection even when the request never names it (smart_field_dependencies_declared?
+  # already checks every one of them) — there is no per-request subset to narrow to here.
+  def smart_fields_projectable?
+    smart_field_dependencies_declared?
   end
 
   def smart_field_dependency_columns(field_names)
@@ -96,6 +94,14 @@ class ForestLiana::Model::Collection
     computed_smart_fields
       .select { |field| requested_names.include?(field[:field].to_s) }
       .flat_map { |field| ForestLiana::SmartFieldDependencies.for(field).columns }
+      .uniq
+  end
+
+  def smart_field_dependency_relation_paths(field_names)
+    requested_names = field_names.map(&:to_s)
+    computed_smart_fields
+      .select { |field| requested_names.include?(field[:field].to_s) }
+      .flat_map { |field| ForestLiana::SmartFieldDependencies.for(field).relation_paths }
       .uniq
   end
 end

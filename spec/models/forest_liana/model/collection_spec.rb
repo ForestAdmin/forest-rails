@@ -54,14 +54,12 @@ module ForestLiana
           ])
         end
 
-        it 'is true for a fully-declared collection, whatever is requested' do
-          expect(declared_collection.smart_fields_projectable?(['cap_name'])).to be true
-          expect(declared_collection.smart_fields_projectable?([])).to be true
+        it 'is true for a fully-declared collection' do
+          expect(declared_collection.smart_fields_projectable?).to be true
         end
 
         it 'is false for a collection with any undeclared computed smart field, even when the request never names it' do
-          expect(mixed_collection.smart_fields_projectable?(['cap_name'])).to be false
-          expect(mixed_collection.smart_fields_projectable?([])).to be false
+          expect(mixed_collection.smart_fields_projectable?).to be false
         end
       end
 

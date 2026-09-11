@@ -269,6 +269,33 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       expect(selected).not_to include('"trees"."age"')
       expect(selected).not_to include('JOIN "users"')
     end
+
+    # A different mechanism from the Forest-Projection header above: fields[] driven, narrows only
+    # when every computed Smart Field the target collection carries declares dependencies:.
+    it "narrows the relationship route's own select when the target collection is fully declared" do
+      selected = selects_of('trees') do
+        get "/forest/Island/#{@island.id}/relationships/trees",
+          params: list_params.merge(fields: { 'Tree' => 'id,name' }), headers: auth_headers
+      end
+
+      expect(selected).to include('"trees"."name"')
+      expect(selected).not_to include('"trees"."age"')
+      expect(selected).not_to include('"trees".*')
+    end
+
+    it 'still counts and lists correctly once the target collection is narrowed' do
+      get "/forest/Island/#{@island.id}/relationships/trees/count",
+        params: { fields: { 'Tree' => 'id,name' } }, headers: auth_headers
+
+      expect(response.status).to eq 200
+      expect(body['count']).to eq(1)
+
+      get "/forest/Island/#{@island.id}/relationships/trees",
+        params: list_params.merge(fields: { 'Tree' => 'id,name' }), headers: auth_headers
+
+      expect(response.status).to eq 200
+      expect(body['data'].size).to eq(1)
+    end
   end
 
   # NOTICE: A path ending on a polymorphic relation carries no discriminant, so its targets are

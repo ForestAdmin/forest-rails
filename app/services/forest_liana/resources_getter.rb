@@ -132,12 +132,9 @@ module ForestLiana
 
     private
 
-    # NOTICE: A projection naming an undeclared Smart Field is dropped: computing one may read
-    #         any column of the record. A Smart Field whose every dependency is declared, on a
-    #         collection where every one of them is, is safe to narrow instead —
-    #         compute_select_fields adds the columns it needs.
+    # See Model::Collection#smart_fields_projectable? for why this is all-or-nothing per collection.
     def project?
-      projection? && @collection.smart_fields_projectable?(@fields_to_serialize)
+      projection? && @collection.smart_fields_projectable?
     end
 
     def get_fields_to_serialize
@@ -202,13 +199,6 @@ module ForestLiana
 
     def optimized_count
       optimize_record_loading(@resource, unprojected_records).count
-    end
-
-    # perform may never have run on this instance (the count HTTP action builds its own getter
-    # and calls #count directly) — falls back to @records, the filtered-but-unselected query
-    # prepare_query already built.
-    def unprojected_records
-      @unprojected_records || @records
     end
 
     def apply_segment(records)

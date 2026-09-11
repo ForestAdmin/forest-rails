@@ -31,9 +31,7 @@ module ForestLiana
     def perform
       assert_sort_readable!
       # Captured even on the early return: a `.select` naming more than one column makes Rails
-      # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection
-      # instead — count builds its own getter today and never calls perform, so this is a guard
-      # against that changing, not a live gap.
+      # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection.
       @unprojected_records = @records
       return @records unless project?
 
@@ -130,24 +128,15 @@ module ForestLiana
       Array(fields&.split(',')).map(&:to_sym)
     end
 
-    # NOTICE: A projection naming an undeclared Smart Field is dropped: computing one may read
-    #         any column of the record, as ResourcesGetter#perform already assumes for the list.
-    #         A Smart Field whose every dependency is declared, on a collection where every one of
-    #         them is, is safe to narrow instead — compute_select_fields adds the columns it needs.
+    # See Model::Collection#smart_fields_projectable? for why this is all-or-nothing per collection.
     def project?
       return false if @field_names_requested.empty?
 
-      @collection.smart_fields_projectable?(@field_names_requested)
+      @collection.smart_fields_projectable?
     end
 
     def projected_resource
       model_association
-    end
-
-    # perform may never have run on this instance (count builds its own getter) — falls back to
-    # @records, the filtered-but-unprojected query prepare_query already built.
-    def unprojected_records
-      @unprojected_records || @records
     end
 
     def model_association
