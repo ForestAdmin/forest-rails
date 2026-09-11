@@ -140,8 +140,10 @@ module ForestLiana
       end
 
       # Refused rather than redacted, unlike +redact_fields+: dropping a filter condition widens
-      # the result set, and dropping a sort clause silently reorders it. +root_model+ is pinned
-      # readable — +browse+/+read+ already gate it upstream — so it is never itself a refusal.
+      # the result set, dropping a sort clause silently reorders it, and dropping a search term
+      # still leaks a bit — whether narrowing occurred is itself a signal about a column the
+      # caller cannot read. +root_model+ is pinned readable — +browse+/+read+ already gate it
+      # upstream — so it is never itself a refusal.
       def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [], search_paths: [])
         root_name = ForestLiana.name_for(root_model)
 
