@@ -377,11 +377,11 @@ module ForestLiana
           expect(builder.perform(Tree.all).count).to eq(1)
         end
 
-        # The regression a review round caught: a no-op lambda (one that returns its query
-        # untouched) sets @lambda_contributed without actually filtering anything - a
-        # malformed-UUID search must still be emptied here, the same as it would be with no lambda
-        # declared at all. Distinct from the sibling test above, which is an *ordinary* search term
-        # + a no-op lambda, correctly served since nothing there was ever suppressed to begin with.
+        # A no-op lambda (one that returns its query untouched) sets @lambda_contributed without
+        # actually filtering anything — a malformed-UUID search must still be emptied here, the
+        # same as it would be with no lambda declared at all. Distinct from the sibling test
+        # above, which is an *ordinary* search term + a no-op lambda, correctly served since
+        # nothing there was ever suppressed to begin with.
         context 'when the search term is also malformed-UUID-shaped' do
           let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
 
@@ -391,12 +391,12 @@ module ForestLiana
           end
         end
 
-        # The tradeoff a review round left explicitly unpinned: a lambda that
-        # genuinely narrows the query loses to a malformed-UUID-shaped term exactly like a no-op
-        # one does, since @lambda_contributed can't currently tell the two apart. Accepted rather
-        # than fixed here (closing it needs comparing the lambda's own before/after relation,
-        # a larger change than this regression fix) - pinned so it can't drift by accident, and
-        # logged in production (search_query_builder.rb) since nothing else would ever surface it.
+        # A known tradeoff: a lambda that genuinely narrows the query loses to a
+        # malformed-UUID-shaped term exactly like a no-op one does, since @lambda_contributed
+        # can't currently tell the two apart. Accepted rather than fixed here (closing it needs
+        # comparing the lambda's own before/after relation, a larger change than this regression
+        # fix) - pinned so it can't drift by accident, and logged in production
+        # (search_query_builder.rb) since nothing else would ever surface it.
         context 'when the search term is malformed-UUID-shaped but the lambda genuinely filters' do
           before do
             allow(ForestLiana).to receive(:schema_for_resource).and_return(

@@ -22,13 +22,12 @@ module ForestLiana
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       # Two different contributors, kept apart rather than folded into one flag: a lambda that
       # runs without raising isn't necessarily a lambda that filtered anything (one returning its
-      # query untouched pushes no condition, constrains nothing) — conflating the two let a
-      # malformed-UUID search past a no-op lambda serve the whole table, a real regression a
-      # review round caught. @conditions_pushed alone already proves a real constraint (not
-      # necessarily a matching row — a LIKE that matches nothing still pushed a condition, and
-      # still correctly answers none); malformed_uuid_search? only ever needs weighing against
-      # @lambda_contributed, since every LIKE-scan branch below already excludes itself on it and
-      # so can never be the reason @conditions_pushed is true.
+      # query untouched pushes no condition, constrains nothing). Conflating the two let a
+      # malformed-UUID search past a no-op lambda serve the whole table. @conditions_pushed alone
+      # already proves a real constraint (not necessarily a matching row — a LIKE that matches
+      # nothing still pushed a condition, and still correctly answers none); malformed_uuid_search?
+      # only ever needs weighing against @lambda_contributed, since every LIKE-scan branch below
+      # already excludes itself on it and so can never be the reason @conditions_pushed is true.
       @conditions_pushed = false
       @lambda_contributed = false
       @records = search_param
