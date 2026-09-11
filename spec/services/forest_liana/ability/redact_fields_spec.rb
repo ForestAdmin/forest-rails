@@ -193,10 +193,11 @@ module ForestLiana
             expect { dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: ['Tree']) }
               .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError) do |error|
                 expect(error.message).to eq(
-                  "You are not allowed to read 'island', which reaches the 'Island' collection — not " \
-                    'exposed to Forest Admin, so no role can be granted read on it until the collection is exposed.'
+                  "You are not allowed to read 'island' from the 'Island' collection (not exposed to Forest " \
+                    'Admin — no role can be granted read on it until it is exposed).'
                 )
-                expect(error.data[:unexposed]).to eq(['island'])
+                expect(error.data[:unexposed_fields]).to eq(['island'])
+                expect(error.data[:also_denied_fields]).to be_nil
               end
           end
 
@@ -205,6 +206,29 @@ module ForestLiana
 
             expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: []))
               .to eq({})
+          end
+        end
+
+        # Every real collection stays in the apimap here (only Island is rejected), unlike the
+        # describe block above — so 'owner' resolves to an exposed-but-denied User, not a second
+        # unexposed collection, and the two entries' differently-shaped clauses still join as one
+        # readable list.
+        it 'joins an unexposed denial and an ordinary one into one readable list' do
+          write_permissions('Tree' => true, 'User' => false)
+          allow(ForestLiana).to receive(:apimap).and_wrap_original do |original|
+            original.call.reject { |collection| collection.name.to_s == 'Island' }
+          end
+
+          expect do
+            dummy_class.redact_fields(user, Tree, { 'Tree' => 'island,owner' }, named_collections: ['Tree'])
+          end.to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError) do |error|
+            expect(error.message).to eq(
+              "You are not allowed to read 'island' from the 'Island' collection (not exposed to Forest " \
+                "Admin — no role can be granted read on it until it is exposed), 'owner' from the 'User' " \
+                'collection.'
+            )
+            expect(error.data[:unexposed_fields]).to eq(['island'])
+            expect(error.data[:also_denied_fields]).to be_nil
           end
         end
 
@@ -244,6 +268,32 @@ module ForestLiana
 
             expect(dummy_class.redact_fields(user, Address, { 'addressable' => 'name' }, named_collections: []))
               .to eq({})
+          end
+
+          it 'names a target that is merely denied alongside one that is unexposed, in the same error' do
+            write_permissions('Address' => true, 'User' => false)
+            Island.class_eval { has_many :addresses, as: :addressable }
+            allow(ForestLiana).to receive(:apimap).and_wrap_original do |original|
+              original.call.reject { |collection| collection.name.to_s == 'Island' }
+            end
+
+            expect { dummy_class.redact_fields(user, Address, { 'addressable' => 'name' }, named_collections: ['addressable']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError) do |error|
+                expect(error.message).to eq(
+                  "You are not allowed to read 'addressable' from the 'Island' collection (not exposed to " \
+                    "Forest Admin — no role can be granted read on it until it is exposed; once exposed, " \
+                    "the 'User' collection on the same path would still not be readable by this role)."
+                )
+                expect(error.data[:unexposed_fields]).to eq(['addressable'])
+                expect(error.data[:also_denied_fields]).to eq(['addressable'])
+              end
+          ensure
+            Island._reflections.delete('addresses')
+            Island._reflections.delete(:addresses)
+            Island.reflections.delete('addresses')
+            Island.reflections.delete(:addresses)
+            Island.clear_reflections_cache
+            %w[addresses addresses= address_ids address_ids=].each { |m| Island.undef_method(m) rescue nil }
           end
 
           it 'treats a relation with no declared target as denied' do

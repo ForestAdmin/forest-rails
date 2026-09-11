@@ -114,7 +114,7 @@ module ForestLiana
             if readable.call(entry[:owners][collection_key])
               acc[collection_key] = entry[:field_names].join(',')
             else
-              denied << denial_entry(collection_key, entry[:owners][collection_key]) if named
+              denied << denial_entry(collection_key, entry[:owners][collection_key], readable_collection_names) if named
             end
           else
             kept = entry[:field_names].select do |field_name|
@@ -125,7 +125,7 @@ module ForestLiana
                 # differs from root_name — prefix the message so it doesn't read as if 'field_name'
                 # were a bare field of the root.
                 display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
-                denied << denial_entry(field_name, entry[:owners][field_name], display_path) if named
+                denied << denial_entry(field_name, entry[:owners][field_name], readable_collection_names, display_path) if named
                 false
               end
             end
@@ -321,13 +321,19 @@ module ForestLiana
         ForestLiana.apimap.any? { |collection| collection.name.to_s == collection_name }
       end
 
-      # unexposed (present iff non-empty) tells UnauthorizedFieldsError which of these collections
-      # can never be granted read, same distinction assert_can_read_query_fields already makes.
-      def denial_entry(path, collections, display_path = nil)
+      # unexposed/also_denied (each present iff non-empty) tell UnauthorizedFieldsError which of
+      # these collections can never be granted read versus merely aren't readable by this role —
+      # same distinction, and same reason to keep both (a polymorphic path can fail on one of
+      # each at once), as UnexposedQueryCollectionError already makes for filter/sort/search.
+      def denial_entry(path, collections, readable_collection_names, display_path = nil)
         entry = { path: path, collections: collections }
         entry[:display_path] = display_path if display_path
         unexposed = collections.reject { |name| collection_exposed?(name) }
-        entry[:unexposed] = unexposed if unexposed.any?
+        if unexposed.any?
+          entry[:unexposed] = unexposed
+          also_denied = (collections - unexposed) - readable_collection_names
+          entry[:also_denied] = also_denied if also_denied.any?
+        end
         entry
       end
 
