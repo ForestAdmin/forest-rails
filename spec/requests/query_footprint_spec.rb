@@ -39,7 +39,6 @@ describe 'SQL footprint of a front call', type: :request do
         searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    after { Tree.destroy_all; User.destroy_all }
 
     it 'joins the relation once and reads nothing per row' do
       result = footprint(seed: seed) do |rows|
@@ -48,7 +47,7 @@ describe 'SQL footprint of a front call', type: :request do
         expect(listed_rows).to eq(rows)
       end
 
-      expect(result.per_row_delta).to eq(0)
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
       expect(selects_from(result.grown, 'trees').size).to eq(1)
       expect(join_count(result.grown, 'users')).to eq(1)
       expect(selects_from(result.grown, 'users')).to be_empty
@@ -75,7 +74,12 @@ describe 'SQL footprint of a front call', type: :request do
         page: page, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    after { Product.destroy_all; Manufacturer.destroy_all; Driver.destroy_all }
+    # The one cleanup kept: unlike a same-database model, whether transactional fixtures roll
+    # back the driver/user-role connection too isn't exercised anywhere else in this file, and
+    # this repo has already hit one Rails-version-specific multi-database config quirk (see the
+    # comment in spec/dummy/config/database.yml) — cheap insurance against a leak nothing else here
+    # would catch, on the one connection whose rollback behavior is genuinely less proven.
+    after { Driver.destroy_all }
 
     it 'joins the same-database relation, never joins the other database, and reads it per row' do
       result = footprint(seed: seed) do |rows|
@@ -87,7 +91,7 @@ describe 'SQL footprint of a front call', type: :request do
       expect(join_count(result.grown, 'manufacturers')).to eq(1)
       expect(join_count(result.grown, 'drivers')).to eq(0)
       expect(selects_from(result.grown, 'manufacturers')).to be_empty
-      expect(result.per_row_delta).to eq(1)
+      expect(result.per_row_delta).to eq(1), -> { result.delta_report }
       expect(result.per_row_delta(table: 'drivers')).to eq(1)
 
       sql = selects_from(result.grown, 'products').first
@@ -100,7 +104,7 @@ describe 'SQL footprint of a front call', type: :request do
   end
 
   describe 'a get-one' do
-    after { Product.destroy_all; Manufacturer.destroy_all; Driver.destroy_all }
+    after { Driver.destroy_all }
 
     it 'joins the same-database relation, reads the cross-database one once and loads every column' do
       manufacturer = Manufacturer.create!(name: 'maker')
@@ -136,7 +140,6 @@ describe 'SQL footprint of a front call', type: :request do
         searchExtended: '0', page: page, sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    after { Tree.destroy_all; User.destroy_all }
 
     it 'lists with one join and no per-row read' do
       result = footprint(seed: seed) do |rows|
@@ -145,7 +148,7 @@ describe 'SQL footprint of a front call', type: :request do
         expect(listed_rows).to eq(rows)
       end
 
-      expect(result.per_row_delta).to eq(0)
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
       expect(join_count(result.grown, 'users')).to eq(1)
     end
 
@@ -156,7 +159,7 @@ describe 'SQL footprint of a front call', type: :request do
         expect(JSON.parse(response.body)['count']).to eq(rows)
       end
 
-      expect(result.per_row_delta).to eq(0)
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
       expect(selects_from(result.grown, 'trees').size).to eq(1)
       expect(join_count(result.grown, 'users')).to eq(1)
       expect(selects_from(result.grown, 'trees').first).to match(/COUNT\(DISTINCT/)
@@ -177,7 +180,6 @@ describe 'SQL footprint of a front call', type: :request do
         sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    after { Tree.destroy_all; Owner.destroy_all }
 
     it 'reads the relation once per row and loads every column of the root' do
       result = footprint(seed: seed) do |rows|
@@ -186,7 +188,7 @@ describe 'SQL footprint of a front call', type: :request do
         expect(listed_rows).to eq(rows)
       end
 
-      expect(result.per_row_delta).to eq(1)
+      expect(result.per_row_delta).to eq(1), -> { result.delta_report }
       expect(result.per_row_delta(table: 'trees')).to eq(1)
       expect(join_count(result.grown, 'trees')).to eq(0)
       expect(selects_from(result.grown, 'owners').first).to include('"owners".*')
@@ -207,7 +209,6 @@ describe 'SQL footprint of a front call', type: :request do
         searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    after { Address.destroy_all; User.destroy_all }
 
     it 'never joins the target and resolves it per row on Rails 6, in one batch from Rails 7' do
       result = footprint(seed: seed) do |rows|
@@ -222,10 +223,10 @@ describe 'SQL footprint of a front call', type: :request do
       # The batch loader for polymorphic targets in ResourcesGetter#records is gated on Rails 7,
       # mirroring the same version fork the production code makes (resources_getter.rb).
       if Rails.gem_version >= Gem::Version.new('7.0')
-        expect(result.per_row_delta).to eq(0)
+        expect(result.per_row_delta).to eq(0), -> { result.delta_report }
         expect(selects_from(result.grown, 'users').size).to eq(1)
       else
-        expect(result.per_row_delta).to eq(1)
+        expect(result.per_row_delta).to eq(1), -> { result.delta_report }
         expect(result.per_row_delta(table: 'users')).to eq(1)
       end
     end
