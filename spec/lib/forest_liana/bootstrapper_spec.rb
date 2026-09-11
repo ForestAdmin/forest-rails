@@ -2,6 +2,13 @@ module ForestLiana
   describe Bootstrapper do
     before do
       allow(ForestLiana).to receive(:env_secret).and_return(nil)
+      # env_secret stubbed to nil above skips generate_apimap (and the require_lib_forest_liana it
+      # calls, which is what re-attaches a Forest::* collection file's smart fields to the fresh
+      # serializer classes create_factories is about to build) — so nothing here re-attaches them.
+      # Every example not asserting on the factory itself stubs it, to avoid corrupting the smart
+      # fields every other spec in the run relies on.
+      allow(ForestLiana::SerializerFactory).to receive(:new)
+        .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
     end
 
     describe 'setup_forest_liana_meta' do
@@ -38,15 +45,7 @@ module ForestLiana
         ]
       end
 
-      # A real SerializerFactory rebuilds every model's serializer class from scratch, which
-      # discards the smart-field attributes any Forest::* collection file attached to the
-      # previous generation (that DSL only runs once, when the file is first loaded) — so any
-      # example not asserting on serializers still stubs the factory to avoid corrupting the
-      # smart fields every other spec in the run relies on.
       it 'should populate the models correctly' do
-        allow(ForestLiana::SerializerFactory).to receive(:new)
-          .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
-
         ForestLiana::Bootstrapper.new
 
         expect(ForestLiana.models).to match_array(ForestLiana.models.uniq)
@@ -66,8 +65,6 @@ module ForestLiana
       end
 
       it 'should generate controllers for all models' do
-        allow(ForestLiana::SerializerFactory).to receive(:new)
-          .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
         factory = instance_double(ForestLiana::ControllerFactory, controller_for: nil)
         allow(ForestLiana::ControllerFactory).to receive(:new).and_return(factory)
 
@@ -172,9 +169,6 @@ module ForestLiana
 
 
       it "Should return actions hooks empty for the island collection" do
-        allow(ForestLiana::SerializerFactory).to receive(:new)
-          .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
-
         bootstrapper = Bootstrapper.new
         content = JSON.parse(schema)
         bootstrapper.instance_variable_set(:@collections_sent, content['collections'])
