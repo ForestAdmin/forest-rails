@@ -316,11 +316,17 @@ module ForestLiana
       context 'a malformed UUID search' do
         let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
 
+        before { Tree.create!(name: 'Oak'); Tree.create!(name: 'Elm') }
+        after { Tree.destroy_all }
+
+        # .to_sql alone can't tell a .none apart from an unfiltered relation — neither has a WHERE
+        # clause — so .count (0 for .none, 2 for the whole table) is the assertion that actually
+        # distinguishes the two, same tool the sibling specs on this behavior already use.
         it 'reports nothing, matching the .none it falls through to' do
           records = builder.perform(Tree.all)
 
           expect(builder.search_field_paths).to be_empty
-          expect(records.to_sql).not_to match(/\bWHERE\b/i)
+          expect(records.count).to eq(0)
         end
       end
 
@@ -364,8 +370,23 @@ module ForestLiana
           )
         end
 
+        # .to_sql can't tell "unfiltered" apart from ".none" (neither has a WHERE clause) - .count
+        # against the parent context's own seeded row is what actually pins "served", not emptied.
         it 'is left unfiltered, since the lambda ORs its own conditions in afterwards' do
-          expect(builder.perform(Tree.all).to_sql).not_to match(/\bWHERE\b/i)
+          expect(builder.perform(Tree.all).count).to eq(1)
+        end
+
+        # The regression a review round caught: a no-op lambda (one that returns its query
+        # untouched) sets @lambda_contributed without actually filtering anything - a
+        # malformed-UUID search must still be emptied here, the same as it would be with no lambda
+        # declared at all. Distinct from the sibling test above, which is an *ordinary* search term
+        # + a no-op lambda, correctly served since nothing there was ever suppressed to begin with.
+        context 'when the search term is also malformed-UUID-shaped' do
+          let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
+
+          it 'is still emptied, since the lambda never actually constrained anything' do
+            expect(builder.perform(Tree.all).count).to eq(0)
+          end
         end
       end
 
@@ -387,7 +408,7 @@ module ForestLiana
       end
 
       context 'when one declared lambda raises and a later one succeeds' do
-        # @search_constrained only ever moves false -> true, never reset — an earlier lambda's
+        # @lambda_contributed only ever moves false -> true, never reset — an earlier lambda's
         # failure must not un-set what a later one's success already established.
         before do
           Tree.create!(name: 'Oak')
@@ -406,8 +427,10 @@ module ForestLiana
 
         after { Tree.destroy_all }
 
+        # .to_sql can't tell "unfiltered" apart from ".none" - .count against the two seeded rows
+        # (this context's own, plus the parent context's) is what actually pins "served".
         it 'is served, since the later lambda still constrained the query' do
-          expect(builder.perform(Tree.all).to_sql).not_to match(/\bWHERE\b/i)
+          expect(builder.perform(Tree.all).count).to eq(2)
         end
       end
     end

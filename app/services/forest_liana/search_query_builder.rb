@@ -20,12 +20,16 @@ module ForestLiana
       @resource = @records = resource
       @tables_associated_to_relations_name =
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
-      # Set by push_condition (the single funnel every column/tag/association condition goes
-      # through) and by a smart-search lambda that runs without raising — the one true answer to
-      # "did anything actually constrain this query", decided once below rather than guessed at
-      # both search_param (which doesn't yet know whether a lambda will run) and the lambda loop
-      # (which no longer knows what the columns already produced).
-      @search_constrained = false
+      # Two different contributors, kept apart rather than folded into one flag: a lambda that
+      # runs without raising isn't necessarily a lambda that filtered anything (one returning its
+      # query untouched sets nothing, constrains nothing) — conflating the two let a malformed-UUID
+      # search past a no-op lambda serve the whole table, a real regression a review round caught
+      # (search_query_builder_spec.rb's "when the collection declares a smart search lambda" case).
+      # @conditions_pushed alone already proves a real match; malformed_uuid_search? only ever
+      # needs weighing against @lambda_contributed, since every LIKE-scan branch below already
+      # excludes itself on it and so can never be the reason @conditions_pushed is true.
+      @conditions_pushed = false
+      @lambda_contributed = false
       @records = search_param
 
       caller_filter = @params[:filters].present? ? ForestLiana::ScopeManager.inject_context_variables(@params[:filters], @user) : nil
@@ -58,7 +62,7 @@ module ForestLiana
           if field.try(:[], :search)
             begin
               @records = field[:search].call(@records, @search)
-              @search_constrained = true
+              @lambda_contributed = true
               (@fields_searched << field[:field].to_s) if field[:type] == 'String'
             rescue => exception
               FOREST_REPORTER.report exception
@@ -71,12 +75,12 @@ module ForestLiana
           end
         end
 
-        # malformed_uuid_search? needs no separate check here: every LIKE-scan branch above already
-        # excludes itself on it (the only condition it ever suppressed), so it can never be the
-        # reason @search_constrained is true — an id/enum/tag exact match or a lambda still can be,
-        # and must still be served. Nothing having constrained the query at all is the one case
-        # left to fall through to the unfiltered table.
-        @records = @records.none unless @search_constrained
+        # A real condition (id/enum/tag/column match) is served regardless of malformed_uuid_search?
+        # — it never suppressed those branches, only the LIKE scans. A lambda's own contribution is
+        # weighed against it instead: a malformed-UUID-shaped search is still emptied if all that
+        # "constrained" it was a lambda, the same guarantee the base gave before a lambda could run
+        # at all. Neither contributor at all is the one case left to fall through to the whole table.
+        @records = @records.none unless @conditions_pushed || (@lambda_contributed && !malformed_uuid_search?)
       end
 
       @records = sort_query
@@ -345,7 +349,7 @@ module ForestLiana
       return unless condition
 
       @search_field_paths << path
-      @search_constrained = true
+      @conditions_pushed = true
       conditions << condition
     end
 
