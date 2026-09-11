@@ -3,8 +3,12 @@ module ForestLiana
     NOISE_NAMES = %w[SCHEMA TRANSACTION].freeze
     NOISE_SQL = /\A\s*(begin|commit|rollback|savepoint|release|pragma)\b/i
 
+    # `.` under /m spans newlines, so an unanchored match would also find "FROM "table"" inside a
+    # subquery well past the root SELECT's own FROM (e.g. a WHERE ... IN (SELECT ... FROM "table"
+    # ...) clause) — the negative lookahead stops at the first FROM the string actually has,
+    # which is the root one whenever there is a subquery to tell apart from it.
     def self.select_pattern(table)
-      /\ASELECT\b.*\bFROM "#{table}"/im
+      /\ASELECT\b(?:(?!FROM\b).)*\bFROM "#{Regexp.escape(table)}"/im
     end
 
     Footprint = Struct.new(:baseline, :grown, :rows_added) do
@@ -14,6 +18,10 @@ module ForestLiana
         end
 
         Rational(after.size - before.size, rows_added)
+      end
+
+      def added_queries
+        grown - baseline
       end
     end
 
@@ -42,7 +50,7 @@ module ForestLiana
     end
 
     def join_count(queries, table)
-      queries.sum { |sql| sql.scan(%(LEFT OUTER JOIN "#{table}")).size }
+      queries.sum { |sql| sql.scan(/\b(?:LEFT OUTER |INNER )?JOIN "#{Regexp.escape(table)}"/).size }
     end
 
     def selects_from(queries, table)
