@@ -98,26 +98,16 @@ module ForestLiana
       if @field_names_requested && @params['searchExtended'].to_i != 1
         includes = associations_has_one.map(&:name)
 
-        includes_for_smart_search = []
-        if @collection && @collection.search_fields
-          includes_for_smart_search = @collection.search_fields
-                                                 .select { |field| field.include? '.' }
-                                                 .map { |field| field.split('.').first.to_sym }
-
-          includes_has_many = SchemaUtils.many_associations(@resource)
-                                         .select { |association| SchemaUtils.model_included?(association.klass) }
-                                         .map(&:name)
-
-          includes_for_smart_search = includes_for_smart_search & includes_has_many
-        end
-
+        # A dotted search_fields entry ('author.name') only ever searches on an extended request
+        # (search_query_builder gates it on extended_search?) — joining its association here, on
+        # the plain branch, would pay for a search that never runs.
         filter_associations = extract_associations_from_filter
         filter_has_many = filter_associations.select do |assoc_name|
           assoc = @resource.reflect_on_association(assoc_name)
           assoc && [:has_many, :has_and_belongs_to_many].include?(assoc.macro)
         end
 
-        @includes = (includes & @field_names_requested).concat(includes_for_smart_search).concat(filter_has_many).uniq
+        @includes = (includes & @field_names_requested).concat(filter_has_many).uniq
       else
         @includes = associations_has_one
         # Avoid eager loading has_one associations pointing to a different database as ORM can't join cross databases
