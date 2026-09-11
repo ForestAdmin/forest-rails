@@ -105,8 +105,9 @@ module ForestLiana
     # A subquery, not an executed id list: `.map` would run `tagged_records` (a JOIN through
     # taggings/tags) right here, before assert_can_read_query_fields ever runs in #perform below —
     # `.to_sql` defers it to whenever the outer query actually executes, same as every other
-    # condition this method builds. `IN (subquery)` with no match is `IN ()`, same as omitting the
-    # condition — no behavior change for a search that tags nothing.
+    # condition this method builds. A subquery matching nothing still emits valid SQL yielding zero
+    # rows (never the SQL-invalid `IN ()`), and is OR'd alongside the other conditions — no
+    # behavior change for a search that tags nothing.
     def acts_as_taggable_query(tagged_records)
       # Qualified with the resource's own table on both sides: unqualified, this SELECTs (and
       # compares against) an ambiguous "id" once the join through taggings (which has its own "id"
@@ -162,12 +163,11 @@ module ForestLiana
         # ActsAsTaggable
         # The path recorded here is the root primary key, not the taggings/tags tables the query
         # actually joins — those aren't a Forest relation this class knows how to name, so this
-        # search contributes no footprint for them. In practice acts_as_taggable_on's own tables
-        # are rarely exposed as Forest collections themselves, which is what keeps this from being
-        # a live gap. Not covered by a live spec — acts_as_taggable_on isn't installed in the dummy
-        # app, and stubbing `taggable?`/`acts_as_taggable` on the real Tree model to simulate it
-        # permanently corrupts ActiveRecord::Delegation's per-class method cache for the rest of
-        # the process, regardless of the stubbing method used.
+        # search contributes no footprint for them (rarely a live gap in practice, since those
+        # tables are rarely exposed as Forest collections themselves). push_condition below always
+        # receives a non-nil string, so @conditions_pushed is unconditionally true for any taggable
+        # resource regardless of whether the term actually matched a tag — harmless (a non-matching
+        # subquery still yields zero rows) but distinct from every other branch's meaning of the flag.
         if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
           @resource.acts_as_taggable.each do |field|
             tagged_records = @records.tagged_with(@search.downcase)
