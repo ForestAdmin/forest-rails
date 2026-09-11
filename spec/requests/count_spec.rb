@@ -14,6 +14,10 @@ describe 'Requesting Owner', :type => :request  do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
 
     allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
+    # This file bypasses forest_authorize! entirely; the field-read-permission checks that a
+    # listing runs independently of it must be bypassed the same way, or they hit the real
+    # permissions API with nothing cached to answer from.
+    Rails.cache.write('forest.has_permission', false)
 
     allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({'scopes' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}})
   end
@@ -156,6 +160,10 @@ describe 'Requesting Tree count with extended search', :type => :request do
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_valid) { true }
 
     allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
+    # This file bypasses forest_authorize! entirely; the field-read-permission checks that a
+    # listing runs independently of it must be bypassed the same way, or they hit the real
+    # permissions API with nothing cached to answer from.
+    Rails.cache.write('forest.has_permission', false)
 
     allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scope_filters)
   end

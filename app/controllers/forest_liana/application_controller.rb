@@ -4,10 +4,23 @@ require 'csv'
 module ForestLiana
   class ApplicationController < ForestLiana::BaseController
     rescue_from ForestLiana::Ability::Exceptions::AccessDenied, with: :render_error
+    rescue_from ForestLiana::Errors::HTTP400Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP403Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnknownCollection, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnauthorizedFieldsError, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError, with: :render_error
+
+    # `render_error` above already gives these their 403 + name/data payload — every list here is
+    # for an action whose own `begin/rescue` would otherwise let a bare `rescue => error` swallow
+    # them into a 500 first. Those actions catch this list and re-`raise`, letting it reach here.
+    QUERY_PERMISSION_ERRORS = [
+      ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+      ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+      ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError,
+    ].freeze
 
     def self.papertrail?
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
@@ -40,7 +53,7 @@ module ForestLiana
 
     def serialize_model(record, options = {})
       options[:is_collection] = false
-      options[:context] = { unoptimized: true }.merge(options[:context] || {})
+      options[:context] = { unoptimized: options[:fields].nil? }.merge(options[:context] || {})
 
       json = ForestAdmin::JSONAPI::Serializer.serialize(record, options)
 
@@ -49,7 +62,7 @@ module ForestLiana
 
     def serialize_models(records, options = {}, fields_searched = [])
       options[:is_collection] = true
-      if options[:params] && options[:params][:fields].nil?
+      if options[:fields].nil?
         options[:context] = { unoptimized: true }.merge(options[:context] || {})
       end
 
@@ -111,6 +124,51 @@ module ForestLiana
     end
 
     private
+
+    # NOTICE: Header-then-query fallback, decided here and nowhere else: the header is rewritten
+    #         into params[:fields], so every route keeps reading the projection it always read
+    #         and the header wins over the query params without any route knowing about it.
+    #
+    #         Declared as a before_action by the routes that project, and by them only: a count,
+    #         a stats or a write carries no projection, must not have its params rewritten by a
+    #         header meant for the list next to it, and must not answer a 400 for one. The same
+    #         rule as agent-nodejs, whose own suite pins the header ignored on count.
+    def apply_projection_header
+      header = request.headers[ForestLiana::ProjectionParser::HEADER_NAME]
+      return if header.nil?
+
+      root_model = projection_root_model
+      # NOTICE: An unresolvable collection is left to the route, which answers its own 404.
+      return if root_model.nil?
+
+      fields = ForestLiana::ProjectionParser.new(header, ForestLiana.name_for(root_model)).perform
+      params[:fields] = ActionController::Parameters.new(fields)
+    rescue ForestLiana::Errors::ExpectedError
+      # NOTICE: The deliberate 400 on a malformed header, which render_error answers.
+      raise
+    rescue => error
+      FOREST_REPORTER.report error
+      FOREST_LOGGER.error "Forest-Projection header error: #{error}\n#{format_stacktrace(error)}"
+      internal_server_error
+    end
+
+    # NOTICE: A projection is rooted on the collection the records come from, which is the
+    #         association target on the relationships routes, not the collection in the URL.
+    def projection_root_model
+      return nil if params[:collection].blank?
+
+      model = ForestLiana::SchemaUtils.find_model_from_collection_name(params[:collection])
+      return nil unless model.respond_to?(:reflect_on_association)
+      return model if params[:association_name].blank?
+
+      association = model.reflect_on_association(params[:association_name].to_sym)
+      # NOTICE: klass raises on a polymorphic reflection, and this runs in a before_action: the
+      #         guard is what keeps a 500 from replacing the 404 the route answers on its own. A
+      #         relationships index rejects a belongs_to, which a polymorphic relation always is.
+      return nil if association.nil? || ForestLiana::SchemaUtils.polymorphic?(association)
+
+      association.klass
+    end
 
     def render_error(exception)
       errors = {
@@ -207,14 +265,27 @@ module ForestLiana
     end
 
     def render_csv getter, model
+      # Unlike index/show/update, an unreadable column here is dropped rather than refusing the
+      # whole export (named_collections: [] — nothing is ever "named") — matching agent-nodejs's
+      # own CSV route, which runs the same redactProjection as its JSON list but drops a denied
+      # column instead of 403ing the file whenever it doesn't error there either.
+      requested_fields = fields_per_model(params[:fields], model)
+      fields_to_serialize = redact_fields(forest_user, model, requested_fields, named_collections: [])
+
       set_headers_file
       set_headers_streaming
 
       response.status = 200
-      csv_header = params[:header].split(',')
       collection_name = ForestLiana.name_for(model)
-      field_names_requested = params[:fields][collection_name].split(',').map { |name| name.to_s }
-      fields_to_serialize = fields_per_model(params[:fields], model)
+      requested_field_names = params[:fields][collection_name].split(',').map { |name| name.to_s }
+      requested_header = params[:header].split(',')
+
+      # Keep the header row aligned with whatever redact_fields left in fields_to_serialize,
+      # the same way agent-nodejs's CsvGenerator.filterHeader drops a redacted column's label.
+      surviving = (fields_to_serialize[collection_name] || '').split(',')
+      kept = requested_field_names.zip(requested_header).select { |name, _| surviving.include?(name) }
+      field_names_requested = kept.map(&:first)
+      csv_header = kept.map(&:last)
 
       self.response_body = Enumerator.new do |content|
         content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s

@@ -20,8 +20,9 @@ Rails.application.configure do
   config.consider_all_requests_local       = true
   config.action_controller.perform_caching = false
 
-  # Raise exceptions instead of rendering exception templates.
-  config.action_dispatch.show_exceptions = false
+  # Raise exceptions instead of rendering exception templates. Rails 8 dropped the boolean form,
+  # and a leftover `false` there falls through to "show all" — rendered 500s instead of raises.
+  config.action_dispatch.show_exceptions = Rails.gem_version >= Gem::Version.new('7.1') ? :none : false
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false

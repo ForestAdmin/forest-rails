@@ -8,10 +8,14 @@ module ForestLiana
 
     rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
 
+    # NOTICE: index covers the list and the CSV export, show the get-one. Every other action
+    #         here answers no projection, count included.
     if Rails::VERSION::MAJOR < 4
       before_filter :find_resource, except: :count
+      before_filter :apply_projection_header, only: [:index, :show]
     else
       before_action :find_resource, except: :count
+      before_action :apply_projection_header, only: [:index, :show]
     end
 
     def index
@@ -27,6 +31,23 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
+             ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError => error
+        # A CSV request already has its response Content-Type/Content-Disposition set by the
+        # respond_to format match before this rescue ever runs — force JSON back, or the client
+        # downloads a ".csv" file whose content is this JSON error. UnauthorizedQueryFieldError is
+        # raised earlier (before respond_to picks a format) and doesn't strictly need this fix, but
+        # is caught here anyway since UnauthorizedFieldsError (raised during serialization, after
+        # the format is already picked) does — same response shape either way.
+        render(serializer: nil, json: { errors: [{
+          status: error.error_code,
+          detail: error.message,
+          name: error.name,
+          data: error.data
+        }] }, status: error.status, content_type: 'application/json')
+        response.headers.delete('Content-Disposition')
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -53,6 +74,8 @@ module ForestLiana
       rescue ForestLiana::Errors::LiveQueryError => error
         render json: { errors: [{ status: 422, detail: error.message }] },
           status: :unprocessable_entity, serializer: nil
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
       rescue ForestLiana::Errors::ExpectedError => error
         error.display_error
         error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
@@ -73,9 +96,13 @@ module ForestLiana
         getter = ForestLiana::ResourceGetter.new(@resource, params, forest_user)
         getter.perform
 
-        render serializer: nil, json: render_record_jsonapi(getter.record)
+        render serializer: nil, json: render_record_jsonapi(getter.record, getter)
       rescue ActiveRecord::RecordNotFound
         render serializer: nil, json: { status: 404 }, status: :not_found
+      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError
+        # Let ApplicationController's rescue_from render it, with its name/data — the generic
+        # rescue below would otherwise strip both and turn a 403 into a 500.
+        raise
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
@@ -162,6 +189,15 @@ module ForestLiana
         end
       rescue ActiveRecord::RecordNotDestroyed => error
         render json: { errors: [{ status: :bad_request, detail: error.message }] }, status: :bad_request
+      rescue *QUERY_PERMISSION_ERRORS
+        raise
+      rescue ForestLiana::Errors::ExpectedError => error
+        error.display_error
+        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
+          status: error.error_code,
+          detail: error.message
+        }])
+        render(serializer: nil, json: error_data, status: error.status)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"
@@ -207,22 +243,31 @@ module ForestLiana
       is_sti_model? ? record.becomes(@resource) : record
     end
 
-    def render_record_jsonapi record
-      collection = ForestLiana::SchemaHelper.find_collection_from_model(@resource)
-      collection_fields = collection.fields.map { |field| field[:field] }
-      fields_to_serialize = {
-        ForestLiana.name_for(@resource) => collection_fields.join(',')
-      }
+    # NOTICE: create and update answer with the whole record: they carry no projection, so the
+    #         getter is absent and every field is part of the default expansion, not something the
+    #         caller named. show passes a getter; a field named through the projection header is
+    #         refused rather than redacted if unreadable, same as index's own render_jsonapi below.
+    def render_record_jsonapi record, getter = nil
+      requested_fields = getter&.projection? ? fields_per_model(params[:fields], @resource) : nil
+      fields_to_serialize = redact_fields(
+        forest_user, @resource,
+        requested_fields || default_fields_to_serialize(@resource, record_includes),
+        named_collections: requested_fields ? requested_fields.keys : []
+      )
 
       serialize_model(get_record(record), {
-        include: record_includes,
+        include: requested_fields ? getter.includes_for_serialization : record_includes,
         fields: fields_to_serialize
       })
     end
 
     def render_jsonapi getter
       records = getter.records.map { |record| get_record(record) }
-      fields_to_serialize = fields_per_model(params[:fields], @resource)
+      requested_fields = fields_per_model(params[:fields], @resource)
+      fields_to_serialize = requested_fields || default_fields_to_serialize(@resource, includes(getter))
+      fields_to_serialize = redact_fields(
+        forest_user, @resource, fields_to_serialize, named_collections: requested_fields ? requested_fields.keys : []
+      )
 
       json = serialize_models(
         records,
@@ -235,6 +280,29 @@ module ForestLiana
       )
 
       render serializer: nil, json: json
+    end
+
+    # The full-schema field list `fields[...]` expands to when the caller never sent it — mirrors
+    # `render_record_jsonapi`'s own full-collection expansion, fanned out over the relations the
+    # response actually includes. A polymorphic relation is left out of this per-collection map: it
+    # has no single target collection to expand, and it already appears in the root's own field list
+    # (below), which is what makes the relationship link itself visible.
+    def default_fields_to_serialize(root_model, included_relation_names)
+      fields = { ForestLiana.name_for(root_model) => collection_field_names(root_model) }
+
+      Array(included_relation_names).each do |relation_name|
+        reflection = root_model.reflect_on_association(relation_name.to_sym)
+        next if reflection.nil? || reflection.polymorphic?
+
+        related_name = ForestLiana.name_for(reflection.klass)
+        fields[related_name] ||= collection_field_names(reflection.klass)
+      end
+
+      fields
+    end
+
+    def collection_field_names(model)
+      ForestLiana::SchemaHelper.find_collection_from_model(model).fields.map { |field| field[:field] }.join(',')
     end
 
     def get_collection

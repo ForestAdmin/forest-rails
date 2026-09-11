@@ -24,6 +24,11 @@ module ForestLiana
     subject { described_class.new(Island, association, params, user) }
 
     before(:each) do
+      # This file exercises SQL shaping, not permissions: without this, the read-permission
+      # guard on filters/sort hits the real permissions API through whatever the process-wide
+      # (file-backed) cache last left behind, rather than the "nothing to check" this file assumes.
+      Rails.cache.write('forest.has_permission', false)
+
       # A has_one declared on the target model that actually returns MANY rows: every tree
       # sharing the island. Eager-loading it turns one tree into N joined rows.
       Tree.class_eval do
@@ -44,8 +49,15 @@ module ForestLiana
     end
 
     after(:each) do
+      # Rails 7.2 switched _reflections/reflections to symbol keys; deleting only the string form
+      # is a silent no-op there. Rails 7.2 also memoizes reflect_on_all_associations and only busts
+      # that cache from add_reflection, never on a direct _reflections mutation — without the
+      # explicit clear, the deleted association keeps leaking into every later spec.
       Tree._reflections.delete('island_neighbour')
+      Tree._reflections.delete(:island_neighbour)
       Tree.reflections.delete('island_neighbour')
+      Tree.reflections.delete(:island_neighbour)
+      Tree.clear_reflections_cache
       %w[island_neighbour island_neighbour= build_island_neighbour
          create_island_neighbour create_island_neighbour! reload_island_neighbour].each do |m|
         Tree.undef_method(m) rescue nil
