@@ -22,12 +22,13 @@ module ForestLiana
         ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
       # Two different contributors, kept apart rather than folded into one flag: a lambda that
       # runs without raising isn't necessarily a lambda that filtered anything (one returning its
-      # query untouched sets nothing, constrains nothing) — conflating the two let a malformed-UUID
-      # search past a no-op lambda serve the whole table, a real regression a review round caught
-      # (search_query_builder_spec.rb's "when the collection declares a smart search lambda" case).
-      # @conditions_pushed alone already proves a real match; malformed_uuid_search? only ever
-      # needs weighing against @lambda_contributed, since every LIKE-scan branch below already
-      # excludes itself on it and so can never be the reason @conditions_pushed is true.
+      # query untouched pushes no condition, constrains nothing) — conflating the two let a
+      # malformed-UUID search past a no-op lambda serve the whole table, a real regression a
+      # review round caught. @conditions_pushed alone already proves a real constraint (not
+      # necessarily a matching row — a LIKE that matches nothing still pushed a condition, and
+      # still correctly answers none); malformed_uuid_search? only ever needs weighing against
+      # @lambda_contributed, since every LIKE-scan branch below already excludes itself on it and
+      # so can never be the reason @conditions_pushed is true.
       @conditions_pushed = false
       @lambda_contributed = false
       @records = search_param
@@ -80,6 +81,17 @@ module ForestLiana
         # weighed against it instead: a malformed-UUID-shaped search is still emptied if all that
         # "constrained" it was a lambda, the same guarantee the base gave before a lambda could run
         # at all. Neither contributor at all is the one case left to fall through to the whole table.
+        #
+        # A known cost of that guarantee: a lambda that genuinely narrows the query (not just one
+        # that runs without raising) still loses to a malformed-UUID-shaped term, exactly as if it
+        # hadn't run at all — this can't currently tell "ran and did nothing" apart from "ran and
+        # found real rows". Logged rather than silently discarded, since nothing else would ever
+        # surface it to whoever built the smart-search hook.
+        if @lambda_contributed && !@conditions_pushed && malformed_uuid_search?
+          FOREST_LOGGER.info "A smart-search lambda's result on the \"#{ForestLiana.name_for(root_model)}\" " \
+            "collection was discarded: the search term (#{@search.inspect}) is UUID-shaped but " \
+            'invalid, and no other condition constrained the query.'
+        end
         @records = @records.none unless @conditions_pushed || (@lambda_contributed && !malformed_uuid_search?)
       end
 

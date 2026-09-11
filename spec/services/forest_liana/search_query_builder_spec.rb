@@ -323,6 +323,7 @@ module ForestLiana
         # clause — so .count (0 for .none, 2 for the whole table) is the assertion that actually
         # distinguishes the two, same tool the sibling specs on this behavior already use.
         it 'reports nothing, matching the .none it falls through to' do
+          expect(Tree.count).to eq(2) # the assertion below is vacuous if this precondition drifts
           records = builder.perform(Tree.all)
 
           expect(builder.search_field_paths).to be_empty
@@ -370,9 +371,9 @@ module ForestLiana
           )
         end
 
-        # .to_sql can't tell "unfiltered" apart from ".none" (neither has a WHERE clause) - .count
-        # against the parent context's own seeded row is what actually pins "served", not emptied.
+        # .count, not .to_sql (see the "a malformed UUID search" context above for why).
         it 'is left unfiltered, since the lambda ORs its own conditions in afterwards' do
+          expect(Tree.count).to eq(1) # the assertion below is vacuous if this precondition drifts
           expect(builder.perform(Tree.all).count).to eq(1)
         end
 
@@ -385,6 +386,30 @@ module ForestLiana
           let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
 
           it 'is still emptied, since the lambda never actually constrained anything' do
+            expect(Tree.count).to eq(1) # the assertion below is vacuous if this precondition drifts
+            expect(builder.perform(Tree.all).count).to eq(0)
+          end
+        end
+
+        # The tradeoff Christophe Brun's review round left explicitly unpinned: a lambda that
+        # genuinely narrows the query loses to a malformed-UUID-shaped term exactly like a no-op
+        # one does, since @lambda_contributed can't currently tell the two apart. Accepted rather
+        # than fixed here (closing it needs comparing the lambda's own before/after relation,
+        # a larger change than this regression fix) - pinned so it can't drift by accident, and
+        # logged in production (search_query_builder.rb) since nothing else would ever surface it.
+        context 'when the search term is malformed-UUID-shaped but the lambda genuinely filters' do
+          before do
+            allow(ForestLiana).to receive(:schema_for_resource).and_return(
+              ForestLiana::Model::Collection.new(
+                name: 'Tree', fields: [{ field: :custom, type: 'String', search: ->(query, _search) { query.where(name: 'Oak') } }]
+              )
+            )
+          end
+
+          let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
+
+          it 'is still emptied, even though the lambda alone would have matched a real row' do
+            expect(Tree.where(name: 'Oak').count).to eq(1) # vacuous otherwise
             expect(builder.perform(Tree.all).count).to eq(0)
           end
         end
@@ -427,8 +452,7 @@ module ForestLiana
 
         after { Tree.destroy_all }
 
-        # .to_sql can't tell "unfiltered" apart from ".none" - .count against the two seeded rows
-        # (this context's own, plus the parent context's) is what actually pins "served".
+        # .count, against the two seeded rows (this context's own, plus the parent context's).
         it 'is served, since the later lambda still constrained the query' do
           expect(builder.perform(Tree.all).count).to eq(2)
         end
