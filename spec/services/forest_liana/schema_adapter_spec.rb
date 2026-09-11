@@ -77,7 +77,7 @@ module ForestLiana
       end
 
       context 'with standard fields' do
-        it 'should be sort by alphabetical order' do
+        it 'sorts real columns alphabetically, with smart fields appended afterward in declaration order' do
           collection = ForestLiana.apimap.find do |object|
             object.name.to_s == ForestLiana.name_for(Tree)
           end
@@ -94,7 +94,9 @@ module ForestLiana
               "name",
               "owner",
               "updated_at",
-              "name_with_age"
+              "name_with_age",
+              "owner_name",
+              "owner_name_declared"
             ]
           )
         end

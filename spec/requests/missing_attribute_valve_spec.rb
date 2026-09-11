@@ -42,6 +42,21 @@ describe 'MissingAttributeValve', type: :request do
       get '/forest/User', params: { fields: { 'User' => 'id,name_with_title' }, page: { number: '1', size: '10' },
                                      searchExtended: '0', timezone: 'Europe/Paris' }, headers: headers
     end
+
+    # The row can vanish between the list query and serialization (a concurrent delete) — #reload
+    # itself raising must degrade the same way a second MissingAttributeError would, not escape
+    # this valve entirely.
+    it 'degrades to nil rather than crash when the reload itself raises' do
+      allow_any_instance_of(User).to receive(:reload).and_raise(ActiveRecord::RecordNotFound)
+      expect(FOREST_REPORTER).to receive(:report)
+
+      get '/forest/User', params: { fields: { 'User' => 'id,name_with_title' }, page: { number: '1', size: '10' },
+                                     searchExtended: '0', timezone: 'Europe/Paris' }, headers: headers
+
+      expect(response.status).to eq 200
+      body = JSON.parse(response.body)
+      expect(body['data'][0]['attributes']['name_with_title']).to be_nil
+    end
   end
 
   # Tree#name_with_age (spec/dummy's fixture) declares dependencies: ['name'] but its getter also
@@ -64,6 +79,53 @@ describe 'MissingAttributeValve', type: :request do
       # join from the original query must survive that reload rather than being re-queried.
       expect(selects_from(queries, 'trees').size).to eq(2)
       expect(selects_from(queries, 'users').size).to eq(0)
+    end
+  end
+
+  # Tree#owner_name_declared (spec/dummy's fixture) declares dependencies: ['owner:name'], a
+  # relation-path crossing the belongs_to owner association — its own preload is out of scope
+  # here, but the foreign key it needs must still be selected, or reading the association at all
+  # (before ever reaching owner's own name) would raise on Tree's own missing owner_id.
+  describe 'a smart field whose only declared dependency is a relation path' do
+    let!(:owner) { User.create!(name: 'Michel', title: :king) }
+    let!(:tree) { Tree.create!(name: 'Oak', age: 5, owner: owner, cutter: owner) }
+
+    it "serves the value without ever hitting the valve, having selected the association's own foreign key" do
+      expect(FOREST_LOGGER).not_to receive(:warn)
+      expect(FOREST_REPORTER).not_to receive(:report)
+
+      queries = capture_queries do
+        get '/forest/Tree', params: { fields: { 'Tree' => 'id,owner_name_declared' },
+                                       page: { number: '1', size: '10' }, searchExtended: '0', timezone: 'Europe/Paris' }, headers: headers
+      end
+
+      expect(response.status).to eq 200
+      body = JSON.parse(response.body)
+      expect(body['data'][0]['attributes']['owner_name_declared']).to eq('Michel')
+      # Exactly the same footprint as an ordinary, non-preloaded belongs_to lookup: the tree's own
+      # projected select (never reloaded) plus one lazy load of its owner — not two extra queries
+      # (a wasted Tree reload, then the owner lookup) the way an unselected FK would cost.
+      expect(selects_from(queries, 'trees').size).to eq(1)
+      expect(selects_from(queries, 'users').size).to eq(1)
+    end
+  end
+
+  # Tree#owner_name (spec/dummy's fixture) reads a column of the joined owner relation, narrowed
+  # out of that relation's own projection — reloading the Tree row itself could never produce it.
+  describe "a missing attribute that belongs to a joined relation's own record, not the root" do
+    let!(:owner) { User.create!(name: 'Michel', title: :king) }
+    let!(:tree) { Tree.create!(name: 'Oak', age: 5, owner: owner, cutter: owner) }
+
+    it 'degrades to nil immediately, without reloading, since the root record cannot fix it' do
+      expect(FOREST_LOGGER).not_to receive(:warn)
+      expect(FOREST_REPORTER).to receive(:report)
+
+      get '/forest/Tree', params: { fields: { 'Tree' => 'id,name,owner_name,owner', 'owner' => 'title' },
+                                     page: { number: '1', size: '10' }, searchExtended: '0', timezone: 'Europe/Paris' }, headers: headers
+
+      expect(response.status).to eq 200
+      body = JSON.parse(response.body)
+      expect(body['data'][0]['attributes']['owner_name']).to be_nil
     end
   end
 

@@ -10,25 +10,31 @@ module ForestLiana
       super
     rescue ActiveModel::MissingAttributeError => exception
       column = missing_column_from(exception)
-      raise unless reloadable?(object, column)
+      return degrade(attribute_name, exception) unless reloadable?(object, column)
 
-      reload_keeping_associations(object)
-
+      # #reload itself can raise (the row was deleted between the list query and serialization,
+      # a statement timeout, ...) — kept inside this same rescue so that degrades exactly like a
+      # second MissingAttributeError would, instead of escaping this valve entirely.
       begin
+        reload_keeping_associations(object)
         result = super
         FOREST_LOGGER.warn "Field \"#{attribute_name}\" of the \"#{type}\" collection read the " \
           "\"#{column}\" column without declaring it in dependencies: — reloaded the record to " \
           'serve it, at the cost of an extra query. Add it to the field\'s dependencies: to avoid this.'
         result
-      rescue ActiveModel::MissingAttributeError => second_exception
-        FOREST_REPORTER.report second_exception
-        FOREST_LOGGER.error "Cannot retrieve the \"#{attribute_name}\" value of the \"#{type}\" " \
-          "collection because of an internal error in the getter implementation: #{second_exception.message}"
-        nil
+      rescue ActiveModel::MissingAttributeError, ActiveRecord::ActiveRecordError => second_exception
+        degrade(attribute_name, second_exception)
       end
     end
 
     private
+
+    def degrade(attribute_name, exception)
+      FOREST_REPORTER.report exception
+      FOREST_LOGGER.error "Cannot retrieve the \"#{attribute_name}\" value of the \"#{type}\" " \
+        "collection because of an internal error in the getter implementation: #{exception.message}"
+      nil
+    end
 
     # A missing attribute already loaded on this exact record (as opposed to a relation's own
     # record, read through it) can never be fixed by reloading this record — degrade immediately
