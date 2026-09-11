@@ -79,7 +79,8 @@ module ForestLiana
         # — it never suppressed those branches, only the LIKE scans. A lambda's own contribution is
         # weighed against it instead: a malformed-UUID-shaped search is still emptied if all that
         # "constrained" it was a lambda, the same guarantee the base gave before a lambda could run
-        # at all. Neither contributor at all is the one case left to fall through to the whole table.
+        # at all. Every case below now either genuinely constrains or is emptied — including when
+        # neither contributor did anything at all — nothing falls through to the whole table.
         #
         # A known cost of that guarantee: a lambda that genuinely narrows the query (not just one
         # that runs without raising) still loses to a malformed-UUID-shaped term, exactly as if it
