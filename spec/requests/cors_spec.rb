@@ -50,6 +50,12 @@ describe Rack::Cors do
       assert !last_response.headers['Access-Control-Allow-Private-Network'].nil?
       assert last_response.headers['Access-Control-Allow-Private-Network'] == 'true'
     end
+
+    it 'should allow request headers' do
+      preflight_request('http://localhost:3000', '/', headers: 'authorization,content-type')
+      assert !last_response.headers['Access-Control-Allow-Headers'].nil?
+      assert last_response.headers['Access-Control-Allow-Headers'] == 'authorization,content-type'
+    end
   end
 
   protected
