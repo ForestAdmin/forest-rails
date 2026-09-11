@@ -222,8 +222,15 @@ module ForestLiana
             expect { dummy_class.assert_can_read_query_fields(user, Address, filter_paths: ['addressable:name']) }
               .not_to raise_error
           ensure
+            # Rails 7.2 switched _reflections/reflections to symbol keys; deleting only the string
+            # form is a silent no-op there, and reflect_on_all_associations only busts its cache
+            # from add_reflection, never on a direct _reflections mutation — without the explicit
+            # clear, the deleted association keeps leaking into later specs.
             Island._reflections.delete('addresses')
+            Island._reflections.delete(:addresses)
             Island.reflections.delete('addresses')
+            Island.reflections.delete(:addresses)
+            Island.clear_reflections_cache
             %w[addresses addresses= address_ids address_ids=].each { |m| Island.undef_method(m) rescue nil }
           end
 
@@ -248,7 +255,10 @@ module ForestLiana
               )
           ensure
             Tree._reflections.delete('subject')
+            Tree._reflections.delete(:subject)
             Tree.reflections.delete('subject')
+            Tree.reflections.delete(:subject)
+            Tree.clear_reflections_cache
             %w[subject subject= subject_id subject_type].each { |m| Tree.undef_method(m) rescue nil }
           end
 
@@ -269,7 +279,10 @@ module ForestLiana
               )
           ensure
             Island._reflections.delete('addresses')
+            Island._reflections.delete(:addresses)
             Island.reflections.delete('addresses')
+            Island.reflections.delete(:addresses)
+            Island.clear_reflections_cache
             %w[addresses addresses= address_ids address_ids=].each { |m| Island.undef_method(m) rescue nil }
           end
         end
