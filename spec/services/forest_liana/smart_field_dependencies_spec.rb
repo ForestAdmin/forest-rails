@@ -63,7 +63,7 @@ module ForestLiana
 
       it 'warns and drops the whole declaration for a bare name that is not a real column' do
         field = { field: :cap_name, dependencies: ['not_a_column'] }
-        expect(FOREST_LOGGER).to receive(:warn)
+        expect(FOREST_LOGGER).to receive(:warn).with(/not_a_column.*cap_name.*Tree/m)
 
         described_class.validate!(Tree, 'Tree', field)
 
@@ -72,7 +72,7 @@ module ForestLiana
 
       it 'warns and drops the whole declaration for a relation path naming a fake association' do
         field = { field: :cap_name, dependencies: ['not_a_relation:name'] }
-        expect(FOREST_LOGGER).to receive(:warn)
+        expect(FOREST_LOGGER).to receive(:warn).with(/not_a_relation:name.*cap_name.*Tree/m)
 
         described_class.validate!(Tree, 'Tree', field)
 
@@ -82,11 +82,27 @@ module ForestLiana
       it 'warns and drops the whole declaration for a path crossing a polymorphic relation' do
         Tree.class_eval { belongs_to :subject, polymorphic: true, optional: true }
         field = { field: :cap_name, dependencies: ['subject:name'] }
-        expect(FOREST_LOGGER).to receive(:warn)
+        expect(FOREST_LOGGER).to receive(:warn).with(/subject:name.*cap_name.*Tree/m)
 
         described_class.validate!(Tree, 'Tree', field)
 
         expect(field).not_to have_key(:dependencies)
+      end
+
+      it "warns and drops the whole declaration rather than crash the boot when a relation's class_name doesn't exist" do
+        Tree.class_eval { belongs_to :ghost, class_name: 'TotallyNotARealClass', optional: true }
+        field = { field: :cap_name, dependencies: ['ghost:name'] }
+        expect(FOREST_LOGGER).to receive(:warn).with(/ghost:name.*cap_name.*Tree/m)
+
+        expect { described_class.validate!(Tree, 'Tree', field) }.not_to raise_error
+        expect(field).not_to have_key(:dependencies)
+      ensure
+        Tree._reflections.delete('ghost')
+        Tree._reflections.delete(:ghost)
+        Tree.reflections.delete('ghost')
+        Tree.reflections.delete(:ghost)
+        Tree.clear_reflections_cache
+        %w[ghost ghost= ghost_id].each { |m| Tree.undef_method(m) rescue nil }
       end
 
       it 'does nothing when dependencies is absent' do

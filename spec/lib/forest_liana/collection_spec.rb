@@ -97,7 +97,7 @@ module ForestLiana
 
       it 'warns and removes the key for an invalid shape, rather than crashing' do
         opts = { dependencies: { nested: 'hash' } }
-        expect(FOREST_LOGGER).to receive(:warn)
+        expect(FOREST_LOGGER).to receive(:warn).with(/some_field/)
 
         dummy_class.normalize_dependencies!(opts, :some_field)
 

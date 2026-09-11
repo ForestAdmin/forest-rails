@@ -1,7 +1,7 @@
 module ForestLiana
   # Parses the `dependencies:` a smart field declares (Forest field paths: a bare column name to
-  # select, or an `a:b:c` relation path to preload — this class only splits the two apart; PRD-1089
-  # adds the preload side, reusing #relation_paths as-is).
+  # select, or an `a:b:c` relation path to preload — this class only splits the two apart; the
+  # preload side itself is unimplemented today, #relation_paths is ready for it as-is).
   class SmartFieldDependencies
     RelationPath = Struct.new(:relations, :column)
 
@@ -42,6 +42,11 @@ module ForestLiana
       end
 
       target.present? && target.column_names.include?(column_name)
+    rescue NameError, ActiveRecord::ActiveRecordError
+      # reflection.klass on a bad class_name:, or column_names against a table that doesn't exist
+      # yet in this environment — same "degrade, don't crash the boot" treatment validate! already
+      # gives any other invalid entry, not a new failure mode of its own.
+      false
     end
 
     def initialize(entries)
