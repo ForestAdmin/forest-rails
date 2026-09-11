@@ -32,6 +32,9 @@ module ForestLiana
       #         through and dereferencing a nil @association, which surfaced as
       #         a double-render / 500 rather than the intended 404.
       return if performed?
+      return deactivate_count_response if !SchemaUtils.polymorphic?(@association) &&
+        count_deactivated?(@association.klass)
+
       begin
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count

@@ -44,6 +44,8 @@ module ForestLiana
     def count
       find_resource
       forest_authorize!('browse', forest_user, @resource)
+      return deactivate_count_response if count_deactivated?(@resource)
+
       begin
         getter = ForestLiana::ResourcesGetter.new(@resource, params, forest_user)
         getter.count

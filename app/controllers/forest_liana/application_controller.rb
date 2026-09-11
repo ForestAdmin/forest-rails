@@ -110,6 +110,11 @@ module ForestLiana
       render serializer: nil, json: { meta: { count: 'deactivated'} }
     end
 
+    def count_deactivated?(model)
+      ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
+        &.is_countable == false
+    end
+
     private
 
     def render_error(exception)

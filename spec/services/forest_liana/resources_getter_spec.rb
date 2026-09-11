@@ -693,6 +693,20 @@ module ForestLiana
         it 'keeps every one-association in the include set when no fields are requested' do
           expect(getter.includes).to contain_exactly(:owner, :cutter, :island, :eponymous_island, :location)
         end
+
+        it 'joins the associations an extended search can match through' do
+          queries = []
+          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+            queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+          end
+          begin
+            getter.count
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+
+          expect(queries.join).to match(/LEFT OUTER JOIN/)
+        end
       end
 
       describe 'when fields are requested' do
@@ -719,6 +733,20 @@ module ForestLiana
           expect(getter.count).to eq 0
           expect(list_getter.records.count).to eq 0
           expect(getter.includes).to eq []
+        end
+
+        it 'counts without joining a table the search never reaches' do
+          queries = []
+          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+            queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+          end
+          begin
+            getter.count
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+
+          expect(queries).not_to include(a_string_matching(/LEFT OUTER JOIN/))
         end
       end
 
@@ -758,6 +786,38 @@ module ForestLiana
             expect(list_getter.records.count).to eq 1
           end
         end
+      end
+    end
+
+    describe '#count with a collection whose search touches a smart field lambda' do
+      let(:search_params) do
+        ActiveSupport::HashWithIndifferentAccess.new(
+          page: { size: pageSize, number: pageNumber },
+          search: 'skull',
+          searchExtended: '0',
+          timezone: 'Europe/Paris',
+        )
+      end
+      let(:getter) { described_class.new(User, search_params, user) }
+
+      it 'is not narrowed by searchExtended, since the lambda can read anything' do
+        expect(getter.instance_variable_get(:@count_needs_includes)).to eq(true)
+      end
+    end
+
+    describe '#count with a plain collection' do
+      let(:search_params) do
+        ActiveSupport::HashWithIndifferentAccess.new(
+          page: { size: pageSize, number: pageNumber },
+          search: 'skull',
+          searchExtended: '0',
+          timezone: 'Europe/Paris',
+        )
+      end
+      let(:getter) { described_class.new(Tree, search_params, user) }
+
+      it 'is narrowed by searchExtended' do
+        expect(getter.instance_variable_get(:@count_needs_includes)).to eq(false)
       end
     end
   end

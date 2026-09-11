@@ -5,7 +5,7 @@ class ForestLiana::Model::Collection
   extend ActiveModel::Naming
 
   attr_accessor :name, :fields, :actions, :segments, :only_for_relationships,
-    :is_virtual, :is_read_only, :is_searchable, :icon,
+    :is_virtual, :is_read_only, :is_searchable, :is_countable, :icon,
     :integration, :pagination_type, :search_fields,
     # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
     :name_old
@@ -24,6 +24,7 @@ class ForestLiana::Model::Collection
     @icon ||= nil
     @is_read_only ||= false
     @is_searchable = true if @is_searchable.nil?
+    @is_countable = true if @is_countable.nil?
     @only_for_relationships ||= false
     @pagination_type ||= "page"
     @search_fields ||= nil
