@@ -3,10 +3,12 @@ module ForestLiana
     NOISE_NAMES = %w[SCHEMA TRANSACTION].freeze
     NOISE_SQL = /\A\s*(begin|commit|rollback|savepoint|release|pragma)\b/i
 
-    # `.` under /m spans newlines, so an unanchored match would also find "FROM "table"" inside a
-    # subquery well past the root SELECT's own FROM (e.g. a WHERE ... IN (SELECT ... FROM "table"
-    # ...) clause) — the negative lookahead stops at the first FROM the string actually has,
-    # which is the root one whenever there is a subquery to tell apart from it.
+    # An unbounded, greedy `.*` between SELECT and FROM would happily match through to *any*
+    # later "FROM \"table\"" in the string, including one inside a WHERE ... IN (SELECT ... FROM
+    # "table" ...) subquery's own FROM — the negative lookahead instead stops at the first FROM
+    # the string has, which is the root one whenever a subquery follows it. Does not protect the
+    # opposite case (a subquery in the SELECT list, appearing before the root's own FROM) or a
+    # schema-qualified table (FROM "public"."table") — neither shape appears in this suite today.
     def self.select_pattern(table)
       /\ASELECT\b(?:(?!FROM\b).)*\bFROM "#{Regexp.escape(table)}"/im
     end
@@ -20,8 +22,16 @@ module ForestLiana
         Rational(after.size - before.size, rows_added)
       end
 
+      # Array#- is a set difference: it would drop every occurrence of a query already present in
+      # baseline, not just the newly added ones — exactly wrong for an N+1, whose whole signature
+      # is the same query repeated more times in grown than in baseline.
       def added_queries
-        grown - baseline
+        remaining = baseline.tally
+        grown.reject { |sql| remaining[sql].to_i.positive? && (remaining[sql] -= 1) }
+      end
+
+      def delta_report
+        "per-row delta #{per_row_delta}\nqueries added:\n#{added_queries.join("\n")}"
       end
     end
 
@@ -49,8 +59,10 @@ module ForestLiana
       Footprint.new(baseline, grown, large - small)
     end
 
+    # Counts any JOIN kind (LEFT OUTER, INNER, or otherwise) — ActiveRecord only ever emits the
+    # first two, so this never needs to tell them apart.
     def join_count(queries, table)
-      queries.sum { |sql| sql.scan(/\b(?:LEFT OUTER |INNER )?JOIN "#{Regexp.escape(table)}"/).size }
+      queries.sum { |sql| sql.scan(/\bJOIN "#{Regexp.escape(table)}"/).size }
     end
 
     def selects_from(queries, table)
