@@ -59,10 +59,17 @@ module ForestLiana
         end
 
         after do
+          # Rails 7.2 switched _reflections/reflections to symbol keys; deleting only the string
+          # form is a silent no-op there, and reflect_on_all_associations only busts its cache
+          # from add_reflection, never on a direct _reflections mutation — without the explicit
+          # clear, the deleted association keeps leaking into later specs.
           %w[addresses].each do |name|
             Island._reflections.delete(name)
+            Island._reflections.delete(name.to_sym)
             Island.reflections.delete(name)
+            Island.reflections.delete(name.to_sym)
           end
+          Island.clear_reflections_cache
           %w[addresses addresses= address_ids address_ids=].each do |method|
             Island.undef_method(method) rescue nil
           end
@@ -84,10 +91,15 @@ module ForestLiana
         end
 
         after do
+          # Same reflections-cache leak as the context above, on Tree's subject instead of
+          # Island's addresses.
           %w[subject].each do |name|
             Tree._reflections.delete(name)
+            Tree._reflections.delete(name.to_sym)
             Tree.reflections.delete(name)
+            Tree.reflections.delete(name.to_sym)
           end
+          Tree.clear_reflections_cache
           %w[subject subject= subject_id subject_type].each do |method|
             Tree.undef_method(method) rescue nil
           end
