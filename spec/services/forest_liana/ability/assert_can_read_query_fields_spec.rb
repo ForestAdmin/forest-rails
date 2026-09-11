@@ -157,6 +157,67 @@ module ForestLiana
             .not_to raise_error
         end
 
+        it 'refuses a search on a column of an unreadable collection, naming the path and collection' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['island:name']) }
+            .to raise_error(
+              ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError,
+              "You cannot search on 'island:name': you are not allowed to read the 'Island' collection."
+            )
+        end
+
+        it 'serves a search reaching a readable collection' do
+          write_permissions('Tree' => true, 'Island' => true)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['island:name']) }
+            .not_to raise_error
+        end
+
+        it 'does not raise for a search path naming an unresolvable segment 1, checking only segment 1 like a filter or sort' do
+          # Search paths are agent-derived from a real reflection, so segment 1 is never actually
+          # unresolvable in practice — this pins the same segment-1-only behaviour as filter/sort.
+          write_permissions('Tree' => true)
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['unknown:id']) }
+            .not_to raise_error
+        end
+
+        describe 'a collection absent from the apimap' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Tree')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+          end
+
+          it 'refuses as unexposed rather than as denied, since no role can be granted read on it' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:name']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError) do |error|
+                expect(error.message).to eq(
+                  "You cannot filter on 'island:name': it reaches the 'Island' collection, which is not " \
+                    'exposed to Forest Admin. No role can be granted read on it until the collection is exposed.'
+                )
+                expect(error.data).to eq(action: 'filter on', field: 'island:name', collections: ['Island'])
+              end
+          end
+
+          it 'refuses a search the same way, since all three usage kinds share the same denial site' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect { dummy_class.assert_can_read_query_fields(user, Tree, search_paths: ['island:name']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError) do |error|
+                expect(error.message).to eq(
+                  "You cannot search on 'island:name': it reaches the 'Island' collection, which is not " \
+                    'exposed to Forest Admin. No role can be granted read on it until the collection is exposed.'
+                )
+                expect(error.data).to eq(action: 'search on', field: 'island:name', collections: ['Island'])
+              end
+          end
+        end
+
         describe 'polymorphic' do
           it 'serves a filter on a relation whose every target is readable' do
             write_permissions('Address' => true, 'User' => true, 'Island' => true)
@@ -165,8 +226,15 @@ module ForestLiana
             expect { dummy_class.assert_can_read_query_fields(user, Address, filter_paths: ['addressable:name']) }
               .not_to raise_error
           ensure
+            # Rails 7.2 switched _reflections/reflections to symbol keys; deleting only the string
+            # form is a silent no-op there, and reflect_on_all_associations only busts its cache
+            # from add_reflection, never on a direct _reflections mutation — without the explicit
+            # clear, the deleted association keeps leaking into later specs.
             Island._reflections.delete('addresses')
+            Island._reflections.delete(:addresses)
             Island.reflections.delete('addresses')
+            Island.reflections.delete(:addresses)
+            Island.clear_reflections_cache
             %w[addresses addresses= address_ids address_ids=].each { |m| Island.undef_method(m) rescue nil }
           end
 
@@ -191,8 +259,40 @@ module ForestLiana
               )
           ensure
             Tree._reflections.delete('subject')
+            Tree._reflections.delete(:subject)
             Tree.reflections.delete('subject')
+            Tree.reflections.delete(:subject)
+            Tree.clear_reflections_cache
             %w[subject subject= subject_id subject_type].each { |m| Tree.undef_method(m) rescue nil }
+          end
+
+          it 'names a target that is merely denied alongside one that is unexposed, in the same error' do
+            write_permissions('Address' => true, 'User' => false)
+            Island.class_eval { has_many :addresses, as: :addressable }
+            allow(ForestLiana).to receive(:apimap).and_wrap_original do |original|
+              original.call.reject { |collection| collection.name.to_s == 'Island' }
+            end
+
+            expect { dummy_class.assert_can_read_query_fields(user, Address, filter_paths: ['addressable:name']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError) do |error|
+                expect(error.message).to eq(
+                  "You cannot filter on 'addressable:name': it reaches the 'Island' collection, which is not " \
+                    'exposed to Forest Admin. No role can be granted read on it until the collection is ' \
+                    "exposed. Once exposed, the 'User' collection on the same path would still not be " \
+                    'readable by this role.'
+                )
+                expect(error.data).to eq(
+                  action: 'filter on', field: 'addressable:name',
+                  collections: ['Island'], also_denied: ['User']
+                )
+              end
+          ensure
+            Island._reflections.delete('addresses')
+            Island._reflections.delete(:addresses)
+            Island.reflections.delete('addresses')
+            Island.reflections.delete(:addresses)
+            Island.clear_reflections_cache
+            %w[addresses addresses= address_ids address_ids=].each { |m| Island.undef_method(m) rescue nil }
           end
         end
 
@@ -203,7 +303,10 @@ module ForestLiana
             allow(forest_collection).to receive(:fields_smart_belongs_to).and_return(
               [{ field: :organization, reference: 'Organization.id', is_virtual: true, type: 'String' }]
             )
-            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+            organization_collection = double('organization_collection')
+            allow(organization_collection).to receive(:name).and_return('Organization')
+            allow(organization_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection, organization_collection])
           end
 
           it 'checks read on the referenced collection, not on the root it is declared on' do

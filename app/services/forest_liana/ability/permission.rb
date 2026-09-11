@@ -114,7 +114,7 @@ module ForestLiana
             if readable.call(entry[:owners][collection_key])
               acc[collection_key] = entry[:field_names].join(',')
             else
-              denied << { path: collection_key, collections: entry[:owners][collection_key] } if named
+              denied << denial_entry(collection_key, entry[:owners][collection_key], readable_collection_names) if named
             end
           else
             kept = entry[:field_names].select do |field_name|
@@ -125,7 +125,7 @@ module ForestLiana
                 # differs from root_name — prefix the message so it doesn't read as if 'field_name'
                 # were a bare field of the root.
                 display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
-                denied << { path: field_name, display_path: display_path, collections: entry[:owners][field_name] } if named
+                denied << denial_entry(field_name, entry[:owners][field_name], readable_collection_names, display_path) if named
                 false
               end
             end
@@ -140,13 +140,16 @@ module ForestLiana
       end
 
       # Refused rather than redacted, unlike +redact_fields+: dropping a filter condition widens
-      # the result set, and dropping a sort clause silently reorders it. +root_model+ is pinned
-      # readable — +browse+/+read+ already gate it upstream — so it is never itself a refusal.
-      def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [])
+      # the result set, dropping a sort clause silently reorders it, and dropping a search term
+      # still leaks a bit — whether narrowing occurred is itself a signal about a column the
+      # caller cannot read. +root_model+ is pinned readable — +browse+/+read+ already gate it
+      # upstream — so it is never itself a refusal.
+      def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [], search_paths: [])
         root_name = ForestLiana.name_for(root_model)
 
         usages = filter_paths.map { |path| query_usage('filter on', root_model, path) } +
-                 sort_paths.map { |path| { action: 'sort on', path: path, collections: query_target_collections(root_model, path) } }
+                 sort_paths.map { |path| { action: 'sort on', path: path, collections: query_target_collections(root_model, path) } } +
+                 search_paths.map { |path| { action: 'search on', path: path, collections: query_target_collections(root_model, path) } }
 
         return if usages.empty?
 
@@ -158,6 +161,14 @@ module ForestLiana
 
         denied = usages.find { |usage| !FieldPath.readable_leaves?(usage[:collections], readable_collection_names) }
         return unless denied
+
+        exposed, unexposed = denied[:collections].partition { |name| collection_exposed?(name) }
+        if unexposed.any?
+          also_denied = exposed - readable_collection_names
+          raise ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError.new(
+            denied[:action], denied[:path], unexposed, also_denied
+          )
+        end
 
         raise ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError.new(
           denied[:action], denied[:path], denied[:collections]
@@ -304,11 +315,34 @@ module ForestLiana
         forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
 
-      # Both FiltersParser and sort_query/detect_reference treat segment 2 as a plain column of
-      # segment 1's collection, never recursing further — resolving the full path would recurse
-      # past segment 1 whenever segment 2 also happens to name a real association, checking a
-      # collection neither a filter nor a sort ever actually reaches. partition (not split) so an
-      # empty or colon-only path resolves to '' (the root, pinned readable) instead of nil.
+      # No role can ever be granted `read` on a collection absent from the apimap — a denial
+      # message naming it as unreadable would point at a permission nobody can grant.
+      def collection_exposed?(collection_name)
+        ForestLiana.apimap.any? { |collection| collection.name.to_s == collection_name }
+      end
+
+      # unexposed/also_denied (each present iff non-empty) tell UnauthorizedFieldsError which of
+      # these collections can never be granted read versus merely aren't readable by this role —
+      # same distinction, and same reason to keep both (a polymorphic path can fail on one of
+      # each at once), as UnexposedQueryCollectionError already makes for filter/sort/search.
+      def denial_entry(path, collections, readable_collection_names, display_path = nil)
+        entry = { path: path, collections: collections }
+        entry[:display_path] = display_path if display_path
+        unexposed = collections.reject { |name| collection_exposed?(name) }
+        if unexposed.any?
+          entry[:unexposed] = unexposed
+          also_denied = (collections - unexposed) - readable_collection_names
+          entry[:also_denied] = also_denied if also_denied.any?
+        end
+        entry
+      end
+
+      # FiltersParser, sort_query/detect_reference and the extended-search association loop all
+      # treat segment 2 as a plain column of segment 1's collection, never recursing further —
+      # resolving the full path would recurse past segment 1 whenever segment 2 also happens to
+      # name a real association, checking a collection none of the three ever actually reaches.
+      # partition (not split) so an empty or colon-only path resolves to '' (the root, pinned
+      # readable) instead of nil.
       def query_target_collections(root_model, path)
         resolve_owner(root_model, path.partition(':').first)
       end
