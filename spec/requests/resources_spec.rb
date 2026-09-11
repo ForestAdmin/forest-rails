@@ -370,6 +370,33 @@ describe 'Requesting Tree resources', :type => :request  do
       end
     end
 
+    describe 'filtering on a column of a collection absent from the apimap' do
+      params = {
+        filters: JSON.generate({ 'field' => 'island:name', 'operator' => 'equal', 'value' => 'Lemon Island' }),
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        timezone: 'Europe/Paris'
+      }
+
+      before do
+        allow(ForestLiana).to receive(:apimap).and_wrap_original do |original|
+          original.call.reject { |collection| collection.name.to_s == 'Island' }
+        end
+      end
+
+      it 'refuses with UnexposedQueryCollectionError, not the generic denied error' do
+        get '/forest/Tree', params: params, headers: headers
+
+        expect(response.status).to eq(403)
+        body = JSON.parse(response.body)
+        expect(body['errors'][0]['name']).to eq('UnexposedQueryCollectionError')
+        expect(body['errors'][0]['detail'])
+          .to eq "You cannot filter on 'island:name': it reaches the 'Island' collection, which is not " \
+            'exposed to Forest Admin. No role can be granted read on it until the collection is exposed.'
+        expect(body['errors'][0]['data']).to eq('action' => 'filter on', 'field' => 'island:name', 'collections' => ['Island'])
+      end
+    end
+
     describe 'sorting on a column of a collection the role cannot read' do
       params = {
         sort: '-island.name',
