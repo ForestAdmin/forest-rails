@@ -391,7 +391,7 @@ module ForestLiana
           end
         end
 
-        # The tradeoff Christophe Brun's review round left explicitly unpinned: a lambda that
+        # The tradeoff a review round left explicitly unpinned: a lambda that
         # genuinely narrows the query loses to a malformed-UUID-shaped term exactly like a no-op
         # one does, since @lambda_contributed can't currently tell the two apart. Accepted rather
         # than fixed here (closing it needs comparing the lambda's own before/after relation,
