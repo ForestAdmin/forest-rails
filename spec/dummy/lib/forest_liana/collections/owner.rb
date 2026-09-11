@@ -3,7 +3,10 @@ class Forest::Owner
 
   collection :Owner
 
-  field :tree_names, type: 'String' do
+  # trees:name is a relation path (crosses the trees association) — only the column half of
+  # dependencies: is read today, so this declares Owner projectable without adding anything to
+  # its own select; the relation path itself isn't preloaded yet.
+  field :tree_names, type: 'String', dependencies: ['trees:name'] do
     object.trees.map(&:name).join(', ')
   end
 end

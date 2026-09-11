@@ -60,9 +60,9 @@ module ForestLiana
 
         after do
           # Rails 7.2 switched _reflections/reflections to symbol keys; deleting only the string
-          # form is a silent no-op there. Rails 7.2 also memoizes reflect_on_all_associations and
-          # only busts that cache from add_reflection, never on a direct _reflections mutation —
-          # without the explicit clear, the deleted association keeps leaking into later specs.
+          # form is a silent no-op there, and reflect_on_all_associations only busts its cache
+          # from add_reflection, never on a direct _reflections mutation — without the explicit
+          # clear, the deleted association keeps leaking into later specs.
           %w[addresses].each do |name|
             Island._reflections.delete(name)
             Island._reflections.delete(name.to_sym)
