@@ -114,7 +114,7 @@ module ForestLiana
             if readable.call(entry[:owners][collection_key])
               acc[collection_key] = entry[:field_names].join(',')
             else
-              denied << { path: collection_key, collections: entry[:owners][collection_key] } if named
+              denied << denial_entry(collection_key, entry[:owners][collection_key]) if named
             end
           else
             kept = entry[:field_names].select do |field_name|
@@ -125,7 +125,7 @@ module ForestLiana
                 # differs from root_name — prefix the message so it doesn't read as if 'field_name'
                 # were a bare field of the root.
                 display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
-                denied << { path: field_name, display_path: display_path, collections: entry[:owners][field_name] } if named
+                denied << denial_entry(field_name, entry[:owners][field_name], display_path) if named
                 false
               end
             end
@@ -319,6 +319,16 @@ module ForestLiana
       # message naming it as unreadable would point at a permission nobody can grant.
       def collection_exposed?(collection_name)
         ForestLiana.apimap.any? { |collection| collection.name.to_s == collection_name }
+      end
+
+      # unexposed (present iff non-empty) tells UnauthorizedFieldsError which of these collections
+      # can never be granted read, same distinction assert_can_read_query_fields already makes.
+      def denial_entry(path, collections, display_path = nil)
+        entry = { path: path, collections: collections }
+        entry[:display_path] = display_path if display_path
+        unexposed = collections.reject { |name| collection_exposed?(name) }
+        entry[:unexposed] = unexposed if unexposed.any?
+        entry
       end
 
       # FiltersParser, sort_query/detect_reference and the extended-search association loop all

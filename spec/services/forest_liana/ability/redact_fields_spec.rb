@@ -179,6 +179,35 @@ module ForestLiana
             .to eq('Tree' => 'island:location')
         end
 
+        describe 'a collection absent from the apimap' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Tree')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+          end
+
+          it 'names it as unexposed rather than as merely denied, since no role can be granted read on it' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect { dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: ['Tree']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError) do |error|
+                expect(error.message).to eq(
+                  "You are not allowed to read 'island', which reaches the 'Island' collection — not " \
+                    'exposed to Forest Admin, so no role can be granted read on it until the collection is exposed.'
+                )
+                expect(error.data[:unexposed]).to eq(['island'])
+              end
+          end
+
+          it 'drops it silently, like any other unnamed denied field, when the caller never named it' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: []))
+              .to eq({})
+          end
+        end
+
         describe 'polymorphic' do
           it 'keeps a relation whose every target is readable' do
             write_permissions('Address' => true, 'User' => true, 'Island' => true)
@@ -244,7 +273,13 @@ module ForestLiana
             allow(forest_collection).to receive(:fields_smart_belongs_to).and_return(
               [{ field: :organization, reference: 'Organization.id', is_virtual: true, type: 'String' }]
             )
-            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+            organization_collection = double('organization_collection')
+            allow(organization_collection).to receive(:name).and_return('Organization')
+            allow(organization_collection).to receive(:fields_smart_belongs_to).and_return([])
+            # Both exposed: this describe block is about owner resolution, not exposure — an
+            # apimap missing 'Organization' would make collection_exposed? mistake it for an
+            # unexposed collection and change the raised message to that other case.
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection, organization_collection])
           end
 
           it 'checks read on the field\'s referenced collection, not on the root it is declared on' do
