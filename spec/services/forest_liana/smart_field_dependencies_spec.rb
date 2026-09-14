@@ -14,6 +14,10 @@ module ForestLiana
         expect(described_class.normalize([])).to eq([])
       end
 
+      it 'answers nil, not [], for a nonempty Array that normalizes down to nothing' do
+        expect(described_class.normalize(['  '])).to be_nil
+      end
+
       it 'answers nil for a shape that is neither a String, a Symbol, nor an Array' do
         expect(described_class.normalize({ nested: 'hash' })).to be_nil
         expect(described_class.normalize(5)).to be_nil
@@ -39,7 +43,10 @@ module ForestLiana
     describe '.validate!' do
       after do
         Tree._reflections.delete('subject')
+        Tree._reflections.delete(:subject)
         Tree.reflections.delete('subject')
+        Tree.reflections.delete(:subject)
+        Tree.clear_reflections_cache
         %w[subject subject= subject_id subject_type].each { |m| Tree.undef_method(m) rescue nil }
       end
 
@@ -64,6 +71,19 @@ module ForestLiana
       it 'warns and drops the whole declaration for a bare name that is not a real column' do
         field = { field: :cap_name, dependencies: ['not_a_column'] }
         expect(FOREST_LOGGER).to receive(:warn).with(/not_a_column.*cap_name.*Tree/m)
+
+        described_class.validate!(Tree, 'Tree', field)
+
+        expect(field).not_to have_key(:dependencies)
+      end
+
+      it 'warns and drops the whole declaration for a trailing-colon entry' do
+        # split(':') alone would drop the trailing empty field, reading "name:" back as the bare
+        # column "name" here — valid — while #relation_paths still classifies it as a relation path
+        # (entry.include?(':') sees the colon), producing an empty #relations that crashes its
+        # first caller instead of ever reaching this warning.
+        field = { field: :cap_name, dependencies: ['name:'] }
+        expect(FOREST_LOGGER).to receive(:warn).with(/name:.*cap_name.*Tree/m)
 
         described_class.validate!(Tree, 'Tree', field)
 

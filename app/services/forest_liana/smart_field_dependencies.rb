@@ -9,7 +9,14 @@ module ForestLiana
       return nil unless raw.is_a?(String) || raw.is_a?(Symbol) || raw.is_a?(Array)
 
       entries = raw.is_a?(Array) ? raw : [raw]
-      entries.map(&:to_s).map(&:strip).reject(&:empty?).uniq
+      normalized = entries.map(&:to_s).map(&:strip).reject(&:empty?).uniq
+      # An explicit [] is the deliberate "declares zero dependencies" case (a constant getter);
+      # a nonempty input that normalizes down to nothing (all blank strings) is instead a mistake
+      # indistinguishable from that case unless caught here — nil routes it through the same
+      # "invalid, ignored" warning as any other malformed declaration.
+      return nil if normalized.empty? && entries.any?
+
+      normalized
     end
 
     def self.for(field)
@@ -31,7 +38,10 @@ module ForestLiana
     end
 
     def self.valid_entry?(model, entry)
-      *relation_names, column_name = entry.split(':')
+      # split(':') alone drops a trailing empty field, so "name:" would read back identically to
+      # "name" here yet still match entry.include?(':') at getter-time (#relation_paths) — passing
+      # validation as a bare column but crashing on Array#first of an empty #relations there.
+      *relation_names, column_name = entry.split(':', -1)
       target = relation_names.reduce(model) do |current_model, relation_name|
         return false if current_model.nil?
 
