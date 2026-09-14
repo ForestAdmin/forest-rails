@@ -70,5 +70,201 @@ module ForestLiana
         resource.reflect_on_association(association_name)&.scope&.arity&.positive?
       end
     end
+
+    # NOTICE: The collection the records come from, which the projection is rooted on. It is the
+    #         association target on the relationships routes, not the collection in the URL.
+    def projected_resource
+      @resource
+    end
+
+    def apply_projection(records, eager_loads)
+      select = compute_select_fields(eager_loads)
+      records = records.references(eager_loads) if eager_loads.any?
+
+      # NOTICE: The _forest_admin_eager_load marker heading the select is only stripped by the
+      #         JoinDependency override, which runs when the query really eager loads; it would
+      #         otherwise reach the SQL as a column name.
+      records.eager_loading? ? records.select(*select) : records.select(*select.drop(1))
+    end
+
+    # NOTICE: joined_relations names the relations this query joins, and so the only ones whose
+    #         own columns can be projected here. Left nil, every requested relation is projected,
+    #         which is what the list has always done.
+    def compute_select_fields(joined_relations = nil)
+      select = ['_forest_admin_eager_load']
+
+      pk = projected_resource.primary_key
+      if pk.is_a?(Array)
+        pk.each { |key| select << "#{projected_resource.table_name}.#{key}" }
+      else
+        select << "#{projected_resource.table_name}.#{pk}"
+      end
+
+      # Include columns used in default ordering for batch cursor compatibility
+      if projected_resource.respond_to?(:default_scoped) && projected_resource.default_scoped.order_values.any?
+        projected_resource.default_scoped.order_values.each do |order_value|
+          if order_value.is_a?(Arel::Nodes::Ordering)
+            # Extract column name from Arel node
+            column_name = order_value.expr.name if order_value.expr.respond_to?(:name)
+            select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
+          elsif order_value.is_a?(String) || order_value.is_a?(Symbol)
+            # NOTICE: Only a bare column name can be table-qualified. An ordering expression such
+            #         as "LOWER(name) ASC" is left out: qualifying it would reach the SQL as
+            #         table.LOWER(name).
+            column_name = order_value.to_s.split(' ').first.split('.').last
+            select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
+          end
+        end
+      end
+
+      # Handle ActiveStorage associations from both @includes and @field_names_requested
+      active_storage_associations_processed = Set.new
+
+      (@includes + @field_names_requested).each do |path|
+        association = path.is_a?(Symbol) ? projected_resource.reflect_on_association(path) : get_one_association(path)
+        next unless association
+        next if active_storage_associations_processed.include?(association.name)
+        # NOTICE: Same rule as every other relation below — a relation the query does not join is
+        #         read by a SELECT of its own, and naming its table here would leave it out of the
+        #         FROM clause. The relationships route preloads its display-only relations.
+        next unless is_active_storage_association?(association) && joined?(association, joined_relations)
+
+        # Include all columns from ActiveStorage tables to avoid initialization errors
+        table_name = association.table_name
+        association.klass.column_names.each do |column_name|
+          select << "#{table_name}.#{column_name}"
+        end
+
+        # Include the foreign key linking the attachment to its owner
+        select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
+
+        active_storage_associations_processed.add(association.name)
+      end
+
+      @field_names_requested.each do |path|
+        association = get_one_association(path)
+        if association
+          through_chain = []
+          current_association = association
+          while current_association.options[:through]
+            through_chain << current_association.options[:through]
+            current_association = get_one_association(current_association.options[:through])
+          end
+
+          # Skip ActiveStorage associations - already processed above
+          next if is_active_storage_association?(association)
+
+          # For :through associations, recursively add all intermediate foreign keys
+          if through_chain.any?
+            current_resource = projected_resource
+            through_chain.reverse.each do |through_name|
+              through_assoc = current_resource.reflect_on_association(through_name)
+
+              if through_assoc
+                if through_assoc.options[:through]
+                  direct_through_name = through_assoc.options[:through]
+                  direct_assoc = current_resource.reflect_on_association(direct_through_name)
+
+                  select_foreign_keys(select, current_resource, direct_assoc) if direct_assoc
+                else
+                  # Direct association (not nested through)
+                  select_foreign_keys(select, current_resource, through_assoc)
+                end
+
+                # Move to the next level in the chain
+                current_resource = through_assoc.klass if through_assoc.klass
+              end
+            end
+          else
+            # Direct association (not :through)
+            if SchemaUtils.polymorphic?(association)
+              select << "#{projected_resource.table_name}.#{association.foreign_type}"
+            end
+
+            select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
+          end
+        end
+
+        fields = @params[:fields]&.[](path)&.split(',')
+        if fields
+          association = get_one_association(path)
+
+          # NOTICE: A polymorphic relation is loaded target by target, out of this query, so its
+          #         own fields cannot reach this select — reading its table_name here would only
+          #         raise. They still apply to the serialization. A path naming no to-one
+          #         relation is dropped, the way the fields[] query params already drop it.
+          next if association.nil? || is_active_storage_association?(association) ||
+            SchemaUtils.polymorphic?(association)
+
+          # NOTICE: A relation the query does not join is loaded by a SELECT of its own, out of
+          #         reach of this projection: naming its columns here would only break the SQL.
+          next if joined_relations && !joined_relations.include?(association.name)
+
+          table_name = association.table_name
+
+          fields.each do |association_path|
+            next if association_path == 'id'
+
+            if ForestLiana::SchemaHelper.is_smart_field?(association.klass, association_path)
+              association.klass.attribute_names.each { |attribute| select << "#{table_name}.#{attribute}" }
+            elsif column?(association.klass, association_path)
+              select << "#{table_name}.#{association_path}"
+            end
+          end
+        else
+          # Only add as column if it's not an association
+          # Associations are handled by the through chain logic above
+          #
+          # NOTICE: Only a real column reaches the select. A name the collection does not hold is
+          #         dropped, exactly as the serializer already drops it — reaching the SQL it
+          #         would raise, and since the Forest-Projection header feeds this it would carry
+          #         whatever text the caller wrote into the select list.
+          unless association
+            select << "#{projected_resource.table_name}.#{path}" if column?(projected_resource, path)
+          end
+        end
+      end
+
+      select.uniq
+    end
+
+    def column?(model, name)
+      !name.nil? && model.column_names.include?(name.to_s)
+    end
+
+    def joined?(association, joined_relations)
+      joined_relations.nil? || joined_relations.include?(association.name)
+    end
+
+    # NOTICE: A belongs_to carries its foreign key on the owner row, a has_one on the target row.
+    #         Qualifying a has_one key with the owner table names a column that does not exist,
+    #         and the target table only reaches the FROM clause when the query joins it — a
+    #         preloaded relation is read by a SELECT of its own and needs nothing here, the
+    #         owner primary key already being selected.
+    def select_foreign_keys(select, owner, association, joined = true)
+      if association.macro == :belongs_to
+        Array(association.foreign_key).each { |fk| select << "#{owner.table_name}.#{fk}" }
+      elsif association.macro == :has_one && joined
+        Array(association.foreign_key).each { |fk| select << "#{association.table_name}.#{fk}" }
+      end
+    end
+
+    def get_one_association(name)
+      # Handle composite primary keys - name might be an Array
+      name_sym = name.is_a?(Array) ? name : name.to_sym
+      ForestLiana::QueryHelper.get_one_associations(projected_resource)
+                              .select { |association| association.name == name_sym }
+                              .first
+    end
+
+    def is_active_storage_association?(association)
+      return false unless association
+      return false if SchemaUtils.polymorphic?(association)
+
+      klass_name = association.klass.name
+      klass_name == 'ActiveStorage::Attachment' ||
+      klass_name == 'ActiveStorage::Blob' ||
+      klass_name.start_with?('ActiveStorage::')
+    end
   end
 end

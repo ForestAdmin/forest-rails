@@ -75,6 +75,8 @@ module ForestLiana
 
         # target records are out of scope
         render serializer: nil, json: { error: 'Smart Action: target record not found' }, status: :bad_request
+      rescue ForestLiana::Errors::ExpectedError
+        raise
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Smart Action: #{error}\n#{format_stacktrace(error)}"

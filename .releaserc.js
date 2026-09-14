@@ -15,14 +15,14 @@ module.exports = {
     [
       '@semantic-release/exec',
       {
-        prepareCmd: 'sed -i \'s/forest_liana (.*)/forest_liana (${nextRelease.version})/g\' Gemfile.lock; sed -i \'s/VERSION = ".*"/VERSION = "${nextRelease.version}"/g\' lib/forest_liana/version.rb; sed -i \'s/"version": ".*"/"version": "${nextRelease.version}"/g\' package.json;',
+        prepareCmd: 'sed -i \'s/forest_liana (.*)/forest_liana (${nextRelease.version})/g\' Gemfile.lock gemfiles/*.gemfile.lock; sed -i \'s/VERSION = ".*"/VERSION = "${nextRelease.version}"/g\' lib/forest_liana/version.rb; sed -i \'s/"version": ".*"/"version": "${nextRelease.version}"/g\' package.json;',
         successCmd: 'touch .trigger-rubygem-release',
       },
     ],
     [
       '@semantic-release/git',
       {
-        assets: ['CHANGELOG.md', 'Gemfile.lock', 'lib/forest_liana/version.rb', 'package.json'],
+        assets: ['CHANGELOG.md', 'Gemfile.lock', 'gemfiles/*.gemfile.lock', 'lib/forest_liana/version.rb', 'package.json'],
       },
     ],
     '@semantic-release/github',

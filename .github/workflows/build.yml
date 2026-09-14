@@ -39,26 +39,27 @@ jobs:
         uses: wagoid/commitlint-github-action@v2
 
   test:
-    name: Tests
+    name: Tests (Rails ${{ matrix.rails }})
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rails: '6.1', gemfile: Gemfile }
+          - { rails: '7.0', gemfile: gemfiles/rails_7.0.gemfile }
+          - { rails: '7.1', gemfile: gemfiles/rails_7.1.gemfile }
+          - { rails: '7.2', gemfile: gemfiles/rails_7.2.gemfile }
+          - { rails: '8.0', gemfile: gemfiles/rails_8.0.gemfile }
+          - { rails: '8.1', gemfile: gemfiles/rails_8.1.gemfile }
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3
-      - name: Cache gem
-        uses: actions/cache@v4
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gems-
-      - name: Bundle install
-        run: |
-          bundle config path vendor/bundle
-          gem install bundler
-          bundle install
+          bundler-cache: true
       - name: Test
         env:
           RAILS_ENV: test
@@ -67,6 +68,7 @@ jobs:
           bundle exec rake test
           bundle exec rake db:migrate && bundle exec rspec --color --format doc
       - name: Send coverage
+        if: matrix.rails == '6.1'
         uses: qltysh/qlty-action/coverage@8d5c844f32f80364ccc135534671640466e7f610
         with:
           oidc: true

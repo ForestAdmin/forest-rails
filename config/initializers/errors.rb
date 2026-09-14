@@ -58,6 +58,12 @@ module ForestLiana
       end
     end
 
+    class HTTP400Error < ExpectedError
+      def initialize(message = "Bad Request")
+        super(400, :bad_request, message)
+      end
+    end
+
     class HTTP401Error < ExpectedError
       def initialize(message = "Unauthorized")
         super(401, :unauthorized, message)

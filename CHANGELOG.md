@@ -1,3 +1,23 @@
+# [9.21.0](https://github.com/ForestAdmin/forest-rails/compare/v9.20.13...v9.21.0) (2026-09-09)
+
+
+### Bug Fixes
+
+* **actions:** encode composite primary keys in resolved approval record ids ([b806f23](https://github.com/ForestAdmin/forest-rails/commit/b806f231b5444920a49cc13a272d42072f75967f))
+* **actions:** filter composite-key exclusions and render ApprovalSelectionTooLarge as 422 ([46980d8](https://github.com/ForestAdmin/forest-rails/commit/46980d820bf00ee649fbb363a338e602d7010977))
+* **actions:** never resolve select-all ids for global actions ([51339c8](https://github.com/ForestAdmin/forest-rails/commit/51339c86463c61972b98dc5cd72b8257a9bd250e))
+* **actions:** resolve select-all ids with the JWT user and harden the resolution ([2615bb5](https://github.com/ForestAdmin/forest-rails/commit/2615bb505d1bc1420452e3cc9e7a5b670df9a7b2))
+
+
+### Features
+
+* **actions:** resolve select-all selections for approval-required actions ([9128183](https://github.com/ForestAdmin/forest-rails/commit/912818367fb60db40faa121437dd9415347605d4))
+
+
+### Performance Improvements
+
+* **actions:** bound the select-all id fetch instead of materializing the whole table ([6d593e5](https://github.com/ForestAdmin/forest-rails/commit/6d593e5a80866535c9fd0c622045b4e1d8a2087f))
+
 ## [9.20.13](https://github.com/ForestAdmin/forest-rails/compare/v9.20.12...v9.20.13) (2026-08-25)
 
 

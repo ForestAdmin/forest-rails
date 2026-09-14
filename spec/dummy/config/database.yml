@@ -16,16 +16,21 @@ development:
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
+#
+# `garage`/`user` back Car/Driver (GarageRecord/UserRecord, connects_to database: { writing: ...
+# }): the 3-tier form is required from Rails 8.0 on — `configs_for(env_name: 'test')` stops
+# recognizing a top-level key as scoped to the environment, so `db:migrate` sees only `primary`
+# and the two cross-database tables are never created.
 test:
-  <<: *default
-  database: db/test.sqlite3
-  
-garage:
-  <<: *default
-  database: db/test2.sqlite3
-user:
-  <<: *default
-  database: db/test3.sqlite3
+  primary:
+    <<: *default
+    database: db/test.sqlite3
+  garage:
+    <<: *default
+    database: db/test2.sqlite3
+  user:
+    <<: *default
+    database: db/test3.sqlite3
 
 production:
   <<: *default
