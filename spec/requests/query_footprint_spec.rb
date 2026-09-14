@@ -74,13 +74,6 @@ describe 'SQL footprint of a front call', type: :request do
         page: page, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    # The one cleanup kept: unlike a same-database model, whether transactional fixtures roll
-    # back the driver/user-role connection too isn't exercised anywhere else in this file, and
-    # this repo has already hit one Rails-version-specific multi-database config quirk (see the
-    # comment in spec/dummy/config/database.yml) — cheap insurance against a leak nothing else here
-    # would catch, on the one connection whose rollback behavior is genuinely less proven.
-    after { Driver.destroy_all }
-
     it 'joins the same-database relation, never joins the other database, and reads it per row' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Product', params: params, headers: headers
@@ -92,7 +85,7 @@ describe 'SQL footprint of a front call', type: :request do
       expect(join_count(result.grown, 'drivers')).to eq(0)
       expect(selects_from(result.grown, 'manufacturers')).to be_empty
       expect(result.per_row_delta).to eq(1), -> { result.delta_report }
-      expect(result.per_row_delta(table: 'drivers')).to eq(1)
+      expect(result.per_row_delta(table: 'drivers')).to eq(1), -> { result.delta_report(table: 'drivers') }
 
       sql = selects_from(result.grown, 'products').first
       expect(sql).to include(
@@ -104,8 +97,6 @@ describe 'SQL footprint of a front call', type: :request do
   end
 
   describe 'a get-one' do
-    after { Driver.destroy_all }
-
     it 'joins the same-database relation, reads the cross-database one once and loads every column' do
       manufacturer = Manufacturer.create!(name: 'maker')
       driver = Driver.create!(firstname: 'pilot')
@@ -189,7 +180,7 @@ describe 'SQL footprint of a front call', type: :request do
       end
 
       expect(result.per_row_delta).to eq(1), -> { result.delta_report }
-      expect(result.per_row_delta(table: 'trees')).to eq(1)
+      expect(result.per_row_delta(table: 'trees')).to eq(1), -> { result.delta_report(table: 'trees') }
       expect(join_count(result.grown, 'trees')).to eq(0)
       expect(selects_from(result.grown, 'owners').first).to include('"owners".*')
     end
@@ -227,7 +218,7 @@ describe 'SQL footprint of a front call', type: :request do
         expect(selects_from(result.grown, 'users').size).to eq(1)
       else
         expect(result.per_row_delta).to eq(1), -> { result.delta_report }
-        expect(result.per_row_delta(table: 'users')).to eq(1)
+        expect(result.per_row_delta(table: 'users')).to eq(1), -> { result.delta_report(table: 'users') }
       end
     end
   end

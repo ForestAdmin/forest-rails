@@ -27,11 +27,16 @@ module ForestLiana
       # is the same query repeated more times in grown than in baseline.
       def added_queries
         remaining = baseline.tally
-        grown.reject { |sql| remaining[sql].to_i.positive? && (remaining[sql] -= 1) }
+        grown.reject do |sql|
+          next false unless remaining.fetch(sql, 0).positive?
+
+          remaining[sql] -= 1
+          true
+        end
       end
 
-      def delta_report
-        "per-row delta #{per_row_delta}\nqueries added:\n#{added_queries.join("\n")}"
+      def delta_report(table: nil)
+        "per-row delta #{per_row_delta(table: table)}\nqueries added:\n#{added_queries.join("\n")}"
       end
     end
 
@@ -49,7 +54,11 @@ module ForestLiana
     end
 
     # Query-cache hits are dropped above, so `seed` must give every row its own related record:
-    # two rows pointing at the same parent would hide the second lookup and skew the delta.
+    # two rows pointing at the same parent would hide the second lookup and skew the delta. large
+    # must stay within whatever page size the caller's own params use, or `yield large` answers
+    # fewer rows than `large` and the caller's own row-count assertion is what fails, confusingly
+    # far from here. small == large would divide per_row_delta by zero; not reachable with the
+    # defaults, callers overriding either should keep them apart.
     def footprint(seed:, small: 2, large: 10)
       seed.call(small)
       baseline = capture_queries { yield small }

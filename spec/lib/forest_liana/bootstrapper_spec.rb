@@ -5,8 +5,8 @@ module ForestLiana
       # env_secret stubbed to nil above skips generate_apimap (and the require_lib_forest_liana it
       # calls, which is what re-attaches a Forest::* collection file's smart fields to the fresh
       # serializer classes create_factories is about to build) — so nothing here re-attaches them.
-      # Every example not asserting on the factory itself stubs it, to avoid corrupting the smart
-      # fields every other spec in the run relies on.
+      # Stubbed here for every example, to avoid corrupting the smart fields every other spec in
+      # the run relies on; the one example asserting on the factory itself re-stubs it locally.
       allow(ForestLiana::SerializerFactory).to receive(:new)
         .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
     end
