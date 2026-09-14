@@ -82,11 +82,19 @@ class ForestLiana::Model::Collection
     computed_smart_fields.all? { |field| field.key?(:dependencies) }
   end
 
+  # A smart relation (belongs_to/has_many) or integration field is is_virtual too but excluded
+  # from computed_smart_fields above — its own block can still read arbitrary root attributes
+  # without ever declaring dependencies:, so its mere presence has to block projection for the
+  # whole collection until it can declare and have those validated too (unimplemented today).
+  def uncontrolled_smart_fields
+    fields.select { |field| field[:is_virtual] && (field[:reference] || field[:integration]) }
+  end
+
   # All-or-nothing, deliberately: an undeclared computed smart field poisons projection for the
   # whole collection even when the request never names it (smart_field_dependencies_declared?
   # already checks every one of them) — there is no per-request subset to narrow to here.
   def smart_fields_projectable?
-    smart_field_dependencies_declared?
+    smart_field_dependencies_declared? && uncontrolled_smart_fields.empty?
   end
 
   def smart_field_dependency_columns(field_names)

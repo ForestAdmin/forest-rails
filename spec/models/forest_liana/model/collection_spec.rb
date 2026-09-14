@@ -61,6 +61,15 @@ module ForestLiana
         it 'is false for a collection with any undeclared computed smart field, even when the request never names it' do
           expect(mixed_collection.smart_fields_projectable?).to be false
         end
+
+        it 'is false for a collection with a smart relation, even when every computed field declares' do
+          collection = described_class.new(name: 'Tree', fields: [
+            computed_field(:cap_name, dependencies_declared: true, deps: ['name']),
+            smart_relation(:owner)
+          ])
+
+          expect(collection.smart_fields_projectable?).to be false
+        end
       end
 
       describe '#smart_field_dependency_columns' do
