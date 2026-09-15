@@ -94,6 +94,8 @@ GEM
       mutex_m
       securerandom (>= 0.3)
       tzinfo (~> 2.0)
+    acts-as-taggable-on (10.0.0)
+      activerecord (>= 6.1, < 7.2)
     aes_key_wrap (1.1.0)
     attr_required (1.0.2)
     base64 (0.3.0)
@@ -328,6 +330,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  acts-as-taggable-on (~> 10.0)
   bcrypt
   byebug
   concurrent-ruby (= 1.3.4)

@@ -169,11 +169,13 @@ module ForestLiana
         # receives a non-nil string, so @conditions_pushed is unconditionally true for any taggable
         # resource regardless of whether the term actually matched a tag — harmless (a non-matching
         # subquery still yields zero rows) but distinct from every other branch's meaning of the flag.
-        if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
-          @resource.acts_as_taggable.each do |field|
-            tagged_records = @records.tagged_with(@search.downcase)
-            push_condition(tag_conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
-          end
+        # taggable? alone is enough of a guard: acts_as_taggable_on redefines it to true on the
+        # first `acts_as_taggable_on` call, so respond_to?(:acts_as_taggable) is already true for
+        # every model once the gem is loaded, taggable or not. tagged_with with no context searches
+        # every context the model declared (tag_types), so this needs calling only once.
+        if @resource.try(:taggable?)
+          tagged_records = @records.tagged_with(@search.downcase)
+          push_condition(tag_conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
         end
 
         if extended_search?
@@ -314,11 +316,6 @@ module ForestLiana
     def association_search_condition table_name, column_name
       column_name = format_column_name(table_name, column_name)
       "LOWER(#{column_name}) LIKE :search_value_for_string"
-    end
-
-    def acts_as_taggable?(field)
-      @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable) &&
-        @resource.acts_as_taggable.include?(field)
     end
 
     private
