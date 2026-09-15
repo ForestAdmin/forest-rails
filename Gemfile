@@ -14,4 +14,6 @@ gem 'groupdate', '5.2.2'
 group :test do
   # Rails < 7.1 pins the sqlite3 adapter to the 1.x line.
   gem 'sqlite3', '~> 1.4'
+  # 10.x is the last major supporting Rails < 7.2 (activerecord requirement).
+  gem 'acts-as-taggable-on', '~> 10.0'
 end

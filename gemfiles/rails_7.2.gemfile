@@ -9,4 +9,6 @@ gem 'rails', '~> 7.2.3'
 
 group :test do
   gem 'sqlite3', '>= 2.1'
+  # 12.x supports Rails 7.1 through 8.0 (activerecord requirement); 13.x is 8.1-only.
+  gem 'acts-as-taggable-on', '~> 12.0'
 end
