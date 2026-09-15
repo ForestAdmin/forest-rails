@@ -34,7 +34,7 @@ module ForestLiana
       # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection.
       # ||=, not =: a second #perform on the same instance must not recapture @records after the
       # first call already projected it.
-      @unprojected_records = @records
+      @unprojected_records ||= @records
       return @records unless project?
 
       polymorphic_associations, preload_loads = analyze_associations(model_association)

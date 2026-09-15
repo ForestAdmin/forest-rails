@@ -41,7 +41,7 @@ module ForestLiana
       # makes Rails emit `COUNT(col1, col2)`, invalid SQL, if `.count` ever ran off it instead.
       # ||=, not =: a second #perform on the same instance must not recapture @records after the
       # first call already projected it, or this guard protects nothing the second time around.
-      @unprojected_records = optimize_record_loading(@resource, @records, false)
+      @unprojected_records ||= optimize_record_loading(@resource, @records, false)
 
       @records = if project?
         polymorphic_association, preload_loads = analyze_associations(@resource)
