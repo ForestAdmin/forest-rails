@@ -6,9 +6,13 @@ module ForestLiana
       @resource = resource
       @params = params
       @user = forest_user
-      @count_needs_includes = @params[:search].present?
       @collection_name = ForestLiana.name_for(@resource)
       @collection = get_collection(@collection_name)
+      # SearchQueryBuilder only joins an association under searchExtended (:103) — a plain
+      # search never leaves @resource's own columns. A smart field's search: lambda is the
+      # exception: it can reach anywhere, so its footprint stays unknown.
+      @count_needs_includes = @params[:search].present? &&
+        (@params['searchExtended'].to_i == 1 || smart_search_fields?)
       @fields_to_serialize = get_fields_to_serialize
       @field_names_requested = field_names_requested
       @segment = get_segment
@@ -128,6 +132,14 @@ module ForestLiana
     end
 
     private
+
+    # @collection is the same entry schema_for_resource(@resource) would look up — reusing it
+    # skips a second, much costlier lookup (schema_for_resource is O(collections × models): it
+    # calls find_model_from_collection_name, itself a scan of ForestLiana.models, once per
+    # apimap entry).
+    def smart_search_fields?
+      @collection&.fields&.any? { |field| field[:search] } || false
+    end
 
     def get_fields_to_serialize
       @params.dig(:fields, @collection_name)&.split(',')&.map(&:to_sym) || []
