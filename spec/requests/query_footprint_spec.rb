@@ -394,4 +394,28 @@ describe 'SQL footprint of a front call', type: :request do
         .to all(eq('owner'))
     end
   end
+
+  describe 'a list whose declared relation points at a model excluded from the schema' do
+    before { ForestLiana.excluded_models = ['Island'] }
+
+    after { ForestLiana.excluded_models = [] }
+
+    # QueryHelper.get_one_associations drops an association whose target is not an exposed
+    # collection, so the select built off it carries no island_id — and the preload then has no
+    # key to read, failing the whole list with a missing-attribute error rather than the one
+    # field. The foreign keys of a declared path are selected off the raw reflection for exactly
+    # this reason.
+    it 'still selects the foreign key its preload reads, and answers the list' do
+      island = Island.create!(name: 'isle')
+      Location.create!(island: island, coordinates: '0,0')
+      Tree.create!(name: 'tree', island: island, owner: User.create!(name: 'owner'))
+
+      get '/forest/Tree', params: { fields: { 'Tree' => 'id,name,island_coordinates' }, page: page,
+                                    searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' },
+          headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)['data'].first['attributes']['island_coordinates']).to eq('0,0')
+    end
+  end
 end

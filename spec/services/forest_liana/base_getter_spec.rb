@@ -125,6 +125,20 @@ module ForestLiana
 
         expect(preloads).to eq(Rails::VERSION::MAJOR >= 7 ? { eponymous_island: {} } : {})
       end
+
+      # check_preloadable! raises unless the scope's arity is exactly zero, and a scope taking an
+      # optional or splat argument has arity -1 — waved through by a `positive?` test, and into an
+      # ArgumentError rather than the lazy load meant to catch it.
+      it 'skips a scope whose optional or splat argument makes its arity negative' do
+        reflection = Tree.reflect_on_association(:island)
+        allow(reflection).to receive(:scope).and_return(->(*_args) {})
+        allow(Tree).to receive(:reflect_on_association).and_call_original
+        allow(Tree).to receive(:reflect_on_association).with(:island).and_return(reflection)
+
+        preloads = preloads_for(Tree, { c: ['island:name'] })
+
+        expect(preloads).to eq(Rails::VERSION::MAJOR >= 7 ? { island: {} } : {})
+      end
     end
   end
 end

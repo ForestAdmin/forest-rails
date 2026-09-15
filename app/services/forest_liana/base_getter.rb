@@ -85,8 +85,10 @@ module ForestLiana
         next true if association.nil? || SchemaUtils.polymorphic?(association)
         # Rails 6.1's Preloader refuses an instance-dependent scope outright; optimize_record_loading
         # gates its own preload on the same version for the same reason. Falling back to the lazy
-        # load keeps today's N+1 there — slower than it could be, never wrong.
-        next true if Rails::VERSION::MAJOR < 7 && association.scope&.arity.to_i.positive?
+        # load keeps today's N+1 there — slower than it could be, never wrong. Mirrors
+        # check_preloadable!'s own `scope.arity == 0`, which a scope taking an optional or splat
+        # argument (arity -1) fails just as surely as one taking a required one.
+        next true if Rails::VERSION::MAJOR < 7 && association.scope && !association.scope.arity.zero?
 
         model = association.klass
         false
@@ -347,12 +349,16 @@ module ForestLiana
       end
 
       # smart_field_preloads loads a relation path out of this query, but a belongs_to's foreign
-      # key still has to be selected here: it is the key that preload itself reads off this row.
-      # get_one_association answers nil for a has_many first hop (e.g. trees:name) — that key
-      # lives on the target row, and select_foreign_keys only ever acts on belongs_to/has_one
-      # anyway, so that case is a no-op here, correctly.
-      @collection.smart_field_dependency_relation_paths(@field_names_requested).each do |relation_path|
-        association = get_one_association(relation_path.relations.first)
+      # key still has to be selected here: it is the key that preload itself reads off this row,
+      # and it raises a missing-attribute error on the whole list if the select left it out.
+      #
+      # Driven off the same field set as the preload, and off the raw reflection rather than
+      # get_one_association: the latter drops an association whose target model is excluded from
+      # the schema (QueryHelper filters on model_included?), which would leave exactly such a
+      # relation preloaded with no key to preload it by. select_foreign_keys is a no-op for a
+      # has_many first hop (e.g. trees:name), whose key lives on the target row.
+      @collection.smart_field_dependency_relation_paths(serialized_smart_field_names).each do |relation_path|
+        association = projected_resource.reflect_on_association(relation_path.relations.first.to_sym)
         next unless association
 
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
