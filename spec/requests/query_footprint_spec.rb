@@ -276,6 +276,47 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  describe 'a list whose declared relation is a :through' do
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          island = Island.create!(name: 'isle')
+          Location.create!(island: island, coordinates: '0,0')
+          Tree.create!(name: 'tree', island: island, owner: User.create!(name: 'owner'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,through_coordinates' }, page: page, searchExtended: '0',
+        sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    # `location` is a has_one :through :island, and a through preload starts by loading the hop it
+    # goes through — reading `trees.island_id`, not the `trees.id` the outer reflection answers
+    # for. Selecting the latter answered the whole list with `missing attribute: island_id`,
+    # HTTP 500, for the same reason the primary-key case above did.
+    it 'selects the key of the hop the preload starts with' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(selects_from(result.grown, 'locations').size).to eq(1)
+    end
+
+    it 'reaches the far end of the through' do
+      seed.call(3)
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)['data'].map { |row| row['attributes']['through_coordinates'] })
+        .to all(eq('0,0'))
+    end
+  end
+
   describe 'a list projecting a smart field walking a multi-hop relation path' do
     let(:seed) do
       lambda do |n|

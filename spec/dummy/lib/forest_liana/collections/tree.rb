@@ -29,4 +29,11 @@ class Forest::Tree
   field :island_coordinates, type: 'String', dependencies: ['island:location:coordinates'] do
     object.island&.location&.coordinates
   end
+
+  # The same target, reached through Tree's own `has_one :location, through: :island`. The key
+  # preload reads off the tree row is the *through* hop's (`trees.island_id`), not the one the
+  # outer reflection answers — the fixture for that (query_footprint_spec.rb).
+  field :through_coordinates, type: 'String', dependencies: ['location:coordinates'] do
+    object.location&.coordinates
+  end
 end

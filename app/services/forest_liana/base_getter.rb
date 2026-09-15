@@ -353,11 +353,6 @@ module ForestLiana
       # whole list rather than on the one field — at query-resolution time, out of reach of
       # MissingAttributeValve, which only ever runs during serialization.
       #
-      # join_foreign_key is that key, exactly: the foreign key for a belongs_to, and
-      # active_record_primary_key — so options[:primary_key] when one is declared, the real
-      # primary key only by default — for everything else. Selecting the primary key alone would
-      # answer a `has_many :x, primary_key: 'name'` first hop with `missing attribute: name`.
-      #
       # Driven off the same field set as the preload, and off the raw reflection rather than
       # get_one_association: the latter drops an association whose target model is excluded from
       # the schema (QueryHelper filters on model_included?), which would leave exactly such a
@@ -366,10 +361,7 @@ module ForestLiana
         association = projected_resource.reflect_on_association(relation_path.relations.first.to_sym)
         next unless association
 
-        # A :through reflection answers its source's key here (Island#members => 'user_id'), which
-        # is no column of the owner table: column? drops it, and the key the through preload
-        # really reads is the owner primary key this select already carries.
-        Array(association.join_foreign_key).each do |key|
+        preload_owner_keys(association).each do |key|
           select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
         end
 
@@ -398,6 +390,23 @@ module ForestLiana
       elsif association.macro == :has_one && joined
         Array(association.foreign_key).each { |fk| select << "#{association.table_name}.#{fk}" }
       end
+    end
+
+    # The columns preload reads off an owner row to key the association it is about to load.
+    #
+    # join_foreign_key is that key: the foreign key for a belongs_to, active_record_primary_key —
+    # so options[:primary_key] when one is declared, the real primary key only by default — for
+    # everything else. A :through reflection answers its *source*'s key instead, which is no
+    # column of the owner table at all: what the preloader reads there is the key of the hop it
+    # starts with, so the chain is walked down to that first hop before asking.
+    #
+    # Getting this wrong does not cost the one field — it raises resolving the query, where
+    # MissingAttributeValve (a serialization-time valve) never sees it, and takes down the list.
+    def preload_owner_keys(association)
+      reflection = association
+      reflection = reflection.through_reflection while reflection.through_reflection?
+
+      Array(reflection.join_foreign_key)
     end
 
     def get_one_association(name)
