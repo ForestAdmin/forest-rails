@@ -32,6 +32,8 @@ module ForestLiana
       assert_sort_readable!
       # Captured even on the early return: a `.select` naming more than one column makes Rails
       # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection.
+      # ||=, not =: a second #perform on the same instance must not recapture @records after the
+      # first call already projected it.
       @unprojected_records = @records
       return @records unless project?
 
@@ -128,11 +130,10 @@ module ForestLiana
       Array(fields&.split(',')).map(&:to_sym)
     end
 
-    # See Model::Collection#smart_fields_projectable? for why this is all-or-nothing per collection.
     def project?
       return false if @field_names_requested.empty?
 
-      @collection.smart_fields_projectable?
+      @collection.smart_fields_projectable?(@field_names_requested)
     end
 
     def projected_resource

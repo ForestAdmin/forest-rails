@@ -39,6 +39,8 @@ module ForestLiana
       # Captured before any select narrows @records: count/optimized_count must build its COUNT
       # off this, never off @records past this point — a `.select` naming more than one column
       # makes Rails emit `COUNT(col1, col2)`, invalid SQL, if `.count` ever ran off it instead.
+      # ||=, not =: a second #perform on the same instance must not recapture @records after the
+      # first call already projected it, or this guard protects nothing the second time around.
       @unprojected_records = optimize_record_loading(@resource, @records, false)
 
       @records = if project?
@@ -122,9 +124,8 @@ module ForestLiana
 
     private
 
-    # See Model::Collection#smart_fields_projectable? for why this is all-or-nothing per collection.
     def project?
-      projection? && @collection.smart_fields_projectable?
+      projection? && @collection.smart_fields_projectable?(@field_names_requested)
     end
 
     def get_fields_to_serialize

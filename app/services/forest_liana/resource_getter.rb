@@ -59,9 +59,8 @@ module ForestLiana
       end
     end
 
-    # See Model::Collection#smart_fields_projectable? for why this is all-or-nothing per collection.
     def project?
-      projection? && @collection.smart_fields_projectable?
+      projection? && @collection.smart_fields_projectable?(@field_names_requested)
     end
   end
 end

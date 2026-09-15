@@ -43,10 +43,6 @@ module ForestLiana
       end
 
       describe '#smart_fields_projectable?' do
-        let(:declared_collection) do
-          described_class.new(name: 'Tree', fields: [computed_field(:cap_name, dependencies_declared: true, deps: ['name'])])
-        end
-
         let(:mixed_collection) do
           described_class.new(name: 'Tree', fields: [
             computed_field(:cap_name, dependencies_declared: true, deps: ['name']),
@@ -54,21 +50,30 @@ module ForestLiana
           ])
         end
 
-        it 'is true for a fully-declared collection' do
-          expect(declared_collection.smart_fields_projectable?).to be true
-        end
-
-        it 'is false for a collection with any undeclared computed smart field, even when the request never names it' do
-          expect(mixed_collection.smart_fields_projectable?).to be false
-        end
-
-        it 'is false for a collection with a smart relation, even when every computed field declares' do
-          collection = described_class.new(name: 'Tree', fields: [
+        let(:collection_with_relation) do
+          described_class.new(name: 'Tree', fields: [
             computed_field(:cap_name, dependencies_declared: true, deps: ['name']),
             smart_relation(:owner)
           ])
+        end
 
-          expect(collection.smart_fields_projectable?).to be false
+        # Per request, not per collection: should_include_attr? never evaluates a field the
+        # request didn't ask for, so an undeclared field elsewhere in the collection can't read
+        # anything this request would need to worry about.
+        it "is true when the request never names the collection's one undeclared computed field" do
+          expect(mixed_collection.smart_fields_projectable?(%w[id cap_name])).to be true
+        end
+
+        it 'is false as soon as a requested computed smart field does not declare' do
+          expect(mixed_collection.smart_fields_projectable?(%w[id other])).to be false
+        end
+
+        it 'is false when the request names a smart relation, which has no way to declare' do
+          expect(collection_with_relation.smart_fields_projectable?(%w[id cap_name owner])).to be false
+        end
+
+        it 'is true when the request never names the smart relation' do
+          expect(collection_with_relation.smart_fields_projectable?(%w[id cap_name])).to be true
         end
       end
 

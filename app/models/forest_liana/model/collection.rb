@@ -82,19 +82,25 @@ class ForestLiana::Model::Collection
     computed_smart_fields.all? { |field| field.key?(:dependencies) }
   end
 
-  # A smart relation (belongs_to/has_many) or integration field is is_virtual too but excluded
-  # from computed_smart_fields above — its own block can still read arbitrary root attributes
-  # without ever declaring dependencies:, so its mere presence has to block projection for the
-  # whole collection until it can declare and have those validated too (unimplemented today).
+  # A smart relation (belongs_to/has_many) or integration field is_virtual too but excluded from
+  # computed_smart_fields above — its own block can still read arbitrary root attributes without
+  # ever declaring dependencies:, and (unlike a computed field) has no declaration mechanism to
+  # check even when it does declare one (dependencies: is accepted and validated on has_many/
+  # belongs_to today, but nothing yet reads it back) — requesting one is uncontrolled outright.
   def uncontrolled_smart_fields
     fields.select { |field| field[:is_virtual] && (field[:reference] || field[:integration]) }
   end
 
-  # All-or-nothing, deliberately: an undeclared computed smart field poisons projection for the
-  # whole collection even when the request never names it (smart_field_dependencies_declared?
-  # already checks every one of them) — there is no per-request subset to narrow to here.
-  def smart_fields_projectable?
-    smart_field_dependencies_declared? && uncontrolled_smart_fields.empty?
+  # Per REQUEST, not per collection: should_include_attr? (jsonapi-serializers) never evaluates
+  # a field @_fields doesn't list, so a smart field or relation this particular request doesn't
+  # name can't read anything regardless of whether it declares dependencies — only what's
+  # actually requested can affect whether narrowing this request's own select is safe.
+  def smart_fields_projectable?(field_names)
+    requested_names = field_names.map(&:to_s)
+    requested_uncontrolled = uncontrolled_smart_fields.select { |field| requested_names.include?(field[:field].to_s) }
+    requested_computed = computed_smart_fields.select { |field| requested_names.include?(field[:field].to_s) }
+
+    requested_uncontrolled.empty? && requested_computed.all? { |field| field.key?(:dependencies) }
   end
 
   def smart_field_dependency_columns(field_names)
