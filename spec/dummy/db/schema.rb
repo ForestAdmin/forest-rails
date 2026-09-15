@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_09_130000) do
+ActiveRecord::Schema.define(version: 2026_09_14_120000) do
 
   create_table "addresses", force: :cascade do |t|
     t.string "line1"
@@ -21,6 +21,12 @@ ActiveRecord::Schema.define(version: 2026_09_09_130000) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable_type_and_addressable_id"
+  end
+
+  create_table "articles", force: :cascade do |t|
+    t.string "title"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "flags", force: :cascade do |t|
@@ -78,6 +84,31 @@ ActiveRecord::Schema.define(version: 2026_09_09_130000) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "taggings", force: :cascade do |t|
+    t.integer "tag_id"
+    t.string "taggable_type"
+    t.integer "taggable_id"
+    t.string "tagger_type"
+    t.integer "tagger_id"
+    t.string "context", limit: 128
+    t.string "tenant", limit: 128
+    t.datetime "created_at"
+    t.index ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true
+    t.index ["tag_id"], name: "index_taggings_on_tag_id"
+    t.index ["taggable_id", "taggable_type", "context"], name: "taggings_taggable_context_idx"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
+    t.index ["tagger_type", "tagger_id"], name: "index_taggings_on_tagger_type_and_tagger_id"
+    t.index ["tenant"], name: "index_taggings_on_tenant"
+  end
+
+  create_table "tags", force: :cascade do |t|
+    t.string "name"
+    t.integer "taggings_count", default: 0
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
   create_table "trees", force: :cascade do |t|
     t.string "name"
     t.integer "owner_id"
@@ -98,4 +129,5 @@ ActiveRecord::Schema.define(version: 2026_09_09_130000) do
     t.integer "title"
   end
 
+  add_foreign_key "taggings", "tags"
 end
