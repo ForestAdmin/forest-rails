@@ -6,6 +6,11 @@ module ForestLiana
   # thought to declare) — this is the safety valve for that: one retry, never a 500 or a silently
   # wrong value.
   module MissingAttributeValve
+    # A module constant, not a per-class one: shared by every generated serializer class this
+    # module is included into, so the dedup below is genuinely per (collection, field, column)
+    # for the life of the process — not reset per class, per request, or per record.
+    WARNED_ONCE = Set.new
+
     def evaluate_attr_or_block(attribute_name, attr_or_block)
       super
     rescue ActiveModel::MissingAttributeError => exception
@@ -18,9 +23,7 @@ module ForestLiana
       begin
         reload_keeping_associations(object)
         result = super
-        FOREST_LOGGER.warn "Field \"#{attribute_name}\" of the \"#{type}\" collection read the " \
-          "\"#{column}\" column without declaring it in dependencies: — reloaded the record to " \
-          'serve it, at the cost of an extra query. Add it to the field\'s dependencies: to avoid this.'
+        warn_once(attribute_name, column)
         result
       rescue ActiveModel::MissingAttributeError, ActiveRecord::ActiveRecordError => second_exception
         degrade(attribute_name, second_exception)
@@ -28,6 +31,17 @@ module ForestLiana
     end
 
     private
+
+    # Every row of a list can hit this same (collection, field, column) once each — warning on
+    # every one would spam production logs far worse than the one extra query per row already
+    # costs. One line per process is enough to carry the adoption message across.
+    def warn_once(attribute_name, column)
+      return unless WARNED_ONCE.add?([type, attribute_name, column])
+
+      FOREST_LOGGER.warn "Field \"#{attribute_name}\" of the \"#{type}\" collection read the " \
+        "\"#{column}\" column without declaring it in dependencies: — reloaded the record to " \
+        'serve it, at the cost of an extra query. Add it to the field\'s dependencies: to avoid this.'
+    end
 
     def degrade(attribute_name, exception)
       FOREST_REPORTER.report exception

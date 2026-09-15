@@ -1,6 +1,10 @@
 require 'rails_helper'
 
 describe 'MissingAttributeValve', type: :request do
+  # WARNED_ONCE is a module constant, deliberately shared for the life of the process (see its
+  # own comment) — cleared here so one example's warning doesn't silence another's.
+  before { ForestLiana::MissingAttributeValve::WARNED_ONCE.clear }
+
   before do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
@@ -38,6 +42,15 @@ describe 'MissingAttributeValve', type: :request do
     it 'warns once, and never reports to FOREST_REPORTER, on a successful retry' do
       expect(FOREST_LOGGER).to receive(:warn).once.with(/name_with_title.*title/m)
       expect(FOREST_REPORTER).not_to receive(:report)
+
+      get '/forest/User', params: { fields: { 'User' => 'id,name_with_title' }, page: { number: '1', size: '10' },
+                                     searchExtended: '0', timezone: 'Europe/Paris' }, headers: headers
+    end
+
+    it "warns once per process for the same field, not once per row" do
+      User.create!(name: 'Second', title: :outlaw)
+
+      expect(FOREST_LOGGER).to receive(:warn).once.with(/name_with_title.*title/m)
 
       get '/forest/User', params: { fields: { 'User' => 'id,name_with_title' }, page: { number: '1', size: '10' },
                                      searchExtended: '0', timezone: 'Europe/Paris' }, headers: headers
