@@ -121,6 +121,7 @@ module ForestLiana
     def serializer_for(active_record_class)
       serializer = Class.new {
         include ForestAdmin::JSONAPI::Serializer
+        include ForestLiana::MissingAttributeValve
 
         def id
           pk = object.class.primary_key

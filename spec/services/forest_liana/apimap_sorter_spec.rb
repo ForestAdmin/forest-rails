@@ -172,5 +172,25 @@ module ForestLiana
         end
       end
     end
+
+    describe 'a smart field dependencies key' do
+      # dependencies: is a server-side hint (what to select/preload), not part of the schema the
+      # front end consumes — KEYS_COLLECTION_FIELD's slice is what keeps it out of the payload.
+      let(:apimap) do
+        {
+          meta: { liana: 'forest-rails', liana_version: '1.0.0', stack: { orm_version: '1', database_type: 'sqlite' } },
+          data: [{
+            id: 'trees', type: 'collections',
+            attributes: { name: 'trees', fields: [{ field: 'cap_name', type: 'String', dependencies: ['name'] }] }
+          }]
+        }
+      end
+
+      it 'is stripped from the emitted field payload' do
+        sorted = described_class.new(apimap).perform
+
+        expect(sorted['data'][0]['attributes']['fields'][0]).not_to have_key('dependencies')
+      end
+    end
   end
 end

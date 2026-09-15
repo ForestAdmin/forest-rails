@@ -11,7 +11,7 @@ class Forest::Address
       object.addressable_type
     end
 
-    field :address_type, type: 'String' do
+    field :address_type, type: 'String', dependencies: [] do
       'delivery'
     end
 end

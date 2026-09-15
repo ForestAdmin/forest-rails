@@ -30,16 +30,22 @@ module ForestLiana
     #         display-only ones are preloaded on purpose, and come back whole.
     def perform
       assert_sort_readable!
+      # Captured even on the early return: a `.select` naming more than one column makes Rails
+      # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection.
+      # A second #perform on the same instance must not recapture @records after the first call
+      # already projected it.
+      @unprojected_records ||= @records
       return @records unless project?
 
       polymorphic_associations, preload_loads = analyze_associations(model_association)
       display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
 
-      @records = apply_projection(@records, display_includes & associations_to_keep_eager)
+      @records = apply_projection(@unprojected_records, display_includes & associations_to_keep_eager)
     end
 
     def count
       association_class = model_association
+      records = unprojected_records
 
       if association_class.primary_key.is_a?(Array)
         adapter_name = association_class.connection.adapter_name.downcase
@@ -53,14 +59,14 @@ module ForestLiana
             "#{association_class.table_name}.#{pk}"
           end.join(" || '|' || ")
 
-          @records_count = @records.distinct.count(Arel.sql(pk_concat))
+          @records_count = records.distinct.count(Arel.sql(pk_concat))
         elsif adapter_name.include?('postgresql')
-          @records_count = @records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
+          @records_count = records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
         else
-          @records_count = @records.distinct.count(Arel.sql(pk_columns))
+          @records_count = records.distinct.count(Arel.sql(pk_columns))
         end
       else
-        @records_count = @records.count
+        @records_count = records.count
       end
     end
 
@@ -69,7 +75,16 @@ module ForestLiana
     end
 
     def records
-      @records.limit(limit).offset(offset)
+      records = @records.limit(limit).offset(offset)
+      polymorphic_associations, = analyze_associations(model_association)
+
+      # Left a Relation (not resolved yet) when there is nothing to preload - some callers still
+      # want #to_sql off this, and paid for nothing before this fix.
+      return records if polymorphic_associations.empty?
+
+      records = records.to_a
+      preload_polymorphic_associations(records, polymorphic_associations)
+      records
     end
 
     def includes_for_serialization
@@ -115,12 +130,10 @@ module ForestLiana
       Array(fields&.split(',')).map(&:to_sym)
     end
 
-    # NOTICE: A projection naming a Smart Field is dropped: computing one may read any column of
-    #         the record, as ResourcesGetter#perform already assumes for the list.
     def project?
       return false if @field_names_requested.empty?
 
-      @field_names_requested.none? { |field| ForestLiana::SchemaHelper.is_smart_field?(model_association, field.to_s) }
+      @collection.smart_fields_projectable?(@field_names_requested)
     end
 
     def projected_resource

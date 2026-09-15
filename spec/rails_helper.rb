@@ -61,6 +61,11 @@ RSpec.configure do |config|
 
   config.include ForestLiana::QueryCapture, type: :request
 
+  # WARNED_ONCE is a module constant, deliberately shared for the life of the process (see its
+  # own comment) — cleared before every example so one spec's warning can't silence another's,
+  # regardless of run order or which file exercises the valve.
+  config.before { ForestLiana::MissingAttributeValve::WARNED_ONCE.clear }
+
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:

@@ -79,6 +79,7 @@ module ForestLiana
       create_apimap
       require_lib_forest_liana
       format_and_validate_smart_actions
+      validate_smart_field_dependencies
 
       if Rails.env.development?
         @collections_sent = ForestLiana.apimap.as_json
@@ -253,6 +254,20 @@ module ForestLiana
               field[:position] = index
             end
           end
+        end
+      end
+    end
+
+    # An invalid dependency degrades to undeclared (SmartFieldDependencies.validate! deletes the
+    # key and warns) rather than crashing the boot — same warn-don't-crash pattern as smart action
+    # fields above.
+    def validate_smart_field_dependencies
+      ForestLiana.apimap.each do |collection|
+        model = SchemaUtils.find_model_from_collection_name(collection.name)
+        next if model.nil?
+
+        collection.fields.each do |field|
+          SmartFieldDependencies.validate!(model, collection.name, field)
         end
       end
     end

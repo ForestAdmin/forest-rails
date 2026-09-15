@@ -364,6 +364,29 @@ module ForestLiana
 
         end
       end
+
+      describe '#perform, called twice on the same instance' do
+        let(:params) {
+          {
+            id: Island.first.id,
+            association_name: 'trees',
+            fields: { 'Tree' => 'id,owner_name_declared,owner', 'owner' => 'name' },
+            # A dotted sort keeps owner eager-loaded (associations_to_keep_eager) rather than
+            # preloaded separately, exercising apply_projection's eager_loading? branch.
+            sort: '-owner.name',
+            page: { size: 15, number: 1 },
+            timezone: 'America/Nome'
+          }
+        }
+
+        # No current caller triggers a second #perform, but @unprojected_records must survive one.
+        it 'produces the same select both times' do
+          first_sql = subject.perform.to_sql
+          second_sql = subject.perform.to_sql
+
+          expect(second_sql).to eq(first_sql)
+        end
+      end
     end
   end
 end

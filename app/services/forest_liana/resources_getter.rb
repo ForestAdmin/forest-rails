@@ -40,24 +40,33 @@ module ForestLiana
 
     def perform
       assert_sort_readable!
-      polymorphic_association, preload_loads = analyze_associations(@resource)
-      includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
-      has_smart_fields = Array(@params.dig(:fields, @collection_name)&.split(',')).any? do |field|
-        ForestLiana::SchemaHelper.is_smart_field?(@resource, field)
-      end
+      # Captured before any select narrows @records: count/optimized_count must build its COUNT
+      # off this, never off @records past this point — a `.select` naming more than one column
+      # makes Rails emit `COUNT(col1, col2)`, invalid SQL, if `.count` ever ran off it instead.
+      # A second #perform on the same instance must not recapture @records after the first call
+      # already projected it, or this guard protects nothing the second time around.
+      @unprojected_records ||= optimize_record_loading(@resource, @records, false)
 
-      if includes.empty? || has_smart_fields
-        @records = optimize_record_loading(@resource, @records, false)
+      @records = if project?
+        polymorphic_association, preload_loads = analyze_associations(@resource)
+        includes = @includes.uniq - polymorphic_association - preload_loads - @optional_includes
+        apply_projection(@unprojected_records, includes)
       else
-        select = compute_select_fields
-        @records = optimize_record_loading(@resource, @records, false).references(includes).select(*select)
+        @unprojected_records
       end
 
       @records
     end
 
+    # NOTICE: Without a fields[] param at all, serialization is unoptimized (every field of every
+    #         relation the request touches) — projecting would starve fields the caller never
+    #         named but still expects back.
+    def projection?
+      !@params.dig(:fields, @collection_name).nil?
+    end
+
     def count
-      @records_count = @count_needs_includes ? optimized_count : @records.count
+      @records_count = @count_needs_includes ? optimized_count : unprojected_records.count
     end
 
     def query_for_batch
@@ -68,21 +77,7 @@ module ForestLiana
       records = @records.offset(offset).limit(limit).to_a
       polymorphic_association, preload_loads = analyze_associations(@resource)
 
-      if polymorphic_association.any? && Rails::VERSION::MAJOR >= 7
-        preloader = ActiveRecord::Associations::Preloader.new(records: records, associations: polymorphic_association)
-        preloader.loaders
-        preloader.branches.each do |branch|
-          branch.loaders.each do |loader|
-            records_by_owner = loader.records_by_owner
-            records_by_owner.each do |record, association|
-              record_index =  records.find_index { |r| r.id == record.id }
-              records[record_index].define_singleton_method(branch.association) do
-                association.first
-              end
-            end
-          end
-        end
-      end
+      preload_polymorphic_associations(records, polymorphic_association)
 
       records
     end
@@ -132,6 +127,10 @@ module ForestLiana
     end
 
     private
+
+    def project?
+      projection? && @collection.smart_fields_projectable?(@field_names_requested)
+    end
 
     # @collection is the same entry schema_for_resource(@resource) would look up — reusing it
     # skips a second, much costlier lookup (schema_for_resource is O(collections × models): it
@@ -202,7 +201,7 @@ module ForestLiana
     end
 
     def optimized_count
-      optimize_record_loading(@resource, @records).count
+      optimize_record_loading(@resource, unprojected_records).count
     end
 
     def apply_segment(records)
