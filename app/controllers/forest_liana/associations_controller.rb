@@ -68,8 +68,14 @@ module ForestLiana
       #         through and dereferencing a nil @association, which surfaced as
       #         a double-render / 500 rather than the intended 404.
       return if performed?
-      # Authorized outside the begin, like index above, so a denial keeps its name/data.
+      # Authorized outside the begin, like index above, so a denial keeps its name/data. A
+      # polymorphic @association already raises here (Rails: "Polymorphic associations do not
+      # support computing the class") — pre-existing, and shared with associate/dissociate below
+      # (index and update never reach it: both are structurally limited to a non-polymorphic
+      # macro before ever calling .klass).
       forest_authorize!('browse', forest_user, @association.klass)
+      return deactivate_count_response if count_deactivated?(@association.klass)
+
       begin
         getter = HasManyGetter.new(@resource, @association, params, forest_user)
         getter.count

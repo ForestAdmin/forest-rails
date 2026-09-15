@@ -123,6 +123,11 @@ module ForestLiana
       render serializer: nil, json: { meta: { count: 'deactivated'} }
     end
 
+    def count_deactivated?(model)
+      name = ForestLiana.name_for(model)
+      ForestLiana.apimap.find { |collection| collection.name.to_s == name }&.is_countable == false
+    end
+
     private
 
     # NOTICE: Header-then-query fallback, decided here and nowhere else: the header is rewritten
