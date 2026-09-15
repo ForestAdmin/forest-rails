@@ -135,7 +135,8 @@ module ForestLiana
 
     # @collection is the same entry schema_for_resource(@resource) would look up — reusing it
     # skips a second, much costlier lookup (schema_for_resource is O(collections × models): it
-    # calls find_model_from_collection_name, itself an apimap scan, once per apimap entry).
+    # calls find_model_from_collection_name, itself a scan of ForestLiana.models, once per
+    # apimap entry).
     def smart_search_fields?
       @collection&.fields&.any? { |field| field[:search] } || false
     end
