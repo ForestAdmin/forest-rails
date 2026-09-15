@@ -35,12 +35,17 @@ module ForestLiana
       # A second #perform on the same instance must not recapture @records after the first call
       # already projected it.
       @unprojected_records ||= @records
-      return @records unless project?
 
-      polymorphic_associations, preload_loads = analyze_associations(model_association)
-      display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
+      # A related list runs the same getters once per row whether or not it projects, so the
+      # preload applies to both branches — only the projection itself is gated on project?.
+      if project?
+        polymorphic_associations, preload_loads = analyze_associations(model_association)
+        display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
 
-      @records = apply_projection(@unprojected_records, display_includes & associations_to_keep_eager)
+        @records = apply_projection(@unprojected_records, display_includes & associations_to_keep_eager)
+      end
+
+      @records = apply_smart_field_preloads(@records)
     end
 
     def count

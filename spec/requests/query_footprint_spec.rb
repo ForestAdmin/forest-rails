@@ -197,21 +197,122 @@ describe 'SQL footprint of a front call', type: :request do
     end
 
 
-    it 'reads the relation once per row and narrows the root select to what was actually requested' do
+    it 'reads the whole relation in one query and narrows the root select to what was actually requested' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Owner', params: params, headers: headers
         expect(response).to have_http_status(200)
         expect(listed_rows).to eq(rows)
       end
 
-      expect(result.per_row_delta).to eq(1), -> { result.delta_report }
-      expect(result.per_row_delta(table: 'trees')).to eq(1), -> { result.delta_report(table: 'trees') }
+      # Before: one SELECT per listed row, the getter's own `object.trees` walking the association
+      # inside instance_eval (per-row delta 1, so 2 queries on 2 rows and 10 on 10). Now: one for
+      # the whole page, keyed on the ids it already has (delta 0 — same count at 2 rows and at 10).
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(result.per_row_delta(table: 'trees')).to eq(0), -> { result.delta_report(table: 'trees') }
+      expect(selects_from(result.grown, 'trees').size).to eq(1)
+      # A preload, never a join: joining a to-many into the root query would multiply its rows and
+      # take LIMIT down with it.
       expect(join_count(result.grown, 'trees')).to eq(0)
-      # tree_names now declares dependencies: (['trees:name'], a relation path that adds nothing
-      # to the select — its own preload is unimplemented today) so Owner is projectable; `name`
-      # is narrowed to because the request names it directly, same as any other requested column.
+      # `trees:name` still adds nothing to Owner's own select (a has_many keeps its key on the
+      # target row); `name` is narrowed to because the request names it directly, same as any
+      # other requested column.
       expect(selects_from(result.grown, 'owners').first).not_to include('"owners".*')
       expect(selects_from(result.grown, 'owners').first).to include(column_ref('owners', 'name'))
+    end
+
+    it 'serves the same values it did reading one row at a time' do
+      seed.call(3)
+
+      get '/forest/Owner', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      names = JSON.parse(response.body)['data'].map { |row| row['attributes']['tree_names'] }
+      expect(names).to all(eq('tree'))
+    end
+  end
+
+  describe 'a list projecting a smart field walking a multi-hop relation path' do
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          island = Island.create!(name: 'isle')
+          Location.create!(island: island, coordinates: '0,0')
+          Tree.create!(name: 'tree', island: island,
+                       owner: User.create!(name: 'owner'), cutter: User.create!(name: 'cutter'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,name,island_coordinates' }, page: page, searchExtended: '0',
+        sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    # Island.table_name is 'isle', not 'islands'.
+    it 'preloads every hop of the chain, one query per hop rather than per row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(selects_from(result.grown, 'isle').size).to eq(1)
+      expect(selects_from(result.grown, 'locations').size).to eq(1)
+      expect(join_count(result.grown, 'isle')).to eq(0)
+    end
+
+    it 'reaches the far end of the chain' do
+      seed.call(3)
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      coordinates = JSON.parse(response.body)['data'].map { |row| row['attributes']['island_coordinates'] }
+      expect(coordinates).to all(eq('0,0'))
+    end
+
+    it 'leaves the chain alone entirely when the request never names the field' do
+      other_params = params.merge(fields: { 'Tree' => 'id,name,owner_name_declared', 'owner' => 'name' })
+
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: other_params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      # Tree declares island_coordinates (island:location:coordinates) too. Preloading it here
+      # would trade this ticket's N+1 for a constant over-fetch of two relations nobody asked for.
+      expect(selects_from(result.grown, 'isle')).to be_empty
+      expect(selects_from(result.grown, 'locations')).to be_empty
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+    end
+  end
+
+  describe 'a list projecting a smart field that walks an undeclared relation' do
+    let(:seed) do
+      lambda do |n|
+        n.times { Location.create!(island: Island.create!(name: 'isle'), coordinates: '0,0') }
+      end
+    end
+    let(:params) do
+      { fields: { 'Location' => 'id,coordinates,island_name' }, page: page, searchExtended: '0',
+        sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    # Location's smart fields declare nothing, so it is not projectable and island_name's own
+    # `object.island` stays the lazy per-row read it has always been. Nothing in this ticket is
+    # opt-out: the preload arrives with the declaration and never without it. Pinned so that
+    # stays a choice rather than something a later change quietly takes away.
+    it 'keeps its per-row read, and still serves the right value' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Location', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'isle')).to eq(1), -> { result.delta_report(table: 'isle') }
+      expect(JSON.parse(response.body)['data'].map { |row| row['attributes']['island_name'] })
+        .to all(eq('isle'))
     end
   end
 
@@ -262,6 +363,35 @@ describe 'SQL footprint of a front call', type: :request do
 
       expect(response).to have_http_status(200)
       expect(listed_rows).to eq(1)
+    end
+  end
+
+  describe 'a related list projecting a smart field that walks a relation' do
+    let!(:island) { Island.create!(name: 'isle') }
+    let(:seed) do
+      lambda do |n|
+        n.times { Tree.create!(name: 'tree', island: island, owner: User.create!(name: 'owner')) }
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,name,owner_name_declared' }, page: page, searchExtended: '0',
+        timezone: 'Europe/Paris' }
+    end
+
+    # The related list runs the same getters once per row as the main list does, through
+    # HasManyGetter rather than ResourcesGetter — it needs the preload just as much, and gets it
+    # whether or not it projects.
+    it 'reads the relation once for the page, not once per row' do
+      result = footprint(seed: seed) do |rows|
+        get "/forest/Island/#{island.id}/relationships/trees", params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'users')).to eq(0), -> { result.delta_report(table: 'users') }
+      expect(selects_from(result.grown, 'users').size).to eq(1)
+      expect(JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_name_declared'] })
+        .to all(eq('owner'))
     end
   end
 end

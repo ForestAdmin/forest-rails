@@ -22,4 +22,11 @@ class Forest::Tree
   field :owner_name_declared, type: 'String', dependencies: ['owner:name'] do
     object.owner.name
   end
+
+  # A multi-hop path (belongs_to island, then its has_one location) — the fixture for "is the
+  # whole chain preloaded, and is it left alone entirely when the request never names this field"
+  # (query_footprint_spec.rb).
+  field :island_coordinates, type: 'String', dependencies: ['island:location:coordinates'] do
+    object.island&.location&.coordinates
+  end
 end
