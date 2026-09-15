@@ -6,9 +6,9 @@ module ForestLiana
   # thought to declare) — this is the safety valve for that: one retry, never a 500 or a silently
   # wrong value.
   module MissingAttributeValve
-    # A module constant, not a per-class one: shared by every generated serializer class this
-    # module is included into, so the dedup below is genuinely per (collection, field, column)
-    # for the life of the process — not reset per class, per request, or per record.
+    # Defined on the module, so it resolves to the same Set for every generated serializer class
+    # this module is included into — the dedup below is per (collection, field, column) for the
+    # life of the process, not reset per class, per request, or per record.
     WARNED_ONCE = Set.new
 
     def evaluate_attr_or_block(attribute_name, attr_or_block)

@@ -69,10 +69,10 @@ module ForestLiana
 
     def relation_paths
       @entries.select { |entry| entry.include?(':') }.map do |entry|
-        # split(':', -1), not split(':') — see valid_entry?'s comment. validate! only ever runs
-        # at boot, gated on env_secret/the model resolving, so this is a defense of its own, not
-        # a duplicate of that one: a "name:" that reaches here unvalidated must not come out with
-        # an empty #relations, which base_getter.rb's relations.first.to_sym would crash on.
+        # See valid_entry?'s comment on the same split. validate! only runs at boot, gated on
+        # env_secret/the model resolving, so this is a defense of its own, not a duplicate of
+        # that one: a "name:" that reaches here unvalidated must not come out with an empty
+        # #relations, which base_getter.rb's relations.first.to_sym would crash on.
         *relations, column = entry.split(':', -1)
         RelationPath.new(relations, column)
       end

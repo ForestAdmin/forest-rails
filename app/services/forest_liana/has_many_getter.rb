@@ -32,15 +32,15 @@ module ForestLiana
       assert_sort_readable!
       # Captured even on the early return: a `.select` naming more than one column makes Rails
       # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection.
-      # ||=, not =: a second #perform on the same instance must not recapture @records after the
-      # first call already projected it.
+      # A second #perform on the same instance must not recapture @records after the first call
+      # already projected it.
       @unprojected_records ||= @records
       return @records unless project?
 
       polymorphic_associations, preload_loads = analyze_associations(model_association)
       display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
 
-      @records = apply_projection(@records, display_includes & associations_to_keep_eager)
+      @records = apply_projection(@unprojected_records, display_includes & associations_to_keep_eager)
     end
 
     def count

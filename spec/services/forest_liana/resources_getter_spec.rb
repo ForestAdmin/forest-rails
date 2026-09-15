@@ -782,5 +782,21 @@ module ForestLiana
         end
       end
     end
+
+    describe '#perform, called twice on the same instance' do
+      let(:resource) { Tree }
+      # owner_name_declared's only dependency is a relation path, so a real LEFT OUTER JOIN to
+      # users is what makes this exercise the eager_loading? branch of apply_projection — the one
+      # that strips the _forest_admin_eager_load marker apply_column_aliases expects exactly once.
+      let(:fields) { { 'Tree' => 'id,owner_name_declared,owner', 'owner' => 'name' } }
+
+      # No current caller triggers a second #perform, but @unprojected_records must survive one.
+      it 'produces the same select both times' do
+        first_sql = getter.perform.to_sql
+        second_sql = getter.perform.to_sql
+
+        expect(second_sql).to eq(first_sql)
+      end
+    end
   end
 end

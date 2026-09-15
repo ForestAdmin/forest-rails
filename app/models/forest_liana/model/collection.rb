@@ -78,10 +78,6 @@ class ForestLiana::Model::Collection
     fields.select { |field| field[:is_virtual] && field[:reference].nil? && field[:integration].nil? }
   end
 
-  def smart_field_dependencies_declared?
-    computed_smart_fields.all? { |field| field.key?(:dependencies) }
-  end
-
   # A smart relation (belongs_to/has_many) or integration field is_virtual too but excluded from
   # computed_smart_fields above — its own block can still read arbitrary root attributes without
   # ever declaring dependencies:, and (unlike a computed field) has no declaration mechanism to
@@ -91,10 +87,11 @@ class ForestLiana::Model::Collection
     fields.select { |field| field[:is_virtual] && (field[:reference] || field[:integration]) }
   end
 
-  # Per REQUEST, not per collection: should_include_attr? (jsonapi-serializers) never evaluates
-  # a field @_fields doesn't list, so a smart field or relation this particular request doesn't
-  # name can't read anything regardless of whether it declares dependencies — only what's
-  # actually requested can affect whether narrowing this request's own select is safe.
+  # Per REQUEST, not per collection: SerializerFactory's should_include_attr? override (not the
+  # jsonapi-serializers gem's own, which only gates when @_fields already has an entry) refuses
+  # any attribute @options[:fields] doesn't list, unless options[:context][:unoptimized] is set —
+  # so a smart field or relation this request doesn't name can't read anything regardless of
+  # whether it declares dependencies.
   def smart_fields_projectable?(field_names)
     requested_names = field_names.map(&:to_s)
     requested_uncontrolled = uncontrolled_smart_fields.select { |field| requested_names.include?(field[:field].to_s) }

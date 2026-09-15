@@ -1,10 +1,6 @@
 require 'rails_helper'
 
 describe 'MissingAttributeValve', type: :request do
-  # WARNED_ONCE is a module constant, deliberately shared for the life of the process (see its
-  # own comment) — cleared here so one example's warning doesn't silence another's.
-  before { ForestLiana::MissingAttributeValve::WARNED_ONCE.clear }
-
   before do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }

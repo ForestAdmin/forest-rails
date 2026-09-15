@@ -286,8 +286,8 @@ module ForestLiana
 
       # A requested Smart Field's own declared columns — never its relation paths, which name a
       # relation to preload rather than a column this select could name (unimplemented today).
-      # project? already refused this whole projection unless every computed Smart Field on the
-      # collection declares, so a requested-but-undeclared one can't reach here.
+      # project? already refused this whole projection if a requested-but-undeclared one is among
+      # @field_names_requested, so this loop only ever sees fields that do declare.
       @collection.smart_field_dependency_columns(@field_names_requested).each do |column_name|
         select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
       end

@@ -271,8 +271,9 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     end
 
     # A different mechanism from the Forest-Projection header above: fields[] driven, narrows only
-    # when every computed Smart Field the target collection carries declares dependencies:.
-    it "narrows the relationship route's own select when the target collection is fully declared" do
+    # when every Smart Field this specific request names is declared (a per-request check, not a
+    # per-collection one — an undeclared field elsewhere on Tree wouldn't block this request).
+    it "narrows the relationship route's own select when every field this request names is declared" do
       selected = selects_of('trees') do
         get "/forest/Island/#{@island.id}/relationships/trees",
           params: list_params.merge(fields: { 'Tree' => 'id,name' }), headers: auth_headers
