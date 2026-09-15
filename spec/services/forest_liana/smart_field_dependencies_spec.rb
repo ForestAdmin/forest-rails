@@ -38,6 +38,15 @@ module ForestLiana
           described_class::RelationPath.new(%w[island location], 'coordinates')
         ])
       end
+
+      it 'never answers an empty #relations for a malformed, unvalidated trailing-colon entry' do
+        # validate! only runs at boot and can be skipped entirely (env_secret unset, the model
+        # not resolving) — #relation_paths needs its own defense against base_getter.rb's
+        # relations.first.to_sym, which an empty #relations would crash.
+        malformed = described_class.new(['name:'])
+
+        expect(malformed.relation_paths.first.relations).to eq(['name'])
+      end
     end
 
     describe '.validate!' do
