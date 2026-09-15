@@ -58,5 +58,87 @@ module ForestLiana
         expect { getter.send(:preload_polymorphic_associations, [Address.new], []) }.not_to raise_error
       end
     end
+
+    describe '#smart_field_preloads' do
+      # Built by hand rather than through a request: this pins the tree #preload is handed, which
+      # a request spec can only observe through the queries it ends up producing.
+      def preloads_for(resource, dependencies_per_field, requested: nil)
+        fields = dependencies_per_field.map do |name, dependencies|
+          { field: name, type: 'String', is_virtual: true, dependencies: dependencies }
+        end
+
+        getter.instance_variable_set(:@resource, resource)
+        getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Dummy', fields: fields))
+        getter.instance_variable_set(:@field_names_requested, requested)
+        getter.send(:smart_field_preloads)
+      end
+
+      it 'nests every hop of a path into the form #preload takes' do
+        expect(preloads_for(Tree, { island_coordinates: ['island:location:coordinates'] }))
+          .to eq({ island: { location: {} } })
+      end
+
+      it 'merges two paths sharing a first hop into one branch' do
+        expect(preloads_for(Tree, { a: ['island:name'], b: ['island:location:coordinates'] }))
+          .to eq({ island: { location: {} } })
+      end
+
+      it 'ignores a bare column dependency, which the select handles' do
+        expect(preloads_for(Tree, { name_with_age: %w[name age] })).to eq({})
+      end
+
+      it 'preloads only the relations of the fields the request actually names' do
+        preloads = preloads_for(
+          Tree,
+          { owner_name_declared: ['owner:name'], island_coordinates: ['island:location:coordinates'] },
+          requested: [:owner_name_declared]
+        )
+
+        expect(preloads).to eq({ owner: {} })
+      end
+
+      it 'preloads every declared field when the request projects nothing' do
+        dependencies = { owner_name_declared: ['owner:name'], island_coordinates: ['island:location:coordinates'] }
+
+        [nil, []].each do |requested|
+          expect(preloads_for(Tree, dependencies, requested: requested))
+            .to eq({ owner: {}, island: { location: {} } })
+        end
+      end
+
+      # SmartFieldDependencies.validate! already refuses both of these at boot. Re-checked here
+      # because a collection built outside that pass would otherwise raise once per request rather
+      # than fall back to the lazy load it has always done.
+      it 'skips a path naming a relation that does not exist' do
+        expect(preloads_for(Tree, { broken: ['nowhere:name'] })).to eq({})
+      end
+
+      it 'skips a path crossing a polymorphic relation' do
+        expect(preloads_for(Address, { resident: ['addressable:name'] })).to eq({})
+      end
+
+      # Tree#eponymous_island's scope takes the record itself. Rails 6.1's Preloader refuses that
+      # outright, so there the path degrades to the lazy load; from Rails 7 it preloads like any
+      # other. Same version gate optimize_record_loading already applies to its own preload.
+      it 'preloads an instance-dependent association only where the Preloader accepts one' do
+        preloads = preloads_for(Tree, { eponymous: ['eponymous_island:name'] })
+
+        expect(preloads).to eq(Rails::VERSION::MAJOR >= 7 ? { eponymous_island: {} } : {})
+      end
+
+      # check_preloadable! raises unless the scope's arity is exactly zero, and a scope taking an
+      # optional or splat argument has arity -1 — waved through by a `positive?` test, and into an
+      # ArgumentError rather than the lazy load meant to catch it.
+      it 'skips a scope whose optional or splat argument makes its arity negative' do
+        reflection = Tree.reflect_on_association(:island)
+        allow(reflection).to receive(:scope).and_return(->(*_args) {})
+        allow(Tree).to receive(:reflect_on_association).and_call_original
+        allow(Tree).to receive(:reflect_on_association).with(:island).and_return(reflection)
+
+        preloads = preloads_for(Tree, { c: ['island:name'] })
+
+        expect(preloads).to eq(Rails::VERSION::MAJOR >= 7 ? { island: {} } : {})
+      end
+    end
   end
 end

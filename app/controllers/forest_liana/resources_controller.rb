@@ -241,8 +241,17 @@ module ForestLiana
         @resource.columns.any? { |column| column.name == @resource.inheritance_column })
     end
 
+    # NOTICE: becomes() allocates a fresh instance and copies @attributes onto it — not the
+    #         association cache, which init_internals has just emptied. Everything the getters
+    #         preloaded (smart_field_preloads, and the relations eager loaded for serialization)
+    #         would be dropped here and re-queried once per row, so an STI collection alone would
+    #         keep the N+1 the rest of this pipeline exists to remove. Carried over explicitly.
     def get_record record
-      is_sti_model? ? record.becomes(@resource) : record
+      return record unless is_sti_model?
+
+      record.becomes(@resource).tap do |became|
+        became.instance_variable_set(:@association_cache, record.instance_variable_get(:@association_cache))
+      end
     end
 
     # NOTICE: create and update answer with the whole record: they carry no projection, so the

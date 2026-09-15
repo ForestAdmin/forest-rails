@@ -41,6 +41,62 @@ module ForestLiana
       result
     end
 
+    # The relation half of a smart field's dependencies:. Its column half reaches the select
+    # (compute_select_fields); a path instead names an association the getter walks inside
+    # instance_eval, once per record — loaded here in one query for the whole page instead.
+    def apply_smart_field_preloads(records)
+      preloads = smart_field_preloads
+
+      preloads.empty? ? records : records.preload(preloads)
+    end
+
+    def smart_field_preloads
+      return {} if @collection.nil?
+
+      @collection.smart_field_dependency_relation_paths(serialized_smart_field_names)
+                 .reject { |path| skip_preload?(path) }
+                 .reduce({}) { |tree, path| tree.deep_merge(nest_relations(path.relations)) }
+    end
+
+    # Without a fields[] param every smart field is serialized, so every declared path is needed;
+    # with one, only the requested subset — a collection carrying ten declared fields must not
+    # preload the nine relations the request never named, or this trades an N+1 for a constant
+    # over-fetch. @field_names_requested is [] on the getters that always set it and nil on the
+    # one that leaves it unset without a projection, hence #present? rather than #any?.
+    def serialized_smart_field_names
+      return @field_names_requested if @field_names_requested.present?
+
+      @collection.computed_smart_fields.map { |field| field[:field] }
+    end
+
+    # ['account', 'owner'] => { account: { owner: {} } }, the nested form #preload takes.
+    def nest_relations(relations)
+      relations.reverse.reduce({}) { |children, name| { name.to_sym => children } }
+    end
+
+    # SmartFieldDependencies.validate! already rejects at boot a path that resolves to nothing or
+    # crosses a polymorphic relation — re-checked here so that a collection reaching this outside
+    # that pass degrades to the lazy load it has always done, rather than raising once per request.
+    def skip_preload?(path)
+      model = projected_resource
+
+      path.relations.any? do |name|
+        association = model.reflect_on_association(name.to_sym)
+        next true if association.nil? || SchemaUtils.polymorphic?(association)
+        # Rails 6.1's Preloader refuses an instance-dependent scope outright; optimize_record_loading
+        # gates its own preload on the same version for the same reason. Falling back to the lazy
+        # load keeps today's N+1 there — slower than it could be, never wrong. Mirrors
+        # check_preloadable!'s own `scope.arity == 0`, which a scope taking an optional or splat
+        # argument (arity -1) fails just as surely as one taking a required one.
+        next true if Rails::VERSION::MAJOR < 7 && association.scope && !association.scope.arity.zero?
+
+        model = association.klass
+        false
+      end
+    rescue NameError, ActiveRecord::ActiveRecordError
+      true
+    end
+
     # Rails 7 introduced records:/associations: keyword preloading with a branches/loaders
     # structure this method walks to define a singleton accessor per polymorphic target; 6.1's
     # Preloader#preload takes the same records/associations positionally and returns the loaders
@@ -285,21 +341,29 @@ module ForestLiana
       end
 
       # A requested Smart Field's own declared columns — never its relation paths, which name a
-      # relation to preload rather than a column this select could name (unimplemented today).
-      # project? already refused this whole projection if a requested-but-undeclared one is among
-      # @field_names_requested, so this loop only ever sees fields that do declare.
+      # relation smart_field_preloads loads by a query of its own rather than a column this select
+      # could name. project? already refused this whole projection if a requested-but-undeclared
+      # one is among @field_names_requested, so this loop only ever sees fields that do declare.
       @collection.smart_field_dependency_columns(@field_names_requested).each do |column_name|
         select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
       end
 
-      # A relation path's own preload is unimplemented today — but a belongs_to's
-      # foreign key still has to be selected here, or reading the association at all (before ever
-      # reaching the column beyond it) already raises on this record's own missing FK. get_one_
-      # association answers nil for a has_many first hop (e.g. trees:name) — select_foreign_keys
-      # only ever acts on belongs_to/has_one anyway, so that case is a no-op here, correctly.
-      @collection.smart_field_dependency_relation_paths(@field_names_requested).each do |relation_path|
-        association = get_one_association(relation_path.relations.first)
+      # smart_field_preloads loads a relation path out of this query, but the key preload reads
+      # off this row still has to be selected here, or it raises a missing-attribute error on the
+      # whole list rather than on the one field — at query-resolution time, out of reach of
+      # MissingAttributeValve, which only ever runs during serialization.
+      #
+      # Driven off the same field set as the preload, and off the raw reflection rather than
+      # get_one_association: the latter drops an association whose target model is excluded from
+      # the schema (QueryHelper filters on model_included?), which would leave exactly such a
+      # relation preloaded with no key to preload it by.
+      @collection.smart_field_dependency_relation_paths(serialized_smart_field_names).each do |relation_path|
+        association = projected_resource.reflect_on_association(relation_path.relations.first.to_sym)
         next unless association
+
+        preload_owner_keys(association).each do |key|
+          select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
+        end
 
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
       end
@@ -326,6 +390,23 @@ module ForestLiana
       elsif association.macro == :has_one && joined
         Array(association.foreign_key).each { |fk| select << "#{association.table_name}.#{fk}" }
       end
+    end
+
+    # The columns preload reads off an owner row to key the association it is about to load.
+    #
+    # join_foreign_key is that key: the foreign key for a belongs_to, active_record_primary_key —
+    # so options[:primary_key] when one is declared, the real primary key only by default — for
+    # everything else. A :through reflection answers its *source*'s key instead, which is no
+    # column of the owner table at all: what the preloader reads there is the key of the hop it
+    # starts with, so the chain is walked down to that first hop before asking.
+    #
+    # Getting this wrong does not cost the one field — it raises resolving the query, where
+    # MissingAttributeValve (a serialization-time valve) never sees it, and takes down the list.
+    def preload_owner_keys(association)
+      reflection = association
+      reflection = reflection.through_reflection while reflection.through_reflection?
+
+      Array(reflection.join_foreign_key)
     end
 
     def get_one_association(name)

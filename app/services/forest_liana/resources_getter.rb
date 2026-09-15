@@ -55,7 +55,10 @@ module ForestLiana
         @unprojected_records
       end
 
-      @records
+      # Deliberately after the capture above: a preload is a query of its own, per page — count
+      # builds its COUNT off @unprojected_records and has no getter to run, so it must not inherit
+      # one.
+      @records = apply_smart_field_preloads(@records)
     end
 
     # NOTICE: Without a fields[] param at all, serialization is unoptimized (every field of every

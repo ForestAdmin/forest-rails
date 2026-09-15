@@ -214,8 +214,14 @@ module ForestLiana
         @association.klass.columns.any? { |column| column.name == @association.klass.inheritance_column })
     end
 
+    # See ResourcesController#get_record — becomes() drops the association cache, and with it
+    # everything the getter preloaded for this page.
     def get_record record
-      is_sti_model? ? record.becomes(@association.klass) : record
+      return record unless is_sti_model?
+
+      record.becomes(@association.klass).tap do |became|
+        became.instance_variable_set(:@association_cache, record.instance_variable_get(:@association_cache))
+      end
     end
 
     def render_jsonapi getter

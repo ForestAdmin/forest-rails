@@ -96,7 +96,9 @@ module ForestLiana
               "updated_at",
               "name_with_age",
               "owner_name",
-              "owner_name_declared"
+              "owner_name_declared",
+              "island_coordinates",
+              "through_coordinates"
             ]
           )
         end
