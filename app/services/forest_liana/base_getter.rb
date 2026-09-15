@@ -348,18 +348,30 @@ module ForestLiana
         select << "#{projected_resource.table_name}.#{column_name}" if column?(projected_resource, column_name)
       end
 
-      # smart_field_preloads loads a relation path out of this query, but a belongs_to's foreign
-      # key still has to be selected here: it is the key that preload itself reads off this row,
-      # and it raises a missing-attribute error on the whole list if the select left it out.
+      # smart_field_preloads loads a relation path out of this query, but the key preload reads
+      # off this row still has to be selected here, or it raises a missing-attribute error on the
+      # whole list rather than on the one field — at query-resolution time, out of reach of
+      # MissingAttributeValve, which only ever runs during serialization.
+      #
+      # join_foreign_key is that key, exactly: the foreign key for a belongs_to, and
+      # active_record_primary_key — so options[:primary_key] when one is declared, the real
+      # primary key only by default — for everything else. Selecting the primary key alone would
+      # answer a `has_many :x, primary_key: 'name'` first hop with `missing attribute: name`.
       #
       # Driven off the same field set as the preload, and off the raw reflection rather than
       # get_one_association: the latter drops an association whose target model is excluded from
       # the schema (QueryHelper filters on model_included?), which would leave exactly such a
-      # relation preloaded with no key to preload it by. select_foreign_keys is a no-op for a
-      # has_many first hop (e.g. trees:name), whose key lives on the target row.
+      # relation preloaded with no key to preload it by.
       @collection.smart_field_dependency_relation_paths(serialized_smart_field_names).each do |relation_path|
         association = projected_resource.reflect_on_association(relation_path.relations.first.to_sym)
         next unless association
+
+        # A :through reflection answers its source's key here (Island#members => 'user_id'), which
+        # is no column of the owner table: column? drops it, and the key the through preload
+        # really reads is the owner primary key this select already carries.
+        Array(association.join_foreign_key).each do |key|
+          select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
+        end
 
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
       end

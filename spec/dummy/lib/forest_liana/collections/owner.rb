@@ -9,4 +9,10 @@ class Forest::Owner
   field :tree_names, type: 'String', dependencies: ['trees:name'] do
     object.trees.map(&:name).join(', ')
   end
+
+  # Same shape, but the has_many is keyed on `name` rather than on the primary key — so the
+  # select has to carry `owners.name` for the preload to have anything to read.
+  field :tree_names_by_name, type: 'String', dependencies: ['trees_by_name:name'] do
+    object.trees_by_name.map(&:name).join(', ')
+  end
 end

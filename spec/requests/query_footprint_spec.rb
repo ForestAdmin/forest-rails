@@ -231,6 +231,51 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  describe 'a list whose declared relation is keyed on something other than the primary key' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |index|
+          owner = Owner.create!(name: "owner#{index}")
+          Tree.create!(name: "owner#{index}", owner_id: owner.id)
+        end
+      end
+    end
+    let(:params) do
+      # `name` is deliberately not requested: the only reason it can reach the select is that the
+      # preload needs it as a key.
+      { fields: { 'Owner' => 'id,tree_names_by_name' }, page: page, searchExtended: '0',
+        sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    # The key preload reads off the owner row is the reflection's join_foreign_key, which for a
+    # has_many is active_record_primary_key — `owners.name` here, the declared primary_key:, not
+    # `owners.id`. Selecting the primary key alone answered the whole list with `missing
+    # attribute: name`, HTTP 500: that error is raised resolving the query, where
+    # MissingAttributeValve (a serialization-time valve) never sees it, so it took down every
+    # field rather than the one that was under-declared.
+    it 'selects the key its preload reads, and still reads the relation once for the page' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Owner', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'trees')).to eq(0), -> { result.delta_report(table: 'trees') }
+      expect(selects_from(result.grown, 'trees').size).to eq(1)
+      expect(selects_from(result.grown, 'owners').first).to include(column_ref('owners', 'name'))
+    end
+
+    it 'matches each row with its own targets, not with the whole page' do
+      seed.call(3)
+
+      get '/forest/Owner', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      values = JSON.parse(response.body)['data'].map { |row| row['attributes']['tree_names_by_name'] }
+      expect(values).to match_array(%w[owner0 owner1 owner2])
+    end
+  end
+
   describe 'a list projecting a smart field walking a multi-hop relation path' do
     let(:seed) do
       lambda do |n|
