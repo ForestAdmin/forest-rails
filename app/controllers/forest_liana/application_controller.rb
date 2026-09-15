@@ -124,8 +124,8 @@ module ForestLiana
     end
 
     def count_deactivated?(model)
-      ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
-        &.is_countable == false
+      name = ForestLiana.name_for(model)
+      ForestLiana.apimap.find { |collection| collection.name.to_s == name }&.is_countable == false
     end
 
     private

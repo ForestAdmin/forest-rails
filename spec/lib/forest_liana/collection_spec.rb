@@ -70,6 +70,12 @@ module ForestLiana
         expect(tree.is_read_only).to eq(true)
         expect(tree.is_searchable).to eq(false)
       end
+
+      it 'creates no apimap entry for a name that resolves to no real collection' do
+        expect { Class.new { include ForestLiana::Collection }.collection(:Typo, read_only: true) }
+          .not_to change { ForestLiana.apimap.size }
+        expect(ForestLiana.apimap.find { |c| c.name == 'Typo' }).to be_nil
+      end
     end
   end
 end

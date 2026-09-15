@@ -173,6 +173,8 @@ describe 'SQL footprint of a front call', type: :request do
     end
 
     it 'matches nothing on the same term when the search stays on the root column' do
+      seed.call(3)
+
       get '/forest/Tree/count', params: params.merge(search: 'owner'), headers: headers
 
       expect(response).to have_http_status(200)

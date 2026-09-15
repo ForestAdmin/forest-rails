@@ -26,7 +26,11 @@ module ForestLiana::Collection
           .serializer_for(self)
       end
 
-      model
+      # Not `model`: that would create a virtual, empty apimap entry for a name that never
+      # resolves to a real one (a typo, a renamed/removed model) — a collection this basic (no
+      # field/action/segment) only exists to (re)configure an entry SchemaAdapter already created.
+      existing = ForestLiana.apimap.find { |collection| collection.name.to_s == self.collection_name }
+      apply_collection_opts(existing) if existing
     end
 
     def action(name, opts = {})
