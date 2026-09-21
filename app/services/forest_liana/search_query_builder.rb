@@ -104,7 +104,7 @@ module ForestLiana
     end
 
     # A subquery, not an executed id list: `.map` would run `tagged_records` (a JOIN through
-    # taggings/tags) right here, before assert_can_read_query_fields ever runs in #perform below —
+    # taggings/tags) right here, before assert_can_read_query_fields ever runs in #perform above —
     # `.to_sql` defers it to whenever the outer query actually executes, same as every other
     # condition this method builds. A subquery matching nothing still emits valid SQL yielding zero
     # rows (never the SQL-invalid `IN ()`), and is OR'd alongside the other conditions — no
@@ -112,10 +112,11 @@ module ForestLiana
     def acts_as_taggable_query(tagged_records)
       # Qualified with the resource's own table on both sides: unqualified, this SELECTs (and
       # compares against) an ambiguous "id" once the join through taggings (which has its own "id"
-      # primary key) is added to the subquery. `reselect`, not `select`: some acts_as_taggable_on
-      # query builders already select their own columns (`tagged_records` already carries a SELECT,
-      # not just a WHERE) — `select` would append to that, not replace it, leaving a multi-column
-      # subquery an `IN` can't use.
+      # primary key) is added to the subquery. `reselect`, not `select`: defensive against an
+      # acts_as_taggable_on query builder that already selects its own columns (the gem's `:any`
+      # option does) — `select` would append to that, not replace it, leaving a multi-column
+      # subquery an `IN` can't use. The plain `tagged_with` call below doesn't hit that path today,
+      # but `reselect` costs nothing and removes the dependency on which query builder ran.
       qualified_pk = "#{@resource.table_name}.#{@resource.primary_key}"
       "#{qualified_pk} IN (#{tagged_records.reselect(qualified_pk).to_sql})"
     end

@@ -36,6 +36,15 @@ module ForestLiana
         expect(queries.first).to match(/articles\.id IN \(SELECT "articles"\."id" FROM "articles"/)
       end
 
+      it "replaces an already-projected relation's SELECT rather than appending to it" do
+        builder.perform(Article.all)
+        already_selected = Article.select(:id, :title)
+
+        condition = builder.send(:acts_as_taggable_query, already_selected)
+
+        expect(condition).to eq(%(articles.id IN (SELECT "articles"."id" FROM "articles")))
+      end
+
       it "empties the result on a term matching no tag, rather than fall through to the whole table" do
         records = nil
         queries = capture_queries do
@@ -77,6 +86,18 @@ module ForestLiana
           .perform(Tree.all)
 
         expect(records.to_sql).not_to match(/IN \(SELECT|taggings/)
+      ensure
+        Tree.destroy_all
+      end
+
+      it "does not raise on a resource whose taggable? is true but the gem's tagged_with is absent" do
+        Tree.create!(name: 'oak')
+        allow(Tree).to receive(:taggable?).and_return(true)
+
+        expect do
+          described_class.new({ search: 'oak', searchExtended: '0' }, [], ForestLiana::Model::Collection.new(name: 'Tree', fields: []), user)
+            .perform(Tree.all).to_a
+        end.not_to raise_error
       ensure
         Tree.destroy_all
       end
