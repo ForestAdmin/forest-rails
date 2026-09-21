@@ -146,6 +146,33 @@ module ForestLiana
       end
     end
 
+    describe 'when filtering by a relation column that is also projected' do
+      # Regression: FiltersParser joins owner regardless of sort/extended search, but the
+      # projection's SELECT used to be narrowed to associations_to_keep_eager alone — which
+      # only tracks sort/extended-search joins — so a filtered-and-projected owner.name was
+      # dropped from the SELECT even though the JOIN that could have served it was right there.
+      # HashWithIndifferentAccess: compute_select_fields reads @params[:fields][path] with path a
+      # Symbol; a plain Hash keyed by the String collection name would never match it.
+      let(:params) do
+        ActiveSupport::HashWithIndifferentAccess.new(
+          id: island.id,
+          association_name: 'trees',
+          filters: { field: 'owner:name', operator: 'equal', value: 'Alice' }.to_json,
+          fields: { 'Tree' => 'id,name,owner', 'owner' => 'id,name' },
+          page: { size: 15, number: 1 },
+          timezone: 'America/Nome'
+        )
+      end
+
+      it 'keeps the projected owner columns in the SELECT instead of dropping them' do
+        subject.perform
+        records = subject.records.to_a
+
+        expect(records.size).to eq(2)
+        expect(records.map { |tree| tree.owner.name }).to eq(%w[Alice Alice])
+      end
+    end
+
     describe 'with extended search across a display-only association' do
       # Regression for review comment on #790: SearchQueryBuilder#search_param, with
       # searchExtended=1, emits `OR LOWER("users"."name") LIKE ...` for every included

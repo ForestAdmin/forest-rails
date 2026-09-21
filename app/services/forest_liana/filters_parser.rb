@@ -2,6 +2,11 @@ module ForestLiana
   class FiltersParser
     AGGREGATOR_OPERATOR = %w(and or).freeze
 
+    # Populated by apply_filters, read by callers that need to know which associations a filter
+    # actually joined — e.g. to keep their columns in a narrowed SELECT alongside the JOIN a
+    # filter condition already forces regardless of what the caller itself would have joined.
+    attr_reader :joins
+
     # The `field` of every leaf in a filter tree, however deeply nested — the same tree
     # `apply_filters` will walk, read rather than re-derived. A non-Hash node (a top-level
     # `filters=[]`, say) is left out rather than crashing on `node['aggregator']`: it still reaches

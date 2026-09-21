@@ -4,7 +4,7 @@ module ForestLiana
 
     REGEX_UUID = /\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i
 
-    attr_reader :fields_searched, :search_field_paths
+    attr_reader :fields_searched, :search_field_paths, :filter_joins
 
     def initialize(params, includes, collection, user)
       @params = params
@@ -14,6 +14,7 @@ module ForestLiana
       # '' is truthy, so without .presence an empty search still builds LIKE '%%' predicates.
       @search = @params[:search].presence
       @user = user
+      @filter_joins = []
     end
 
     def perform(resource)
@@ -48,7 +49,9 @@ module ForestLiana
       filters = ForestLiana::ScopeManager.append_scope(caller_filter, @user, @collection.name)
 
       unless filters.blank?
-        @records = FiltersParser.new(filters, @records, @params[:timezone]).apply_filters
+        filters_parser = FiltersParser.new(filters, @records, @params[:timezone])
+        @records = filters_parser.apply_filters
+        @filter_joins = filters_parser.joins
       end
 
       if @search

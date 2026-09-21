@@ -42,7 +42,12 @@ module ForestLiana
         polymorphic_associations, preload_loads = analyze_associations(model_association)
         display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
 
-        @records = apply_projection(@unprojected_records, display_includes & associations_to_keep_eager)
+        # associations_to_keep_eager alone would drop a filtered-but-projected association (e.g.
+        # owner:name = Alice with fields[owner]=name): FiltersParser joins it regardless of sort
+        # or extended search, so its columns must stay in the SELECT even though nothing here
+        # asked for its JOIN to be kept for that reason.
+        eager_loads = associations_to_keep_eager + @search_query_builder.filter_joins.map(&:name)
+        @records = apply_projection(@unprojected_records, display_includes & eager_loads)
       end
 
       @records = apply_smart_field_preloads(@records)
