@@ -112,9 +112,13 @@ module ForestLiana
       end
 
       nil
-    # ActiveRecordError covers HasManyThroughAssociationNotFoundError and its siblings, which
-    # #klass raises for a chain naming a hop that no longer exists — the same "does not resolve"
-    # this method's first branch answers for, reached one level down.
+    # Every broken shape reachable from here arrives as a NameError, on 6.1 through 8.1 alike: a
+    # :through naming a hop that does not exist, one whose source does not, a class_name pointing
+    # at no model all answer NoMethodError or NameError off #klass. Nothing here calls
+    # check_validity!, which is what raises HasManyThroughAssociationNotFoundError and its
+    # siblings, so ActiveRecordError catches nothing known — kept as a net rather than for a
+    # caller, and whatever does land there is named in the log below instead of being silently
+    # indistinguishable from "the relation does not exist".
     rescue NameError, ActiveRecord::ActiveRecordError => exception
       "#{exception.class}: #{exception.message}"
     end

@@ -198,6 +198,25 @@ module ForestLiana
         3.times { skip(['nowhere']) }
       end
 
+      # The rescue branch, which nothing else reaches. A :through naming a hop that does not
+      # exist answers NoMethodError off #klass — verified on 6.1, 7.0 and 8.1, where the message
+      # differs but the class does not; HasManyThroughAssociationNotFoundError comes from
+      # check_validity!, which no reflection read here calls. Stubbed rather than declared on a
+      # real model, which would have to live in the dummy app and be counted by every spec that
+      # walks ActiveRecord::Base.descendants.
+      it 'degrades and says so when a reflection cannot resolve its own chain' do
+        reflection = Tree.reflect_on_association(:island)
+        allow(reflection).to receive(:klass).and_raise(NoMethodError, "undefined method `klass' for nil")
+        allow(Tree).to receive(:reflect_on_association).and_call_original
+        allow(Tree).to receive(:reflect_on_association).with(:island).and_return(reflection)
+
+        expect(FOREST_LOGGER).to receive(:warn).once do |message|
+          expect(message).to include('"island:location:coordinates"', 'NoMethodError')
+        end
+
+        expect(skip(%w[island location], column: 'coordinates')).to be true
+      end
+
       it 'says nothing for a path it can preload' do
         expect(FOREST_LOGGER).not_to receive(:warn)
 
