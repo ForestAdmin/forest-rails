@@ -60,7 +60,10 @@ module ForestLiana
           # An absent permission system allows everything, so it is not queried: `is_crud_authorized?`
           # short-circuits the same way, and answering anything else here would redact every relation
           # on a deployment that granted nothing to check.
-          if has_permission_system?
+          # An absent permission system and `skip_relation_read_permissions` ask for the same
+          # answer — the first because nothing was granted to check, the second because the
+          # operator turned the checks off on purpose.
+          if has_permission_system? && !ForestLiana.skip_relation_read_permissions
             user_data = get_user_data(user['id'])
             denied = fetch_read_permissions(to_fetch, get_collections_permissions_data, user_data)
 

@@ -11,7 +11,32 @@ module ForestLiana
         .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
     end
 
-    describe 'setup_forest_liana_meta' do
+    describe 'warning that the relation read checks are off' do
+    def boot_with(skip)
+      allow(ForestLiana::SerializerFactory).to receive(:new)
+        .and_return(instance_double(ForestLiana::SerializerFactory, serializer_for: nil))
+      allow(FOREST_LOGGER).to receive(:warn)
+      ForestLiana.skip_relation_read_permissions = skip
+
+      ForestLiana::Bootstrapper.new
+    ensure
+      ForestLiana.skip_relation_read_permissions = false
+    end
+
+    it 'warns on boot so the weakened posture shows in the log' do
+      boot_with(true)
+
+      expect(FOREST_LOGGER).to have_received(:warn).with(/skip_relation_read_permissions is true/)
+    end
+
+    it 'stays quiet while the checks are on' do
+      boot_with(false)
+
+      expect(FOREST_LOGGER).not_to have_received(:warn).with(/skip_relation_read_permissions/)
+    end
+  end
+
+  describe 'setup_forest_liana_meta' do
       it "should put statistic data related to user stack on a dedicated object" do
         expect(ForestLiana.meta[:stack])
           .to include(:orm_version)

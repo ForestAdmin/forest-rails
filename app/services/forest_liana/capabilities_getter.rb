@@ -64,12 +64,20 @@ module ForestLiana
     #         which this agent does not serve.
     def perform
       {
-        agentCapabilities: AGENT_CAPABILITIES,
+        agentCapabilities: agent_capabilities,
         collections: requested_collections.map { |collection| collection_capabilities(collection) }
       }
     end
 
     private
+
+    # The frontend prunes projections by the role's read permission on this flag, so it follows the
+    # option rather than sitting in the frozen constant beside the static ones.
+    def agent_capabilities
+      AGENT_CAPABILITIES.merge(
+        checksRelationReadPermissions: !ForestLiana.skip_relation_read_permissions
+      )
+    end
 
     def requested_collections
       ForestLiana.apimap.select do |collection|

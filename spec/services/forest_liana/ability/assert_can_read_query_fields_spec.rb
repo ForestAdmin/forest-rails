@@ -48,6 +48,20 @@ module ForestLiana
           expect { dummy_class.assert_can_read_query_fields(user, Tree) }.not_to raise_error
         end
 
+        it 'serves a filter, a sort and a search on an unreadable collection once the option is on' do
+          write_permissions('Tree' => true, 'Island' => false)
+          ForestLiana.skip_relation_read_permissions = true
+
+          expect do
+            dummy_class.assert_can_read_query_fields(
+              user, Tree, filter_paths: ['island:name'], sort_paths: ['island:name'],
+                          search_paths: ['island:name']
+            )
+          end.not_to raise_error
+        ensure
+          ForestLiana.skip_relation_read_permissions = false
+        end
+
         it 'refuses a filter on a column of an unreadable collection, naming the path and collection' do
           write_permissions('Tree' => true, 'Island' => false)
 

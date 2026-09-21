@@ -80,9 +80,9 @@ describe 'Capabilities', type: :request do
 
   describe 'agentCapabilities' do
     # NOTICE: Each flag flips in the ticket that implements it. canUseProjectionViaHeaderOnList
-    #         stays false on purpose even though the list honours the header: the frontend also
-    #         reads it as the floor for pruning projections by the role's read permission, which
-    #         this liana does not implement yet.
+    #         stays false on purpose even though the list honours the header. It no longer doubles
+    #         as the pruning floor: the frontend reads checksRelationReadPermissions for that, and
+    #         this liana does implement the pruning.
     it 'announces the projection flags the routes honour' do
       body = fetch_capabilities(['Tree'])
 
@@ -91,8 +91,19 @@ describe 'Capabilities', type: :request do
         'canUseProjectionViaHeader' => true,
         'canUseProjectionViaHeaderOnList' => false,
         'canUseMultipleFieldsProjectionOnRelation' => true,
-        'canUseAuditTrail' => false
+        'canUseAuditTrail' => false,
+        'checksRelationReadPermissions' => true
       )
+    end
+
+    # The frontend prunes projections on this flag, so announcing it wrong either hides columns the
+    # agent serves or lets the frontend name ones it refuses.
+    it 'announces the relation read checks as off once the option turns them off' do
+      ForestLiana.skip_relation_read_permissions = true
+
+      expect(fetch_capabilities(['Tree'])['agentCapabilities']['checksRelationReadPermissions']).to be false
+    ensure
+      ForestLiana.skip_relation_read_permissions = false
     end
   end
 
