@@ -75,8 +75,12 @@ module ForestLiana
       end
     end
 
+    # CSV export calls #perform first, so @unprojected_records carries the same smart-field
+    # preload — unprojected on purpose (see the NOTICE above #perform). A bulk "select all"
+    # batch never calls #perform and only reads ids, so it falls back to the plain
+    # @base_records_for_batch, which needs no preload.
     def query_for_batch
-      @base_records_for_batch
+      @unprojected_records ? apply_smart_field_preloads(@unprojected_records) : @base_records_for_batch
     end
 
     def records

@@ -231,6 +231,31 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  describe 'a CSV export of a list projecting a smart field that walks a to-many relation' do
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          owner = Owner.create!(name: 'owner')
+          Tree.create!(name: 'tree', owner_id: owner.id)
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Owner' => 'id,name,tree_names' }, page: page, searchExtended: '0',
+        sort: '-id', timezone: 'Europe/Paris', header: 'id,name,tree_names' }
+    end
+
+    it 'reads the whole relation in one query, not one per exported row' do
+      result = footprint(seed: seed) do |_rows|
+        get '/forest/Owner.csv', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(result.per_row_delta(table: 'trees')).to eq(0), -> { result.delta_report(table: 'trees') }
+      expect(selects_from(result.grown, 'trees').size).to eq(1)
+    end
+  end
+
   describe 'a list whose declared relation is keyed on something other than the primary key' do
     let(:seed) do
       lambda do |n|

@@ -191,7 +191,7 @@ module ForestLiana
       # re-including its modules and redefining methods on the model per request. tag_types is
       # the same contexts, already persisted as a class_attribute by the first (bootstrap-time)
       # call — to_s each since attr, a JSON attribute key, is always a String.
-      @resource.tag_types.map(&:to_s).include?(attr)
+      @resource.respond_to?(:tag_types) && @resource.tag_types.map(&:to_s).include?(attr)
     end
 
     def has_acts_as_taggable?

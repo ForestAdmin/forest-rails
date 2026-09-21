@@ -72,8 +72,11 @@ module ForestLiana
       @records_count = @count_needs_includes ? optimized_count : unprojected_records.count
     end
 
+    # See HasManyGetter#query_for_batch: same dual-use split between a CSV export (which calls
+    # #perform first, so this picks up its smart-field preload) and a bulk "select all" batch
+    # (which never does, per initialize_resources_getter below, and only reads ids).
     def query_for_batch
-      @base_records_for_batch
+      @unprojected_records ? apply_smart_field_preloads(@unprojected_records) : @base_records_for_batch
     end
 
     def records
@@ -240,10 +243,11 @@ module ForestLiana
       attributes.merge(attributes[:all_records_subset_query].dup.to_unsafe_h)
     end
 
-    # query_for_batch below serves @base_records_for_batch/@records as built by the constructor,
-    # never by #perform — but #perform is the only thing that used to call assert_sort_readable!,
-    # so every other caller of get_ids_from_request (destroy_bulk, a select-all dissociate, a
-    # smart action's select-all) carried a sort param past this guard entirely.
+    # This path never calls #perform, so query_for_batch falls back to @base_records_for_batch
+    # as built by the constructor — but #perform is the only thing that used to call
+    # assert_sort_readable!, so every other caller of get_ids_from_request (destroy_bulk, a
+    # select-all dissociate, a smart action's select-all) carried a sort param past this guard
+    # entirely.
     def self.initialize_resources_getter(attributes, user)
       resources_getter =
         if related_data?(attributes)

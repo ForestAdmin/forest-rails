@@ -26,5 +26,18 @@ module ForestLiana
         expect(attributes['name']).to eq('Bilbo')
       end
     end
+
+    describe 'on a resource with its own taggable?, unrelated to the gem' do
+      let(:params) do
+        ActionController::Parameters.new(data: { type: 'Tree', attributes: { name: 'oak', tags: 'a, b' } })
+      end
+
+      before(:each) { Tree.define_singleton_method(:taggable?) { true } }
+      after(:each) { Tree.singleton_class.send(:remove_method, :taggable?) }
+
+      it 'does not raise, since tag_types is acts_as_taggable_on-specific' do
+        expect { described_class.new(Tree, params, false).perform }.not_to raise_error
+      end
+    end
   end
 end
