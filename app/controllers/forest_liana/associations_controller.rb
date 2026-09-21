@@ -214,8 +214,12 @@ module ForestLiana
         @association.klass.columns.any? { |column| column.name == @association.klass.inheritance_column })
     end
 
+    # See ResourcesController#get_record — becomes() drops the association cache and the
+    # polymorphic singleton readers, and with them everything the getter preloaded for this page.
     def get_record record
-      is_sti_model? ? record.becomes(@association.klass) : record
+      return record unless is_sti_model?
+
+      carry_preloaded_associations(record, record.becomes(@association.klass))
     end
 
     def render_jsonapi getter

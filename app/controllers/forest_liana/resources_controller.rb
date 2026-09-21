@@ -241,8 +241,24 @@ module ForestLiana
         @resource.columns.any? { |column| column.name == @resource.inheritance_column })
     end
 
+    # NOTICE: becomes() allocates a fresh instance and copies @attributes onto it — not the
+    #         association cache, which init_internals has just emptied. What the getters
+    #         preloaded (smart_field_preloads, and the relations eager loaded for serialization)
+    #         would be dropped here and re-queried once per row, so an STI collection alone would
+    #         keep the N+1 the rest of this pipeline exists to remove.
+    #
+    #         The singleton readers preload_polymorphic_associations defines are lost too — they
+    #         belong to the old instance's singleton class — but their targets are not: Rails'
+    #         own Preloader writes a polymorphic target into the association cache as well, so
+    #         those ride along with everything else. That is what preload_polymorphic_associations
+    #         calls #call for on Rails 7+. Pinned by sti_record_conversion_spec.rb.
+    #
+    #         Carried over explicitly, and only where the two classes agree on what the name
+    #         means — see carry_preloaded_associations.
     def get_record record
-      is_sti_model? ? record.becomes(@resource) : record
+      return record unless is_sti_model?
+
+      carry_preloaded_associations(record, record.becomes(@resource))
     end
 
     # NOTICE: create and update answer with the whole record: they carry no projection, so the

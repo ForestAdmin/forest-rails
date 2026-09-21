@@ -1,7 +1,8 @@
 module ForestLiana
   # Parses the `dependencies:` a smart field declares (Forest field paths: a bare column name to
-  # select, or an `a:b:c` relation path to preload — this class only splits the two apart; the
-  # preload side itself is unimplemented today, #relation_paths is ready for it as-is).
+  # select, or an `a:b:c` relation path to preload — this class only splits the two apart, the
+  # getters act on each half: #columns feeds BaseGetter#compute_select_fields, #relation_paths
+  # feeds BaseGetter#smart_field_preloads).
   class SmartFieldDependencies
     RelationPath = Struct.new(:relations, :column)
 
