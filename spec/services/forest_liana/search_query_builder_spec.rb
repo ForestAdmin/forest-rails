@@ -15,39 +15,93 @@ module ForestLiana
         .and_return(ForestLiana::Model::Collection.new(name: 'Tree', fields: []))
     end
 
-    # acts_as_taggable_on isn't installed in the dummy app (see the comment on search_param's
-    # ActsAsTaggable block), so exercised directly against a plain relation standing in for
-    # `tagged_records` rather than through a real taggable model.
-    describe '#acts_as_taggable_query' do
-      # Only #perform sets @resource (root_model in particular is used by both the columns loop
-      # and this method) — a nil search short-circuits search_param's own column loop, establishing
-      # it without exercising the rest of search_param.
-      let(:params) { { search: nil } }
+    describe 'on a taggable resource (acts_as_taggable_on)' do
+      include ForestLiana::QueryCapture
 
-      before { builder.perform(Tree.all) }
+      let(:collection) { ForestLiana::Model::Collection.new(name: 'Article', fields: []) }
+      let(:params) { { search: 'oak', searchExtended: '0' } }
+      let(:builder) { described_class.new(params, [], collection, user) }
 
-      it 'produces a single-column, table-qualified subquery even when the relation already selects columns of its own' do
-        tagged_records = Tree.where(name: 'Oak').select('trees.*')
+      let!(:tagged) { Article.create!(title: 'Untitled', tag_list: 'oak') }
+      let!(:untagged) { Article.create!(title: 'Other') }
 
-        sql = builder.acts_as_taggable_query(tagged_records)
+      after { Article.destroy_all; ActsAsTaggableOn::Tag.destroy_all }
 
-        expect(sql).to eq(%(trees.id IN (SELECT "trees"."id" FROM "trees" WHERE "trees"."name" = 'Oak')))
+      it 'matches a tagged record via a single subquery, not an executed id list' do
+        records = nil
+        queries = capture_queries { records = builder.perform(Article.all).to_a }
+
+        expect(records).to eq([tagged])
+        expect(queries.grep(/\ASELECT/).size).to eq(1)
+        expect(queries.first).to match(/articles\.id IN \(SELECT "articles"\."id" FROM "articles"/)
       end
 
-      # The regression this guards against: a single-String `where` never scans for a bind
-      # placeholder, but `where(sql, binds_hash)` does, over the WHOLE string — including a tag
-      # name's own already-quoted SQL text once joined into it. search_param avoids that by
-      # substituting binds into its own conditions before ever joining the tag condition in;
-      # joining first (the bug) reintroduces exactly this crash.
-      it 'stays safe joined into a bind-substituted string, but would crash joined before substitution' do
-        tag_sql = builder.acts_as_taggable_query(Tree.where(name: 'foo:bar'))
-        column_condition = 'LOWER("trees"."name") LIKE :search_value_for_string'
+      it "replaces an already-projected relation's SELECT rather than appending to it" do
+        builder.perform(Article.all)
+        already_selected = Article.select(:id, :title)
 
-        bound = Tree.sanitize_sql_array([column_condition, search_value_for_string: '%x%'])
-        expect { Tree.where([bound, tag_sql].join(' OR ')).to_sql }.not_to raise_error
+        condition = builder.send(:acts_as_taggable_query, already_selected)
 
-        expect { Tree.where("#{column_condition} OR #{tag_sql}", search_value_for_string: '%x%').to_sql }
-          .to raise_error(ActiveRecord::PreparedStatementInvalid)
+        expect(condition).to eq(%(articles.id IN (SELECT "articles"."id" FROM "articles")))
+      end
+
+      it "empties the result on a term matching no tag, rather than fall through to the whole table" do
+        records = nil
+        queries = capture_queries do
+          records = described_class.new({ search: 'nothing-tagged-this', searchExtended: '0' }, [], collection, user)
+            .perform(Article.all).to_a
+        end
+
+        expect(queries.first).to match(/articles\.id IN \(SELECT "articles"\."id" FROM "articles"/)
+        expect(records).to be_empty
+      end
+
+      # The regression #797 fixed: a single-String `where` never scans for a bind placeholder, but
+      # `where(sql, binds_hash)` does, over the WHOLE string — including a tag name's own
+      # already-quoted SQL text once joined into it. search_param avoids that by substituting binds
+      # into its own conditions before ever joining the tag condition in.
+      it 'matches a tag name containing a colon without a bind-scanning crash' do
+        colon_tagged = Article.create!(title: 'Colon', tag_list: 'foo:bar')
+
+        records = described_class.new({ search: 'foo:bar', searchExtended: '0' }, [], collection, user)
+          .perform(Article.all)
+
+        expect(records.to_a).to eq([colon_tagged])
+      ensure
+        colon_tagged&.destroy
+      end
+
+      it "does not re-run the gem's taggable_on macro on the model" do
+        # acts_as_taggable_on redefines methods on the class with an identical name each time it
+        # reruns, so an instance_methods/ancestors diff can't tell the two states apart — the
+        # rerun itself is what must never happen.
+        expect(Article).not_to receive(:acts_as_taggable_on)
+
+        builder.perform(Article.all).to_a
+      end
+
+      it 'leaves a non-taggable resource unaffected' do
+        Tree.create!(name: 'oak')
+        records = described_class.new({ search: 'oak', searchExtended: '0' }, [], ForestLiana::Model::Collection.new(name: 'Tree', fields: []), user)
+          .perform(Tree.all)
+
+        expect(records.to_sql).not_to match(/IN \(SELECT|taggings/)
+      ensure
+        Tree.destroy_all
+      end
+
+      it "does not raise on a resource with its own taggable? and tagged_with, unrelated to the gem" do
+        Tree.create!(name: 'oak')
+        Tree.define_singleton_method(:taggable?) { true }
+        Tree.define_singleton_method(:tagged_with) { |*| [] }
+
+        expect do
+          described_class.new({ search: 'oak', searchExtended: '0' }, [], ForestLiana::Model::Collection.new(name: 'Tree', fields: []), user)
+            .perform(Tree.all).to_a
+        end.not_to raise_error
+      ensure
+        Tree.singleton_class.send(:remove_method, :taggable?, :tagged_with)
+        Tree.destroy_all
       end
     end
 
@@ -347,8 +401,8 @@ module ForestLiana
         end
       end
 
-      # No case here for acts_as_taggable_on's push site — see the comment on `search_param`'s
-      # ActsAsTaggable block for why it's guaranteed by construction rather than spec-covered.
+      # acts_as_taggable_on's push site is covered end-to-end in its own top-level describe below,
+      # not here — #perform's own let(:collection)/let(:builder) target Tree, not a taggable model.
     end
 
     describe 'when no column can match the search term' do

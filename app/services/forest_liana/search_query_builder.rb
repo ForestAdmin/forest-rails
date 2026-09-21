@@ -104,7 +104,7 @@ module ForestLiana
     end
 
     # A subquery, not an executed id list: `.map` would run `tagged_records` (a JOIN through
-    # taggings/tags) right here, before assert_can_read_query_fields ever runs in #perform below —
+    # taggings/tags) right here, before assert_can_read_query_fields ever runs in #perform above —
     # `.to_sql` defers it to whenever the outer query actually executes, same as every other
     # condition this method builds. A subquery matching nothing still emits valid SQL yielding zero
     # rows (never the SQL-invalid `IN ()`), and is OR'd alongside the other conditions — no
@@ -112,10 +112,11 @@ module ForestLiana
     def acts_as_taggable_query(tagged_records)
       # Qualified with the resource's own table on both sides: unqualified, this SELECTs (and
       # compares against) an ambiguous "id" once the join through taggings (which has its own "id"
-      # primary key) is added to the subquery. `reselect`, not `select`: some acts_as_taggable_on
-      # query builders already select their own columns (`tagged_records` already carries a SELECT,
-      # not just a WHERE) — `select` would append to that, not replace it, leaving a multi-column
-      # subquery an `IN` can't use.
+      # primary key) is added to the subquery. `reselect`, not `select`: defensive against an
+      # acts_as_taggable_on query builder that already selects its own columns (the gem's `:any`
+      # option does) — `select` would append to that, not replace it, leaving a multi-column
+      # subquery an `IN` can't use. The plain `tagged_with` call below doesn't hit that path today,
+      # but `reselect` costs nothing and removes the dependency on which query builder ran.
       qualified_pk = "#{@resource.table_name}.#{@resource.primary_key}"
       "#{qualified_pk} IN (#{tagged_records.reselect(qualified_pk).to_sql})"
     end
@@ -169,11 +170,15 @@ module ForestLiana
         # receives a non-nil string, so @conditions_pushed is unconditionally true for any taggable
         # resource regardless of whether the term actually matched a tag — harmless (a non-matching
         # subquery still yields zero rows) but distinct from every other branch's meaning of the flag.
-        if @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable)
-          @resource.acts_as_taggable.each do |field|
-            tagged_records = @records.tagged_with(@search.downcase)
-            push_condition(tag_conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
-          end
+        # taggable? alone isn't enough: a model can define its own taggable? (and even its own
+        # tagged_with, returning something acts_as_taggable_query can't reselect on) with the gem
+        # absent. respond_to?(:tag_types) is acts_as_taggable_on-specific — the same class_attribute
+        # bootstrap call that defines it also defines tagged_with, so this is proof of both without
+        # re-invoking acts_as_taggable_on. tagged_with with no context searches every context the
+        # model declared (tag_types), so this needs calling only once.
+        if @resource.try(:taggable?) && @resource.respond_to?(:tag_types)
+          tagged_records = @records.tagged_with(@search.downcase)
+          push_condition(tag_conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
         end
 
         if extended_search?
@@ -314,11 +319,6 @@ module ForestLiana
     def association_search_condition table_name, column_name
       column_name = format_column_name(table_name, column_name)
       "LOWER(#{column_name}) LIKE :search_value_for_string"
-    end
-
-    def acts_as_taggable?(field)
-      @resource.try(:taggable?) && @resource.respond_to?(:acts_as_taggable) &&
-        @resource.acts_as_taggable.include?(field)
     end
 
     private

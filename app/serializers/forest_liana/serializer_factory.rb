@@ -360,10 +360,8 @@ module ForestLiana
         end
 
         # NOTICE: Format ActsAsTaggable attribute
-        if active_record_class.try(:taggable?) &&
-          active_record_class.respond_to?(:acts_as_taggable) &&
-          active_record_class.acts_as_taggable.respond_to?(:to_a)
-          active_record_class.acts_as_taggable.to_a.each do |key, value|
+        if active_record_class.try(:taggable?) && active_record_class.respond_to?(:tag_types)
+          active_record_class.tag_types.map(&:to_s).each do |key, value|
             serializer.attribute(key) do |x|
               begin
                 object.send(key).map(&:name)

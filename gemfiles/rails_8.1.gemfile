@@ -9,4 +9,6 @@ gem 'rails', '~> 8.1.3'
 
 group :test do
   gem 'sqlite3', '>= 2.1'
+  # The only major whose activerecord requirement (>= 7.1, < 8.2) reaches Rails 8.1.
+  gem 'acts-as-taggable-on', '~> 13.0'
 end
