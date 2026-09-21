@@ -47,6 +47,13 @@ module ForestLiana
           expect(dummy_class.read_permissions(user, %w[Tree Island])).to eq('Tree' => true, 'Island' => true)
         end
 
+        it 'answers without any permission fetch on a cold cache' do
+          Rails.cache.delete('forest.has_permission')
+          expect_any_instance_of(ForestLiana::Ability::Fetch).not_to receive(:get_permissions)
+
+          expect(dummy_class.read_permissions(user, %w[Tree Island])).to eq('Tree' => true, 'Island' => true)
+        end
+
         it 'serves a field the caller named on a collection it cannot read' do
           write_permissions('Tree' => true, 'Island' => false)
 
@@ -59,6 +66,15 @@ module ForestLiana
 
           expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: []))
             .to eq('Tree' => 'name,island')
+        end
+
+        # An initializer wiring this to an ENV var hands over the string 'false', truthy in Ruby:
+        # the checks must stay on rather than silently fail open.
+        it 'keeps the checks on for a truthy value that is not true' do
+          ForestLiana.skip_relation_read_permissions = 'false'
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect(dummy_class.read_permissions(user, %w[Tree Island])).to eq('Tree' => true, 'Island' => false)
         end
 
         # The option widens what a permitted request may reach; it must not make an unpermitted one

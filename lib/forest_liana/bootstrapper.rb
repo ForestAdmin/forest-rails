@@ -29,7 +29,7 @@ module ForestLiana
       end
 
       # An auditor reading the boot log should see the weakened posture without reading the config.
-      if ForestLiana.skip_relation_read_permissions
+      if ForestLiana.skip_relation_read_permissions?
         FOREST_LOGGER.warn "ForestLiana.skip_relation_read_permissions is true: columns of " \
           "collections the caller has no read permission on are served when a relation path " \
           "reaches them."

@@ -57,13 +57,12 @@ module ForestLiana
         to_fetch = collection_names.uniq - @read_permissions_cache.keys
 
         unless to_fetch.empty?
-          # An absent permission system allows everything, so it is not queried: `is_crud_authorized?`
-          # short-circuits the same way, and answering anything else here would redact every relation
-          # on a deployment that granted nothing to check.
           # An absent permission system and `skip_relation_read_permissions` ask for the same
-          # answer — the first because nothing was granted to check, the second because the
-          # operator turned the checks off on purpose.
-          if has_permission_system? && !ForestLiana.skip_relation_read_permissions
+          # answer — the first because nothing was granted to check (`is_crud_authorized?`
+          # short-circuits the same way), the second because the operator turned the checks off
+          # on purpose. The option is read first: asking `has_permission_system?` would fetch the
+          # very permissions it is meant to skip.
+          if !ForestLiana.skip_relation_read_permissions? && has_permission_system?
             user_data = get_user_data(user['id'])
             denied = fetch_read_permissions(to_fetch, get_collections_permissions_data, user_data)
 
@@ -72,7 +71,9 @@ module ForestLiana
             # rescue is_crud_authorized? already gives the CRUD check.
             fetch_read_permissions(denied, get_collections_permissions_data(true), user_data) unless denied.empty?
           else
-            to_fetch.each { |name| @read_permissions_cache[name] = true }
+            # Exposure is not a role permission: a collection kept out of the apimap can never be
+            # granted read, so neither an absent permission system nor the option makes it readable.
+            to_fetch.each { |name| @read_permissions_cache[name] = collection_exposed?(name) }
           end
         end
 
