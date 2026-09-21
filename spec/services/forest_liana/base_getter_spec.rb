@@ -129,6 +129,37 @@ module ForestLiana
       # check_preloadable! raises unless the scope's arity is exactly zero, and a scope taking an
       # optional or splat argument has arity -1 — waved through by a `positive?` test, and into an
       # ArgumentError rather than the lazy load meant to catch it.
+      # Preloader::ThroughAssociation re-enters the preloader on the through and source
+      # reflections, so check_preloadable! checks an intermediate hop's scope too — even though
+      # the declared path never names it. Tree#location goes through Tree#island: a scope added
+      # there for an unrelated reason raises ArgumentError at query-resolution time, which is
+      # neither NameError nor ActiveRecordError and so escapes skip_preload?'s own rescue.
+      def with_instance_dependent_island
+        through = Tree.reflect_on_association(:location).through_reflection
+        allow(through).to receive(:scope).and_return(->(record) { where(name: record.name) })
+        yield
+      end
+
+      it 'skips a :through path whose intermediate hop carries an instance-dependent scope' do
+        with_instance_dependent_island do
+          expect(preloads_for(Tree, { c: ['location:coordinates'] }))
+            .to eq(Rails::VERSION::MAJOR >= 7 ? { location: {} } : {})
+        end
+      end
+
+      # The Preloader never runs on an empty record set, so the raise this guards against only
+      # appears with a row to preload for.
+      it 'resolves the query rather than raising, for that same path' do
+        island = Island.create!(name: 'isle')
+        Tree.create!(name: 'tree', island: island, owner: User.create!(name: 'owner'))
+
+        with_instance_dependent_island do
+          preloads_for(Tree, { c: ['location:coordinates'] })
+
+          expect { getter.send(:apply_smart_field_preloads, Tree.all).to_a }.not_to raise_error
+        end
+      end
+
       it 'skips a scope whose optional or splat argument makes its arity negative' do
         reflection = Tree.reflect_on_association(:island)
         allow(reflection).to receive(:scope).and_return(->(*_args) {})
@@ -138,6 +169,39 @@ module ForestLiana
         preloads = preloads_for(Tree, { c: ['island:name'] })
 
         expect(preloads).to eq(Rails::VERSION::MAJOR >= 7 ? { island: {} } : {})
+      end
+    end
+
+    # Every skip above silently reinstates the N+1 the declaration was written to remove, and
+    # what breaks a declaration that used to work is usually a change made elsewhere, long after
+    # anyone verified it. The log line is the only thing that says so.
+    describe 'the log a skipped preload leaves behind' do
+      before { BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear }
+
+      def skip(path, column: 'name')
+        getter.instance_variable_set(:@resource, Tree)
+        getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Tree', fields: []))
+        getter.send(:skip_preload?, SmartFieldDependencies::RelationPath.new(path, column))
+      end
+
+      it 'names the collection, the declaration and why it could not be preloaded' do
+        expect(FOREST_LOGGER).to receive(:warn).once do |message|
+          expect(message).to include('"nowhere:name"', '"Tree"', 'not an association of Tree')
+        end
+
+        expect(skip(['nowhere'])).to be true
+      end
+
+      it 'says so once per process, not once per page' do
+        expect(FOREST_LOGGER).to receive(:warn).once
+
+        3.times { skip(['nowhere']) }
+      end
+
+      it 'says nothing for a path it can preload' do
+        expect(FOREST_LOGGER).not_to receive(:warn)
+
+        expect(skip(['island'])).to be false
       end
     end
   end

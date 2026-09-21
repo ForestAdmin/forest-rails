@@ -74,27 +74,85 @@ module ForestLiana
       relations.reverse.reduce({}) { |children, name| { name.to_sym => children } }
     end
 
+    # Keyed on (collection, path, reason) for the life of the process rather than per getter
+    # instance, which is one per request: the same declaration would otherwise log the same line
+    # again on every page of every list.
+    PRELOAD_SKIPS_WARNED = Set.new
+
     # SmartFieldDependencies.validate! already rejects at boot a path that resolves to nothing or
     # crosses a polymorphic relation — re-checked here so that a collection reaching this outside
     # that pass degrades to the lazy load it has always done, rather than raising once per request.
+    #
+    # Every branch reinstates the N+1 this file exists to remove, and what stops a declaration
+    # working is usually a change made elsewhere months later — a scope added to an association a
+    # path happens to cross. Logged once per process so that regression is visible rather than
+    # inferred from a latency graph.
     def skip_preload?(path)
+      reason = preload_skip_reason(path)
+      return false if reason.nil?
+
+      warn_preload_skipped(path, reason)
+      true
+    end
+
+    # nil when the path can be preloaded, otherwise the reason it cannot, for the log line.
+    def preload_skip_reason(path)
       model = projected_resource
 
-      path.relations.any? do |name|
+      path.relations.each do |name|
         association = model.reflect_on_association(name.to_sym)
-        next true if association.nil? || SchemaUtils.polymorphic?(association)
-        # Rails 6.1's Preloader refuses an instance-dependent scope outright; optimize_record_loading
-        # gates its own preload on the same version for the same reason. Falling back to the lazy
-        # load keeps today's N+1 there — slower than it could be, never wrong. Mirrors
-        # check_preloadable!'s own `scope.arity == 0`, which a scope taking an optional or splat
-        # argument (arity -1) fails just as surely as one taking a required one.
-        next true if Rails::VERSION::MAJOR < 7 && association.scope && !association.scope.arity.zero?
+        return "\"#{name}\" is not an association of #{model.name}" if association.nil?
+        return "\"#{name}\" is polymorphic" if SchemaUtils.polymorphic?(association)
+
+        scoped = instance_dependent_hop(association)
+        return "\"#{scoped.name}\" has an instance-dependent scope, which Rails " \
+          "#{Rails::VERSION::STRING} cannot preload" if scoped
 
         model = association.klass
-        false
       end
-    rescue NameError, ActiveRecord::ActiveRecordError
-      true
+
+      nil
+    # ActiveRecordError covers HasManyThroughAssociationNotFoundError and its siblings, which
+    # #klass raises for a chain naming a hop that no longer exists — the same "does not resolve"
+    # this method's first branch answers for, reached one level down.
+    rescue NameError, ActiveRecord::ActiveRecordError => exception
+      "#{exception.class}: #{exception.message}"
+    end
+
+    # Rails 6.1's Preloader refuses an instance-dependent scope outright; optimize_record_loading
+    # gates its own preload on the same version for the same reason. Falling back to the lazy load
+    # keeps today's N+1 there — slower than it could be, never wrong. Mirrors check_preloadable!'s
+    # own `scope.arity == 0`, which a scope taking an optional or splat argument (arity -1) fails
+    # just as surely as one taking a required one.
+    #
+    # A :through hop is not preloaded directly: Preloader::ThroughAssociation re-enters the
+    # preloader on the through and source reflections, each of which check_preloadable! checks in
+    # turn. So the whole chain has to be walked, not only the hop the path names — its raise is an
+    # ArgumentError at query-resolution time, which no rescue here can reach and which takes down
+    # the list rather than the one field.
+    def instance_dependent_hop(association)
+      return nil if Rails::VERSION::MAJOR >= 7
+
+      [association, *through_chain(association)].find do |reflection|
+        reflection.scope && !reflection.scope.arity.zero?
+      end
+    end
+
+    def through_chain(association)
+      return [] unless association.through_reflection?
+
+      [association.through_reflection, association.source_reflection].flat_map do |reflection|
+        [reflection, *through_chain(reflection)]
+      end
+    end
+
+    def warn_preload_skipped(path, reason)
+      declaration = (path.relations + [path.column]).compact.join(':')
+      return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, declaration, reason])
+
+      FOREST_LOGGER.warn "The \"#{declaration}\" dependency of the \"#{@collection&.name}\" " \
+        "collection cannot be preloaded (#{reason}) — the relation is loaded once per record " \
+        'instead, as it was before it was declared.'
     end
 
     # Rails 7 introduced records:/associations: keyword preloading with a branches/loaders
@@ -103,12 +161,19 @@ module ForestLiana
     # directly (one per target class among the polymorphic records), without that branch grouping
     # - preloaded one association at a time here so its name is already known, not read back off
     # a branch this version's Preloader doesn't expose.
+    #
+    # #call rather than #loaders on 7+: reading records_by_owner off a loader does load it, so the
+    # singleton readers below are right either way — but only #call reaches Batch, which is what
+    # runs each loader and so what writes the targets into the association cache too. 6.1's
+    # #preload always did. Without it the two versions disagree on what a preloaded polymorphic
+    # relation leaves behind, and get_record's becomes() — which carries the cache, not another
+    # instance's singleton class — drops the target on 7+ only.
     def preload_polymorphic_associations(records, associations)
       return if associations.empty? || records.empty?
 
       if Rails::VERSION::MAJOR >= 7
         preloader = ActiveRecord::Associations::Preloader.new(records: records, associations: associations)
-        preloader.loaders
+        preloader.call
         preloader.branches.each do |branch|
           branch.loaders.each { |loader| assign_preloaded_targets(branch.association, loader.records_by_owner) }
         end

@@ -130,6 +130,28 @@ module ForestLiana
 
     private
 
+    # NOTICE: What survives becomes(), which allocates a fresh instance and copies @attributes
+    #         onto it and nothing else. Shared by both controllers' get_record, unlike the rest of
+    #         their rendering, because getting it wrong is a correctness bug rather than a
+    #         difference of route.
+    #
+    #         An association proxy is bound to the reflection of the class that built it, and
+    #         association(name) hands back whatever sits under that key without re-checking it
+    #         against the new class. An STI subclass is free to redefine a same-named association
+    #         with its own class_name, scope or foreign_key, so copying such an entry wholesale
+    #         would serve the subclass's target under the base class's field — plausible, wrong,
+    #         and raising nothing. Only entries both classes reflect identically are carried over;
+    #         anything else is left to load lazily, the behaviour it had before this existed.
+    def carry_preloaded_associations(record, became)
+      cache = record.instance_variable_get(:@association_cache) || {}
+      carried = cache.select do |name, _|
+        record.class.reflect_on_association(name) == became.class.reflect_on_association(name)
+      end
+      became.instance_variable_set(:@association_cache, carried)
+
+      became
+    end
+
     # NOTICE: Header-then-query fallback, decided here and nowhere else: the header is rewritten
     #         into params[:fields], so every route keeps reading the projection it always read
     #         and the header wins over the query params without any route knowing about it.
