@@ -169,11 +169,11 @@ module ForestLiana
         # receives a non-nil string, so @conditions_pushed is unconditionally true for any taggable
         # resource regardless of whether the term actually matched a tag — harmless (a non-matching
         # subquery still yields zero rows) but distinct from every other branch's meaning of the flag.
-        # taggable? alone is enough of a guard: acts_as_taggable_on redefines it to true on the
-        # first `acts_as_taggable_on` call, so respond_to?(:acts_as_taggable) is already true for
-        # every model once the gem is loaded, taggable or not. tagged_with with no context searches
-        # every context the model declared (tag_types), so this needs calling only once.
-        if @resource.try(:taggable?)
+        # taggable? alone isn't enough: a model can define its own taggable? with the gem absent,
+        # and tagged_with wouldn't exist. respond_to?(:tagged_with) catches that without
+        # re-invoking acts_as_taggable_on. tagged_with with no context searches every context the
+        # model declared (tag_types), so this needs calling only once.
+        if @resource.try(:taggable?) && @resource.respond_to?(:tagged_with)
           tagged_records = @records.tagged_with(@search.downcase)
           push_condition(tag_conditions, acts_as_taggable_query(tagged_records), @resource.primary_key.to_s)
         end

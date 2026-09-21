@@ -37,10 +37,14 @@ module ForestLiana
       end
 
       it "empties the result on a term matching no tag, rather than fall through to the whole table" do
-        records = described_class.new({ search: 'nothing-tagged-this', searchExtended: '0' }, [], collection, user)
-          .perform(Article.all)
+        records = nil
+        queries = capture_queries do
+          records = described_class.new({ search: 'nothing-tagged-this', searchExtended: '0' }, [], collection, user)
+            .perform(Article.all).to_a
+        end
 
-        expect(records.to_a).to be_empty
+        expect(queries.first).to match(/articles\.id IN \(SELECT "articles"\."id" FROM "articles"/)
+        expect(records).to be_empty
       end
 
       # The regression #797 fixed: a single-String `where` never scans for a bind placeholder, but
