@@ -90,15 +90,17 @@ module ForestLiana
         Tree.destroy_all
       end
 
-      it "does not raise on a resource whose taggable? is true but the gem's tagged_with is absent" do
+      it "does not raise on a resource with its own taggable? and tagged_with, unrelated to the gem" do
         Tree.create!(name: 'oak')
-        allow(Tree).to receive(:taggable?).and_return(true)
+        Tree.define_singleton_method(:taggable?) { true }
+        Tree.define_singleton_method(:tagged_with) { |*| [] }
 
         expect do
           described_class.new({ search: 'oak', searchExtended: '0' }, [], ForestLiana::Model::Collection.new(name: 'Tree', fields: []), user)
             .perform(Tree.all).to_a
         end.not_to raise_error
       ensure
+        Tree.singleton_class.send(:remove_method, :taggable?, :tagged_with)
         Tree.destroy_all
       end
     end
