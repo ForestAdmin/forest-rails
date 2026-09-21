@@ -3,12 +3,13 @@ module ForestLiana
     # NOTICE: A flag stays false until the matching behaviour actually ships; the frontend
     #         turns the feature on for every request as soon as it reads true here.
     #
-    #         canUseProjectionViaHeaderOnList is held back although the routes do honour the
-    #         header on the list: the frontend also reads it as a version floor for pruning
-    #         projections by the role's read permission, a policy this agent does not implement
-    #         (PRD-1083). Flipping it here would ship that policy to every v1 project, and the
+    #         canUseProjectionViaHeaderOnList is still false although the routes do honour the
+    #         header on the list. The reason it was held back is gone: the pruning by the role's
+    #         read permission ships (PRD-1083), and the frontend now reads it on
+    #         checksRelationReadPermissions rather than on this flag. Flipping it is a rollout
+    #         decision of its own — it turns the header on for every v1 project at once, and the
     #         rollback would be a frontend deploy. The list keeps projecting through the fields
-    #         query params in the meantime.
+    #         query params until then.
     AGENT_CAPABILITIES = {
       canUseProjectionOnGetOne: true,
       canUseProjectionViaHeader: true,
@@ -64,12 +65,20 @@ module ForestLiana
     #         which this agent does not serve.
     def perform
       {
-        agentCapabilities: AGENT_CAPABILITIES,
+        agentCapabilities: agent_capabilities,
         collections: requested_collections.map { |collection| collection_capabilities(collection) }
       }
     end
 
     private
+
+    # The frontend prunes projections by the role's read permission on this flag, so it follows the
+    # option rather than sitting in the frozen constant beside the static ones.
+    def agent_capabilities
+      AGENT_CAPABILITIES.merge(
+        checksRelationReadPermissions: !ForestLiana.skip_relation_read_permissions?
+      )
+    end
 
     def requested_collections
       ForestLiana.apimap.select do |collection|

@@ -28,6 +28,13 @@ module ForestLiana
           "ForestLiana.forest_client_id is deprecated. It's not needed anymore."
       end
 
+      # An auditor reading the boot log should see the weakened posture without reading the config.
+      if ForestLiana.skip_relation_read_permissions?
+        FOREST_LOGGER.warn "ForestLiana.skip_relation_read_permissions is true: columns of " \
+          "collections the caller has no read permission on are served when a relation path " \
+          "reaches them."
+      end
+
       unless Rails.application.config.action_controller.perform_caching || Rails.env.test?
         FOREST_LOGGER.error "You need to enable caching on your environment to use Forest Admin.\n" \
           "For a development environment, run: `rails dev:cache`"

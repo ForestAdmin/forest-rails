@@ -30,6 +30,63 @@ module ForestLiana
         Rails.cache.write('forest.has_permission', true)
       end
 
+      # The option lifts the read checks this suite pins, and nothing else: whether the caller may
+      # browse, read or export the collection it is querying is `is_crud_authorized?`'s question,
+      # and still answered.
+      describe 'with ForestLiana.skip_relation_read_permissions' do
+        around do |example|
+          ForestLiana.skip_relation_read_permissions = true
+          example.run
+        ensure
+          ForestLiana.skip_relation_read_permissions = false
+        end
+
+        it 'answers true for every collection without fetching permissions' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect(dummy_class.read_permissions(user, %w[Tree Island])).to eq('Tree' => true, 'Island' => true)
+        end
+
+        it 'answers without any permission fetch on a cold cache' do
+          Rails.cache.delete('forest.has_permission')
+          expect_any_instance_of(ForestLiana::Ability::Fetch).not_to receive(:get_permissions)
+
+          expect(dummy_class.read_permissions(user, %w[Tree Island])).to eq('Tree' => true, 'Island' => true)
+        end
+
+        it 'serves a field the caller named on a collection it cannot read' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: ['Tree']))
+            .to eq('Tree' => 'name,island')
+        end
+
+        it 'keeps an unnamed field instead of dropping it' do
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: []))
+            .to eq('Tree' => 'name,island')
+        end
+
+        # An initializer wiring this to an ENV var hands over the string 'false', truthy in Ruby:
+        # the checks must stay on rather than silently fail open.
+        it 'keeps the checks on for a truthy value that is not true' do
+          ForestLiana.skip_relation_read_permissions = 'false'
+          write_permissions('Tree' => true, 'Island' => false)
+
+          expect(dummy_class.read_permissions(user, %w[Tree Island])).to eq('Tree' => true, 'Island' => false)
+        end
+
+        # The option widens what a permitted request may reach; it must not make an unpermitted one
+        # permitted. `is_crud_authorized?` answers about the collection being queried, and still
+        # answers no.
+        it 'still refuses the collection being queried' do
+          write_permissions('Tree' => false)
+
+          expect(dummy_class.is_crud_authorized?('browse', user, Tree)).to be false
+        end
+      end
+
       describe 'read_permissions' do
         it 'answers true for every collection when there is no permission system' do
           Rails.cache.write('forest.has_permission', false)

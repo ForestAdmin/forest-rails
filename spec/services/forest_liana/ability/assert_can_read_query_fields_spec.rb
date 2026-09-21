@@ -48,6 +48,20 @@ module ForestLiana
           expect { dummy_class.assert_can_read_query_fields(user, Tree) }.not_to raise_error
         end
 
+        it 'serves a filter, a sort and a search on an unreadable collection once the option is on' do
+          write_permissions('Tree' => true, 'Island' => false)
+          ForestLiana.skip_relation_read_permissions = true
+
+          expect do
+            dummy_class.assert_can_read_query_fields(
+              user, Tree, filter_paths: ['island:name'], sort_paths: ['island:name'],
+                          search_paths: ['island:name']
+            )
+          end.not_to raise_error
+        ensure
+          ForestLiana.skip_relation_read_permissions = false
+        end
+
         it 'refuses a filter on a column of an unreadable collection, naming the path and collection' do
           write_permissions('Tree' => true, 'Island' => false)
 
@@ -189,6 +203,25 @@ module ForestLiana
             allow(forest_collection).to receive(:name).and_return('Tree')
             allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
             allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+          end
+
+          # Exclusion from the apimap is an exposure decision, not a role permission: neither
+          # switch below is about RBAC reaching a table the operator took off the map.
+          it 'still refuses it with ForestLiana.skip_relation_read_permissions' do
+            write_permissions('Tree' => true)
+            ForestLiana.skip_relation_read_permissions = true
+
+            expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:name']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError)
+          ensure
+            ForestLiana.skip_relation_read_permissions = false
+          end
+
+          it 'still refuses it when there is no permission system' do
+            Rails.cache.write('forest.has_permission', false)
+
+            expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:name']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError)
           end
 
           it 'refuses as unexposed rather than as denied, since no role can be granted read on it' do
