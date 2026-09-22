@@ -15,14 +15,18 @@ describe 'Requesting Tree resources', :type => :request  do
     # read_permissions may force a real refetch on a denial (a stale cache may sit behind a
     # just-granted permission) — stub the source instead of writing the derived cache directly,
     # so that refetch sees the same permissions rather than hitting the network.
+    @environment_permissions_fetched = 0
     allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
-      .with('/liana/v4/permissions/environment').and_return(
-        'collections' => {
-          'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
-          'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
-          'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+      .with('/liana/v4/permissions/environment') do
+        @environment_permissions_fetched += 1
+        {
+          'collections' => {
+            'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Location' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
         }
-      )
+      end
 
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
     allow(ForestLiana::IpWhitelist).to receive(:is_ip_whitelist_retrieved) { true }
@@ -229,6 +233,26 @@ describe 'Requesting Tree resources', :type => :request  do
         body = JSON.parse(response.body)
         expect(body['data']['relationships']).not_to have_key('island')
         expect(body['data']['relationships']).to have_key('location')
+      end
+
+      # A to-many the projection never named keeps its link even when its target collection is
+      # unreadable: a `links.related` is a URL, not data, and AssociationsController#index
+      # authorizes browse on that collection before answering it. Checking here would cost a
+      # permissions round-trip per get-one — read_permissions refetches on a denial, and that
+      # refetch deletes the cluster-wide `forest.collections` cache — to hide a URL the apimap
+      # already carries.
+      it 'keeps the link of a to-many whose target the role cannot read, without refetching permissions' do
+        user_id = User.first.id
+        fetched_before = @environment_permissions_fetched
+
+        get "/forest/User/#{user_id}", headers: headers.merge('Forest-Projection' => 'id,name')
+
+        expect(response.status).to eq(200)
+        relationships = JSON.parse(response.body)['data']['relationships']
+        expect(relationships).to have_key('addresses')
+        expect(relationships['addresses']['links']['related']['href'])
+          .to eq "/forest/User/#{user_id}/relationships/addresses"
+        expect(@environment_permissions_fetched - fetched_before).to eq 1
       end
 
       # Same distinction as index: a field the caller named (here, via the projection header

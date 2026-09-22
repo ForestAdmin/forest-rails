@@ -197,37 +197,48 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     end
 
     # The frontend loads each related-data list by following the link this payload carries, and
-    # it never names a has-many in the projection — dropping them here leaves every related-data
-    # list on the record silently empty, its count alone still answering.
-    it 'keeps the has-many relationship links the projection does not name' do
+    # it never names a to-many in the projection — dropping them here leaves every related-data
+    # list on the record silently empty, its count alone still answering. The three shapes are
+    # here on purpose: an ordinary has_many, a has_and_belongs_to_many and a smart one, which
+    # reach the schema under three different `relationship` values (the last, none at all).
+    it 'keeps the to-many relationship links the projection does not name' do
       get "/forest/User/#{@user.id}", headers: projecting('id,name')
 
       expect(response.status).to eq 200
       expect(body['data']['attributes']).to eq('id' => @user.id, 'name' => 'Michel')
       expect(body['data']['relationships'].keys)
-        .to match_array %w[trees_owned trees_cut addresses favourite_trees]
+        .to match_array %w[trees_owned trees_cut addresses favourite_trees smart_trees]
       expect(body['data']['relationships']['trees_owned']['links']['related']['href'])
         .to eq "/forest/User/#{@user.id}/relationships/trees_owned"
-    end
-
-    # A has_and_belongs_to_many reaches the schema as "HasAndBelongsToMany", not "HasMany", and
-    # the frontend loads it through its link like any other has-many.
-    it 'keeps the link of a has_and_belongs_to_many too' do
-      get "/forest/User/#{@user.id}", headers: projecting('id,name')
-
-      expect(response.status).to eq 200
       expect(body['data']['relationships']['favourite_trees']['links']['related']['href'])
         .to eq "/forest/User/#{@user.id}/relationships/favourite_trees"
+      expect(body['data']['relationships']['smart_trees']['links']['related']['href'])
+        .to eq "/forest/User/#{@user.id}/smart_trees"
     end
 
-    it 'reads no more columns for those links than the projection asked for' do
-      selected = selects_of('users') do
+    # Serializing linkage data instead of the link alone would eager load every related row on
+    # every get-one — the very N+1 the projection is there to remove — while keeping all the
+    # assertions above green.
+    it 'carries those relationships as a link alone, never as linkage data' do
+      get "/forest/User/#{@user.id}", headers: projecting('id,name')
+
+      expect(body['data']['relationships'].values.map(&:keys).uniq).to eq [%w[links]]
+    end
+
+    # selects_from anchors on the query's own FROM, which a `selects_of('users')` filter would
+    # not: a to-many preload reads FROM "trees" and names "trees_users", never `"users"`, so it
+    # would be dropped before any assertion could see it.
+    it 'reads nothing for those links beyond the projected row' do
+      queries = capture_queries do
         get "/forest/User/#{@user.id}", headers: projecting('id,name')
       end
 
-      expect(selected).to include('"users"."name"')
-      expect(selected).not_to include('"users"."title"')
-      expect(selected).not_to include('"trees"')
+      expect(response.status).to eq 200
+      expect(selects_from(queries, 'trees')).to be_empty
+      expect(selects_from(queries, 'addresses')).to be_empty
+      selected = selects_from(queries, 'users').join("\n")
+      expect(selected).to include(column_ref('users', 'name'))
+      expect(selected).not_to include(column_ref('users', 'title'))
     end
   end
 
