@@ -36,4 +36,11 @@ class Forest::Tree
   field :through_coordinates, type: 'String', dependencies: ['location:coordinates'] do
     object.location&.coordinates
   end
+
+  # A smart belongs_to: is_virtual with a reference, and no ActiveRecord reflection behind it —
+  # the fixture for everything that walks a getter's includes (has_many_getter_spec.rb,
+  # associations_spec.rb). Nothing else in the dummy declared one.
+  belongs_to :smart_owner, reference: 'User.id' do
+    object.owner
+  end
 end

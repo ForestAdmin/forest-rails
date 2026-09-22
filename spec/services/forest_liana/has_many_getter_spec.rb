@@ -199,6 +199,24 @@ module ForestLiana
           end
         end
 
+        describe 'serializing a smart belongs_to, which has no ActiveRecord reflection' do
+          let(:projection) { { 'Tree' => 'id,name,smart_owner' } }
+
+          # Asserting on the mutation itself, not on one caller's symptom: anything reading the
+          # includes afterwards reflects on every name they hold. An idempotence assertion would
+          # NOT catch this — the override's `&` below dedups the duplicate away.
+          it 'leaves the getter own includes untouched' do
+            expect { subject.includes_for_serialization }
+              .not_to change { subject.instance_variable_get(:@includes).dup }
+          end
+
+          it 'still resolves the records after the includes have been read' do
+            subject.includes_for_serialization
+
+            expect { subject.records.to_a }.not_to raise_error
+          end
+        end
+
         describe 'serializing the related records when no projection was requested' do
           it 'serializes every association the search reaches' do
             expect(subject.includes_for_serialization)

@@ -14,7 +14,9 @@ module ForestLiana
       includes_for_smart_belongs_to = @collection.fields_smart_belongs_to.map { |field| field[:field] }
       includes_for_smart_belongs_to &= @field_names_requested if @field_names_requested
 
-      @includes.concat(includes_for_smart_belongs_to).map(&:to_s)
+      # A new array, never @includes itself: a smart belongs_to has no ActiveRecord reflection,
+      # and analyze_associations reflects on everything @includes holds.
+      (@includes + includes_for_smart_belongs_to).map(&:to_s)
     end
 
     private

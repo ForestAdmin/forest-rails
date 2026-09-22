@@ -641,4 +641,29 @@ describe 'Requesting an association', :type => :request do
       expect(User.exists?(@user.id)).to be true
     end
   end
+
+  describe 'index, naming a smart belongs_to of the related collection' do
+    it 'serializes it, rather than 500 on the includes the getter spliced in' do
+      # The referenced collection needs its own read permission, or redaction refuses before the
+      # getter is ever reached.
+      enabled = { 'roles' => [1] }
+      allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+        .with('/liana/v4/permissions/environment').and_return(
+          'collections' => {
+            'Tree' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'Island' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} },
+            'User' => { 'collection' => { 'browseEnabled' => enabled, 'readEnabled' => enabled, 'editEnabled' => enabled, 'addEnabled' => enabled, 'deleteEnabled' => enabled, 'exportEnabled' => enabled }, 'actions' => {} }
+          }
+        )
+      Rails.cache.delete('forest.collections')
+
+      get "/forest/Island/#{@island.id}/relationships/trees",
+          params: { fields: { 'Tree' => 'id,name,smart_owner' }, page: { 'number' => '1', 'size' => '10' }, timezone: 'Europe/Paris' },
+          headers: headers
+
+      expect(response.status).to eq(200)
+      body = JSON.parse(response.body)
+      expect(body['data'][0]['relationships']).to have_key('smart_owner')
+    end
+  end
 end

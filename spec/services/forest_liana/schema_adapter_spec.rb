@@ -98,7 +98,8 @@ module ForestLiana
               "owner_name",
               "owner_name_declared",
               "island_coordinates",
-              "through_coordinates"
+              "through_coordinates",
+              "smart_owner"
             ]
           )
         end
