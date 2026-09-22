@@ -272,11 +272,42 @@ module ForestLiana
         requested_fields || default_fields_to_serialize(@resource, record_includes),
         named_collections: requested_fields ? requested_fields.keys : []
       )
+      fields_to_serialize = keep_relationship_links(fields_to_serialize) if requested_fields
 
       serialize_model(get_record(record), {
         include: requested_fields ? getter.includes_for_serialization : record_includes,
         fields: fields_to_serialize
       })
+    end
+
+    # NOTICE: A projection names what the caller reads off the record, never the has-many
+    #         relations: the frontend does not fetch them here, it follows their
+    #         `links.related` off this very payload to load each one on its own route. Left out
+    #         of `fields` they are not serialized at all, the links go with them, and every
+    #         related-data list on the record silently stays empty — its count, built from a
+    #         hand-made URL rather than from a link, keeps answering. They cost no query: a
+    #         has-many outside `include` serializes to its link and nothing else.
+    #
+    #         Added back after the redaction rather than before, and dropped instead of refused
+    #         when the role cannot read the target: the caller never named them, so they are not
+    #         its request to be refused over.
+    def keep_relationship_links(fields_to_serialize)
+      root_name = ForestLiana.name_for(@resource)
+      projected = (fields_to_serialize[root_name] || '').split(',')
+      missing = has_many_field_names - projected
+      return fields_to_serialize if missing.empty?
+
+      readable = redact_fields(
+        forest_user, @resource, { root_name => missing.join(',') }, named_collections: []
+      )[root_name]
+      return fields_to_serialize if readable.blank?
+
+      fields_to_serialize.merge(root_name => (projected + readable.split(',')).join(','))
+    end
+
+    def has_many_field_names
+      get_collection.fields.select { |field| field[:relationship] == 'HasMany' }
+                    .map { |field| field[:field].to_s }
     end
 
     def render_jsonapi getter

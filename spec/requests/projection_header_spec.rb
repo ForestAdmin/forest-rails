@@ -195,6 +195,29 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
 
       expect(body['data']['attributes'].keys).to include('id', 'name', 'age')
     end
+
+    # The frontend loads each related-data list by following the link this payload carries, and
+    # it never names a has-many in the projection — dropping them here leaves every related-data
+    # list on the record silently empty, its count alone still answering.
+    it 'keeps the has-many relationship links the projection does not name' do
+      get "/forest/User/#{@user.id}", headers: projecting('id,name')
+
+      expect(response.status).to eq 200
+      expect(body['data']['attributes']).to eq('id' => @user.id, 'name' => 'Michel')
+      expect(body['data']['relationships'].keys).to match_array %w[trees_owned trees_cut addresses]
+      expect(body['data']['relationships']['trees_owned']['links']['related']['href'])
+        .to eq "/forest/User/#{@user.id}/relationships/trees_owned"
+    end
+
+    it 'reads no more columns for those links than the projection asked for' do
+      selected = selects_of('users') do
+        get "/forest/User/#{@user.id}", headers: projecting('id,name')
+      end
+
+      expect(selected).to include('"users"."name"')
+      expect(selected).not_to include('"users"."title"')
+      expect(selected).not_to include('"trees"')
+    end
   end
 
   # NOTICE: A scope filtering on a relation makes FiltersParser eager load it, on a query the
