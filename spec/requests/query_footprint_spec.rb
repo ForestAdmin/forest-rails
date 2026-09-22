@@ -528,5 +528,22 @@ describe 'SQL footprint of a front call', type: :request do
       expect(response).to have_http_status(200)
       expect(JSON.parse(response.body)['data'].first['attributes']['island_coordinates']).to eq('0,0')
     end
+
+    # Same exclusion, reached the other way: `location` is a has_one :through whose hop is the
+    # excluded Island, and it is requested as a field rather than declared as a dependency. The
+    # through walk resolves its hops off the raw reflection for the same reason the select above
+    # does — get_one_association drops the excluded model, and the walk then ran onto nil.
+    it 'walks a requested has_one :through whose hop is excluded, instead of failing the list' do
+      island = Island.create!(name: 'isle')
+      Location.create!(island: island, coordinates: '0,0')
+      Tree.create!(name: 'tree', island: island, owner: User.create!(name: 'owner'))
+
+      get '/forest/Tree', params: { fields: { 'Tree' => 'id,name,location', 'location' => 'coordinates' },
+                                    page: page, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' },
+          headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)['included'].first['attributes']['coordinates']).to eq('0,0')
+    end
   end
 end

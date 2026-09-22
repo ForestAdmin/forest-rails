@@ -332,9 +332,13 @@ module ForestLiana
         if association
           through_chain = []
           current_association = association
-          while current_association.options[:through]
+          # The raw reflection, not get_one_association: a through hop legitimately points at a
+          # model kept out of the schema (a join table is the usual one), which get_one_association
+          # filters out — leaving the walk on nil and failing the whole list rather than the one
+          # field. The chain below already reads its own hops off reflect_on_association.
+          while current_association && current_association.options[:through]
             through_chain << current_association.options[:through]
-            current_association = get_one_association(current_association.options[:through])
+            current_association = projected_resource.reflect_on_association(current_association.options[:through])
           end
 
           # Skip ActiveStorage associations - already processed above
