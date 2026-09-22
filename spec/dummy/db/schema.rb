@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_14_120000) do
+ActiveRecord::Schema.define(version: 2026_09_22_120000) do
 
   create_table "addresses", force: :cascade do |t|
     t.string "line1"
@@ -120,6 +120,12 @@ ActiveRecord::Schema.define(version: 2026_09_14_120000) do
     t.index ["cutter_id"], name: "index_trees_on_cutter_id"
     t.index ["island_id"], name: "index_trees_on_island_id"
     t.index ["owner_id"], name: "index_trees_on_owner_id"
+  end
+
+  create_table "trees_users", id: false, force: :cascade do |t|
+    t.integer "tree_id", null: false
+    t.integer "user_id", null: false
+    t.index ["tree_id", "user_id"], name: "index_trees_users_on_tree_id_and_user_id"
   end
 
   create_table "users", force: :cascade do |t|

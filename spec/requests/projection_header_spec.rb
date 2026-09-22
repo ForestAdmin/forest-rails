@@ -204,9 +204,20 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
 
       expect(response.status).to eq 200
       expect(body['data']['attributes']).to eq('id' => @user.id, 'name' => 'Michel')
-      expect(body['data']['relationships'].keys).to match_array %w[trees_owned trees_cut addresses]
+      expect(body['data']['relationships'].keys)
+        .to match_array %w[trees_owned trees_cut addresses favourite_trees]
       expect(body['data']['relationships']['trees_owned']['links']['related']['href'])
         .to eq "/forest/User/#{@user.id}/relationships/trees_owned"
+    end
+
+    # A has_and_belongs_to_many reaches the schema as "HasAndBelongsToMany", not "HasMany", and
+    # the frontend loads it through its link like any other has-many.
+    it 'keeps the link of a has_and_belongs_to_many too' do
+      get "/forest/User/#{@user.id}", headers: projecting('id,name')
+
+      expect(response.status).to eq 200
+      expect(body['data']['relationships']['favourite_trees']['links']['related']['href'])
+        .to eq "/forest/User/#{@user.id}/relationships/favourite_trees"
     end
 
     it 'reads no more columns for those links than the projection asked for' do

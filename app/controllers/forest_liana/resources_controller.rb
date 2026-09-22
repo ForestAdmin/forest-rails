@@ -305,8 +305,15 @@ module ForestLiana
       fields_to_serialize.merge(root_name => (projected + readable.split(',')).join(','))
     end
 
+    # NOTICE: Both names a to-many reaches the schema under: SchemaAdapter types an association
+    #         by its camelized macro, so a has_and_belongs_to_many lands here as
+    #         "HasAndBelongsToMany". The frontend loads it through its link exactly like a
+    #         has_many (it reads the array type, not this string), so leaving it out would keep
+    #         the very bug this fixes for every habtm relation.
+    TO_MANY_RELATIONSHIPS = %w[HasMany HasAndBelongsToMany].freeze
+
     def has_many_field_names
-      get_collection.fields.select { |field| field[:relationship] == 'HasMany' }
+      get_collection.fields.select { |field| TO_MANY_RELATIONSHIPS.include?(field[:relationship]) }
                     .map { |field| field[:field].to_s }
     end
 
