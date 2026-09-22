@@ -272,11 +272,49 @@ module ForestLiana
         requested_fields || default_fields_to_serialize(@resource, record_includes),
         named_collections: requested_fields ? requested_fields.keys : []
       )
+      fields_to_serialize = keep_relationship_links(fields_to_serialize) if requested_fields
 
       serialize_model(get_record(record), {
         include: requested_fields ? getter.includes_for_serialization : record_includes,
         fields: fields_to_serialize
       })
+    end
+
+    # NOTICE: A projection names what the caller reads off the record, never the to-many
+    #         relations: the frontend does not fetch them here, it follows their
+    #         `links.related` off this very payload to load each one on its own route. Left out
+    #         of `fields` they are not serialized at all, the links go with them, and every
+    #         related-data list on the record silently stays empty — its count, built from a
+    #         hand-made URL rather than from a link, keeps answering. They cost no query: a
+    #         to-many outside `include` serializes to its link and nothing else.
+    #
+    #         Added back after the redaction, and without a read check on the target collection:
+    #         a `links.related` is a URL, not data, and AssociationsController#index authorizes
+    #         `browse` on that very collection before answering it. Checking here would buy
+    #         nothing and cost a lot — a denial makes read_permissions refetch, which deletes the
+    #         cluster-wide `forest.collections` cache on every single get-one, and turns a Forest
+    #         API hiccup into a 403 on a record the role may read.
+    def keep_relationship_links(fields_to_serialize)
+      root_name = ForestLiana.name_for(@resource)
+      projected = (fields_to_serialize[root_name] || '').split(',')
+      missing = to_many_field_names - projected
+      return fields_to_serialize if missing.empty?
+
+      fields_to_serialize.merge(root_name => (projected + missing).join(','))
+    end
+
+    # NOTICE: What every to-many has in common, whatever it is made of. Keying on
+    #         `field[:relationship]` would miss two of the three: SchemaAdapter types an
+    #         association by its camelized macro, so a has_and_belongs_to_many reads
+    #         "HasAndBelongsToMany" rather than "HasMany", and Collection#has_many — the smart
+    #         DSL — never sets the key at all. The frontend makes none of these distinctions: it
+    #         reads the array type, exactly as here. `reference` is what keeps a scalar list out:
+    #         an array-typed smart field references nothing, and is a computed value the caller
+    #         did not ask for rather than a relation with a link (User's `nicknames`).
+    def to_many_field_names
+      get_collection.fields
+                    .select { |field| field[:type].is_a?(Array) && field[:reference].present? }
+                    .map { |field| field[:field].to_s }
     end
 
     def render_jsonapi getter
