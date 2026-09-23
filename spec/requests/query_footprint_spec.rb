@@ -399,6 +399,107 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  # PRD-1316. A relation the list also displays is built off the JOIN, with a select narrowed to
+  # the requested columns — and the preloader leaves an already-loaded association alone, so the
+  # next hop of the path reads its key off those narrowed rows. `users.name` was never selected:
+  # the whole list answered 500 `missing attribute: name`, not just the field.
+  #
+  # The multi-hop fixture above never caught it because its own second hop (Island has_one
+  # :location) keys on `isle.id`, and apply_column_aliases always emits a joined table's primary
+  # key. Only a non-primary key reveals the gap.
+  describe 'a list whose declared path goes through a relation the request also displays' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |index|
+          user = User.create!(name: "owner#{index}")
+          Tree.create!(name: "owner#{index}", owner: user)
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,name,owner,owner_named_trees_count' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'selects the key the next hop reads off the joined row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      # The key rides along in the JOIN's own select: still one joined query, never a second
+      # SELECT on users and never a fallback to "users".*.
+      expect(join_count(result.grown, 'users')).to eq(1)
+      expect(selects_from(result.grown, 'users')).to be_empty
+      root = selects_from(result.grown, 'trees').first
+      expect(root).to include(column_ref('users', 'name'))
+      expect(root).not_to include(column_ref('users', 'title'))
+    end
+
+    it 'selects it just as well when the request asks the relation for no column of its own' do
+      seed.call(3)
+
+      get '/forest/Tree', params: params.merge(fields: params[:fields].merge('owner' => 'id')),
+          headers: headers
+
+      expect(response).to have_http_status(200)
+      counts = JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_named_trees_count'] }
+      expect(counts).to all(eq(1))
+    end
+
+    it 'reaches the far end of the path' do
+      seed.call(3)
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      counts = JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_named_trees_count'] }
+      expect(counts).to all(eq(1))
+    end
+  end
+
+  # The same shape declared the way the ticket declared it: the path names the :through relation
+  # alone, and the relation the query joins (`owner`) is the hop it goes through — a hop the
+  # declaration never mentions.
+  describe 'a list whose declared :through hides the joined hop' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |index|
+          user = User.create!(name: "owner#{index}")
+          Tree.create!(name: "owner#{index}", owner: user)
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,name,owner,owner_named_tree_names', 'owner' => 'id' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'selects the key the source hop reads off the joined through row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(join_count(result.grown, 'users')).to eq(1)
+      expect(selects_from(result.grown, 'trees').first).to include(column_ref('users', 'name'))
+    end
+
+    it 'reaches the far end of the through' do
+      seed.call(3)
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      names = JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_named_tree_names'] }
+      expect(names).to all(match(/\Aowner\d+\z/))
+    end
+  end
+
   describe 'a list projecting a smart field that walks an undeclared relation' do
     let(:seed) do
       lambda do |n|

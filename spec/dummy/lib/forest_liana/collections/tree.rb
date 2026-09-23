@@ -37,6 +37,19 @@ class Forest::Tree
     object.location&.coordinates
   end
 
+  # A multi-hop path whose first hop the list also displays as a column. The hop-2 preload reads
+  # `users.name` off the rows the JOIN built with a narrowed select — the fixture for "is the key
+  # a later hop reads selected on the table it is joined from" (query_footprint_spec.rb).
+  field :owner_named_trees_count, type: 'Number', dependencies: ['owner:trees_by_name:name'] do
+    object.owner.trees_by_name.size
+  end
+
+  # The same failure through a :through, where the joined hop is the one the path never names —
+  # PRD-1316's own declaration shape.
+  field :owner_named_tree_names, type: 'String', dependencies: ['owner_named_trees:name'] do
+    object.owner_named_trees.map(&:name).join(',')
+  end
+
   # A smart belongs_to: is_virtual with a reference, and no ActiveRecord reflection behind it —
   # the fixture for everything that walks a getter's includes (has_many_getter_spec.rb,
   # associations_spec.rb). Nothing else in the dummy declared one.

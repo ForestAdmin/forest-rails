@@ -207,7 +207,7 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       expect(response.status).to eq 200
       expect(body['data']['attributes']).to eq('id' => @user.id, 'name' => 'Michel')
       expect(body['data']['relationships'].keys)
-        .to match_array %w[trees_owned trees_cut addresses favourite_trees smart_trees]
+        .to match_array %w[trees_owned trees_cut trees_by_name addresses favourite_trees smart_trees]
       expect(body['data']['relationships']['trees_owned']['links']['related']['href'])
         .to eq "/forest/User/#{@user.id}/relationships/trees_owned"
       expect(body['data']['relationships']['favourite_trees']['links']['related']['href'])
@@ -575,6 +575,32 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       select = getter.send(:compute_select_fields, [])
 
       expect(select.select { |column| column.start_with?('locations.') }).to be_empty
+    end
+  end
+
+  # PRD-1316. The hop after a joined one reads its key off the narrowed rows the JOIN built, so
+  # that key belongs to this select — `owner:trees_by_name:name` preloads Tree's owners' trees by
+  # `users.name`, which nothing else here would have selected.
+  describe 'on a dependency path whose first hop the request also projects' do
+    let(:getter) do
+      ForestLiana::ResourceGetter.new(
+        Tree,
+        ActionController::Parameters.new(
+          id: 1, fields: { 'Tree' => 'id,name,owner,owner_named_trees_count' }
+        ),
+        nil
+      )
+    end
+
+    it 'selects the key the next hop reads, on the joined table' do
+      expect(getter.send(:compute_select_fields, [:owner])).to include('users.name')
+    end
+
+    it 'leaves it out when that hop is not joined, its table not being in the FROM clause' do
+      select = getter.send(:compute_select_fields, [])
+
+      expect(select).to include('trees.owner_id')
+      expect(select).not_to include('users.name')
     end
   end
 

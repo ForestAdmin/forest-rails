@@ -473,10 +473,7 @@ module ForestLiana
         association = projected_resource.reflect_on_association(relation_path.relations.first.to_sym)
         next unless association
 
-        preload_owner_keys(association).each do |key|
-          select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
-        end
-
+        select_dependency_preload_keys(select, relation_path, joined_relations)
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
 
         # A relation the caller also projects is built off the JOIN, and the preloader leaves an
@@ -526,6 +523,60 @@ module ForestLiana
       reflection = reflection.through_reflection while reflection.through_reflection?
 
       Array(reflection.join_foreign_key)
+    end
+
+    # The same keys, but for every hop of a declared path this select can still reach, not only
+    # the first. The first hop reads the root row, which this select builds. The hop after it
+    # reads the rows that first hop produced — and when that hop is a relation the query *joins*,
+    # those rows are the narrowed ones built off the JOIN, so its key has to be named here too.
+    # It was not, and the list answered 500 rather than the one field (PRD-1316).
+    #
+    # No hop past that one can be narrowed: joined_relations only ever names root relations, so
+    # everything further along comes from a preload of its own, which selects whole rows.
+    def select_dependency_preload_keys(select, relation_path, joined_relations)
+      hops = flatten_dependency_hops(relation_path.relations)
+      return if hops.empty?
+
+      hops = hops.first(joined?(hops.first.last, joined_relations) ? 2 : 1)
+
+      hops.each do |owner, reflection|
+        Array(reflection.join_foreign_key).each do |key|
+          select << "#{owner.table_name}.#{key}" if column?(owner, key)
+        end
+      end
+    end
+
+    # The direct reflections the preloader really walks for a declared path, each paired with the
+    # model it reads its key off.
+    #
+    # A :through hop is not preloaded as one: Preloader::ThroughAssociation loads the through
+    # relation, then the source relation on those records. So the relation a path names can hide
+    # the one the query joins — `location:coordinates` walking Tree's `has_one :location, through:
+    # :island` really starts on the joined `island`, which the declaration never mentions.
+    def flatten_dependency_hops(relations)
+      model = projected_resource
+
+      relations.flat_map do |name|
+        association = model.reflect_on_association(name.to_sym)
+        return [] if association.nil? || SchemaUtils.polymorphic?(association)
+
+        hops = flatten_through_hops(model, association)
+        model = association.klass
+        hops
+      end
+    # Same net as preload_skip_reason's, for the same shapes: a :through naming a hop that does
+    # not exist, or a class_name pointing at no model, answers NameError off #klass. Nothing is
+    # selected for such a path — skip_preload? drops it from the preload too, so there is no key
+    # left to select for.
+    rescue NameError, ActiveRecord::ActiveRecordError
+      []
+    end
+
+    def flatten_through_hops(owner, association)
+      return [[owner, association]] unless association.through_reflection?
+
+      flatten_through_hops(owner, association.through_reflection) +
+        flatten_through_hops(association.through_reflection.klass, association.source_reflection)
     end
 
     def get_one_association(name)

@@ -9,4 +9,8 @@ class Tree < ActiveRecord::Base
     optional: true
 
   has_one :location, through: :island
+
+  # A :through whose hop is the displayed `belongs_to :owner`: a path naming this relation alone
+  # never names the relation the query joins, which is the shape PRD-1316 crashed on.
+  has_many :owner_named_trees, through: :owner, source: :trees_by_name
 end
