@@ -1,0 +1,36 @@
+name: Lint PR title
+
+# NOTICE: `squash_merge_commit_title` is PR_TITLE on this repository, so the pull request title —
+#         not any commit on the branch — becomes the subject of the squash commit pushed to main.
+#         The commitlint job in build.yml only ever sees the branch commits, so until the merge
+#         lands on main nothing checks the one string that has to satisfy commitlint. When it
+#         fails there, `deploy` (needs: [lint, test]) never runs and the release is silently lost.
+on:
+  pull_request:
+    # `edited` is not a default pull_request activity type, and it is the one that matters here:
+    # without it, renaming the title to fix a failure would not re-run this check.
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  lint-pr-title:
+    name: Lint PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14.21.3
+      - uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: install dependencies
+        run: yarn
+      - name: Lint the PR title
+        # NOTICE: passed through the environment rather than interpolated into the script: a title
+        #         is attacker-controlled text, and `${{ }}` would splice it into the shell.
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        # NOTICE: printf, not echo — a title that is exactly `-e`, `-n` or `-E` is an option to
+        #         echo, not an argument, and would reach commitlint as an empty message.
+        run: printf '%s\n' "$PR_TITLE" | npx --no-install commitlint
