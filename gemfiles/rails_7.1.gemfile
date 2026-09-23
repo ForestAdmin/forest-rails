@@ -9,4 +9,6 @@ gem 'rails', '~> 7.1.5'
 
 group :test do
   gem 'sqlite3', '>= 2.1'
+  # 10.x is the last major supporting Rails < 7.2 (activerecord requirement).
+  gem 'acts-as-taggable-on', '~> 10.0'
 end

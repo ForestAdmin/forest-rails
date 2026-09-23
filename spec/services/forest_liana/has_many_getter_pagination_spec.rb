@@ -24,6 +24,11 @@ module ForestLiana
     subject { described_class.new(Island, association, params, user) }
 
     before(:each) do
+      # This file exercises SQL shaping, not permissions: without this, the read-permission
+      # guard on filters/sort hits the real permissions API through whatever the process-wide
+      # (file-backed) cache last left behind, rather than the "nothing to check" this file assumes.
+      Rails.cache.write('forest.has_permission', false)
+
       # A has_one declared on the target model that actually returns MANY rows: every tree
       # sharing the island. Eager-loading it turns one tree into N joined rows.
       Tree.class_eval do
@@ -138,6 +143,33 @@ module ForestLiana
 
         expect(records.size).to eq(2)
         expect(records.map { |tree| tree.owner.name }.uniq).to eq(['Alice'])
+      end
+    end
+
+    describe 'when filtering by a relation column that is also projected' do
+      # Regression: FiltersParser joins owner regardless of sort/extended search, but the
+      # projection's SELECT used to be narrowed to associations_to_keep_eager alone — which
+      # only tracks sort/extended-search joins — so a filtered-and-projected owner.name was
+      # dropped from the SELECT even though the JOIN that could have served it was right there.
+      # HashWithIndifferentAccess: compute_select_fields reads @params[:fields][path] with path a
+      # Symbol; a plain Hash keyed by the String collection name would never match it.
+      let(:params) do
+        ActiveSupport::HashWithIndifferentAccess.new(
+          id: island.id,
+          association_name: 'trees',
+          filters: { field: 'owner:name', operator: 'equal', value: 'Alice' }.to_json,
+          fields: { 'Tree' => 'id,name,owner', 'owner' => 'id,name' },
+          page: { size: 15, number: 1 },
+          timezone: 'America/Nome'
+        )
+      end
+
+      it 'keeps the projected owner columns in the SELECT instead of dropping them' do
+        subject.perform
+        records = subject.records.to_a
+
+        expect(records.size).to eq(2)
+        expect(records.map { |tree| tree.owner.name }).to eq(%w[Alice Alice])
       end
     end
 

@@ -71,13 +71,13 @@ module ForestLiana
           end
 
           expect(collection.fields.map { |field| field[:field] }).to eq(
-            ["created_at", "eponymous_tree", "id", "location", "name", "trees", "updated_at"]
+            ["created_at", "eponymous_tree", "flag", "id", "location", "members", "memberships", "name", "trees", "updated_at"]
           )
         end
       end
 
       context 'with standard fields' do
-        it 'should be sort by alphabetical order' do
+        it 'sorts real columns alphabetically, with smart fields appended afterward in declaration order' do
           collection = ForestLiana.apimap.find do |object|
             object.name.to_s == ForestLiana.name_for(Tree)
           end
@@ -93,7 +93,13 @@ module ForestLiana
               "location",
               "name",
               "owner",
-              "updated_at"
+              "updated_at",
+              "name_with_age",
+              "owner_name",
+              "owner_name_declared",
+              "island_coordinates",
+              "through_coordinates",
+              "smart_owner"
             ]
           )
         end

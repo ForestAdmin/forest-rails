@@ -10,6 +10,7 @@ module ForestLiana
       @resource = resource
       @association = association
       @params = params
+      @user = forest_user
       @collection_name = ForestLiana.name_for(model_association)
       @field_names_requested = field_names_requested
       @collection = get_collection(@collection_name)
@@ -19,12 +20,42 @@ module ForestLiana
       prepare_query()
     end
 
+    def assert_sort_readable!
+      @search_query_builder.assert_sort_readable!(@user, model_association)
+    end
+
+    # NOTICE: The projection is applied here and not in prepare_query: count builds its own
+    #         getter and never calls perform, and query_for_batch keeps the unprojected query.
+    #         Only the relations optimize_record_loading actually joins can be projected — the
+    #         display-only ones are preloaded on purpose, and come back whole.
     def perform
-      @records
+      assert_sort_readable!
+      # Captured even on the early return: a `.select` naming more than one column makes Rails
+      # emit `COUNT(col1, col2)`, invalid SQL, if #count ever ran off @records post-projection.
+      # A second #perform on the same instance must not recapture @records after the first call
+      # already projected it.
+      @unprojected_records ||= @records
+
+      # A related list runs the same getters once per row whether or not it projects, so the
+      # preload applies to both branches — only the projection itself is gated on project?.
+      if project?
+        polymorphic_associations, preload_loads = analyze_associations(model_association)
+        display_includes = @includes.uniq - polymorphic_associations - preload_loads - @optional_includes
+
+        # associations_to_keep_eager alone would drop a filtered-but-projected association (e.g.
+        # owner:name = Alice with fields[owner]=name): FiltersParser joins it regardless of sort
+        # or extended search, so its columns must stay in the SELECT even though nothing here
+        # asked for its JOIN to be kept for that reason.
+        eager_loads = associations_to_keep_eager + @search_query_builder.filter_joins.map(&:name)
+        @records = apply_projection(@unprojected_records, display_includes & eager_loads)
+      end
+
+      @records = apply_smart_field_preloads(@records)
     end
 
     def count
       association_class = model_association
+      records = unprojected_records
 
       if association_class.primary_key.is_a?(Array)
         adapter_name = association_class.connection.adapter_name.downcase
@@ -38,23 +69,36 @@ module ForestLiana
             "#{association_class.table_name}.#{pk}"
           end.join(" || '|' || ")
 
-          @records_count = @records.distinct.count(Arel.sql(pk_concat))
+          @records_count = records.distinct.count(Arel.sql(pk_concat))
         elsif adapter_name.include?('postgresql')
-          @records_count = @records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
+          @records_count = records.distinct.count(Arel.sql("ROW(#{pk_columns})"))
         else
-          @records_count = @records.distinct.count(Arel.sql(pk_columns))
+          @records_count = records.distinct.count(Arel.sql(pk_columns))
         end
       else
-        @records_count = @records.count
+        @records_count = records.count
       end
     end
 
+    # CSV export calls #perform first, so @unprojected_records carries the same smart-field
+    # preload — unprojected on purpose (see the NOTICE above #perform). A bulk "select all"
+    # batch never calls #perform and only reads ids, so it falls back to the plain
+    # @base_records_for_batch, which needs no preload.
     def query_for_batch
-      @records
+      @unprojected_records ? apply_smart_field_preloads(@unprojected_records) : @base_records_for_batch
     end
 
     def records
-      @records.limit(limit).offset(offset)
+      records = @records.limit(limit).offset(offset)
+      polymorphic_associations, = analyze_associations(model_association)
+
+      # Left a Relation (not resolved yet) when there is nothing to preload - some callers still
+      # want #to_sql off this, and paid for nothing before this fix.
+      return records if polymorphic_associations.empty?
+
+      records = records.to_a
+      preload_polymorphic_associations(records, polymorphic_associations)
+      records
     end
 
     def includes_for_serialization
@@ -100,6 +144,16 @@ module ForestLiana
       Array(fields&.split(',')).map(&:to_sym)
     end
 
+    def project?
+      return false if @field_names_requested.empty?
+
+      @collection.smart_fields_projectable?(@field_names_requested)
+    end
+
+    def projected_resource
+      model_association
+    end
+
     def model_association
       @resource.reflect_on_association(@params[:association_name].to_sym).klass
     end
@@ -108,6 +162,7 @@ module ForestLiana
       parent_record = find_record(get_resource(), @resource, @params[:id])
       association = parent_record.send(@params[:association_name])
       @records = optimize_record_loading(association, @search_query_builder.perform(association))
+      @base_records_for_batch = @records
     end
 
     def offset

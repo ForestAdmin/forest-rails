@@ -11,9 +11,8 @@ module ForestLiana
       collection.fields.sort_by!.with_index { |k, idx| [k[:field].to_s, idx] }
 
       # NOTICE: Add ActsAsTaggable fields
-      if @model.try(:taggable?) && @model.respond_to?(:acts_as_taggable) &&
-        @model.acts_as_taggable.respond_to?(:to_a)
-        @model.acts_as_taggable.to_a.each do |key, value|
+      if @model.try(:taggable?) && @model.respond_to?(:tag_types)
+        @model.tag_types.map(&:to_s).each do |key, value|
           field = collection.fields.find { |x| x[:field] == key.to_s }
 
           if field

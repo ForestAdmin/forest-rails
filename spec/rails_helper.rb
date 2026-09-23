@@ -6,6 +6,7 @@ require File.expand_path('../dummy/config/environment', __FILE__)
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
+require_relative 'support/forest_liana/query_capture'
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -57,6 +58,13 @@ RSpec.configure do |config|
   # The different available types are documented in the features, such as in
   # https://relishapp.com/rspec/rspec-rails/docs
   config.infer_spec_type_from_file_location!
+
+  config.include ForestLiana::QueryCapture, type: :request
+
+  # WARNED_ONCE is a module constant, deliberately shared for the life of the process (see its
+  # own comment) — cleared before every example so one spec's warning can't silence another's,
+  # regardless of run order or which file exercises the valve.
+  config.before { ForestLiana::MissingAttributeValve::WARNED_ONCE.clear }
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!

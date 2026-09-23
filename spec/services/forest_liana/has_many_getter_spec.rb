@@ -28,6 +28,7 @@ module ForestLiana
         Tree.create(name: 'banana tree', island: re)
         ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
         allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
+        Rails.cache.write('forest.has_permission', false)
       end
 
       after(:each) do
@@ -198,6 +199,24 @@ module ForestLiana
           end
         end
 
+        describe 'serializing a smart belongs_to, which has no ActiveRecord reflection' do
+          let(:projection) { { 'Tree' => 'id,name,smart_owner' } }
+
+          # Asserting on the mutation itself, not on one caller's symptom: anything reading the
+          # includes afterwards reflects on every name they hold. An idempotence assertion would
+          # NOT catch this — the override's `&` below dedups the duplicate away.
+          it 'leaves the getter own includes untouched' do
+            expect { subject.includes_for_serialization }
+              .not_to change { subject.instance_variable_get(:@includes).dup }
+          end
+
+          it 'still resolves the records after the includes have been read' do
+            subject.includes_for_serialization
+
+            expect { subject.records.to_a }.not_to raise_error
+          end
+        end
+
         describe 'serializing the related records when no projection was requested' do
           it 'serializes every association the search reaches' do
             expect(subject.includes_for_serialization)
@@ -361,6 +380,29 @@ module ForestLiana
             expect(getter.includes).to contain_exactly(:addressable)
           end
 
+        end
+      end
+
+      describe '#perform, called twice on the same instance' do
+        let(:params) {
+          {
+            id: Island.first.id,
+            association_name: 'trees',
+            fields: { 'Tree' => 'id,owner_name_declared,owner', 'owner' => 'name' },
+            # A dotted sort keeps owner eager-loaded (associations_to_keep_eager) rather than
+            # preloaded separately, exercising apply_projection's eager_loading? branch.
+            sort: '-owner.name',
+            page: { size: 15, number: 1 },
+            timezone: 'America/Nome'
+          }
+        }
+
+        # No current caller triggers a second #perform, but @unprojected_records must survive one.
+        it 'produces the same select both times' do
+          first_sql = subject.perform.to_sql
+          second_sql = subject.perform.to_sql
+
+          expect(second_sql).to eq(first_sql)
         end
       end
     end

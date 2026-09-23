@@ -7,7 +7,7 @@ module ForestLiana
         if response.is_a?(Net::HTTPOK)
           JSON.parse(response.body)
         else
-          raise ForestLiana::Errors::HTTP403Error.new("Permission could not be retrieved")
+          raise ForestLiana::Errors::PermissionsUnavailableError.new
         end
       end
     end

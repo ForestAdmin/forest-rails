@@ -6,11 +6,15 @@ module ForestLiana::Collection
     attr_accessor :collection_name
     attr_accessor :is_read_only
     attr_accessor :is_searchable
+    attr_accessor :collection_opts
 
     def collection(collection_name, opts = {})
       self.collection_name = find_name(collection_name).to_s
       self.is_read_only = opts[:read_only] || false
       self.is_searchable = opts[:is_searchable] || false
+      # Only the keys actually passed — `model` (re)applies them each time it runs, since
+      # SchemaAdapter already creates a real AR-backed collection's entry before this loads.
+      self.collection_opts = opts.slice(:read_only, :is_searchable, :countable)
 
       # NOTICE: Creates dynamically the serializer if it's a Smart Collection.
       if smart_collection? &&
@@ -21,6 +25,12 @@ module ForestLiana::Collection
         ForestLiana::SerializerFactory.new(is_smart_collection: true)
           .serializer_for(self)
       end
+
+      # Not `model`: that would create a virtual, empty apimap entry for a name that never
+      # resolves to a real one (a typo, a renamed/removed model) — a collection this basic (no
+      # field/action/segment) only exists to (re)configure an entry SchemaAdapter already created.
+      existing = ForestLiana.apimap.find { |collection| collection.name.to_s == self.collection_name }
+      apply_collection_opts(existing) if existing
     end
 
     def action(name, opts = {})
@@ -41,8 +51,26 @@ module ForestLiana::Collection
       model.search_fields = fields
     end
 
+    # A key absent from opts stays absent (collection_spec.rb pins the exact field hash a smart
+    # field with no dependencies produces) — only a *present* dependencies: is ever touched here.
+    def normalize_dependencies!(opts, name)
+      return unless opts.key?(:dependencies)
+      return opts.delete(:dependencies) if opts[:dependencies].nil?
+
+      normalized = ForestLiana::SmartFieldDependencies.normalize(opts[:dependencies])
+      if normalized.nil?
+        FOREST_LOGGER.warn "Invalid dependencies declared on field \"#{name}\": expected a " \
+          'String, Symbol, or Array of them. Ignored — the field is treated as if it declared ' \
+          'no dependencies at all.'
+        opts.delete(:dependencies)
+      else
+        opts[:dependencies] = normalized
+      end
+    end
+
     def field(name, opts, &block)
       # TODO: Handle empty name
+      normalize_dependencies!(opts, name)
 
       if opts.key?(:isRequired)
         FOREST_LOGGER.warn "DEPRECATION WARNING: isRequired on field \"#{name}\" is deprecated. Please use is_required."
@@ -105,6 +133,11 @@ module ForestLiana::Collection
             compute_value = lambda do |object|
               begin
                 object.instance_eval(&block)
+              rescue ActiveModel::MissingAttributeError
+                # Left to propagate: MissingAttributeValve (wrapping evaluate_attr_or_block, the
+                # caller of this lambda) is the one place that can tell a genuine mistake apart
+                # from a dependencies: declaration merely incomplete, and retry only the latter.
+                raise
               rescue => exception
                 FOREST_REPORTER.report exception
                 FOREST_LOGGER.error "Cannot retrieve the " + name.to_s + " value because of an " \
@@ -123,6 +156,8 @@ module ForestLiana::Collection
     end
 
     def has_many(name, opts, &block)
+      normalize_dependencies!(opts, name)
+
       field = opts.merge({
         field: name,
         is_virtual: true,
@@ -143,6 +178,8 @@ module ForestLiana::Collection
     end
 
     def belongs_to(name, opts, &block)
+      normalize_dependencies!(opts, name)
+
       field = opts.merge({
         field: name,
         is_virtual: true,
@@ -211,7 +248,17 @@ module ForestLiana::Collection
         ForestLiana.apimap << collection
       end
 
+      apply_collection_opts(collection)
+
       collection
+    end
+
+    def apply_collection_opts(collection)
+      return unless collection_opts
+
+      collection.is_read_only = collection_opts[:read_only] if collection_opts.key?(:read_only)
+      collection.is_searchable = collection_opts[:is_searchable] if collection_opts.key?(:is_searchable)
+      collection.is_countable = collection_opts[:countable] if collection_opts.key?(:countable)
     end
 
     def active_record_class

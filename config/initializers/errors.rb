@@ -58,6 +58,12 @@ module ForestLiana
       end
     end
 
+    class HTTP400Error < ExpectedError
+      def initialize(message = "Bad Request")
+        super(400, :bad_request, message)
+      end
+    end
+
     class HTTP401Error < ExpectedError
       def initialize(message = "Unauthorized")
         super(401, :unauthorized, message)
@@ -73,6 +79,16 @@ module ForestLiana
     class HTTP422Error < ExpectedError
       def initialize(message = "Unprocessable Entity")
         super(422, :unprocessable_entity, message)
+      end
+    end
+
+    # A permissions fetch that could not be answered is a dependency failure, not a refusal.
+    # Answering 403 makes a Forest API outage read exactly like an RBAC denial — same status, same
+    # payload shape as the refusals next to it — so the support answer becomes "check your role
+    # permissions", which is the wrong one, and nothing contradicts it.
+    class PermissionsUnavailableError < ExpectedError
+      def initialize(message = 'Permission could not be retrieved')
+        super(503, :service_unavailable, message, 'PermissionsUnavailableError')
       end
     end
 

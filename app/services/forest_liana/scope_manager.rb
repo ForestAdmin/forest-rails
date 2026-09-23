@@ -13,6 +13,14 @@ module ForestLiana
 
     def self.append_scope_for_user(existing_filter, user, collection_name, request_context_variables = nil)
       existing_filter = inject_context_variables(existing_filter, user, request_context_variables) if existing_filter
+      append_scope(existing_filter, user, collection_name, request_context_variables)
+    end
+
+    # +existing_filter+ is assumed already context-injected — callers that need to read the
+    # caller's own tree before it merges with the scope (a permission check, say) inject it once
+    # themselves and pass the result here, rather than through +append_scope_for_user+, which
+    # would inject it a second time.
+    def self.append_scope(existing_filter, user, collection_name, request_context_variables = nil)
       scope_filter = get_scope(collection_name, user, request_context_variables)
       filters = [existing_filter, scope_filter].compact
 
@@ -37,6 +45,10 @@ module ForestLiana
 
     def self.inject_context_variables(filter, user, request_context_variables = nil)
       filter = JSON.parse(filter) if filter.is_a? String
+      # A JSON body (`POST /:collection/query`) hands the filter over as
+      # ActionController::Parameters, which is no Hash — normalised here, once, rather than on
+      # every node of the tree inject_context_in_filter walks.
+      filter = filter.to_unsafe_h if filter.respond_to?(:to_unsafe_h)
       retrieve = fetch_scopes(user['rendering_id'])
       context_variables = Utils::ContextVariables.new(retrieve['team'], user, request_context_variables)
 

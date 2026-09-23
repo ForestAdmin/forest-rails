@@ -95,6 +95,9 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
+    acts-as-taggable-on (13.0.0)
+      activerecord (>= 7.1, < 8.2)
+      zeitwerk (>= 2.4, < 3.0)
     aes_key_wrap (1.1.0)
     attr_required (1.0.2)
     base64 (0.3.0)
@@ -345,6 +348,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  acts-as-taggable-on (~> 13.0)
   bcrypt
   byebug
   deepsort

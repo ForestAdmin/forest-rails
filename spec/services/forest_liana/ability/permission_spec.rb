@@ -286,6 +286,31 @@ module ForestLiana
 
           expect(dummy_class.is_crud_authorized?('browse', user, Island)).to be false
         end
+
+        it 'denies, without raising, a user absent from the permissions system' do
+          Rails.cache.delete('forest.users')
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .with('/liana/v4/permissions/users')
+            .and_return([])
+          allow_any_instance_of(ForestLiana::Ability::Fetch)
+            .to receive(:get_permissions)
+            .with('/liana/v4/permissions/environment')
+            .and_return(
+              'collections' => {
+                'Island' => {
+                  'collection' => {
+                    'browseEnabled' => { 'roles' => [1] }, 'readEnabled' => { 'roles' => [1] },
+                    'editEnabled' => { 'roles' => [1] }, 'addEnabled' => { 'roles' => [1] },
+                    'deleteEnabled' => { 'roles' => [1] }, 'exportEnabled' => { 'roles' => [1] }
+                  },
+                  'actions' => {}
+                }
+              }
+            )
+
+          expect(dummy_class.is_crud_authorized?('browse', user, Island)).to be false
+        end
       end
 
       describe 'is_chart_authorized?' do
@@ -410,9 +435,27 @@ module ForestLiana
           Rails.cache.clear
         end
 
-        it 'should return an exception' do
+        # Not an HTTP403Error: a fetch that could not be answered is a dependency failure, and
+        # answering it with the same status and payload as the RBAC refusals next to it makes a
+        # Forest API outage indistinguishable from a role that is genuinely missing a permission.
+        it 'raises a service-unavailable error, not a refusal' do
           allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(instance_double(HTTParty::Response, code: 500, body: nil))
-          expect { dummy_class.is_crud_authorized?('browse', user, Island.first) }.to raise_error(ForestLiana::Errors::HTTP403Error, 'Permission could not be retrieved')
+
+          expect { dummy_class.is_crud_authorized?('browse', user, Island.first) }
+            .to raise_error(ForestLiana::Errors::PermissionsUnavailableError, 'Permission could not be retrieved')
+        end
+
+        it 'gives it a 503 and its own name, so support can tell it from a denial' do
+          allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(instance_double(HTTParty::Response, code: 500, body: nil))
+
+          error = begin
+            dummy_class.is_crud_authorized?('browse', user, Island.first)
+          rescue ForestLiana::Errors::ExpectedError => exception
+            exception
+          end
+
+          expect([error.error_code, error.status, error.name]).to eq([503, :service_unavailable, 'PermissionsUnavailableError'])
+          expect(error).not_to be_a(ForestLiana::Errors::HTTP403Error)
         end
       end
     end

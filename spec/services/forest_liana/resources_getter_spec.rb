@@ -17,6 +17,13 @@ module ForestLiana
       filters: filters,
     }, user) }
 
+    before(:each) do
+      # This file exercises SQL shaping, not permissions: without this, the read-permission
+      # guard on filters/sort hits the real permissions API through whatever the process-wide
+      # (file-backed) cache last left behind, rather than the "nothing to check" this file assumes.
+      Rails.cache.write('forest.has_permission', false)
+    end
+
     def init_scopes
       ForestLiana::ScopeManager.invalidate_scope_cache(rendering_id)
       allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(scopes)
@@ -132,6 +139,18 @@ module ForestLiana
       end
     end
 
+    describe 'when the collection has no relation at all in the request' do
+      let(:fields) { { 'User' => 'id,name' } }
+
+      it 'still projects the select, narrowed to the requested columns' do
+        sql = getter.perform.to_sql
+
+        expect(sql).to include('"users"."name"')
+        expect(sql).not_to include('"title"')
+        expect(sql).not_to include('"users".*')
+      end
+    end
+
     describe 'when there are more records than the page size' do
       describe 'when asking for the 1st page and 15 records' do
         let(:pageSize) { 15 }
@@ -210,6 +229,7 @@ module ForestLiana
     describe 'when sorting by a specific field' do
       let(:pageSize) { 5 }
       let(:sort) { '-name' }
+      let(:fields) { { resource.name => 'id,name' } }
 
       it 'should get only the expected records' do
         getter.perform
@@ -281,7 +301,7 @@ module ForestLiana
 
     describe 'when getting instance dependent associations' do
       let(:resource) { Island }
-      let(:fields) { { 'Island' => 'id,eponymous_tree', 'eponymous_tree' => 'id,name'} }
+      let(:fields) { { 'Island' => 'id,name,eponymous_tree', 'eponymous_tree' => 'id,name'} }
 
       it 'should get only the expected records' do
         getter.perform
@@ -341,7 +361,7 @@ module ForestLiana
 
     describe 'when filtering on before x hours ago' do
       let(:resource) { Tree }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name' } }
       let(:filters) { {
         field: 'created_at',
         operator: 'before_x_hours_ago',
@@ -361,7 +381,7 @@ module ForestLiana
 
     describe 'when filtering on after x hours ago' do
       let(:resource) { Tree }
-      let(:fields) { { 'Tree' => 'id' } }
+      let(:fields) { { 'Tree' => 'id,name' } }
       let(:filters) { {
         field: 'created_at',
         operator: 'after_x_hours_ago',
@@ -402,6 +422,7 @@ module ForestLiana
 
     describe 'when filtering on an updated_at field of the main collection' do
       let(:resource) { Island }
+      let(:fields) { { 'Island' => 'id,name' } }
       let(:filters) { {
         field: 'updated_at',
         operator: 'previous_year'
@@ -485,6 +506,7 @@ module ForestLiana
     end
 
     describe 'when filtering on a smart field' do
+      let(:fields) { { 'User' => 'id,name' } }
       let(:filters) { {
         field: 'cap_name',
         operator: 'equal',
@@ -522,7 +544,7 @@ module ForestLiana
     describe 'when scopes are defined' do
       let(:resource) { Island }
       let(:pageSize) { 15 }
-      let(:fields) { { resource.name => 'id' } }
+      let(:fields) { { resource.name => 'id,name' } }
       let(:filters) { }
       let(:scopes) {
         {
@@ -693,6 +715,20 @@ module ForestLiana
         it 'keeps every one-association in the include set when no fields are requested' do
           expect(getter.includes).to contain_exactly(:owner, :cutter, :island, :eponymous_island, :location)
         end
+
+        it 'joins the associations an extended search can match through' do
+          queries = []
+          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+            queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+          end
+          begin
+            getter.count
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+
+          expect(queries.join).to match(/LEFT OUTER JOIN/)
+        end
       end
 
       describe 'when fields are requested' do
@@ -719,6 +755,20 @@ module ForestLiana
           expect(getter.count).to eq 0
           expect(list_getter.records.count).to eq 0
           expect(getter.includes).to eq []
+        end
+
+        it 'counts without joining a table the search never reaches' do
+          queries = []
+          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+            queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+          end
+          begin
+            getter.count
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+
+          expect(queries).not_to include(a_string_matching(/LEFT OUTER JOIN/))
         end
       end
 
@@ -758,6 +808,54 @@ module ForestLiana
             expect(list_getter.records.count).to eq 1
           end
         end
+      end
+    end
+
+    describe '#perform, called twice on the same instance' do
+      let(:resource) { Tree }
+      # owner_name_declared's only dependency is a relation path, so a real LEFT OUTER JOIN to
+      # users is what makes this exercise the eager_loading? branch of apply_projection — the one
+      # that strips the _forest_admin_eager_load marker apply_column_aliases expects exactly once.
+      let(:fields) { { 'Tree' => 'id,owner_name_declared,owner', 'owner' => 'name' } }
+
+      # No current caller triggers a second #perform, but @unprojected_records must survive one.
+      it 'produces the same select both times' do
+        first_sql = getter.perform.to_sql
+        second_sql = getter.perform.to_sql
+
+        expect(second_sql).to eq(first_sql)
+      end
+    end
+
+    describe '#count with a collection whose search touches a smart field lambda' do
+      let(:search_params) do
+        ActiveSupport::HashWithIndifferentAccess.new(
+          page: { size: pageSize, number: pageNumber },
+          search: 'skull',
+          searchExtended: '0',
+          timezone: 'Europe/Paris',
+        )
+      end
+      let(:getter) { described_class.new(User, search_params, user) }
+
+      it 'is not narrowed by searchExtended, since the lambda can read anything' do
+        expect(getter.instance_variable_get(:@count_needs_includes)).to eq(true)
+      end
+    end
+
+    describe '#count with a plain collection' do
+      let(:search_params) do
+        ActiveSupport::HashWithIndifferentAccess.new(
+          page: { size: pageSize, number: pageNumber },
+          search: 'skull',
+          searchExtended: '0',
+          timezone: 'Europe/Paris',
+        )
+      end
+      let(:getter) { described_class.new(Tree, search_params, user) }
+
+      it 'is narrowed by searchExtended' do
+        expect(getter.instance_variable_get(:@count_needs_includes)).to eq(false)
       end
     end
   end

@@ -30,6 +30,7 @@ module ForestLiana
   mattr_accessor :logger
   mattr_accessor :reporter
   mattr_accessor :skip_schema_update
+  mattr_accessor :skip_relation_read_permissions
   mattr_accessor :workflow_executor_url
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   mattr_accessor :names_old_overriden
@@ -45,11 +46,19 @@ module ForestLiana
   self.logger = nil
   self.reporter = nil
   self.skip_schema_update = false
+  self.skip_relation_read_permissions = false
 
   @config_dir = 'lib/forest_liana/**/*.rb'
 
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.
   self.names_old_overriden = {}
+
+  # Read through a strict predicate, never by truthiness: the initializer is plain Ruby, so an
+  # operator may well wire this to an ENV var, and "false", "0" and "" would all disable the
+  # checks. Anything but a real `true` keeps them on.
+  def self.skip_relation_read_permissions?
+    skip_relation_read_permissions == true
+  end
 
   def self.config_dir=(config_dir)
     @config_dir = config_dir
