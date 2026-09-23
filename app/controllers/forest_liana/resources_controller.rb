@@ -49,12 +49,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
@@ -79,12 +74,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Index Count error: #{error}\n#{format_stacktrace(error)}"
@@ -109,12 +99,7 @@ module ForestLiana
         # rendered here with its own status (a 422 on a malformed field path) rather than
         # re-raised. Re-raising the whole hierarchy would let the subclasses no rescue_from
         # covers escape the controller entirely — no Forest error payload, and no report.
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
@@ -204,12 +189,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"

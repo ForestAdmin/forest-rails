@@ -260,29 +260,31 @@ module ForestLiana
         end
       end
 
+      # A forced refetch fetches into a local and only then rewrites the entry. Deleting first —
+      # which is what this replaces — left the cluster-wide cache empty whenever the fetch that
+      # followed failed, so during a Forest API incident every pod re-hit the dead API on every
+      # request instead of riding on the last good payload until the TTL ran out.
       def get_collections_permissions_data(force_fetch = false)
-        Rails.cache.delete('forest.collections') if force_fetch == true
-        cache = Rails.cache.fetch('forest.collections', expires_in: TTL) do
-          collections = {}
-          get_permissions('/liana/v4/permissions/environment')['collections'].each do |name, collection|
-            collections[name] = format_collection_crud_permission(collection).merge!(format_collection_action_permission(collection))
-          end
+        Rails.cache.write('forest.collections', fetch_collections_permissions, expires_in: TTL) if force_fetch == true
 
-          collections
+        Rails.cache.fetch('forest.collections', expires_in: TTL) { fetch_collections_permissions }
+      end
+
+      def fetch_collections_permissions
+        get_permissions('/liana/v4/permissions/environment')['collections'].each_with_object({}) do |(name, collection), acc|
+          acc[name] = format_collection_crud_permission(collection).merge!(format_collection_action_permission(collection))
         end
-
-        cache
       end
 
       def get_chart_data(rendering_id, force_fetch = false)
-        Rails.cache.delete('forest.stats') if force_fetch == true
-        Rails.cache.fetch('forest.stats', expires_in: TTL) do
-          stat_hash = []
-          get_permissions('/liana/v4/permissions/renderings/' + rendering_id)['stats'].each do |stat|
-            stat_hash << "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.deep_sort.to_s)}"
-          end
+        Rails.cache.write('forest.stats', fetch_chart_data(rendering_id), expires_in: TTL) if force_fetch == true
 
-          stat_hash
+        Rails.cache.fetch('forest.stats', expires_in: TTL) { fetch_chart_data(rendering_id) }
+      end
+
+      def fetch_chart_data(rendering_id)
+        get_permissions("/liana/v4/permissions/renderings/#{rendering_id}")['stats'].map do |stat|
+          "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.deep_sort.to_s)}"
         end
       end
 
