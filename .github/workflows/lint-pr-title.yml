@@ -31,4 +31,6 @@ jobs:
         #         is attacker-controlled text, and `${{ }}` would splice it into the shell.
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: echo "$PR_TITLE" | npx --no-install commitlint
+        # NOTICE: printf, not echo — a title that is exactly `-e`, `-n` or `-E` is an option to
+        #         echo, not an argument, and would reach commitlint as an empty message.
+        run: printf '%s\n' "$PR_TITLE" | npx --no-install commitlint
