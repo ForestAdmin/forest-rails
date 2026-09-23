@@ -1,3 +1,10 @@
+# [9.22.0](https://github.com/ForestAdmin/forest-rails/compare/v9.21.0...v9.22.0) (2026-09-23)
+
+
+### Features
+
+* RBAC capabilities — permissions, projection, search footprint & smart-field preloading ([#809](https://github.com/ForestAdmin/forest-rails/issues/809)) ([b89d6f9](https://github.com/ForestAdmin/forest-rails/commit/b89d6f98f06baef5717128c01036e09007f886cc))
+
 # [9.21.0](https://github.com/ForestAdmin/forest-rails/compare/v9.20.13...v9.21.0) (2026-09-09)
 
 
