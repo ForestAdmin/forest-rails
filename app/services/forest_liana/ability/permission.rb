@@ -52,9 +52,13 @@ module ForestLiana
         end
       end
 
-      def read_permissions(user, collection_names)
+      # +refetch+ drops the cached permissions first. Only a caller about to refuse on a denial asks
+      # for it (a stale, up to TTL-old cache may sit behind a permission granted moments ago): the
+      # refetch deletes the cluster-wide `forest.collections` entry, so a field that is merely
+      # redacted is answered from the cache.
+      def read_permissions(user, collection_names, refetch: false)
         @read_permissions_cache ||= {}
-        to_fetch = collection_names.uniq - @read_permissions_cache.keys
+        to_fetch = refetch ? collection_names.uniq : collection_names.uniq - @read_permissions_cache.keys
 
         unless to_fetch.empty?
           # An absent permission system and `skip_relation_read_permissions` ask for the same
@@ -64,12 +68,7 @@ module ForestLiana
           # very permissions it is meant to skip.
           if !ForestLiana.skip_relation_read_permissions? && has_permission_system?
             user_data = get_user_data(user['id'])
-            denied = fetch_read_permissions(to_fetch, get_collections_permissions_data, user_data)
-
-            # A denial may be a stale (up to TTL-old) cache behind a permission granted moments
-            # ago rather than an actual refusal — re-fetch once before trusting it, the same
-            # rescue is_crud_authorized? already gives the CRUD check.
-            fetch_read_permissions(denied, get_collections_permissions_data(true), user_data) unless denied.empty?
+            fetch_read_permissions(to_fetch, get_collections_permissions_data(refetch), user_data)
           else
             # Exposure is not a role permission: a collection kept out of the apimap can never be
             # granted read, so neither an absent permission system nor the option makes it readable.
@@ -106,36 +105,19 @@ module ForestLiana
           acc[collection_key] = { field_names: field_names, owners: owners }
         end
 
-        allowed = read_permissions(user, resolved.values.flat_map { |entry| entry[:owners].values }.flatten)
-        readable_collection_names = allowed.each_with_object([]) { |(name, ok), acc| acc << name if ok }
-        readable = ->(names) { FieldPath.readable_leaves?(names, readable_collection_names) }
+        # root_model is pinned readable, as in assert_can_read_query_fields: browse/read/export
+        # already gate it upstream, and a role may browse a collection without reading it.
+        owner_names = resolved.values.flat_map { |entry| entry[:owners].values }.flatten.uniq - [root_name]
+        allowed = read_permissions(user, owner_names).merge(root_name => true)
+        partition = lambda do |permissions|
+          partition_readable_fields(resolved, permissions, root_name: root_name, named_collections: named_collections)
+        end
 
-        denied = []
-        redacted = resolved.each_with_object({}) do |(collection_key, entry), acc|
-          named = named_collections.include?(collection_key)
+        redacted, denied = partition.call(allowed)
 
-          if entry[:owners].key?(collection_key)
-            if readable.call(entry[:owners][collection_key])
-              acc[collection_key] = entry[:field_names].join(',')
-            else
-              denied << denial_entry(collection_key, entry[:owners][collection_key], readable_collection_names) if named
-            end
-          else
-            kept = entry[:field_names].select do |field_name|
-              if readable.call(entry[:owners][field_name])
-                true
-              else
-                # collection_key is a related entry, not root_model's own fields, whenever it
-                # differs from root_name — prefix the message so it doesn't read as if 'field_name'
-                # were a bare field of the root.
-                display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
-                denied << denial_entry(field_name, entry[:owners][field_name], readable_collection_names, display_path) if named
-                false
-              end
-            end
-
-            acc[collection_key] = kept.join(',') unless kept.empty?
-          end
+        unless denied.empty?
+          stale = denied.flat_map { |entry| entry[:collections] }.uniq - [root_name]
+          redacted, denied = partition.call(allowed.merge(read_permissions(user, stale, refetch: true)))
         end
 
         raise ForestLiana::Ability::Exceptions::UnauthorizedFieldsError.new(denied) unless denied.empty?
@@ -157,14 +139,25 @@ module ForestLiana
 
         return if usages.empty?
 
-        # root_name is pinned readable above already; leaving it in would make a denial for it
-        # (the only way it could ever appear in usages: an owner resolves back to the root itself)
-        # trigger read_permissions' retry-on-denial refetch on every single request.
         allowed = read_permissions(user, usages.flat_map { |usage| usage[:collections] }.uniq - [root_name]).merge(root_name => true)
-        readable_collection_names = allowed.filter_map { |name, ok| name if ok }
+        first_denied = lambda do |permissions|
+          readable = permissions.filter_map { |name, ok| name if ok }
+          usages.find { |usage| !FieldPath.readable_leaves?(usage[:collections], readable) }
+        end
 
-        denied = usages.find { |usage| !FieldPath.readable_leaves?(usage[:collections], readable_collection_names) }
+        denied = first_denied.call(allowed)
+        if denied
+          # Every usage's collections, not just the denied one's: the refetch re-reads the whole
+          # environment payload anyway, and applying it to the first denial alone would leave the
+          # later usages judged on the stale cache — refusing on permissions the fetch just
+          # granted, after paying for them.
+          stale = usages.flat_map { |usage| usage[:collections] }.uniq - [root_name]
+          allowed = allowed.merge(read_permissions(user, stale, refetch: true))
+          denied = first_denied.call(allowed)
+        end
         return unless denied
+
+        readable_collection_names = allowed.filter_map { |name, ok| name if ok }
 
         exposed, unexposed = denied[:collections].partition { |name| collection_exposed?(name) }
         if unexposed.any?
@@ -200,6 +193,41 @@ module ForestLiana
 
       private
 
+      def partition_readable_fields(resolved, allowed, root_name:, named_collections:)
+        readable_collection_names = allowed.filter_map { |name, ok| name if ok }
+        readable = ->(names) { FieldPath.readable_leaves?(names, readable_collection_names) }
+
+        denied = []
+        redacted = resolved.each_with_object({}) do |(collection_key, entry), acc|
+          named = named_collections.include?(collection_key)
+
+          if entry[:owners].key?(collection_key)
+            if readable.call(entry[:owners][collection_key])
+              acc[collection_key] = entry[:field_names].join(',')
+            else
+              denied << denial_entry(collection_key, entry[:owners][collection_key], readable_collection_names) if named
+            end
+          else
+            kept = entry[:field_names].select do |field_name|
+              if readable.call(entry[:owners][field_name])
+                true
+              else
+                # collection_key is a related entry, not root_model's own fields, whenever it
+                # differs from root_name — prefix the message so it doesn't read as if 'field_name'
+                # were a bare field of the root.
+                display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
+                denied << denial_entry(field_name, entry[:owners][field_name], readable_collection_names, display_path) if named
+                false
+              end
+            end
+
+            acc[collection_key] = kept.join(',') unless kept.empty?
+          end
+        end
+
+        [redacted, denied]
+      end
+
       def fetch_read_permissions(names, collections_data, user_data)
         denied = []
 
@@ -232,29 +260,31 @@ module ForestLiana
         end
       end
 
+      # A forced refetch fetches into a local and only then rewrites the entry. Deleting first —
+      # which is what this replaces — left the cluster-wide cache empty whenever the fetch that
+      # followed failed, so during a Forest API incident every pod re-hit the dead API on every
+      # request instead of riding on the last good payload until the TTL ran out.
       def get_collections_permissions_data(force_fetch = false)
-        Rails.cache.delete('forest.collections') if force_fetch == true
-        cache = Rails.cache.fetch('forest.collections', expires_in: TTL) do
-          collections = {}
-          get_permissions('/liana/v4/permissions/environment')['collections'].each do |name, collection|
-            collections[name] = format_collection_crud_permission(collection).merge!(format_collection_action_permission(collection))
-          end
+        Rails.cache.write('forest.collections', fetch_collections_permissions, expires_in: TTL) if force_fetch == true
 
-          collections
+        Rails.cache.fetch('forest.collections', expires_in: TTL) { fetch_collections_permissions }
+      end
+
+      def fetch_collections_permissions
+        get_permissions('/liana/v4/permissions/environment')['collections'].each_with_object({}) do |(name, collection), acc|
+          acc[name] = format_collection_crud_permission(collection).merge!(format_collection_action_permission(collection))
         end
-
-        cache
       end
 
       def get_chart_data(rendering_id, force_fetch = false)
-        Rails.cache.delete('forest.stats') if force_fetch == true
-        Rails.cache.fetch('forest.stats', expires_in: TTL) do
-          stat_hash = []
-          get_permissions('/liana/v4/permissions/renderings/' + rendering_id)['stats'].each do |stat|
-            stat_hash << "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.deep_sort.to_s)}"
-          end
+        Rails.cache.write('forest.stats', fetch_chart_data(rendering_id), expires_in: TTL) if force_fetch == true
 
-          stat_hash
+        Rails.cache.fetch('forest.stats', expires_in: TTL) { fetch_chart_data(rendering_id) }
+      end
+
+      def fetch_chart_data(rendering_id)
+        get_permissions("/liana/v4/permissions/renderings/#{rendering_id}")['stats'].map do |stat|
+          "#{stat['type']}:#{Digest::SHA1.hexdigest(stat.deep_sort.to_s)}"
         end
       end
 

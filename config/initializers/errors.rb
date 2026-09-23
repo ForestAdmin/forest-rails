@@ -82,6 +82,16 @@ module ForestLiana
       end
     end
 
+    # A permissions fetch that could not be answered is a dependency failure, not a refusal.
+    # Answering 403 makes a Forest API outage read exactly like an RBAC denial — same status, same
+    # payload shape as the refusals next to it — so the support answer becomes "check your role
+    # permissions", which is the wrong one, and nothing contradicts it.
+    class PermissionsUnavailableError < ExpectedError
+      def initialize(message = 'Permission could not be retrieved')
+        super(503, :service_unavailable, message, 'PermissionsUnavailableError')
+      end
+    end
+
     class NotImplementedMethodError < ExpectedError
       def initialize(message = "Method not implemented")
         super(501, :internal_server_error, message, 'MethodNotImplementedError')

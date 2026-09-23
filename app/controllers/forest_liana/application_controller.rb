@@ -7,6 +7,7 @@ module ForestLiana
     rescue_from ForestLiana::Errors::HTTP400Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP403Error, with: :render_error
     rescue_from ForestLiana::Errors::HTTP422Error, with: :render_error
+    rescue_from ForestLiana::Errors::PermissionsUnavailableError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnknownCollection, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::UnauthorizedFieldsError, with: :render_error
@@ -198,6 +199,13 @@ module ForestLiana
     end
 
     def render_error(exception)
+      # Same rule as render_expected_error, for the errors that reach here through a rescue_from
+      # instead: a 5xx is a server-side failure, reported and logged as one.
+      if exception.error_code.to_i >= 500
+        FOREST_REPORTER.report exception
+        ForestLiana::Errors::ExceptionHelper.recursively_print(exception, is_error: true)
+      end
+
       errors = {
         status: exception.error_code,
         detail: exception.message,

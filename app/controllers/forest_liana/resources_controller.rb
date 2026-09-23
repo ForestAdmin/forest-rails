@@ -49,12 +49,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Index error: #{error}\n#{format_stacktrace(error)}"
@@ -79,12 +74,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Index Count error: #{error}\n#{format_stacktrace(error)}"
@@ -101,10 +91,15 @@ module ForestLiana
         render serializer: nil, json: render_record_jsonapi(getter.record, getter)
       rescue ActiveRecord::RecordNotFound
         render serializer: nil, json: { status: 404 }, status: :not_found
-      rescue ForestLiana::Ability::Exceptions::UnauthorizedFieldsError
-        # Let ApplicationController's rescue_from render it, with its name/data — the generic
-        # rescue below would otherwise strip both and turn a 403 into a 500.
+      rescue *QUERY_PERMISSION_ERRORS
         raise
+      rescue ForestLiana::Errors::ExpectedError => error
+        # Same shape as #index and #count: the permission errors above go back to
+        # ApplicationController's rescue_from for their name/data, every other expected error is
+        # rendered here with its own status (a 422 on a malformed field path) rather than
+        # re-raised. Re-raising the whole hierarchy would let the subclasses no rescue_from
+        # covers escape the controller entirely — no Forest error payload, and no report.
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Record Show error: #{error}\n#{format_stacktrace(error)}"
@@ -194,12 +189,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Records Destroy error: #{error}\n#{format_stacktrace(error)}"
@@ -291,9 +281,8 @@ module ForestLiana
     #         Added back after the redaction, and without a read check on the target collection:
     #         a `links.related` is a URL, not data, and AssociationsController#index authorizes
     #         `browse` on that very collection before answering it. Checking here would buy
-    #         nothing and cost a lot — a denial makes read_permissions refetch, which deletes the
-    #         cluster-wide `forest.collections` cache on every single get-one, and turns a Forest
-    #         API hiccup into a 403 on a record the role may read.
+    #         nothing and cost a read permission lookup per to-many on every single get-one,
+    #         only to turn a Forest API hiccup into a 403 on a record the role may read.
     def keep_relationship_links(fields_to_serialize)
       root_name = ForestLiana.name_for(@resource)
       projected = (fields_to_serialize[root_name] || '').split(',')

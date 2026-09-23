@@ -8,8 +8,8 @@ module ForestLiana
         @environment_fetch_counter[:calls]
       end
 
-      def write_permissions(collection_reads)
-        raw_collections = collection_reads.to_h do |name, readable|
+      def raw_collections(collection_reads)
+        collection_reads.to_h do |name, readable|
           enabled = { 'roles' => readable ? [1] : [] }
           disabled = { 'roles' => [] }
           [name, {
@@ -20,6 +20,10 @@ module ForestLiana
             'actions' => {}
           }]
         end
+      end
+
+      def write_permissions(collection_reads)
+        collections = raw_collections(collection_reads)
 
         # A block passed to allow_any_instance_of runs with `self` bound to whichever instance
         # receives the call, not this example — count through a closure instead of an ivar.
@@ -31,7 +35,22 @@ module ForestLiana
         allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
           .with('/liana/v4/permissions/environment') do
             counter[:calls] += 1
-            { 'collections' => raw_collections }
+            { 'collections' => collections }
+          end
+      end
+
+      # write_permissions answers the same payload every time; this one answers the stale cache
+      # first and the fresh permissions on the refetch, which is the only way to observe what a
+      # denial-driven refetch actually applies.
+      def write_stale_then_fresh_permissions(stale_reads, fresh_reads)
+        counter = { calls: 0 }
+        @environment_fetch_counter = counter
+        stale, fresh = [stale_reads, fresh_reads].map { |reads| { 'collections' => raw_collections(reads) } }
+
+        allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+          .with('/liana/v4/permissions/environment') do
+            counter[:calls] += 1
+            counter[:calls] == 1 ? stale : fresh
           end
       end
 
@@ -133,6 +152,20 @@ module ForestLiana
 
           expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: %w[island:name owner:name]) }
             .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedQueryFieldError)
+        end
+
+        # The refetch re-reads the whole environment payload, so it is applied to every usage, not
+        # only to the one that triggered it: applying it to the first denial alone would refuse a
+        # later usage on the stale cache, on permissions this very fetch just granted.
+        it 'grants every usage the refetched permissions allow, not only the one that triggered the refetch' do
+          write_stale_then_fresh_permissions(
+            { 'Island' => false, 'User' => false },
+            { 'Island' => true, 'User' => true }
+          )
+
+          expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: %w[island:name owner:name]) }
+            .not_to raise_error
+          expect(environment_fetch_count).to eq(2)
         end
 
         it 'does not raise for a filter path naming an unresolvable segment 1, since it resolves to the pinned-readable root' do

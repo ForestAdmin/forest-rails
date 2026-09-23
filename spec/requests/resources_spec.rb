@@ -237,10 +237,8 @@ describe 'Requesting Tree resources', :type => :request  do
 
       # A to-many the projection never named keeps its link even when its target collection is
       # unreadable: a `links.related` is a URL, not data, and AssociationsController#index
-      # authorizes browse on that collection before answering it. Checking here would cost a
-      # permissions round-trip per get-one — read_permissions refetches on a denial, and that
-      # refetch deletes the cluster-wide `forest.collections` cache — to hide a URL the apimap
-      # already carries.
+      # authorizes browse on that collection before answering it. Checking here would cost a read
+      # permission lookup per to-many, on every get-one, to hide a URL the apimap already carries.
       it 'keeps the link of a to-many whose target the role cannot read, without refetching permissions' do
         user_id = User.first.id
         fetched_before = @environment_permissions_fetched
@@ -282,6 +280,64 @@ describe 'Requesting Tree resources', :type => :request  do
         body = JSON.parse(response.body)
         expect(body['data']['attributes']['name']).to eq('Renamed')
         expect(body['data']['relationships']).not_to have_key('island')
+      end
+    end
+  end
+
+  # ApplicationController's rescue_from covers part of the ExpectedError hierarchy only. #show
+  # renders the rest itself rather than re-raising it: a bare re-raise would let a subclass no
+  # rescue_from names leave the controller with no Forest error payload and no report at all.
+  # The covered half is pinned by projection_inherited_loads_spec.rb's own 422 get-one example.
+  describe 'show error handling' do
+    it 'renders an expected error no rescue_from covers, with its own status, instead of letting it escape' do
+      allow_any_instance_of(ForestLiana::ResourceGetter).to receive(:perform)
+        .and_raise(ForestLiana::Errors::NotImplementedMethodError.new('Nope'))
+
+      get "/forest/Tree/#{Tree.first.id}", params: { timezone: 'Europe/Paris' }, headers: headers
+
+      expect(response.status).to eq(500)
+      expect(JSON.parse(response.body)['errors'].first).to include('status' => 501, 'detail' => 'Nope')
+    end
+
+    it 'reports an expected error carrying a 5xx, rather than letting it pass for a client error' do
+      allow_any_instance_of(ForestLiana::ResourceGetter).to receive(:perform)
+        .and_raise(ForestLiana::Errors::NotImplementedMethodError.new('Nope'))
+      expect(FOREST_REPORTER).to receive(:report).once
+
+      get "/forest/Tree/#{Tree.first.id}", params: { timezone: 'Europe/Paris' }, headers: headers
+    end
+
+    # The refetch a denial triggers is the one request that reaches the Forest API mid-request,
+    # after forest_authorize! has already passed on the cache — so it is where an outage surfaces.
+    # It must not wear the same 403 as the RBAC refusals it sits next to.
+    describe 'when the permissions API is down during that refetch' do
+      before do
+        Rails.cache.write('forest.collections', {
+          'Tree' => { 'browse' => [1], 'read' => [1], 'edit' => [1], 'add' => [1], 'delete' => [1], 'export' => [1], actions: {} },
+          'Island' => { 'browse' => [1], 'read' => [], 'edit' => [], 'add' => [], 'delete' => [], 'export' => [], actions: {} }
+        }, expires_in: 15.minutes)
+        # What Fetch#get_permissions raises on any non-200 — pinned on its own in permission_spec.
+        allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+          .with('/liana/v4/permissions/environment')
+          .and_raise(ForestLiana::Errors::PermissionsUnavailableError.new)
+      end
+
+      it 'answers 503 rather than a 403 indistinguishable from a denial, and reports it' do
+        expect(FOREST_REPORTER).to receive(:report).once
+
+        get "/forest/Tree/#{Tree.first.id}", headers: headers.merge('Forest-Projection' => 'id,name,island')
+
+        expect(response.status).to eq(503)
+        expect(JSON.parse(response.body)['errors'].first)
+          .to include('status' => 503, 'name' => 'PermissionsUnavailableError')
+      end
+
+      it 'leaves the last good permissions in the cluster-wide cache instead of emptying it' do
+        allow(FOREST_REPORTER).to receive(:report)
+
+        get "/forest/Tree/#{Tree.first.id}", headers: headers.merge('Forest-Projection' => 'id,name,island')
+
+        expect(Rails.cache.read('forest.collections')).to include('Tree', 'Island')
       end
     end
   end

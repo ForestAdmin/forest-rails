@@ -108,8 +108,11 @@ module ForestLiana
           expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => true)
         end
 
-        it 're-fetches once and grants a collection denied by a stale cache but allowed by a fresh one' do
-          write_permissions('Tree' => false)
+        # A stale (up to TTL-old) cache may sit behind a permission granted moments ago, so a caller
+        # about to refuse asks for a refetch — and only that caller: the refetch deletes the
+        # cluster-wide `forest.collections` entry, a cost a silently redacted field must not pay on
+        # every request.
+        def stub_stale_then_fresh_permissions
           fetch = instance_double(ForestLiana::Ability::Fetch)
           allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions) do |instance, endpoint|
             fetch.get_permissions(endpoint)
@@ -118,8 +121,21 @@ module ForestLiana
             { 'collections' => { 'Tree' => { 'collection' => { 'browseEnabled' => { 'roles' => [] }, 'readEnabled' => { 'roles' => [] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } } },
             { 'collections' => { 'Tree' => { 'collection' => { 'browseEnabled' => { 'roles' => [1] }, 'readEnabled' => { 'roles' => [1] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } } }
           )
+          fetch
+        end
 
-          expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => true)
+        it 'answers a denial from the cache, without refetching' do
+          fetch = stub_stale_then_fresh_permissions
+
+          expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => false)
+          expect(fetch).to have_received(:get_permissions).with('/liana/v4/permissions/environment').once
+        end
+
+        it 'refetches once and grants a collection denied by a stale cache but allowed by a fresh one, when asked to' do
+          fetch = stub_stale_then_fresh_permissions
+
+          expect(dummy_class.read_permissions(user, ['Tree'])).to eq('Tree' => false)
+          expect(dummy_class.read_permissions(user, ['Tree'], refetch: true)).to eq('Tree' => true)
           expect(fetch).to have_received(:get_permissions).with('/liana/v4/permissions/environment').twice
         end
 
@@ -140,6 +156,52 @@ module ForestLiana
           write_permissions({})
 
           expect(dummy_class.redact_fields(user, Tree, nil, named_collections: [])).to be_nil
+        end
+
+        # browse/read/export already gate the root collection upstream, and a role may browse a
+        # collection without reading it — its own columns are never a denial here.
+        it 'serves the root collection fields whatever its own read permission' do
+          write_permissions('Tree' => false, 'Island' => true)
+
+          expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'id,name,island', 'Island' => 'name' }, named_collections: %w[Tree Island]))
+            .to eq('Tree' => 'id,name,island', 'Island' => 'name')
+        end
+
+        it 'checks nothing at all when only root collection fields are requested' do
+          write_permissions({})
+          expect_any_instance_of(ForestLiana::Ability::Fetch).not_to receive(:get_permissions)
+
+          expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'id,name' }, named_collections: ['Tree']))
+            .to eq('Tree' => 'id,name')
+        end
+
+        it 'redacts an unnamed denied field from the cache, without refetching' do
+          write_permissions('Tree' => true, 'Island' => false)
+          fetch = instance_double(ForestLiana::Ability::Fetch)
+          allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions) do |instance, endpoint|
+            fetch.get_permissions(endpoint)
+          end
+          allow(fetch).to receive(:get_permissions).with('/liana/v4/permissions/environment')
+            .and_return('collections' => { 'Island' => { 'collection' => { 'browseEnabled' => { 'roles' => [] }, 'readEnabled' => { 'roles' => [] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } })
+
+          expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: []))
+            .to eq('Tree' => 'name')
+          expect(fetch).to have_received(:get_permissions).with('/liana/v4/permissions/environment').once
+        end
+
+        it 'refetches once before refusing a named field, and grants it when the fresh permissions allow it' do
+          fetch = instance_double(ForestLiana::Ability::Fetch)
+          allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions) do |instance, endpoint|
+            fetch.get_permissions(endpoint)
+          end
+          allow(fetch).to receive(:get_permissions).with('/liana/v4/permissions/environment').and_return(
+            { 'collections' => { 'Island' => { 'collection' => { 'browseEnabled' => { 'roles' => [] }, 'readEnabled' => { 'roles' => [] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } } },
+            { 'collections' => { 'Island' => { 'collection' => { 'browseEnabled' => { 'roles' => [1] }, 'readEnabled' => { 'roles' => [1] }, 'editEnabled' => { 'roles' => [] }, 'addEnabled' => { 'roles' => [] }, 'deleteEnabled' => { 'roles' => [] }, 'exportEnabled' => { 'roles' => [] } }, 'actions' => {} } } }
+          )
+
+          expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: ['Tree']))
+            .to eq('Tree' => 'name,island')
+          expect(fetch).to have_received(:get_permissions).with('/liana/v4/permissions/environment').twice
         end
 
         it 'refuses with a 403 listing every offending field when the caller named a denied field' do

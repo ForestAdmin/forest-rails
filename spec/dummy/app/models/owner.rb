@@ -6,5 +6,9 @@ class Owner < ActiveRecord::Base
   # "a declared relation is preloaded by the key it actually reads" (query_footprint_spec.rb).
   has_many :trees_by_name, class_name: 'Tree', primary_key: 'name', foreign_key: 'name'
 
+  # An association scope that preloads on its own — the fixture for "a projected related list
+  # still selects the key a preload it never asked for reads" (projection_inherited_loads_spec.rb).
+  has_many :trees_with_owner, -> { includes(:owner) }, class_name: 'Tree'
+
   default_scope { order('hired_at ASC') }
 end

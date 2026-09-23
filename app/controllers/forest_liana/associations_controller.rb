@@ -47,12 +47,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index error: #{error}\n#{format_stacktrace(error)}"
@@ -84,12 +79,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Index Count error: #{error}\n#{format_stacktrace(error)}"
@@ -115,12 +105,7 @@ module ForestLiana
           head :no_content
         end
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Update error: #{error}\n#{format_stacktrace(error)}"
@@ -136,12 +121,7 @@ module ForestLiana
 
         head :no_content
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Associate error: #{error}\n#{format_stacktrace(error)}"
@@ -169,12 +149,7 @@ module ForestLiana
       rescue *QUERY_PERMISSION_ERRORS
         raise
       rescue ForestLiana::Errors::ExpectedError => error
-        error.display_error
-        error_data = ForestAdmin::JSONAPI::Serializer.serialize_errors([{
-          status: error.error_code,
-          detail: error.message
-        }])
-        render(serializer: nil, json: error_data, status: error.status)
+        render_expected_error(error)
       rescue => error
         FOREST_REPORTER.report error
         FOREST_LOGGER.error "Association Dissociate error: #{error}\n#{format_stacktrace(error)}"
