@@ -167,6 +167,7 @@ module ForestLiana
 
       filters = @params[:filters]
       filters = JSON.parse(filters) if filters.is_a?(String)
+      filters = filters.to_unsafe_h if filters.respond_to?(:to_unsafe_h)
 
       conditions = []
 

@@ -40,6 +40,8 @@ module ForestLiana
 
       def self.inject_context_in_filter(filter, context_variables)
         return nil unless filter
+        # A JSON body (`POST /:collection/query`) hands the filter over as ActionController::Parameters.
+        filter = filter.to_unsafe_h if filter.respond_to?(:to_unsafe_h)
         # A non-Hash filter (a top-level `filters=[]`, say) is left untouched rather than crashing
         # on filter.key? — FiltersParser's own ensure_valid_aggregation raises its usual 422 for it
         # once apply_filters runs, same as the non-Array `conditions` case just below.

@@ -101,4 +101,40 @@ describe 'A projection alongside loads the request never named', type: :request 
       expect(body['data'].map { |row| row['attributes'] }).to eq([{ 'id' => tree.id, 'name' => 'Lemon Tree' }])
     end
   end
+
+  # A JSON body hands the filter over as ActionController::Parameters, not a Hash.
+  describe 'a filter posted as a JSON object' do
+    it 'applies it on the query route' do
+      Tree.create!(name: 'Orange Tree', owner: owner, cutter: owner)
+
+      post '/forest/Tree/query',
+           params: { filters: { field: 'name', operator: 'equal', value: 'Lemon Tree' }, page: page,
+                     timezone: 'Europe/Paris' }.to_json,
+           headers: headers
+
+      expect(response.status).to eq(200)
+      expect(body['data'].map { |row| row['id'] }).to eq([tree.id.to_s])
+    end
+
+    it 'applies it on the query count route' do
+      Tree.create!(name: 'Orange Tree', owner: owner, cutter: owner)
+
+      post '/forest/Tree/query/count',
+           params: { filters: { field: 'name', operator: 'equal', value: 'Lemon Tree' }, timezone: 'Europe/Paris' }.to_json,
+           headers: headers
+
+      expect(response.status).to eq(200)
+      expect(body['count']).to eq(1)
+    end
+  end
+
+  describe 'a get-one projecting a path that names no relation' do
+    it 'answers the same 422 as the list' do
+      get "/forest/Tree/#{tree.id}", params: { fields: { 'Tree' => 'id,foo:bar' }, timezone: 'Europe/Paris' },
+                                     headers: headers
+
+      expect(response.status).to eq(422)
+      expect(body['errors'].first['detail']).to eq("Relation not found: 'Tree.foo'")
+    end
+  end
 end
