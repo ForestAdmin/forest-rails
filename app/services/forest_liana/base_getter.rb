@@ -238,13 +238,50 @@ module ForestLiana
     end
 
     def apply_projection(records, eager_loads)
-      select = compute_select_fields(eager_loads)
       records = records.references(eager_loads) if eager_loads.any?
+      select = (compute_select_fields(eager_loads) + inherited_load_columns(records, eager_loads)).uniq
 
       # NOTICE: The _forest_admin_eager_load marker heading the select is only stripped by the
       #         JoinDependency override, which runs when the query really eager loads; it would
       #         otherwise reach the SQL as a column name.
       records.eager_loading? ? records.select(*select) : records.select(*select.drop(1))
+    end
+
+    # What the query loads on its own, outside the projection: a relation a filter or a scope
+    # joined, or one an association scope or default_scope includes/preloads. Joined, its record is
+    # built off the JOIN and needs its columns in the select; preloaded, the preloader reads its
+    # key off this row and raises at query time, out of MissingAttributeValve's reach, without it.
+    def inherited_load_columns(records, projected)
+      joined = association_names(records.eager_load_values)
+      preloaded = association_names(records.preload_values)
+      if records.eager_loading?
+        joined += association_names(records.includes_values)
+      else
+        preloaded += association_names(records.includes_values)
+      end
+      projected = projected.map(&:to_sym)
+
+      columns = (joined - projected).uniq.flat_map do |name|
+        association = projected_resource.reflect_on_association(name)
+        next [] if association.nil? || SchemaUtils.polymorphic?(association)
+
+        association.klass.column_names.map { |column| "#{association.table_name}.#{column}" }
+      end
+
+      (preloaded - joined - projected).uniq.each do |name|
+        association = projected_resource.reflect_on_association(name)
+        next if association.nil?
+
+        keys = preload_owner_keys(association)
+        keys += [association.foreign_type] if SchemaUtils.polymorphic?(association)
+        keys.each { |key| columns << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key) }
+      end
+
+      columns
+    end
+
+    def association_names(values)
+      values.flat_map { |value| value.is_a?(Hash) ? value.keys : value }.map(&:to_sym)
     end
 
     # count may never have run #perform on this instance (it builds its own getter and calls
@@ -441,6 +478,13 @@ module ForestLiana
         end
 
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
+
+        # A relation the caller also projects is built off the JOIN, and the preloader leaves an
+        # already-loaded association alone — the declared column has to ride along in this select.
+        next unless relation_path.relations.size == 1 && joined_relations&.include?(association.name)
+        next if SchemaUtils.polymorphic?(association) || !column?(association.klass, relation_path.column)
+
+        select << "#{association.table_name}.#{relation_path.column}"
       end
 
       select.uniq
