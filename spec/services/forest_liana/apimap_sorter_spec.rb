@@ -171,6 +171,70 @@ module ForestLiana
           expect(apimap_sorted['meta']['stack'].keys).to eq(['database_type', 'orm_version'])
         end
       end
+
+      context 'on an apimap with fields sharing a name but not a comparable type' do
+        # NOTICE: a field 'type' is a String ('String'), an Array (['String'] for an array
+        # column) or a Hash (a nested type). The sort used to compare those values
+        # directly, so `['String'] <=> 'String'` returned nil and `sort` raised
+        # `ArgumentError: comparison of Hash with Hash failed`. The rescue in `perform`
+        # swallowed it and returned a half-processed apimap: collections that were never
+        # reached kept attributes outside KEYS_COLLECTION (such as 'search_fields'), and
+        # the Forest API rejects those with `HTTP 400 ValidationFailedError`.
+        apimap = {
+          'meta': {
+            liana: 'forest-rails',
+            'liana_version': '1.5.24',
+          },
+          'data': [{
+            id: 'posts',
+            type: 'collections',
+            attributes: {
+              name: 'posts',
+              fields: [
+                { field: 'tags', type: ['String'] },
+                { field: 'tags', type: 'String' },
+                { field: 'meta', type: { fields: [{ field: 'locale', type: 'String' }] } },
+                { field: 'meta', type: 'String' },
+                { field: 'id', type: 'Number' },
+              ],
+            }
+          }, {
+            id: 'zebras',
+            type: 'collections',
+            attributes: {
+              'search_fields': ['name'],
+              fields: [
+                { field: 'id', type: 'Number' },
+              ],
+              name: 'zebras',
+            }
+          }]
+        }
+
+        apimap = ActiveSupport::JSON.encode(apimap)
+        apimap = ActiveSupport::JSON.decode(apimap)
+        apimap_sorted = ApimapSorter.new(apimap).perform
+
+        it 'should sort the fields of the offending collection' do
+          expect(apimap_sorted['data'][0]['attributes']['fields'].map { |field| field['field'] })
+            .to eq(['id', 'meta', 'meta', 'tags', 'tags'])
+        end
+
+        it 'should keep a deterministic order between the non-comparable types' do
+          tag_types = apimap_sorted['data'][0]['attributes']['fields']
+            .select { |field| field['field'] == 'tags' }
+            .map { |field| field['type'] }
+          expect(tag_types).to eq(['String', ['String']])
+        end
+
+        it 'should keep processing the collections after the offending one' do
+          expect(apimap_sorted['data'][1]['attributes'].keys).to eq(['name', 'fields'])
+        end
+
+        it 'should not leak collection attributes that are not part of the schema' do
+          expect(apimap_sorted['data'][1]['attributes']).not_to have_key('search_fields')
+        end
+      end
     end
   end
 end
