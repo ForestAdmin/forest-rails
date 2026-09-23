@@ -109,12 +109,15 @@ module ForestLiana
         # already gate it upstream, and a role may browse a collection without reading it.
         owner_names = resolved.values.flat_map { |entry| entry[:owners].values }.flatten.uniq - [root_name]
         allowed = read_permissions(user, owner_names).merge(root_name => true)
-        redacted, denied = partition_readable_fields(resolved, allowed, root_name, named_collections)
+        partition = lambda do |permissions|
+          partition_readable_fields(resolved, permissions, root_name: root_name, named_collections: named_collections)
+        end
+
+        redacted, denied = partition.call(allowed)
 
         unless denied.empty?
           stale = denied.flat_map { |entry| entry[:collections] }.uniq - [root_name]
-          allowed = allowed.merge(read_permissions(user, stale, refetch: true))
-          redacted, denied = partition_readable_fields(resolved, allowed, root_name, named_collections)
+          redacted, denied = partition.call(allowed.merge(read_permissions(user, stale, refetch: true)))
         end
 
         raise ForestLiana::Ability::Exceptions::UnauthorizedFieldsError.new(denied) unless denied.empty?
@@ -144,7 +147,12 @@ module ForestLiana
 
         denied = first_denied.call(allowed)
         if denied
-          allowed = allowed.merge(read_permissions(user, denied[:collections] - [root_name], refetch: true))
+          # Every usage's collections, not just the denied one's: the refetch re-reads the whole
+          # environment payload anyway, and applying it to the first denial alone would leave the
+          # later usages judged on the stale cache — refusing on permissions the fetch just
+          # granted, after paying for them.
+          stale = usages.flat_map { |usage| usage[:collections] }.uniq - [root_name]
+          allowed = allowed.merge(read_permissions(user, stale, refetch: true))
           denied = first_denied.call(allowed)
         end
         return unless denied
@@ -185,7 +193,7 @@ module ForestLiana
 
       private
 
-      def partition_readable_fields(resolved, allowed, root_name, named_collections)
+      def partition_readable_fields(resolved, allowed, root_name:, named_collections:)
         readable_collection_names = allowed.filter_map { |name, ok| name if ok }
         readable = ->(names) { FieldPath.readable_leaves?(names, readable_collection_names) }
 

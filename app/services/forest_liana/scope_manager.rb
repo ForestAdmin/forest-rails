@@ -45,6 +45,10 @@ module ForestLiana
 
     def self.inject_context_variables(filter, user, request_context_variables = nil)
       filter = JSON.parse(filter) if filter.is_a? String
+      # A JSON body (`POST /:collection/query`) hands the filter over as
+      # ActionController::Parameters, which is no Hash — normalised here, once, rather than on
+      # every node of the tree inject_context_in_filter walks.
+      filter = filter.to_unsafe_h if filter.respond_to?(:to_unsafe_h)
       retrieve = fetch_scopes(user['rendering_id'])
       context_variables = Utils::ContextVariables.new(retrieve['team'], user, request_context_variables)
 

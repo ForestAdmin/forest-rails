@@ -237,10 +237,8 @@ describe 'Requesting Tree resources', :type => :request  do
 
       # A to-many the projection never named keeps its link even when its target collection is
       # unreadable: a `links.related` is a URL, not data, and AssociationsController#index
-      # authorizes browse on that collection before answering it. Checking here would cost a
-      # permissions round-trip per get-one — read_permissions refetches on a denial, and that
-      # refetch deletes the cluster-wide `forest.collections` cache — to hide a URL the apimap
-      # already carries.
+      # authorizes browse on that collection before answering it. Checking here would cost a read
+      # permission lookup per to-many, on every get-one, to hide a URL the apimap already carries.
       it 'keeps the link of a to-many whose target the role cannot read, without refetching permissions' do
         user_id = User.first.id
         fetched_before = @environment_permissions_fetched
@@ -283,6 +281,22 @@ describe 'Requesting Tree resources', :type => :request  do
         expect(body['data']['attributes']['name']).to eq('Renamed')
         expect(body['data']['relationships']).not_to have_key('island')
       end
+    end
+  end
+
+  # ApplicationController's rescue_from covers part of the ExpectedError hierarchy only. #show
+  # renders the rest itself rather than re-raising it: a bare re-raise would let a subclass no
+  # rescue_from names leave the controller with no Forest error payload and no report at all.
+  # The covered half is pinned by projection_inherited_loads_spec.rb's own 422 get-one example.
+  describe 'show error handling' do
+    it 'renders an expected error no rescue_from covers, with its own status, instead of letting it escape' do
+      allow_any_instance_of(ForestLiana::ResourceGetter).to receive(:perform)
+        .and_raise(ForestLiana::Errors::NotImplementedMethodError.new('Nope'))
+
+      get "/forest/Tree/#{Tree.first.id}", params: { timezone: 'Europe/Paris' }, headers: headers
+
+      expect(response.status).to eq(500)
+      expect(JSON.parse(response.body)['errors'].first).to include('status' => 501, 'detail' => 'Nope')
     end
   end
 
