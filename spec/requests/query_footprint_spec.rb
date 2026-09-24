@@ -1010,6 +1010,42 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  # HasManyGetter attaches its preloads in prepare_query and only projects in #perform, so a
+  # relation carrying a narrowed select of its own is judged on a select the query never runs —
+  # and apply_projection was about to add the very key the guard reads, inherited_load_columns
+  # selecting it precisely because the preload is already attached.
+  describe 'a related list whose association narrows the select' do
+    let!(:manufacturer) { Manufacturer.create!(name: 'maker') }
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          Product.create!(name: 'thing', uri: 'https://example.test', manufacturer: manufacturer,
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Product' => 'id,name,driver', 'driver' => 'firstname' }, page: page,
+        searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    before { allow(FOREST_LOGGER).to receive(:warn) }
+
+    it 'preloads the cross-database relation the projection made safe' do
+      seed.call(3)
+
+      queries = capture_queries do
+        get "/forest/Manufacturer/#{manufacturer.id}/relationships/narrowed_products",
+            params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'products').first).to include(column_ref('products', 'driver_id'))
+      expect(selects_from(queries, 'drivers').size).to eq(1)
+      expect(selects_from(queries, 'drivers').first).to match(/IN \(/i)
+    end
+  end
+
   describe 'a list whose declared relation points at a model excluded from the schema' do
     before { ForestLiana.excluded_models = ['Island'] }
 

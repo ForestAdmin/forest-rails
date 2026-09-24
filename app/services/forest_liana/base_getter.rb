@@ -313,6 +313,25 @@ module ForestLiana
       end
     end
 
+    # Re-checks the preloads a relation already carries, for the callers that attach them before
+    # the select is final — HasManyGetter builds its query in prepare_query and only projects in
+    # #perform. Judging the intermediate select drops preloads apply_projection was about to make
+    # safe: inherited_load_columns reads preload_values and selects their keys precisely because
+    # they are already attached. So the question is asked here, where the select is the one the
+    # query will run, and #preload only ever adds — removing one means rebuilding the relation.
+    def drop_unselected_preloads(records)
+      values = records.preload_values
+      return records if values.empty?
+
+      kept_names = selectable_preloads(records, association_names(values))
+      kept = values.select do |value|
+        names = value.is_a?(Hash) ? value.keys : [value]
+        names.all? { |name| kept_names.include?(name.to_sym) }
+      end
+
+      kept.size == values.size ? records : records.except(:preload).preload(kept)
+    end
+
     def warn_unselected_preload_key(association_name, missing_keys)
       reason = "its \"#{missing_keys.join('", "')}\" key is not in the query's select"
       return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])
