@@ -50,6 +50,20 @@ class Forest::Tree
     object.owner_named_trees.map(&:name).join(',')
   end
 
+  # The hop-2 key held apart from the hop's foreign key: `users.title` is what the preloader
+  # reads, `age` what foreign_key answers and no column of users. Reading the wrong one of the
+  # two selects nothing at all, and the list 500s again.
+  field :owner_titled_trees_count, type: 'Number', dependencies: ['owner:trees_by_title:name'] do
+    object.owner.trees_by_title.size
+  end
+
+  # A path that carries on *past* a displayed has_one :through: the preloader leaves the whole
+  # declaration alone and the next hop reads `locations.coordinates` off the rows that relation's
+  # JOIN built. The joined relation is then the one the path names, not the hop it goes through.
+  field :location_trees_count, type: 'Number', dependencies: ['location:trees_by_coordinates:name'] do
+    object.location&.trees_by_coordinates&.size
+  end
+
   # A smart belongs_to: is_virtual with a reference, and no ActiveRecord reflection behind it —
   # the fixture for everything that walks a getter's includes (has_many_getter_spec.rb,
   # associations_spec.rb). Nothing else in the dummy declared one.

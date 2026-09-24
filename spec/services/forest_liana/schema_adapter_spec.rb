@@ -102,6 +102,8 @@ module ForestLiana
               "through_coordinates",
               "owner_named_trees_count",
               "owner_named_tree_names",
+              "owner_titled_trees_count",
+              "location_trees_count",
               "smart_owner"
             ]
           )

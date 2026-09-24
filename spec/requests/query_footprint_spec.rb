@@ -409,10 +409,11 @@ describe 'SQL footprint of a front call', type: :request do
   # key. Only a non-primary key reveals the gap.
   describe 'a list whose declared path goes through a relation the request also displays' do
     let(:seed) do
+      seeded = 0
       lambda do |n|
-        n.times do |index|
-          user = User.create!(name: "owner#{index}")
-          Tree.create!(name: "owner#{index}", owner: user)
+        n.times do
+          seeded += 1
+          Tree.create!(name: "owner#{seeded}", owner: User.create!(name: "owner#{seeded}"))
         end
       end
     end
@@ -465,10 +466,11 @@ describe 'SQL footprint of a front call', type: :request do
   # declaration never mentions.
   describe 'a list whose declared :through hides the joined hop' do
     let(:seed) do
+      seeded = 0
       lambda do |n|
-        n.times do |index|
-          user = User.create!(name: "owner#{index}")
-          Tree.create!(name: "owner#{index}", owner: user)
+        n.times do
+          seeded += 1
+          Tree.create!(name: "owner#{seeded}", owner: User.create!(name: "owner#{seeded}"))
         end
       end
     end
@@ -486,7 +488,12 @@ describe 'SQL footprint of a front call', type: :request do
 
       expect(result.per_row_delta).to eq(0), -> { result.delta_report }
       expect(join_count(result.grown, 'users')).to eq(1)
-      expect(selects_from(result.grown, 'trees').first).to include(column_ref('users', 'name'))
+      # As above: the key rides along in the JOIN's own select, and the narrowing survives —
+      # giving up and selecting the whole joined row would serve the same page just as green.
+      expect(selects_from(result.grown, 'users')).to be_empty
+      root = selects_from(result.grown, 'trees').first
+      expect(root).to include(column_ref('users', 'name'))
+      expect(root).not_to include(column_ref('users', 'title'))
     end
 
     it 'reaches the far end of the through' do
@@ -497,6 +504,101 @@ describe 'SQL footprint of a front call', type: :request do
       expect(response).to have_http_status(200)
       names = JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_named_tree_names'] }
       expect(names).to all(match(/\Aowner\d+\z/))
+    end
+  end
+
+  # PRD-1316, the half a fixture keyed on `name` cannot see: `join_foreign_key` is what the
+  # preloader reads off the owner row, and `foreign_key` is not the same column. Both answer
+  # `name` for User#trees_by_name, and every other hop of the suite where they differ keys on
+  # `id`, which apply_column_aliases emits for a joined table anyway — so reading the wrong one
+  # of the two costs nothing anywhere else, and the fix would be free to rot.
+  #
+  # User#trees_by_title holds them apart: `title` is read, `age` is the foreign key, and `age`
+  # is no column of users at all, so the wrong one selects nothing and the list 500s again.
+  describe 'a list whose joined hop is keyed on a column its foreign key is not' do
+    let(:seed) do
+      seeded = 0
+      lambda do |n|
+        n.times do
+          seeded += 1
+          Tree.create!(name: 'tree', owner: User.create!(name: "owner#{seeded}"))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,name,owner,owner_titled_trees_count', 'owner' => 'id' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'selects the key the preloader reads, not the association foreign key' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(join_count(result.grown, 'users')).to eq(1)
+      expect(selects_from(result.grown, 'users')).to be_empty
+      root = selects_from(result.grown, 'trees').first
+      expect(root).to include(column_ref('users', 'title'))
+      expect(root).not_to include(column_ref('users', 'name'))
+    end
+  end
+
+  # The path does not stop at the displayed relation but carries on past it. The preloader leaves
+  # that whole declaration alone — it is already loaded off the JOIN — so the hop *after* it reads
+  # its key off those narrowed rows. Where the relation is a :through, the hop the chain starts
+  # with (`island`) is not the one the request displays (`location`), and looking only at the
+  # first named nothing as joined at all: 500 on `locations.coordinates`.
+  describe 'a list whose declared path carries on past a joined :through' do
+    let(:seed) do
+      seeded = 0
+      lambda do |n|
+        n.times do
+          seeded += 1
+          island = Island.create!(name: "isle#{seeded}")
+          Location.create!(island: island, coordinates: "tree#{seeded}")
+          Tree.create!(name: "tree#{seeded}", island: island, owner: User.create!(name: 'owner'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Tree' => 'id,name,location,location_trees_count', 'location' => 'id' },
+        page: page, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'selects the key the hop after the whole declaration reads' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Tree', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      # Rails 6.1's Preloader reuses the association the JOIN already loaded and the page costs
+      # nothing extra. From Rails 7 it re-walks the :through instead — only `location` is loaded
+      # on these rows, never the `island` it goes through — and builds Locations of its own that
+      # `object.location`, still the JOIN's row, never reads: the preload is wasted and the field
+      # falls back to one read per row. Orthogonal to the key selected here, which is what makes
+      # that read answer the right thing rather than nothing; pinned so it stays visible.
+      expect(result.per_row_delta(table: 'trees')).to eq(Rails::VERSION::MAJOR >= 7 ? 1 : 0),
+                                                      -> { result.delta_report(table: 'trees') }
+      # The key rides along in the JOIN's own select, which stays narrowed: still one joined
+      # query, and never a fallback to "locations".*.
+      expect(join_count(result.grown, 'locations')).to eq(1)
+      root = selects_from(result.grown, 'trees').first
+      expect(root).to include(column_ref('locations', 'coordinates'))
+      expect(root).not_to include(column_ref('locations', 'updated_at'))
+    end
+
+    it 'reaches the far end of the path' do
+      seed.call(3)
+
+      get '/forest/Tree', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      counts = JSON.parse(response.body)['data'].map { |row| row['attributes']['location_trees_count'] }
+      expect(counts).to all(eq(1))
     end
   end
 

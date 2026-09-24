@@ -530,24 +530,46 @@ module ForestLiana
     # reads the rows that first hop produced — and when that hop is a relation the query *joins*,
     # those rows are the narrowed ones built off the JOIN, so its key has to be named here too.
     # It was not, and the list answered 500 rather than the one field (PRD-1316).
-    #
-    # No hop past that one can be narrowed: joined_relations only ever names root relations, so
-    # everything further along comes from a preload of its own, which selects whole rows.
     def select_dependency_preload_keys(select, relation_path, joined_relations)
-      hops = flatten_dependency_hops(relation_path.relations)
-      return if hops.empty?
+      chains = flatten_dependency_hops(relation_path.relations)
+      return if chains.empty?
 
-      hops = hops.first(joined?(hops.first.last, joined_relations) ? 2 : 1)
-
-      hops.each do |owner, reflection|
+      narrowed_hops(chains, joined_relations).each do |owner, reflection|
         Array(reflection.join_foreign_key).each do |key|
           select << "#{owner.table_name}.#{key}" if column?(owner, key)
         end
       end
     end
 
-    # The direct reflections the preloader really walks for a declared path, each paired with the
-    # model it reads its key off.
+    # The leading hops whose owner row this query builds itself, narrowed, and whose key it
+    # therefore has to name.
+    #
+    # The first hop always counts: it reads the root row. One hop past a *joined* relation counts
+    # too, its owners being the narrowed rows the JOIN built rather than the whole ones a preload
+    # selects. Two relations can be the joined one, and either shape reaches here:
+    #   - the chain's own first hop, which for a :through is the relation it goes through
+    #     (`island` of `has_one :location, through: :island`): the preloader reuses the loaded
+    #     association and reads the source key off it;
+    #   - the first declared relation, when the request displays it: the preloader then leaves
+    #     that whole declaration alone, and the next declared relation reads its key off the
+    #     joined rows. For a plain relation both are the same hop; for a :through they are not,
+    #     and the second was missed.
+    #
+    # Nothing past those: joined_relations only ever names root relations, so every later hop
+    # comes from a preload of its own, which selects whole rows. Every table named up to here is
+    # in the FROM clause — eager loading a :through joins the tables it goes through as well.
+    def narrowed_hops(chains, joined_relations)
+      declared, head = chains.first
+      hops = chains.flat_map(&:last)
+
+      count = joined?(head.first.last, joined_relations) ? 2 : 1
+      count = [count, head.size + 1].max if joined?(declared, joined_relations)
+
+      hops.first(count)
+    end
+
+    # The direct reflections the preloader really walks for a declared path, grouped by the
+    # relation that declared them and each paired with the model it reads its key off.
     #
     # A :through hop is not preloaded as one: Preloader::ThroughAssociation loads the through
     # relation, then the source relation on those records. So the relation a path names can hide
@@ -556,13 +578,13 @@ module ForestLiana
     def flatten_dependency_hops(relations)
       model = projected_resource
 
-      relations.flat_map do |name|
+      relations.map do |name|
         association = model.reflect_on_association(name.to_sym)
         return [] if association.nil? || SchemaUtils.polymorphic?(association)
 
-        hops = flatten_through_hops(model, association)
+        chain = [association, flatten_through_hops(model, association)]
         model = association.klass
-        hops
+        chain
       end
     # Same net as preload_skip_reason's, for the same shapes: a :through naming a hop that does
     # not exist, or a class_name pointing at no model, answers NameError off #klass. Nothing is

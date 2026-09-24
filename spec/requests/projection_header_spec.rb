@@ -207,7 +207,7 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       expect(response.status).to eq 200
       expect(body['data']['attributes']).to eq('id' => @user.id, 'name' => 'Michel')
       expect(body['data']['relationships'].keys)
-        .to match_array %w[trees_owned trees_cut trees_by_name addresses favourite_trees smart_trees]
+        .to match_array %w[trees_owned trees_cut trees_by_name trees_by_title addresses favourite_trees smart_trees]
       expect(body['data']['relationships']['trees_owned']['links']['related']['href'])
         .to eq "/forest/User/#{@user.id}/relationships/trees_owned"
       expect(body['data']['relationships']['favourite_trees']['links']['related']['href'])
