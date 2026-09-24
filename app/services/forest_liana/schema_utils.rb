@@ -130,7 +130,7 @@ module ForestLiana
     def self.disable_filter_and_sort_if_cross_db!(opts, name, collection_name)
       return unless opts[:reference]
 
-      assoc_name = opts[:reference].split('.').first&.underscore&.to_sym || name
+      assoc_name = name.to_sym
       model = find_model_from_collection_name(collection_name)
       return unless model
 
