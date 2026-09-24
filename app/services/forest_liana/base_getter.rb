@@ -247,8 +247,8 @@ module ForestLiana
       return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])
 
       FOREST_LOGGER.warn "The \"#{association_name}\" relation of the \"#{@collection&.name}\" " \
-        "collection lives in another database and cannot be preloaded (#{reason}) — it is loaded " \
-        'once per record instead.'
+        "collection lives in another database and cannot be preloaded (#{reason}) — it falls back " \
+        'to the lazy load, which cannot read that key either and resolves to a null relation.'
     end
 
     # The same question as missing_preload_key?, asked of a relation rather than of a page. A
@@ -337,7 +337,9 @@ module ForestLiana
       return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])
 
       FOREST_LOGGER.warn "The \"#{association_name}\" relation of the \"#{@collection&.name}\" " \
-        "collection cannot be preloaded (#{reason}) — it is loaded once per record instead."
+        "collection cannot be preloaded (#{reason}) — it falls back to the lazy load, which reads " \
+        'it once per record where that key is on the row and resolves to a null relation where ' \
+        'it is not.'
     end
 
     # records_by_owner's keys are the exact objects the Preloader was given, not copies — no need
