@@ -993,6 +993,21 @@ describe 'SQL footprint of a front call', type: :request do
       expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
       expect(selects_from(result.grown, 'drivers').size).to eq(1)
     end
+
+    # query_for_batch takes the same relation optimize_record_loading already put the preload on,
+    # so the export inherits it — through a path nothing asserted.
+    it 'exports without reading the other database per row either' do
+      export_params = params.merge(header: 'id,name,driver', filename: 'products')
+
+      result = footprint(seed: seed) do |rows|
+        get "/forest/Manufacturer/#{manufacturer.id}/relationships/products.csv",
+            params: export_params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(response.body.lines.size).to eq(rows + 1)
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+    end
   end
 
   describe 'a list whose declared relation points at a model excluded from the schema' do

@@ -249,6 +249,19 @@ module ForestLiana
             .with(a_string_including('"driver"', '"pilot_id"'))
         end
 
+        # The fan-out the grouping exists for. records.first is a base Product carrying driver_id,
+        # so a guard reading only it waves the page through and lets the subclass raise; one
+        # unreadable class is enough to stand the whole association down.
+        it 'skips the page when one of the classes on it cannot be read' do
+          records = [products.first, subclass.find(products.last.id)]
+
+          expect(records.map(&:class).uniq.size).to eq(2)
+          expect { preload(records, [:driver]) }.not_to raise_error
+          expect(records.first).not_to be_association_cached(:driver)
+          expect(FOREST_LOGGER).to have_received(:warn)
+            .with(a_string_including('"driver"', '"pilot_id"'))
+        end
+
         it 'still preloads the base class records it is handed alongside' do
           expect(preload(products, [:driver]).size).to eq(1)
           expect(products.first).to be_association_cached(:driver)
