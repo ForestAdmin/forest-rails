@@ -1,3 +1,10 @@
+## [9.22.2](https://github.com/ForestAdmin/forest-rails/compare/v9.22.1...v9.22.2) (2026-09-24)
+
+
+### Bug Fixes
+
+* **performance:** preload cross-database to-one relations in lists and exports [PRD-1317] ([#816](https://github.com/ForestAdmin/forest-rails/issues/816)) ([10c1b7c](https://github.com/ForestAdmin/forest-rails/commit/10c1b7cca6e16a67f3d91681be0f0ab53571904c))
+
 ## [9.22.1](https://github.com/ForestAdmin/forest-rails/compare/v9.22.0...v9.22.1) (2026-09-24)
 
 
