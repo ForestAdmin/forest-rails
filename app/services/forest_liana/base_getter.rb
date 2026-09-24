@@ -192,6 +192,75 @@ module ForestLiana
       end
     end
 
+    # The to-one relations that live in another database. The ORM cannot JOIN them, so
+    # analyze_associations keeps them out of the eager load and they were left to load themselves
+    # one row at a time — a query per row per relation, the very N+1 a list pays for most.
+    #
+    # Only belongs_to and has_one: a to-many reaches @includes too (a filter on one names it), and
+    # preloading that would read every child row of the page to answer a query that never displays
+    # them. Narrower than analyze_associations' own preload_loads, which also carries the
+    # instance-dependent relations the Rails 6.1 preloader refuses outright — instance_dependent_hop
+    # drops those here, and answers nil from Rails 7, where the preloader handles them.
+    PRELOADABLE_CROSS_DATABASE_MACROS = [:belongs_to, :has_one].freeze
+
+    def cross_database_associations(resource)
+      @includes.uniq.select do |name|
+        association = resource.reflect_on_association(name)
+        next false if association.nil? || SchemaUtils.polymorphic?(association)
+        next false unless PRELOADABLE_CROSS_DATABASE_MACROS.include?(association.macro)
+
+        separate_database?(resource, association) && instance_dependent_hop(association).nil?
+      end
+    end
+
+    # Same version split as preload_polymorphic_associations, for the same reason: Rails 7 takes
+    # records:/associations: and runs on #call, 6.1 takes them positionally on #preload. Nothing
+    # here reads the loaders back — a cross-database relation is a plain one, so the preloader
+    # writes it into the association cache itself and the serializer finds it there. 6.1 can
+    # therefore take the whole array at once, where the polymorphic path has to go one at a time.
+    #
+    # The key guard is not belt and braces: without it this raises while resolving the query,
+    # where MissingAttributeValve — a serialization-time valve — never sees it, and answers 500 for
+    # the whole list where the lazy load it replaces degraded to a null relation (PRD-1316 is that
+    # bug, from the other direction). compute_select_fields does select a requested belongs_to's
+    # foreign key, so this should not fire; it degrades to the load this replaces if it ever does.
+    def preload_cross_database_associations(records, associations)
+      return if associations.empty? || records.empty?
+
+      associations = associations.reject { |name| missing_preload_key?(records.first, name) }
+      return if associations.empty?
+
+      if Rails::VERSION::MAJOR >= 7
+        ActiveRecord::Associations::Preloader.new(records: records, associations: associations).call
+      else
+        ActiveRecord::Associations::Preloader.new.preload(records, associations)
+      end
+    end
+
+    # A has_one carries its key on the target row, which the preload's own SELECT reads — only a
+    # belongs_to reads anything off the row this query built.
+    def missing_preload_key?(record, association_name)
+      association = projected_resource.reflect_on_association(association_name)
+      return false unless association&.macro == :belongs_to
+
+      missing = preload_owner_keys(association).reject { |key| record.has_attribute?(key) }
+      return false if missing.empty?
+
+      warn_cross_database_preload_skipped(association_name, missing)
+      true
+    end
+
+    # Shares PRELOAD_SKIPS_WARNED with the smart-field path above: once per process per shape,
+    # rather than once per page of every list.
+    def warn_cross_database_preload_skipped(association_name, missing_keys)
+      reason = "its \"#{missing_keys.join('", "')}\" key is not in the projected select"
+      return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])
+
+      FOREST_LOGGER.warn "The \"#{association_name}\" relation of the \"#{@collection&.name}\" " \
+        "collection lives in another database and cannot be preloaded (#{reason}) — it is loaded " \
+        'once per record instead.'
+    end
+
     # records_by_owner's keys are the exact objects the Preloader was given, not copies — no need
     # to re-find them by id, which would also mis-assign on a nil or duplicate id (composite
     # primary keys are supported elsewhere in this gem).

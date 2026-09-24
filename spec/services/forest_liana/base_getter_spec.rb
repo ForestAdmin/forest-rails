@@ -59,6 +59,143 @@ module ForestLiana
       end
     end
 
+    # Product lives in the primary database and its driver in another one (Driver < UserRecord,
+    # connects_to :user), which is the shape the whole mechanism exists for. Its manufacturer is
+    # the same-database control: that one the query joins, and must never reach a preload.
+    describe '#cross_database_associations' do
+      def associations_for(resource, includes)
+        getter.instance_variable_set(:@includes, includes)
+        getter.send(:cross_database_associations, resource)
+      end
+
+      def with_stubbed_driver_reflection(**stubs)
+        reflection = Product.reflect_on_association(:driver)
+        stubs.each { |name, value| allow(reflection).to receive(name).and_return(value) }
+        allow(Product).to receive(:reflect_on_association).and_call_original
+        allow(Product).to receive(:reflect_on_association).with(:driver).and_return(reflection)
+        yield
+      end
+
+      it 'keeps the relation that lives in another database' do
+        expect(associations_for(Product, [:driver, :manufacturer])).to eq([:driver])
+      end
+
+      it 'drops a relation the query can join' do
+        expect(associations_for(Product, [:manufacturer])).to eq([])
+      end
+
+      it 'drops a name that is no association at all' do
+        expect(associations_for(Product, [:nowhere])).to eq([])
+      end
+
+      it 'drops a polymorphic relation, which has its own preloader' do
+        expect(associations_for(Address, [:addressable])).to eq([])
+      end
+
+      # A filter naming a relation puts it in @includes too (ResourcesGetter#extract_associations_
+      # from_filter), and preloading a to-many there would read every child row of the page to
+      # answer a query that never displays them.
+      it 'drops a to-many relation even when it lives in another database' do
+        with_stubbed_driver_reflection(macro: :has_many) do
+          expect(associations_for(Product, [:driver])).to eq([])
+        end
+      end
+
+      it 'keeps a has_one, whose target row carries the key' do
+        with_stubbed_driver_reflection(macro: :has_one) do
+          expect(associations_for(Product, [:driver])).to eq([:driver])
+        end
+      end
+
+      # Rails 6.1's Preloader refuses an instance-dependent scope outright (check_preloadable!),
+      # so there this degrades to the lazy load it replaces; from Rails 7 the preloader handles
+      # one. Same gate skip_preload? already applies through instance_dependent_hop.
+      it 'keeps an instance-dependent relation only where the Preloader accepts one' do
+        with_stubbed_driver_reflection(scope: ->(record) { where(firstname: record.name) }) do
+          expect(associations_for(Product, [:driver]))
+            .to eq(Rails::VERSION::MAJOR >= 7 ? [:driver] : [])
+        end
+      end
+
+      it 'treats an optional or splat argument as instance-dependent too, its arity being -1' do
+        with_stubbed_driver_reflection(scope: ->(*_args) {}) do
+          expect(associations_for(Product, [:driver]))
+            .to eq(Rails::VERSION::MAJOR >= 7 ? [:driver] : [])
+        end
+      end
+    end
+
+    describe '#preload_cross_database_associations' do
+      let(:products) do
+        manufacturer = Manufacturer.create!(name: 'maker')
+        2.times.map do
+          Product.create!(name: 'thing', uri: 'https://example.test', manufacturer: manufacturer,
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+        Product.order(:id).to_a
+      end
+
+      before do
+        Product.destroy_all
+        Driver.destroy_all
+        Manufacturer.destroy_all
+        getter.instance_variable_set(:@resource, Product)
+        getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Product', fields: []))
+      end
+
+      def preload(records, associations)
+        queries = []
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+          queries << payload[:sql] unless payload[:cached] || payload[:name] == 'SCHEMA'
+        end
+        begin
+          getter.send(:preload_cross_database_associations, records, associations)
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+        queries
+      end
+
+      it 'reads the other database once for the whole set, on this Rails version' do
+        records = products
+        expect(preload(records, [:driver]).size).to eq(1)
+
+        further = preload(records, [])
+        expect(records.map { |record| record.driver.firstname }).to all(eq('pilot'))
+        expect(further).to be_empty
+      end
+
+      it 'does nothing for an empty association list or an empty record set' do
+        expect { getter.send(:preload_cross_database_associations, [], [:driver]) }.not_to raise_error
+        expect { getter.send(:preload_cross_database_associations, products, []) }.not_to raise_error
+      end
+
+      # Without the guard this raises resolving the preload's own query, where
+      # MissingAttributeValve — a serialization-time valve — never sees it: a 500 on the whole
+      # list, where the lazy load it replaces degraded to a null relation. compute_select_fields
+      # does select a requested belongs_to's key, so this is a floor, not a routine path.
+      context 'when the projection left the foreign key out' do
+        before { BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear }
+
+        let(:records) { products.map { |product| Product.select(:id).find(product.id) } }
+
+        it 'falls back to the load it replaces rather than failing the list' do
+          allow(FOREST_LOGGER).to receive(:warn)
+
+          expect { preload(records, [:driver]) }.not_to raise_error
+          expect(records.first).not_to be_association_cached(:driver)
+        end
+
+        it 'names the collection, the relation and the key it could not read' do
+          expect(FOREST_LOGGER).to receive(:warn).once do |message|
+            expect(message).to include('"driver"', '"Product"', '"driver_id"', 'another database')
+          end
+
+          3.times { preload(records, [:driver]) }
+        end
+      end
+    end
+
     describe '#smart_field_preloads' do
       # Built by hand rather than through a request: this pins the tree #preload is handed, which
       # a request spec can only observe through the queries it ends up producing.

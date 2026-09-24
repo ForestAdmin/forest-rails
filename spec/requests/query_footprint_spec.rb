@@ -74,7 +74,7 @@ describe 'SQL footprint of a front call', type: :request do
         page: page, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    it 'joins the same-database relation, never joins the other database, and reads it per row' do
+    it 'joins the same-database relation, never joins the other database, and reads it once' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Product', params: params, headers: headers
         expect(response).to have_http_status(200)
@@ -84,8 +84,9 @@ describe 'SQL footprint of a front call', type: :request do
       expect(join_count(result.grown, 'manufacturers')).to eq(1)
       expect(join_count(result.grown, 'drivers')).to eq(0)
       expect(selects_from(result.grown, 'manufacturers')).to be_empty
-      expect(result.per_row_delta).to eq(1), -> { result.delta_report }
-      expect(result.per_row_delta(table: 'drivers')).to eq(1), -> { result.delta_report(table: 'drivers') }
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
 
       sql = selects_from(result.grown, 'products').first
       expect(sql).to include(
@@ -93,6 +94,54 @@ describe 'SQL footprint of a front call', type: :request do
         column_ref('manufacturers', 'name')
       )
       expect(sql).not_to include(column_ref('products', 'uri'))
+    end
+
+    it 'reads the other database in one statement keyed on the whole page' do
+      seed.call(3)
+
+      queries = capture_queries do
+        get '/forest/Product', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'drivers').size).to eq(1)
+      expect(selects_from(queries, 'drivers').first).to match(/IN \(/i)
+    end
+
+    it 'serializes the same relation it served before it was preloaded' do
+      seed.call(2)
+
+      get '/forest/Product', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      relationships = JSON.parse(response.body)['data'].map { |row| row['relationships']['driver']['data'] }
+      expect(relationships.map { |data| data['type'] }).to all(eq('Driver'))
+      expect(relationships.map { |data| data['id'] }).to match_array(Driver.pluck(:id).map(&:to_s))
+    end
+
+    it 'leaves a row whose cross-database key is null alone' do
+      Product.create!(name: 'orphan', uri: 'https://example.test',
+                      manufacturer: Manufacturer.create!(name: 'maker'), driver: nil)
+
+      queries = capture_queries do
+        get '/forest/Product', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'drivers')).to be_empty
+      expect(JSON.parse(response.body)['data'].first['relationships']['driver']['data']).to be_nil
+    end
+
+    it 'exports without reading the other database per row' do
+      export_params = params.merge(header: 'id,name,manufacturer,driver', filename: 'products')
+
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Product.csv', params: export_params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(response.body.lines.size).to eq(rows + 1)
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
     end
   end
 
@@ -706,6 +755,78 @@ describe 'SQL footprint of a front call', type: :request do
       expect(selects_from(result.grown, 'users').size).to eq(1)
       expect(JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_name_declared'] })
         .to all(eq('owner'))
+    end
+  end
+
+  # On Car rather than Product, which the dummy declares countable: false — its count route
+  # short-circuits before building a query at all, and would guard nothing.
+  describe 'a count on a collection with a cross-database relation' do
+    let(:seed) do
+      lambda do |n|
+        n.times { Car.create!(model: 'coupe', driver: Driver.create!(firstname: 'pilot')) }
+      end
+    end
+    let(:params) do
+      { fields: { 'Car' => 'id,model,driver', 'driver' => 'firstname' }, page: page,
+        searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    # count and query_for_batch read the same @unprojected_records. The export's preload is put on
+    # a relation of its own rather than onto it, so the count must not inherit a query it has no
+    # page to run for.
+    it 'counts in one statement, without reading the other database' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Car/count', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(JSON.parse(response.body)['count']).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(selects_from(result.grown, 'cars').size).to eq(1)
+      expect(selects_from(result.grown, 'drivers')).to be_empty
+    end
+
+    it 'still preloads the other database once on the list itself' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Car', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
+    end
+  end
+
+  describe 'a related list projecting a cross-database relation' do
+    let!(:manufacturer) { Manufacturer.create!(name: 'maker') }
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          Product.create!(name: 'thing', uri: 'https://example.test', manufacturer: manufacturer,
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Product' => 'id,name,driver', 'driver' => 'firstname' }, page: page,
+        searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    # HasManyGetter preloads preload_loads from Rails 7 on, so this only ever read per row on
+    # 6.1 — and for a limitation of its preloader that concerns instance-dependent scopes, not
+    # another database.
+    it 'reads the other database once for the page on every supported Rails' do
+      result = footprint(seed: seed) do |rows|
+        get "/forest/Manufacturer/#{manufacturer.id}/relationships/products",
+            params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(join_count(result.grown, 'drivers')).to eq(0)
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
     end
   end
 

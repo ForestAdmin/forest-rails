@@ -222,9 +222,12 @@ module ForestLiana
       # already routed those (and cross-DB ones) into `preload_loads`, so `move_to_preload` is
       # always safe to preload; only `preload_loads` needs the Rails 7+ gate.
       result = result.preload(move_to_preload)
-      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7
 
-      result
+      # That gate covers preload_loads whole, and it holds two unrelated shapes: the relations of
+      # another database, which 6.1 preloads perfectly well, and the instance-dependent ones, which
+      # are the only thing its preloader refuses. Gating both left 6.1 reading a cross-database
+      # relation once per row for a limitation that was never about it.
+      result.preload(Rails::VERSION::MAJOR >= 7 ? preload_loads : cross_database_associations(resource))
     end
 
     # Association names (symbols) whose JOIN the current request actually needs, so they must
