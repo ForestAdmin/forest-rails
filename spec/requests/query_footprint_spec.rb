@@ -196,7 +196,9 @@ describe 'SQL footprint of a front call', type: :request do
   end
 
   describe 'a get-one' do
-    it 'joins the same-database relation, reads the cross-database one once and loads every column' do
+    # Two joins on manufacturers, not one: Product declares `maker` alongside `manufacturer`, both
+    # same-database and both joinable.
+    it 'joins the same-database relations, reads the cross-database one once and loads every column' do
       manufacturer = Manufacturer.create!(name: 'maker')
       driver = Driver.create!(firstname: 'pilot')
       product = Product.create!(name: 'thing', uri: 'https://example.test',
@@ -208,7 +210,7 @@ describe 'SQL footprint of a front call', type: :request do
       end
 
       expect(selects_from(queries, 'products').size).to eq(1)
-      expect(join_count(queries, 'manufacturers')).to eq(1)
+      expect(join_count(queries, 'manufacturers')).to eq(2)
       expect(join_count(queries, 'drivers')).to eq(0)
       expect(selects_from(queries, 'manufacturers')).to be_empty
       expect(selects_from(queries, 'drivers').size).to eq(1)

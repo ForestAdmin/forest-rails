@@ -222,13 +222,20 @@ module ForestLiana
               if reflection_primary_key != klass_primary_key
                 data[attribute_name] = attr_data.merge({
                                                          attr_or_block: proc {
-                                                           # The find_by below reads once per row, undoing any preload. The
-                                                           # preloader keys on the declared primary_key, so a loaded
-                                                           # association answers the same record.
+                                                           # The find_by below reads once per row, undoing any preload, and
+                                                           # resolves less than ActiveRecord does: it drops the association's
+                                                           # own scope and matches a nil key against a target row whose key is
+                                                           # NULL too. Both branches answer the same record only once it is
+                                                           # aligned on the preloader, which is what scope_for does — and what
+                                                           # raises on a relation declaring no scope at all, the common case.
                                                            association = object.association(attribute_name)
-                                                           next association.target if association.loaded?
+                                                           next association.target if association.loaded? && !association.stale_target?
 
-                                                           relation.klass.find_by(reflection_primary_key => object.send(relation.foreign_key))
+                                                           key = object.send(relation.foreign_key)
+                                                           next nil if key.nil?
+
+                                                           scoped = relation.scope ? relation.scope_for(relation.klass.all, object) : relation.klass
+                                                           scoped.find_by(reflection_primary_key => key)
                                                          }
                                                        })
                 next
