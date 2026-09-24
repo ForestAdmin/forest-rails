@@ -904,8 +904,10 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
-  # The has_one half, which the guard used to wave through by only looking at a belongs_to:
-  # unguarded, the list answered 500 on a key nothing projects.
+  # The has_one half. Its owner key is the declared primary_key, read off this row — and
+  # select_foreign_keys names nothing owner-side for a relation the query never joins, which a
+  # cross-database one never is. Unprojected, the preload raised and took the list down; projected
+  # only when requested, it fell back to the per-row load PRD-1317 exists to remove.
   describe 'a list projecting a cross-database has_one keyed on a custom primary_key' do
     let(:seed) do
       lambda do |n|
@@ -920,29 +922,38 @@ describe 'SQL footprint of a front call', type: :request do
         searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    it 'answers the list rather than failing on the key the projection left out' do
+    it 'selects the key the preload reads although nothing requested it' do
+      seed.call(2)
+
+      queries = capture_queries do
+        get '/forest/Driver', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(response).to have_http_status(200)
+      expect(selects_from(queries, 'drivers').first).to include(column_ref('drivers', 'firstname'))
+    end
+
+    it 'preloads it in one statement rather than reading the other database per row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Driver', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'cars')).to eq(0), -> { result.delta_report(table: 'cars') }
+      expect(selects_from(result.grown, 'cars').size).to eq(1)
+      expect(selects_from(result.grown, 'cars').first).to match(/IN \(/i)
+    end
+
+    # Not what the fallback served: MissingAttributeValve resolved it up to Rails 7.0 and served
+    # null from 7.1, so the relation the front gets is only right once the key is projected.
+    it 'serves the linkage the relation actually resolves to' do
       seed.call(2)
 
       get '/forest/Driver', params: params, headers: headers
 
       expect(response).to have_http_status(200)
-      expect(listed_rows).to eq(2)
-    end
-
-    # Not what the fallback serves: MissingAttributeValve already resolved it up to Rails 7.0 and
-    # served null from 7.1, before any of this. Pinned here is that the guard stands aside.
-    it 'preloads it in one statement once the key is projected' do
-      seed.call(2)
-      projected = params.deep_merge(fields: { 'Driver' => 'id,firstname,piloted_car' })
-
-      queries = capture_queries do
-        get '/forest/Driver', params: projected, headers: headers
-        expect(response).to have_http_status(200)
-      end
-
-      expect(selects_from(queries, 'cars').size).to eq(1)
-      expect(selects_from(queries, 'cars').first).to match(/IN \(/i)
-
       linkage = JSON.parse(response.body)['data'].map do |row|
         [row['id'], row['relationships']['piloted_car']['data']&.fetch('id')]
       end
@@ -950,21 +961,6 @@ describe 'SQL footprint of a front call', type: :request do
 
       expect(linkage).to eq(expected)
       expect(linkage.map { |_, car_id| car_id }).to all(be_present)
-    end
-
-    # Scoped to this message: the fallback legitimately raises MissingAttributeValve's too.
-    it 'says once per process why it fell back to the load it replaces' do
-      ForestLiana::BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
-      seed.call(2)
-      warnings = []
-      allow(FOREST_LOGGER).to receive(:warn) { |message| warnings << message }
-
-      2.times { get '/forest/Driver', params: params, headers: headers }
-
-      expect(response).to have_http_status(200)
-      skipped = warnings.grep(/cannot be preloaded/)
-      expect(skipped.size).to eq(1)
-      expect(skipped.first).to include('"piloted_car"', '"Driver"', '"firstname"', 'another database')
     end
   end
 

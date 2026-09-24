@@ -477,6 +477,19 @@ module ForestLiana
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
       end
 
+      # A cross-database to-one relation is never joined, so select_foreign_keys names nothing
+      # owner-side for the has_one half of it — and the preloader reads that key off this row.
+      # Without it here the guard in preload_cross_database_associations fires on every page and
+      # the relation keeps being read once per record, which is the N+1 this file removes. Off
+      # @includes for the same reason as the polymorphic loop above: the preload runs over all of
+      # it, not only the requested subset.
+      cross_database_associations(projected_resource).each do |name|
+        association = projected_resource.reflect_on_association(name)
+        preload_owner_keys(association).each do |key|
+          select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
+        end
+      end
+
       @field_names_requested.each do |path|
         association = get_one_association(path)
         if association
