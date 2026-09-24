@@ -277,23 +277,39 @@ module ForestLiana
       end
     end
 
-    # Only a plain column reference can be read back off a select. Anything else — a function, a
-    # CASE, a subquery, an Arel node — contributes nothing and so counts as not naming the key:
-    # the preload is then skipped and the relation read once per record, which is what it did
-    # before it was preloaded at all.
+    # Only a plain column reference can be read back off a select.
     PLAIN_SELECT_REFERENCE = /\A(?:"?(?<table>\w+)"?\.)?"?(?<column>\w+|\*)"?\z/
 
     def selected_column_names(records)
       table = projected_resource.table_name
 
-      records.select_values.flat_map { |value| value.is_a?(String) ? value.split(',') : [value] }
-             .each_with_object(Set.new) do |value, names|
-        next unless value.is_a?(String) || value.is_a?(Symbol)
+      records.select_values.each_with_object(Set.new) do |value, names|
+        select_references(value).each do |reference|
+          match = PLAIN_SELECT_REFERENCE.match(reference)
+          next if match.nil? || (match[:table] && match[:table] != table)
 
-        match = PLAIN_SELECT_REFERENCE.match(value.to_s.strip)
-        next if match.nil? || (match[:table] && match[:table] != table)
+          names << match[:column]
+        end
+      end
+    end
 
-        names << match[:column]
+    # One select_value can name several columns, which splitting on commas recovers — but only
+    # while no parenthesis is in play: `COALESCE(uri, driver_id, name) AS x` would otherwise read
+    # as naming driver_id, and the preload that lets through raises on a column the row does not
+    # carry, which is the failure this guard exists to prevent. An expression names nothing here,
+    # so the preload is skipped and the relation left to the lazy load — the safe way to be wrong.
+    #
+    # SqlLiteral is a String, and is meant to be read like one. An Arel attribute is not, and
+    # carries its table and column apart, `products.*` included.
+    def select_references(value)
+      case value
+      when String, Symbol
+        text = value.to_s
+        text.include?('(') ? [] : text.split(',').map(&:strip)
+      when Arel::Attributes::Attribute
+        value.relation.respond_to?(:name) ? ["#{value.relation.name}.#{value.name}"] : []
+      else
+        []
       end
     end
 

@@ -294,8 +294,19 @@ module ForestLiana
         expect(kept(Product.select('"products"."driver_id"'))).to eq([:driver])
       end
 
-      it 'keeps a key a wildcard covers' do
+      it 'keeps a key a wildcard covers, written as a string or as an Arel attribute' do
         expect(kept(Product.select('products.*'))).to eq([:driver])
+        expect(kept(Product.select(Product.arel_table[Arel.star]))).to eq([:driver])
+      end
+
+      # SqlLiteral is a String and is meant to be read as one.
+      it 'keeps a key a raw SQL literal names' do
+        expect(kept(Product.select(Arel.sql('driver_id')))).to eq([:driver])
+      end
+
+      it 'keeps a key a multi-column string names alongside others' do
+        expect(kept(Product.select('id, driver_id'))).to eq([:driver])
+        expect(kept(Product.select('DISTINCT id, driver_id'))).to eq([:driver])
       end
 
       it 'drops a key the select leaves out, and says so once' do
@@ -312,9 +323,16 @@ module ForestLiana
       end
 
       # Better a preload skipped than a 500: an expression this cannot read is treated as naming
-      # nothing, so the relation falls back to the load it had before it was preloaded at all.
+      # nothing, so the relation falls back to the lazy load it had before it was preloaded at all.
       it 'drops a key an unreadable expression might have carried' do
         expect(kept(Product.select('COALESCE(driver_id, 0) AS driver_id'))).to eq([])
+      end
+
+      # Splitting on commas without regard for parentheses reads this as naming driver_id, and
+      # the preload it lets through then raises on a column the row does not carry — the exact
+      # 500 this guard exists to prevent, reintroduced by the guard itself.
+      it 'drops a key only a function argument names' do
+        expect(kept(Product.select('COALESCE(uri, driver_id , name) AS x'))).to eq([])
       end
 
       it 'leaves a name that is no association of the resource alone' do
