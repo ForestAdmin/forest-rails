@@ -222,13 +222,9 @@ module ForestLiana
               if reflection_primary_key != klass_primary_key
                 data[attribute_name] = attr_data.merge({
                                                          attr_or_block: proc {
-                                                           # The find_by reaches the database once per row, so it undoes whatever the
-                                                           # getter preloaded — a cross-database relation of this shape stayed at a
-                                                           # query per row even once the preload had already read the whole page in
-                                                           # one. Read off the association when it is loaded: the preloader keys on
-                                                           # the declared primary_key, so it answers the same record this find_by
-                                                           # does. Unloaded, nothing changes — that is the path this branch was
-                                                           # written for.
+                                                           # The find_by below reads once per row, undoing any preload. The
+                                                           # preloader keys on the declared primary_key, so a loaded
+                                                           # association answers the same record.
                                                            association = object.association(attribute_name)
                                                            next association.target if association.loaded?
 

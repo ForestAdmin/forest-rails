@@ -75,10 +75,8 @@ module ForestLiana
     # See HasManyGetter#query_for_batch: same dual-use split between a CSV export (which calls
     # #perform first, so this picks up its smart-field preload) and a bulk "select all" batch
     # (which never does, per initialize_resources_getter below, and only reads ids).
-    # The cross-database preload goes on the relation here, not on a materialized page as #records
-    # does: find_in_batches resolves it per batch, over every row of an export rather than over one
-    # page. It needs no projected-key guard — @unprojected_records is unprojected, so the key it
-    # reads is always selected.
+    # On the relation, not a page: find_in_batches then resolves it per batch. No key guard needed,
+    # @unprojected_records being unprojected.
     def query_for_batch
       return @base_records_for_batch unless @unprojected_records
 
@@ -93,8 +91,7 @@ module ForestLiana
       polymorphic_association, = analyze_associations(@resource)
 
       preload_polymorphic_associations(records, polymorphic_association)
-      # On the page rather than on @records: the relation this reads is also what count and
-      # query_for_batch build off, and neither has a page to preload for.
+      # On the page, not @records: count and query_for_batch build off the same relation.
       preload_cross_database_associations(records, cross_database_associations(@resource))
 
       records

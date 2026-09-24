@@ -59,9 +59,8 @@ module ForestLiana
       end
     end
 
-    # Product lives in the primary database and its driver in another one (Driver < UserRecord,
-    # connects_to :user), which is the shape the whole mechanism exists for. Its manufacturer is
-    # the same-database control: that one the query joins, and must never reach a preload.
+    # Product's driver lives in another database; its manufacturer is the same-database control,
+    # which the query joins and must never preload.
     describe '#cross_database_associations' do
       def associations_for(resource, includes)
         getter.instance_variable_set(:@includes, includes)
@@ -92,9 +91,8 @@ module ForestLiana
         expect(associations_for(Address, [:addressable])).to eq([])
       end
 
-      # A filter naming a relation puts it in @includes too (ResourcesGetter#extract_associations_
-      # from_filter), and preloading a to-many there would read every child row of the page to
-      # answer a query that never displays them.
+      # A filter puts a relation in @includes too, and preloading a to-many there would read every
+      # child row of a page that never displays them.
       it 'drops a to-many relation even when it lives in another database' do
         with_stubbed_driver_reflection(macro: :has_many) do
           expect(associations_for(Product, [:driver])).to eq([])
@@ -107,9 +105,8 @@ module ForestLiana
         end
       end
 
-      # Rails 6.1's Preloader refuses an instance-dependent scope outright (check_preloadable!),
-      # so there this degrades to the lazy load it replaces; from Rails 7 the preloader handles
-      # one. Same gate skip_preload? already applies through instance_dependent_hop.
+      # Rails 6.1's Preloader refuses an instance-dependent scope outright (check_preloadable!);
+      # from Rails 7 it handles one.
       it 'keeps an instance-dependent relation only where the Preloader accepts one' do
         with_stubbed_driver_reflection(scope: ->(record) { where(firstname: record.name) }) do
           expect(associations_for(Product, [:driver]))
@@ -170,10 +167,8 @@ module ForestLiana
         expect { getter.send(:preload_cross_database_associations, products, []) }.not_to raise_error
       end
 
-      # Without the guard this raises resolving the preload's own query, where
-      # MissingAttributeValve — a serialization-time valve — never sees it: a 500 on the whole
-      # list, where the lazy load it replaces degraded to a null relation. compute_select_fields
-      # does select a requested belongs_to's key, so this is a floor, not a routine path.
+      # Unguarded this raises resolving the query, out of MissingAttributeValve's reach: a 500 on
+      # the whole list. compute_select_fields does select the key, so this is a floor.
       context 'when the projection left the foreign key out' do
         before { BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear }
 
@@ -195,10 +190,8 @@ module ForestLiana
         end
       end
 
-      # A has_one usually carries its key on the target row, so the guard has nothing to read here
-      # — unless the relation declares a primary_key of its own, which the preload then reads off
-      # the owner row. select_foreign_keys names nothing owner-side for a has_one the query does
-      # not join, and a cross-database one never is, so the projection can be missing it.
+      # A has_one carries its key on the target row — unless it declares a primary_key of its own,
+      # which the preload reads off the owner row and nothing projects for an unjoined relation.
       context 'when a has_one declares a primary_key of its own' do
         before do
           BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
@@ -230,18 +223,15 @@ module ForestLiana
         end
       end
 
-      # The Preloader resolves the reflection per record, off record.class._reflect_on_association
-      # (Preloader#grouped_records on 6.1, Branch#grouped_records on 7+), so a subclass that
-      # redeclares the relation keys the load on its own foreign key. Asking projected_resource
-      # instead would validate the base class's key and let the subclass's raise at query time.
+      # The Preloader resolves the reflection off record.class._reflect_on_association, so asking
+      # projected_resource would validate the base class's key and let the subclass's raise.
       context 'when a subclass redeclares the relation on another key' do
         before do
           BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
           allow(FOREST_LOGGER).to receive(:warn)
         end
 
-        # Shares products' table, as an STI subclass does, and redeclares :driver on a column the
-        # table does not even hold - so nothing can have projected it.
+        # Shares products' table, as an STI subclass does, on a column the table does not hold.
         let(:subclass) do
           Class.new(Product) do
             def self.name = 'SubProduct'

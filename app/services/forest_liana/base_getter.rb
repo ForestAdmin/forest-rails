@@ -192,15 +192,8 @@ module ForestLiana
       end
     end
 
-    # The to-one relations that live in another database. The ORM cannot JOIN them, so
-    # analyze_associations keeps them out of the eager load and they were left to load themselves
-    # one row at a time — a query per row per relation, the very N+1 a list pays for most.
-    #
-    # Only belongs_to and has_one: a to-many reaches @includes too (a filter on one names it), and
-    # preloading that would read every child row of the page to answer a query that never displays
-    # them. Narrower than analyze_associations' own preload_loads, which also carries the
-    # instance-dependent relations the Rails 6.1 preloader refuses outright — instance_dependent_hop
-    # drops those here, and answers nil from Rails 7, where the preloader handles them.
+    # To-one only: a filter puts a to-many in @includes too, and preloading that would read every
+    # child row of a page that never displays them.
     PRELOADABLE_CROSS_DATABASE_MACROS = [:belongs_to, :has_one].freeze
 
     def cross_database_associations(resource)
@@ -213,17 +206,8 @@ module ForestLiana
       end
     end
 
-    # Same version split as preload_polymorphic_associations, for the same reason: Rails 7 takes
-    # records:/associations: and runs on #call, 6.1 takes them positionally on #preload. Nothing
-    # here reads the loaders back — a cross-database relation is a plain one, so the preloader
-    # writes it into the association cache itself and the serializer finds it there. 6.1 can
-    # therefore take the whole array at once, where the polymorphic path has to go one at a time.
-    #
-    # The key guard is not belt and braces: without it this raises while resolving the query,
-    # where MissingAttributeValve — a serialization-time valve — never sees it, and answers 500 for
-    # the whole list where the lazy load it replaces degraded to a null relation (PRD-1316 is that
-    # bug, from the other direction). compute_select_fields does select a requested belongs_to's
-    # foreign key, so this should not fire; it degrades to the load this replaces if it ever does.
+    # Same version split as preload_polymorphic_associations. Nothing reads the loaders back here:
+    # a plain relation lands in the association cache, where the serializer finds it.
     def preload_cross_database_associations(records, associations)
       return if associations.empty? || records.empty?
 
@@ -237,15 +221,11 @@ module ForestLiana
       end
     end
 
-    # Not only a belongs_to: a has_one reads its owner key off this row too whenever the relation
-    # declares a primary_key of its own, and select_foreign_keys names nothing owner-side for a
-    # has_one the query does not join — which a cross-database one never is. Only the default case,
-    # where that key is the real primary key compute_select_fields always projects, is free.
-    #
-    # Asked of each record class rather than of projected_resource: the Preloader resolves the
-    # reflection per record, off record.class._reflect_on_association, so an STI subclass that
-    # redeclares the relation keys the load on its own foreign key, not the base class's. One
-    # record per class is enough — the select is the same for the whole page.
+    # A missing key raises while resolving the query, out of MissingAttributeValve's reach, and
+    # takes down the whole list rather than the one field (PRD-1316 from the other direction).
+    # Not only a belongs_to: a has_one reads its owner key off this row too when it declares a
+    # primary_key of its own. Per record class, not projected_resource, because that is how the
+    # Preloader resolves the reflection — one record per class is enough, the select being shared.
     def missing_preload_key?(records, association_name)
       records.group_by(&:class).any? do |klass, klass_records|
         association = klass._reflect_on_association(association_name)
@@ -259,8 +239,6 @@ module ForestLiana
       end
     end
 
-    # Shares PRELOAD_SKIPS_WARNED with the smart-field path above: once per process per shape,
-    # rather than once per page of every list.
     def warn_cross_database_preload_skipped(association_name, missing_keys)
       reason = "its \"#{missing_keys.join('", "')}\" key is not in the projected select"
       return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])

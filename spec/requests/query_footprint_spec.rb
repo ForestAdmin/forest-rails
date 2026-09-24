@@ -771,9 +771,8 @@ describe 'SQL footprint of a front call', type: :request do
         searchExtended: '0', timezone: 'Europe/Paris' }
     end
 
-    # count and query_for_batch read the same @unprojected_records. The export's preload is put on
-    # a relation of its own rather than onto it, so the count must not inherit a query it has no
-    # page to run for.
+    # count and query_for_batch read the same @unprojected_records, so the count must not inherit
+    # a preload it has no page to run for.
     it 'counts in one statement, without reading the other database' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Car/count', params: params, headers: headers
@@ -798,9 +797,8 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
-  # Car#pilot declares primary_key: :firstname, which is not Driver's primary key —
-  # serializer_factory's has_one_relationships intercepts that shape with a find_by of its own,
-  # and that find_by ran per row, undoing the preload the getter had already done.
+  # serializer_factory intercepts this shape with a find_by of its own, which ran per row and
+  # undid the preload.
   describe 'a list projecting a cross-database relation keyed on a custom primary_key' do
     let(:seed) do
       lambda do |n|
@@ -854,12 +852,8 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
-  # The has_one half of the same shape, and the one the projected-key guard used to wave through:
-  # it only ever looked at a belongs_to, on the reading that a has_one carries its key on the
-  # target row. It does — unless the relation declares a primary_key of its own, and then the
-  # preload reads that column off the owner row, which select_foreign_keys never named for a
-  # relation the query does not join. Unguarded it raised resolving the query, out of reach of
-  # MissingAttributeValve, and answered 500 for the whole list.
+  # The has_one half, which the guard used to wave through by only looking at a belongs_to:
+  # unguarded, the list answered 500 on a key nothing projects.
   describe 'a list projecting a cross-database has_one keyed on a custom primary_key' do
     let(:seed) do
       lambda do |n|
@@ -883,10 +877,8 @@ describe 'SQL footprint of a front call', type: :request do
       expect(listed_rows).to eq(2)
     end
 
-    # What the fallback then serves is the lazy load's business, not this guard's, and it already
-    # differed by version before any of this: MissingAttributeValve reloads the row and resolves
-    # the relation up to Rails 7.0, and serves a null one from 7.1. Pinned here is only that the
-    # guard stands aside as soon as the key is there, and that the preload still does its job.
+    # Not what the fallback serves: MissingAttributeValve already resolved it up to Rails 7.0 and
+    # served null from 7.1, before any of this. Pinned here is that the guard stands aside.
     it 'preloads it in one statement once the key is projected' do
       seed.call(2)
       projected = params.deep_merge(fields: { 'Driver' => 'id,firstname,piloted_car' })
@@ -908,8 +900,7 @@ describe 'SQL footprint of a front call', type: :request do
       expect(linkage.map { |_, car_id| car_id }).to all(be_present)
     end
 
-    # Scoped to this message rather than to every warn: the fallback legitimately raises a second
-    # one, MissingAttributeValve's, which is what reloads the row and serves the relation above.
+    # Scoped to this message: the fallback legitimately raises MissingAttributeValve's too.
     it 'says once per process why it fell back to the load it replaces' do
       ForestLiana::BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
       seed.call(2)
@@ -940,9 +931,8 @@ describe 'SQL footprint of a front call', type: :request do
         searchExtended: '0', timezone: 'Europe/Paris' }
     end
 
-    # HasManyGetter preloads preload_loads from Rails 7 on, so this only ever read per row on
-    # 6.1 — and for a limitation of its preloader that concerns instance-dependent scopes, not
-    # another database.
+    # HasManyGetter preloads preload_loads from Rails 7 on, so this only ever read per row on 6.1,
+    # for a limitation that was never about another database.
     it 'reads the other database once for the page on every supported Rails' do
       result = footprint(seed: seed) do |rows|
         get "/forest/Manufacturer/#{manufacturer.id}/relationships/products",
