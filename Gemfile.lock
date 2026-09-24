@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    forest_liana (9.22.0)
+    forest_liana (9.22.1)
       bcrypt
       csv
       deepsort

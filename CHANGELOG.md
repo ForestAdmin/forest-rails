@@ -1,3 +1,10 @@
+## [9.22.1](https://github.com/ForestAdmin/forest-rails/compare/v9.22.0...v9.22.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* **projection:** select the key a dependency preload reads off a joined relation [PRD-1316] ([#815](https://github.com/ForestAdmin/forest-rails/issues/815)) ([1302645](https://github.com/ForestAdmin/forest-rails/commit/1302645ad10a03af476ece91428400c7c9b3105d))
+
 # [9.22.0](https://github.com/ForestAdmin/forest-rails/compare/v9.21.0...v9.22.0) (2026-09-23)
 
 
