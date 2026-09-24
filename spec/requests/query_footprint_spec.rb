@@ -854,6 +854,77 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  # The has_one half of the same shape, and the one the projected-key guard used to wave through:
+  # it only ever looked at a belongs_to, on the reading that a has_one carries its key on the
+  # target row. It does — unless the relation declares a primary_key of its own, and then the
+  # preload reads that column off the owner row, which select_foreign_keys never named for a
+  # relation the query does not join. Unguarded it raised resolving the query, out of reach of
+  # MissingAttributeValve, and answered 500 for the whole list.
+  describe 'a list projecting a cross-database has_one keyed on a custom primary_key' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |i|
+          driver = Driver.create!(firstname: "pilot-#{i}")
+          Car.create!(model: driver.firstname, driver: driver)
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Driver' => 'id,piloted_car', 'piloted_car' => 'id' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'answers the list rather than failing on the key the projection left out' do
+      seed.call(2)
+
+      get '/forest/Driver', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(listed_rows).to eq(2)
+    end
+
+    # What the fallback then serves is the lazy load's business, not this guard's, and it already
+    # differed by version before any of this: MissingAttributeValve reloads the row and resolves
+    # the relation up to Rails 7.0, and serves a null one from 7.1. Pinned here is only that the
+    # guard stands aside as soon as the key is there, and that the preload still does its job.
+    it 'preloads it in one statement once the key is projected' do
+      seed.call(2)
+      projected = params.deep_merge(fields: { 'Driver' => 'id,firstname,piloted_car' })
+
+      queries = capture_queries do
+        get '/forest/Driver', params: projected, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'cars').size).to eq(1)
+      expect(selects_from(queries, 'cars').first).to match(/IN \(/i)
+
+      linkage = JSON.parse(response.body)['data'].map do |row|
+        [row['id'], row['relationships']['piloted_car']['data']&.fetch('id')]
+      end
+      expected = linkage.map { |id, _| [id, Car.find_by(model: Driver.find(id).firstname)&.id&.to_s] }
+
+      expect(linkage).to eq(expected)
+      expect(linkage.map { |_, car_id| car_id }).to all(be_present)
+    end
+
+    # Scoped to this message rather than to every warn: the fallback legitimately raises a second
+    # one, MissingAttributeValve's, which is what reloads the row and serves the relation above.
+    it 'says once per process why it fell back to the load it replaces' do
+      ForestLiana::BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+      seed.call(2)
+      warnings = []
+      allow(FOREST_LOGGER).to receive(:warn) { |message| warnings << message }
+
+      2.times { get '/forest/Driver', params: params, headers: headers }
+
+      expect(response).to have_http_status(200)
+      skipped = warnings.grep(/cannot be preloaded/)
+      expect(skipped.size).to eq(1)
+      expect(skipped.first).to include('"piloted_car"', '"Driver"', '"firstname"', 'another database')
+    end
+  end
+
   describe 'a related list projecting a cross-database relation' do
     let!(:manufacturer) { Manufacturer.create!(name: 'maker') }
     let(:seed) do

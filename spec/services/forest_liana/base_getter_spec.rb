@@ -194,6 +194,76 @@ module ForestLiana
           3.times { preload(records, [:driver]) }
         end
       end
+
+      # A has_one usually carries its key on the target row, so the guard has nothing to read here
+      # — unless the relation declares a primary_key of its own, which the preload then reads off
+      # the owner row. select_foreign_keys names nothing owner-side for a has_one the query does
+      # not join, and a cross-database one never is, so the projection can be missing it.
+      context 'when a has_one declares a primary_key of its own' do
+        before do
+          BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+          getter.instance_variable_set(:@resource, Driver)
+          getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Driver', fields: []))
+          allow(FOREST_LOGGER).to receive(:warn)
+        end
+
+        let(:drivers) do
+          driver = Driver.create!(firstname: 'pilot')
+          Car.create!(model: driver.firstname, driver: driver)
+          [Driver.select(:id).find(driver.id)]
+        end
+
+        it 'falls back rather than raising on the key the projection left out' do
+          expect { preload(drivers, [:piloted_car]) }.not_to raise_error
+          expect(drivers.first).not_to be_association_cached(:piloted_car)
+          expect(FOREST_LOGGER).to have_received(:warn)
+            .with(a_string_including('"piloted_car"', '"firstname"'))
+        end
+
+        it 'preloads it once the key is projected' do
+          driver = Driver.create!(firstname: 'other')
+          Car.create!(model: driver.firstname, driver: driver)
+          records = [Driver.select(:id, :firstname).find(driver.id)]
+
+          expect(preload(records, [:piloted_car]).size).to eq(1)
+          expect(records.first).to be_association_cached(:piloted_car)
+        end
+      end
+
+      # The Preloader resolves the reflection per record, off record.class._reflect_on_association
+      # (Preloader#grouped_records on 6.1, Branch#grouped_records on 7+), so a subclass that
+      # redeclares the relation keys the load on its own foreign key. Asking projected_resource
+      # instead would validate the base class's key and let the subclass's raise at query time.
+      context 'when a subclass redeclares the relation on another key' do
+        before do
+          BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+          allow(FOREST_LOGGER).to receive(:warn)
+        end
+
+        # Shares products' table, as an STI subclass does, and redeclares :driver on a column the
+        # table does not even hold - so nothing can have projected it.
+        let(:subclass) do
+          Class.new(Product) do
+            def self.name = 'SubProduct'
+            belongs_to :driver, class_name: 'Driver', foreign_key: :pilot_id, optional: true
+          end
+        end
+
+        it 'reads the key off each record class, not off the projected resource' do
+          product = products.first
+          records = [subclass.find(product.id)]
+
+          expect(records.first.class._reflect_on_association(:driver).foreign_key).to eq('pilot_id')
+          expect { preload(records, [:driver]) }.not_to raise_error
+          expect(FOREST_LOGGER).to have_received(:warn)
+            .with(a_string_including('"driver"', '"pilot_id"'))
+        end
+
+        it 'still preloads the base class records it is handed alongside' do
+          expect(preload(products, [:driver]).size).to eq(1)
+          expect(products.first).to be_association_cached(:driver)
+        end
+      end
     end
 
     describe '#smart_field_preloads' do

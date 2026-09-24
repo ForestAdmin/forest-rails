@@ -227,7 +227,7 @@ module ForestLiana
     def preload_cross_database_associations(records, associations)
       return if associations.empty? || records.empty?
 
-      associations = associations.reject { |name| missing_preload_key?(records.first, name) }
+      associations = associations.reject { |name| missing_preload_key?(records, name) }
       return if associations.empty?
 
       if Rails::VERSION::MAJOR >= 7
@@ -237,17 +237,26 @@ module ForestLiana
       end
     end
 
-    # A has_one carries its key on the target row, which the preload's own SELECT reads — only a
-    # belongs_to reads anything off the row this query built.
-    def missing_preload_key?(record, association_name)
-      association = projected_resource.reflect_on_association(association_name)
-      return false unless association&.macro == :belongs_to
+    # Not only a belongs_to: a has_one reads its owner key off this row too whenever the relation
+    # declares a primary_key of its own, and select_foreign_keys names nothing owner-side for a
+    # has_one the query does not join — which a cross-database one never is. Only the default case,
+    # where that key is the real primary key compute_select_fields always projects, is free.
+    #
+    # Asked of each record class rather than of projected_resource: the Preloader resolves the
+    # reflection per record, off record.class._reflect_on_association, so an STI subclass that
+    # redeclares the relation keys the load on its own foreign key, not the base class's. One
+    # record per class is enough — the select is the same for the whole page.
+    def missing_preload_key?(records, association_name)
+      records.group_by(&:class).any? do |klass, klass_records|
+        association = klass._reflect_on_association(association_name)
+        next false if association.nil?
 
-      missing = preload_owner_keys(association).reject { |key| record.has_attribute?(key) }
-      return false if missing.empty?
+        missing = preload_owner_keys(association).reject { |key| klass_records.first.has_attribute?(key) }
+        next false if missing.empty?
 
-      warn_cross_database_preload_skipped(association_name, missing)
-      true
+        warn_cross_database_preload_skipped(association_name, missing)
+        true
+      end
     end
 
     # Shares PRELOAD_SKIPS_WARNED with the smart-field path above: once per process per shape,
