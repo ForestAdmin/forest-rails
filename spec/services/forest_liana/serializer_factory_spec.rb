@@ -27,6 +27,62 @@ module ForestLiana
         expect(model).to be_nil
       end
 
+      # Car#pilot is cross-database and declares primary_key: :firstname, which is not Driver's
+      # primary key — the shape this branch intercepts.
+      describe 'a belongs_to whose declared primary_key is not the target primary key' do
+        let!(:pilot) { Driver.create!(firstname: 'ayrton') }
+        let!(:car) { Car.create!(model: 'ayrton', driver: Driver.create!(firstname: 'other')) }
+
+        def resolve(record)
+          serializer_class = described_class.new.serializer_for(Car)
+          instance = serializer_class.new(record, fields: { 'Car' => [:pilot], 'Driver' => [:id] })
+
+          instance.send(:has_one_relationships)[:pilot][:attr_or_block].call
+        end
+
+        def capture_queries
+          queries = []
+          subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+            queries << payload[:sql] unless payload[:cached] || payload[:name] == 'SCHEMA'
+          end
+          begin
+            yield
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+          queries
+        end
+
+        it 'reads the preloaded association rather than querying again' do
+          record = Car.find(car.id)
+          record.association(:pilot).target = pilot
+          record.association(:pilot).loaded!
+
+          queries = capture_queries { expect(resolve(record)).to eq(pilot) }
+
+          expect(queries).to be_empty
+        end
+
+        # The path this branch was written for, unchanged: nothing preloaded, so the find_by still
+        # resolves the relation off the declared key.
+        it 'falls back to the per-row find_by when nothing preloaded it' do
+          record = Car.find(car.id)
+
+          queries = capture_queries { expect(resolve(record)).to eq(pilot) }
+
+          expect(queries.size).to eq(1)
+          expect(queries.first).to match(/FROM "drivers".*"firstname"/m)
+        end
+
+        it 'answers nil for a key matching no target, loaded or not' do
+          unmatched = Car.create!(model: 'nobody', driver: Driver.create!(firstname: 'other'))
+          expect(resolve(unmatched)).to be_nil
+
+          unmatched.association(:pilot).target = nil
+          unmatched.association(:pilot).loaded!
+          expect(resolve(unmatched)).to be_nil
+        end
+      end
     end
   end
 end

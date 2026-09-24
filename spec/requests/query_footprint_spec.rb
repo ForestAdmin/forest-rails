@@ -798,6 +798,62 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  # Car#pilot declares primary_key: :firstname, which is not Driver's primary key —
+  # serializer_factory's has_one_relationships intercepts that shape with a find_by of its own,
+  # and that find_by ran per row, undoing the preload the getter had already done.
+  describe 'a list projecting a cross-database relation keyed on a custom primary_key' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |i|
+          Driver.create!(firstname: "pilot-#{i}")
+          Car.create!(model: "pilot-#{i}", driver: Driver.create!(firstname: 'other'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Car' => 'id,model,pilot', 'pilot' => 'firstname' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'reads the other database once for the page, not once per row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Car', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
+    end
+
+    it 'serializes the same relation the per-row find_by resolved' do
+      seed.call(2)
+
+      get '/forest/Car', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      body = JSON.parse(response.body)
+      linkage = body['data'].map { |row| [row['id'], row['relationships']['pilot']['data']] }
+      # What the per-row find_by this branch replaces would have resolved, row by row.
+      expected = body['data'].map do |row|
+        car = Car.find(row['id'])
+        [row['id'], Driver.find_by(firstname: car.model)&.id&.to_s]
+      end
+
+      expect(linkage.map { |id, data| [id, data && data['id']] }).to eq(expected)
+      expect(linkage.map { |_, data| data['type'] }).to all(eq('Driver'))
+    end
+
+    it 'still resolves a row whose key matches nothing' do
+      Car.create!(model: 'nobody', driver: Driver.create!(firstname: 'other'))
+
+      get '/forest/Car', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)['data'].first['relationships']['pilot']['data']).to be_nil
+    end
+  end
+
   describe 'a related list projecting a cross-database relation' do
     let!(:manufacturer) { Manufacturer.create!(name: 'maker') }
     let(:seed) do
