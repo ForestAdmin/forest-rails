@@ -172,6 +172,44 @@ module ForestLiana
       end
     end
 
+    # The same two shapes, on the other half of the mechanism: skip_preload? keeps them out of the
+    # preload, and this keeps them out of the select. Neither guard can be reached through a
+    # collection of the dummy — SmartFieldDependencies.validate! strips such a declaration at boot
+    # — so they are exercised the way a collection built outside that pass would reach them.
+    describe '#select_dependency_preload_keys' do
+      def keys_for(resource, relations, column: 'name', joined: nil)
+        getter.instance_variable_set(:@resource, resource)
+        select = []
+        getter.send(:select_dependency_preload_keys, select,
+                    SmartFieldDependencies::RelationPath.new(relations, column), joined)
+        select
+      end
+
+      it 'selects the key of every hop it can still reach' do
+        expect(keys_for(Tree, %w[owner trees_by_name], joined: [:owner]))
+          .to eq(['trees.owner_id', 'users.name'])
+      end
+
+      it 'selects nothing for a path naming a relation that does not exist' do
+        expect(keys_for(Tree, %w[nowhere])).to eq([])
+      end
+
+      it 'selects nothing for a path crossing a polymorphic relation' do
+        expect(keys_for(Address, %w[addressable])).to eq([])
+      end
+
+      # A class_name: pointing at no model, or a :through naming a hop that is not there: both
+      # answer NameError off #klass, which nothing here would otherwise catch.
+      it 'selects nothing for a path whose target model does not resolve' do
+        reflection = Tree.reflect_on_association(:island)
+        allow(reflection).to receive(:klass).and_raise(NameError, 'uninitialized constant Nowhere')
+        allow(Tree).to receive(:reflect_on_association).and_call_original
+        allow(Tree).to receive(:reflect_on_association).with(:island).and_return(reflection)
+
+        expect(keys_for(Tree, %w[island location], column: 'coordinates')).to eq([])
+      end
+    end
+
     # Every skip above silently reinstates the N+1 the declaration was written to remove, and
     # what breaks a declaration that used to work is usually a change made elsewhere, long after
     # anyone verified it. The log line is the only thing that says so.

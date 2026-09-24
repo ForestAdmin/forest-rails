@@ -93,12 +93,17 @@ module ForestLiana
               "location",
               "name",
               "owner",
+              "owner_named_trees",
               "updated_at",
               "name_with_age",
               "owner_name",
               "owner_name_declared",
               "island_coordinates",
               "through_coordinates",
+              "owner_named_trees_count",
+              "owner_named_tree_names",
+              "owner_titled_trees_count",
+              "location_trees_count",
               "smart_owner"
             ]
           )
