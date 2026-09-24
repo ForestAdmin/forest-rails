@@ -75,15 +75,25 @@ module ForestLiana
     # See HasManyGetter#query_for_batch: same dual-use split between a CSV export (which calls
     # #perform first, so this picks up its smart-field preload) and a bulk "select all" batch
     # (which never does, per initialize_resources_getter below, and only reads ids).
+    # On the relation, not a page: find_in_batches then resolves it per batch, so the key guard
+    # reads the select rather than a row. "Unprojected" only means this class did not narrow it —
+    # a segment whose scope calls .select narrows it before prepare_query ever returns.
     def query_for_batch
-      @unprojected_records ? apply_smart_field_preloads(@unprojected_records) : @base_records_for_batch
+      return @base_records_for_batch unless @unprojected_records
+
+      records = apply_smart_field_preloads(@unprojected_records)
+      cross_database = selectable_preloads(records, cross_database_associations(@resource))
+
+      cross_database.empty? ? records : records.preload(cross_database)
     end
 
     def records
       records = @records.offset(offset).limit(limit).to_a
-      polymorphic_association, preload_loads = analyze_associations(@resource)
+      polymorphic_association, = analyze_associations(@resource)
 
       preload_polymorphic_associations(records, polymorphic_association)
+      # On the page, not @records: count and query_for_batch build off the same relation.
+      preload_cross_database_associations(records, cross_database_associations(@resource))
 
       records
     end

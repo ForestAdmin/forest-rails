@@ -59,6 +59,287 @@ module ForestLiana
       end
     end
 
+    # Product's driver lives in another database; its manufacturer is the same-database control,
+    # which the query joins and must never preload.
+    describe '#cross_database_associations' do
+      def associations_for(resource, includes)
+        getter.instance_variable_set(:@includes, includes)
+        getter.send(:cross_database_associations, resource)
+      end
+
+      def with_stubbed_driver_reflection(**stubs)
+        reflection = Product.reflect_on_association(:driver)
+        stubs.each { |name, value| allow(reflection).to receive(name).and_return(value) }
+        allow(Product).to receive(:reflect_on_association).and_call_original
+        allow(Product).to receive(:reflect_on_association).with(:driver).and_return(reflection)
+        yield
+      end
+
+      it 'keeps the relation that lives in another database' do
+        expect(associations_for(Product, [:driver, :manufacturer])).to eq([:driver])
+      end
+
+      it 'drops a relation the query can join' do
+        expect(associations_for(Product, [:manufacturer])).to eq([])
+      end
+
+      it 'drops a name that is no association at all' do
+        expect(associations_for(Product, [:nowhere])).to eq([])
+      end
+
+      it 'drops a polymorphic relation, which has its own preloader' do
+        expect(associations_for(Address, [:addressable])).to eq([])
+      end
+
+      # A filter puts a relation in @includes too, and preloading a to-many there would read every
+      # child row of a page that never displays them.
+      it 'drops a to-many relation even when it lives in another database' do
+        with_stubbed_driver_reflection(macro: :has_many) do
+          expect(associations_for(Product, [:driver])).to eq([])
+        end
+      end
+
+      it 'keeps a has_one, whose target row carries the key' do
+        with_stubbed_driver_reflection(macro: :has_one) do
+          expect(associations_for(Product, [:driver])).to eq([:driver])
+        end
+      end
+
+      # Rails 6.1's Preloader refuses an instance-dependent scope outright (check_preloadable!);
+      # from Rails 7 it handles one.
+      it 'keeps an instance-dependent relation only where the Preloader accepts one' do
+        with_stubbed_driver_reflection(scope: ->(record) { where(firstname: record.name) }) do
+          expect(associations_for(Product, [:driver]))
+            .to eq(Rails::VERSION::MAJOR >= 7 ? [:driver] : [])
+        end
+      end
+
+      it 'treats an optional or splat argument as instance-dependent too, its arity being -1' do
+        with_stubbed_driver_reflection(scope: ->(*_args) {}) do
+          expect(associations_for(Product, [:driver]))
+            .to eq(Rails::VERSION::MAJOR >= 7 ? [:driver] : [])
+        end
+      end
+    end
+
+    describe '#preload_cross_database_associations' do
+      let(:products) do
+        manufacturer = Manufacturer.create!(name: 'maker')
+        2.times.map do
+          Product.create!(name: 'thing', uri: 'https://example.test', manufacturer: manufacturer,
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+        Product.order(:id).to_a
+      end
+
+      before do
+        Product.destroy_all
+        Driver.destroy_all
+        Manufacturer.destroy_all
+        getter.instance_variable_set(:@resource, Product)
+        getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Product', fields: []))
+      end
+
+      def preload(records, associations)
+        queries = []
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+          queries << payload[:sql] unless payload[:cached] || payload[:name] == 'SCHEMA'
+        end
+        begin
+          getter.send(:preload_cross_database_associations, records, associations)
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+        queries
+      end
+
+      it 'reads the other database once for the whole set, on this Rails version' do
+        records = products
+        expect(preload(records, [:driver]).size).to eq(1)
+
+        further = preload(records, [])
+        expect(records.map { |record| record.driver.firstname }).to all(eq('pilot'))
+        expect(further).to be_empty
+      end
+
+      it 'does nothing for an empty association list or an empty record set' do
+        expect { getter.send(:preload_cross_database_associations, [], [:driver]) }.not_to raise_error
+        expect { getter.send(:preload_cross_database_associations, products, []) }.not_to raise_error
+      end
+
+      # Unguarded this raises resolving the query, out of MissingAttributeValve's reach: a 500 on
+      # the whole list. compute_select_fields does select the key, so this is a floor.
+      context 'when the projection left the foreign key out' do
+        before { BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear }
+
+        let(:records) { products.map { |product| Product.select(:id).find(product.id) } }
+
+        it 'falls back to the load it replaces rather than failing the list' do
+          allow(FOREST_LOGGER).to receive(:warn)
+
+          expect { preload(records, [:driver]) }.not_to raise_error
+          expect(records.first).not_to be_association_cached(:driver)
+        end
+
+        it 'names the collection, the relation and the key it could not read' do
+          expect(FOREST_LOGGER).to receive(:warn).once do |message|
+            expect(message).to include('"driver"', '"Product"', '"driver_id"', 'another database')
+          end
+
+          3.times { preload(records, [:driver]) }
+        end
+      end
+
+      # A has_one carries its key on the target row — unless it declares a primary_key of its own,
+      # which the preload reads off the owner row and nothing projects for an unjoined relation.
+      context 'when a has_one declares a primary_key of its own' do
+        before do
+          BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+          getter.instance_variable_set(:@resource, Driver)
+          getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Driver', fields: []))
+          allow(FOREST_LOGGER).to receive(:warn)
+        end
+
+        let(:drivers) do
+          driver = Driver.create!(firstname: 'pilot')
+          Car.create!(model: driver.firstname, driver: driver)
+          [Driver.select(:id).find(driver.id)]
+        end
+
+        it 'falls back rather than raising on the key the projection left out' do
+          expect { preload(drivers, [:piloted_car]) }.not_to raise_error
+          expect(drivers.first).not_to be_association_cached(:piloted_car)
+          expect(FOREST_LOGGER).to have_received(:warn)
+            .with(a_string_including('"piloted_car"', '"firstname"'))
+        end
+
+        it 'preloads it once the key is projected' do
+          driver = Driver.create!(firstname: 'other')
+          Car.create!(model: driver.firstname, driver: driver)
+          records = [Driver.select(:id, :firstname).find(driver.id)]
+
+          expect(preload(records, [:piloted_car]).size).to eq(1)
+          expect(records.first).to be_association_cached(:piloted_car)
+        end
+      end
+
+      # The Preloader resolves the reflection off record.class._reflect_on_association, so asking
+      # projected_resource would validate the base class's key and let the subclass's raise.
+      context 'when a subclass redeclares the relation on another key' do
+        before do
+          BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+          allow(FOREST_LOGGER).to receive(:warn)
+        end
+
+        # Shares products' table, as an STI subclass does, on a column the table does not hold.
+        let(:subclass) do
+          Class.new(Product) do
+            def self.name = 'SubProduct'
+            belongs_to :driver, class_name: 'Driver', foreign_key: :pilot_id, optional: true
+          end
+        end
+
+        it 'reads the key off each record class, not off the projected resource' do
+          product = products.first
+          records = [subclass.find(product.id)]
+
+          expect(records.first.class._reflect_on_association(:driver).foreign_key).to eq('pilot_id')
+          expect { preload(records, [:driver]) }.not_to raise_error
+          expect(FOREST_LOGGER).to have_received(:warn)
+            .with(a_string_including('"driver"', '"pilot_id"'))
+        end
+
+        # The fan-out the grouping exists for. records.first is a base Product carrying driver_id,
+        # so a guard reading only it waves the page through and lets the subclass raise; one
+        # unreadable class is enough to stand the whole association down.
+        it 'skips the page when one of the classes on it cannot be read' do
+          records = [products.first, subclass.find(products.last.id)]
+
+          expect(records.map(&:class).uniq.size).to eq(2)
+          expect { preload(records, [:driver]) }.not_to raise_error
+          expect(records.first).not_to be_association_cached(:driver)
+          expect(FOREST_LOGGER).to have_received(:warn)
+            .with(a_string_including('"driver"', '"pilot_id"'))
+        end
+
+        it 'still preloads the base class records it is handed alongside' do
+          expect(preload(products, [:driver]).size).to eq(1)
+          expect(products.first).to be_association_cached(:driver)
+        end
+      end
+    end
+
+    # The relation-level half of the key guard: there is no record to read, only the select the
+    # relation carries, so what this can and cannot parse out of it decides whether the preload
+    # is attached at all.
+    describe '#selectable_preloads' do
+      before do
+        BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+        getter.instance_variable_set(:@resource, Product)
+        getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Product', fields: []))
+        allow(FOREST_LOGGER).to receive(:warn)
+      end
+
+      def kept(relation)
+        getter.send(:selectable_preloads, relation, [:driver])
+      end
+
+      it 'keeps everything when the query selects every column' do
+        expect(kept(Product.all)).to eq([:driver])
+      end
+
+      it 'keeps a key the select names, qualified or bare' do
+        expect(kept(Product.select('products.driver_id'))).to eq([:driver])
+        expect(kept(Product.select(:driver_id))).to eq([:driver])
+        expect(kept(Product.select('"products"."driver_id"'))).to eq([:driver])
+      end
+
+      it 'keeps a key a wildcard covers, written as a string or as an Arel attribute' do
+        expect(kept(Product.select('products.*'))).to eq([:driver])
+        expect(kept(Product.select(Product.arel_table[Arel.star]))).to eq([:driver])
+      end
+
+      # SqlLiteral is a String and is meant to be read as one.
+      it 'keeps a key a raw SQL literal names' do
+        expect(kept(Product.select(Arel.sql('driver_id')))).to eq([:driver])
+      end
+
+      it 'keeps a key a multi-column string names alongside others' do
+        expect(kept(Product.select('id, driver_id'))).to eq([:driver])
+        expect(kept(Product.select('DISTINCT id, driver_id'))).to eq([:driver])
+      end
+
+      it 'drops a key the select leaves out, and says so once' do
+        expect(kept(Product.select(:id, :name))).to eq([])
+        3.times { kept(Product.select(:id, :name)) }
+
+        expect(FOREST_LOGGER).to have_received(:warn).once
+          .with(a_string_including('"driver"', '"Product"', '"driver_id"', "query's select"))
+      end
+
+      # A qualified name belonging to another table says nothing about this row.
+      it 'drops a key only another table names' do
+        expect(kept(Product.select('manufacturers.driver_id'))).to eq([])
+      end
+
+      # Better a preload skipped than a 500: an expression this cannot read is treated as naming
+      # nothing, so the relation falls back to the lazy load it had before it was preloaded at all.
+      it 'drops a key an unreadable expression might have carried' do
+        expect(kept(Product.select('COALESCE(driver_id, 0) AS driver_id'))).to eq([])
+      end
+
+      # Splitting on commas without regard for parentheses reads this as naming driver_id, and
+      # the preload it lets through then raises on a column the row does not carry — the exact
+      # 500 this guard exists to prevent, reintroduced by the guard itself.
+      it 'drops a key only a function argument names' do
+        expect(kept(Product.select('COALESCE(uri, driver_id , name) AS x'))).to eq([])
+      end
+
+      it 'leaves a name that is no association of the resource alone' do
+        expect(getter.send(:selectable_preloads, Product.select(:id), [:nowhere])).to eq([:nowhere])
+      end
+    end
+
     describe '#smart_field_preloads' do
       # Built by hand rather than through a request: this pins the tree #preload is handed, which
       # a request spec can only observe through the queries it ends up producing.

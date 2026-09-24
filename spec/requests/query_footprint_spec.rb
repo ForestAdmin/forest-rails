@@ -74,7 +74,7 @@ describe 'SQL footprint of a front call', type: :request do
         page: page, searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
     end
 
-    it 'joins the same-database relation, never joins the other database, and reads it per row' do
+    it 'joins the same-database relation, never joins the other database, and reads it once' do
       result = footprint(seed: seed) do |rows|
         get '/forest/Product', params: params, headers: headers
         expect(response).to have_http_status(200)
@@ -84,8 +84,9 @@ describe 'SQL footprint of a front call', type: :request do
       expect(join_count(result.grown, 'manufacturers')).to eq(1)
       expect(join_count(result.grown, 'drivers')).to eq(0)
       expect(selects_from(result.grown, 'manufacturers')).to be_empty
-      expect(result.per_row_delta).to eq(1), -> { result.delta_report }
-      expect(result.per_row_delta(table: 'drivers')).to eq(1), -> { result.delta_report(table: 'drivers') }
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
 
       sql = selects_from(result.grown, 'products').first
       expect(sql).to include(
@@ -94,10 +95,117 @@ describe 'SQL footprint of a front call', type: :request do
       )
       expect(sql).not_to include(column_ref('products', 'uri'))
     end
+
+    it 'reads the other database in one statement keyed on the whole page' do
+      seed.call(3)
+
+      queries = capture_queries do
+        get '/forest/Product', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'drivers').size).to eq(1)
+      expect(selects_from(queries, 'drivers').first).to match(/IN \(/i)
+    end
+
+    it 'serializes the same relation it served before it was preloaded' do
+      seed.call(2)
+
+      get '/forest/Product', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      relationships = JSON.parse(response.body)['data'].map { |row| row['relationships']['driver']['data'] }
+      expect(relationships.map { |data| data['type'] }).to all(eq('Driver'))
+      expect(relationships.map { |data| data['id'] }).to match_array(Driver.pluck(:id).map(&:to_s))
+    end
+
+    it 'leaves a row whose cross-database key is null alone' do
+      Product.create!(name: 'orphan', uri: 'https://example.test',
+                      manufacturer: Manufacturer.create!(name: 'maker'), driver: nil)
+
+      queries = capture_queries do
+        get '/forest/Product', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'drivers')).to be_empty
+      expect(JSON.parse(response.body)['data'].first['relationships']['driver']['data']).to be_nil
+    end
+
+    it 'exports without reading the other database per row' do
+      export_params = params.merge(header: 'id,name,manufacturer,driver', filename: 'products')
+
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Product.csv', params: export_params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(response.body.lines.size).to eq(rows + 1)
+        # The columns this file is about: the attribute and the preloaded relation. Asserting the
+        # line count alone passes on a body whose every column is empty.
+        expect(response.body.lines.drop(1)).to all(match(/\A\d+,thing,.*,pilot\s*\z/))
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+    end
+  end
+
+  # A segment scope calling .select narrows @records before prepare_query returns, so
+  # "@unprojected_records is unprojected" never meant "selects everything" — only that this class
+  # did not narrow it. query_for_batch attaches its preload to that relation and find_in_batches
+  # resolves it per batch, long after any record could be checked, so the guard reads the select.
+  describe 'a list whose segment narrows the select' do
+    let(:collection) { ForestLiana.apimap.find { |entry| entry.name.to_s == 'Product' } }
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          Product.create!(name: 'thing', uri: 'https://example.test',
+                          manufacturer: Manufacturer.create!(name: 'maker'),
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Product' => 'id,name,driver', 'driver' => 'firstname' }, page: page,
+        segment: 'narrowed', searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    before do
+      ForestLiana::BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+      collection.segments << ForestLiana::Model::Segment.new(name: 'narrowed', scope: :narrowed_select)
+      allow(FOREST_LOGGER).to receive(:warn)
+    end
+
+    after { collection.segments.reject! { |segment| segment.name == 'narrowed' } }
+
+    it 'exports the rows rather than failing on the key the segment left out' do
+      seed.call(2)
+
+      get '/forest/Product.csv',
+          params: params.merge(header: 'id,name,driver', filename: 'products'), headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(response.body.lines.size).to eq(3)
+      # The segment's own columns are served; the relation resolves to null, the lazy load having
+      # no more of that key than the preload did. That is what the guard costs, and what the log
+      # line says.
+      expect(response.body.lines.drop(1)).to all(match(/\A\d+,thing,\s*\z/))
+      expect(FOREST_LOGGER).to have_received(:warn)
+        .with(a_string_including('"driver"', '"Product"', '"driver_id"', "query's select"))
+    end
+
+    it 'answers the list on the same segment' do
+      seed.call(2)
+
+      get '/forest/Product', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(listed_rows).to eq(2)
+    end
   end
 
   describe 'a get-one' do
-    it 'joins the same-database relation, reads the cross-database one once and loads every column' do
+    # Two joins on manufacturers, not one: Product declares `maker` alongside `manufacturer`, both
+    # same-database and both joinable.
+    it 'joins the same-database relations, reads the cross-database one once and loads every column' do
       manufacturer = Manufacturer.create!(name: 'maker')
       driver = Driver.create!(firstname: 'pilot')
       product = Product.create!(name: 'thing', uri: 'https://example.test',
@@ -109,7 +217,7 @@ describe 'SQL footprint of a front call', type: :request do
       end
 
       expect(selects_from(queries, 'products').size).to eq(1)
-      expect(join_count(queries, 'manufacturers')).to eq(1)
+      expect(join_count(queries, 'manufacturers')).to eq(2)
       expect(join_count(queries, 'drivers')).to eq(0)
       expect(selects_from(queries, 'manufacturers')).to be_empty
       expect(selects_from(queries, 'drivers').size).to eq(1)
@@ -706,6 +814,243 @@ describe 'SQL footprint of a front call', type: :request do
       expect(selects_from(result.grown, 'users').size).to eq(1)
       expect(JSON.parse(response.body)['data'].map { |row| row['attributes']['owner_name_declared'] })
         .to all(eq('owner'))
+    end
+  end
+
+  # On Car rather than Product, which the dummy declares countable: false — its count route
+  # short-circuits before building a query at all, and would guard nothing.
+  describe 'a count on a collection with a cross-database relation' do
+    let(:seed) do
+      lambda do |n|
+        n.times { Car.create!(model: 'coupe', driver: Driver.create!(firstname: 'pilot')) }
+      end
+    end
+    let(:params) do
+      { fields: { 'Car' => 'id,model,driver', 'driver' => 'firstname' }, page: page,
+        searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    # count and query_for_batch read the same @unprojected_records, so the count must not inherit
+    # a preload it has no page to run for.
+    it 'counts in one statement, without reading the other database' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Car/count', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(JSON.parse(response.body)['count']).to eq(rows)
+      end
+
+      expect(result.per_row_delta).to eq(0), -> { result.delta_report }
+      expect(selects_from(result.grown, 'cars').size).to eq(1)
+      expect(selects_from(result.grown, 'drivers')).to be_empty
+    end
+
+    it 'still preloads the other database once on the list itself' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Car', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
+    end
+  end
+
+  # serializer_factory intercepts this shape with a find_by of its own, which ran per row and
+  # undid the preload.
+  describe 'a list projecting a cross-database relation keyed on a custom primary_key' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |i|
+          Driver.create!(firstname: "pilot-#{i}")
+          Car.create!(model: "pilot-#{i}", driver: Driver.create!(firstname: 'other'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Car' => 'id,model,pilot', 'pilot' => 'firstname' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'reads the other database once for the page, not once per row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Car', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
+    end
+
+    it 'serializes the same relation the per-row find_by resolved' do
+      seed.call(2)
+
+      get '/forest/Car', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      body = JSON.parse(response.body)
+      linkage = body['data'].map { |row| [row['id'], row['relationships']['pilot']['data']] }
+      # What the per-row find_by this branch replaces would have resolved, row by row.
+      expected = body['data'].map do |row|
+        car = Car.find(row['id'])
+        [row['id'], Driver.find_by(firstname: car.model)&.id&.to_s]
+      end
+
+      expect(linkage.map { |id, data| [id, data && data['id']] }).to eq(expected)
+      expect(linkage.map { |_, data| data['type'] }).to all(eq('Driver'))
+    end
+
+    it 'still resolves a row whose key matches nothing' do
+      Car.create!(model: 'nobody', driver: Driver.create!(firstname: 'other'))
+
+      get '/forest/Car', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(JSON.parse(response.body)['data'].first['relationships']['pilot']['data']).to be_nil
+    end
+  end
+
+  # The has_one half. Its owner key is the declared primary_key, read off this row — and
+  # select_foreign_keys names nothing owner-side for a relation the query never joins, which a
+  # cross-database one never is. Unprojected, the preload raised and took the list down; projected
+  # only when requested, it fell back to the per-row load PRD-1317 exists to remove.
+  describe 'a list projecting a cross-database has_one keyed on a custom primary_key' do
+    let(:seed) do
+      lambda do |n|
+        n.times do |i|
+          driver = Driver.create!(firstname: "pilot-#{i}")
+          Car.create!(model: driver.firstname, driver: driver)
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Driver' => 'id,piloted_car', 'piloted_car' => 'id' }, page: page,
+        searchExtended: '0', sort: '-id', timezone: 'Europe/Paris' }
+    end
+
+    it 'selects the key the preload reads although nothing requested it' do
+      seed.call(2)
+
+      queries = capture_queries do
+        get '/forest/Driver', params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(response).to have_http_status(200)
+      expect(selects_from(queries, 'drivers').first).to include(column_ref('drivers', 'firstname'))
+    end
+
+    it 'preloads it in one statement rather than reading the other database per row' do
+      result = footprint(seed: seed) do |rows|
+        get '/forest/Driver', params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(result.per_row_delta(table: 'cars')).to eq(0), -> { result.delta_report(table: 'cars') }
+      expect(selects_from(result.grown, 'cars').size).to eq(1)
+      expect(selects_from(result.grown, 'cars').first).to match(/IN \(/i)
+    end
+
+    # Not what the fallback served: MissingAttributeValve resolved it up to Rails 7.0 and served
+    # null from 7.1, so the relation the front gets is only right once the key is projected.
+    it 'serves the linkage the relation actually resolves to' do
+      seed.call(2)
+
+      get '/forest/Driver', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      linkage = JSON.parse(response.body)['data'].map do |row|
+        [row['id'], row['relationships']['piloted_car']['data']&.fetch('id')]
+      end
+      expected = linkage.map { |id, _| [id, Car.find_by(model: Driver.find(id).firstname)&.id&.to_s] }
+
+      expect(linkage).to eq(expected)
+      expect(linkage.map { |_, car_id| car_id }).to all(be_present)
+    end
+  end
+
+  describe 'a related list projecting a cross-database relation' do
+    let!(:manufacturer) { Manufacturer.create!(name: 'maker') }
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          Product.create!(name: 'thing', uri: 'https://example.test', manufacturer: manufacturer,
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Product' => 'id,name,driver', 'driver' => 'firstname' }, page: page,
+        searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    # HasManyGetter preloads preload_loads from Rails 7 on, so this only ever read per row on 6.1,
+    # for a limitation that was never about another database.
+    it 'reads the other database once for the page on every supported Rails' do
+      result = footprint(seed: seed) do |rows|
+        get "/forest/Manufacturer/#{manufacturer.id}/relationships/products",
+            params: params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(listed_rows).to eq(rows)
+      end
+
+      expect(join_count(result.grown, 'drivers')).to eq(0)
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+      expect(selects_from(result.grown, 'drivers').size).to eq(1)
+    end
+
+    # query_for_batch takes the same relation optimize_record_loading already put the preload on,
+    # so the export inherits it — through a path nothing asserted.
+    it 'exports without reading the other database per row either' do
+      export_params = params.merge(header: 'id,name,driver', filename: 'products')
+
+      result = footprint(seed: seed) do |rows|
+        get "/forest/Manufacturer/#{manufacturer.id}/relationships/products.csv",
+            params: export_params, headers: headers
+        expect(response).to have_http_status(200)
+        expect(response.body.lines.size).to eq(rows + 1)
+        expect(response.body.lines.drop(1)).to all(match(/\A\d+,thing,pilot\s*\z/))
+      end
+
+      expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
+    end
+  end
+
+  # HasManyGetter attaches its preloads in prepare_query and only projects in #perform, so a
+  # relation carrying a narrowed select of its own is judged on a select the query never runs —
+  # and apply_projection was about to add the very key the guard reads, inherited_load_columns
+  # selecting it precisely because the preload is already attached.
+  describe 'a related list whose association narrows the select' do
+    let!(:manufacturer) { Manufacturer.create!(name: 'maker') }
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          Product.create!(name: 'thing', uri: 'https://example.test', manufacturer: manufacturer,
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Product' => 'id,name,driver', 'driver' => 'firstname' }, page: page,
+        searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    before { allow(FOREST_LOGGER).to receive(:warn) }
+
+    it 'preloads the cross-database relation the projection made safe' do
+      seed.call(3)
+
+      queries = capture_queries do
+        get "/forest/Manufacturer/#{manufacturer.id}/relationships/narrowed_products",
+            params: params, headers: headers
+        expect(response).to have_http_status(200)
+      end
+
+      expect(selects_from(queries, 'products').first).to include(column_ref('products', 'driver_id'))
+      expect(selects_from(queries, 'drivers').size).to eq(1)
+      expect(selects_from(queries, 'drivers').first).to match(/IN \(/i)
     end
   end
 

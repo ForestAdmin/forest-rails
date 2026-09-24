@@ -85,11 +85,15 @@ module ForestLiana
     # batch never calls #perform and only reads ids, so it falls back to the plain
     # @base_records_for_batch, which needs no preload.
     def query_for_batch
-      @unprojected_records ? apply_smart_field_preloads(@unprojected_records) : @base_records_for_batch
+      return @base_records_for_batch unless @unprojected_records
+
+      drop_unselected_preloads(apply_smart_field_preloads(@unprojected_records))
     end
 
+    # The preloads were attached in prepare_query, before #perform projected: this is the first
+    # point where the select is the one the query will run.
     def records
-      records = @records.limit(limit).offset(offset)
+      records = drop_unselected_preloads(@records).limit(limit).offset(offset)
       polymorphic_associations, = analyze_associations(model_association)
 
       # Left a Relation (not resolved yet) when there is nothing to preload - some callers still
@@ -222,9 +226,10 @@ module ForestLiana
       # already routed those (and cross-DB ones) into `preload_loads`, so `move_to_preload` is
       # always safe to preload; only `preload_loads` needs the Rails 7+ gate.
       result = result.preload(move_to_preload)
-      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7
 
-      result
+      # Of the two shapes in preload_loads, 6.1's preloader only refuses the instance-dependent
+      # ones — gating both left it reading a cross-database relation once per row for nothing.
+      result.preload(Rails::VERSION::MAJOR >= 7 ? preload_loads : cross_database_associations(resource))
     end
 
     # Association names (symbols) whose JOIN the current request actually needs, so they must

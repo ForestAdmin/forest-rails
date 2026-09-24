@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_22_120000) do
+ActiveRecord::Schema.define(version: 2026_09_24_120000) do
 
   create_table "addresses", force: :cascade do |t|
     t.string "line1"
@@ -75,6 +75,7 @@ ActiveRecord::Schema.define(version: 2026_09_22_120000) do
     t.string "name"
     t.integer "manufacturer_id"
     t.integer "driver_id"
+    t.string "maker_name"
     t.index ["driver_id"], name: "index_products_on_driver_id"
     t.index ["manufacturer_id"], name: "index_products_on_manufacturer_id"
   end

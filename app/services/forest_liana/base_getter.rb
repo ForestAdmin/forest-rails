@@ -38,7 +38,9 @@ module ForestLiana
       polymorphic, preload_loads = analyze_associations(resource)
       result = records.eager_load(@includes.uniq - preload_loads - polymorphic - @optional_includes)
 
-      result = result.preload(preload_loads) if Rails::VERSION::MAJOR >= 7 && force_preload
+      if Rails::VERSION::MAJOR >= 7 && force_preload
+        result = result.preload(selectable_preloads(result, preload_loads))
+      end
 
       result
     end
@@ -48,6 +50,7 @@ module ForestLiana
     # instance_eval, once per record — loaded here in one query for the whole page instead.
     def apply_smart_field_preloads(records)
       preloads = smart_field_preloads
+      preloads = preloads.slice(*selectable_preloads(records, preloads.keys))
 
       preloads.empty? ? records : records.preload(preloads)
     end
@@ -190,6 +193,153 @@ module ForestLiana
           end
         end
       end
+    end
+
+    # To-one only: a filter puts a to-many in @includes too, and preloading that would read every
+    # child row of a page that never displays them.
+    PRELOADABLE_CROSS_DATABASE_MACROS = [:belongs_to, :has_one].freeze
+
+    def cross_database_associations(resource)
+      @includes.uniq.select do |name|
+        association = resource.reflect_on_association(name)
+        next false if association.nil? || SchemaUtils.polymorphic?(association)
+        next false unless PRELOADABLE_CROSS_DATABASE_MACROS.include?(association.macro)
+
+        separate_database?(resource, association) && instance_dependent_hop(association).nil?
+      end
+    end
+
+    # Same version split as preload_polymorphic_associations. Nothing reads the loaders back here:
+    # a plain relation lands in the association cache, where the serializer finds it.
+    def preload_cross_database_associations(records, associations)
+      return if associations.empty? || records.empty?
+
+      associations = associations.reject { |name| missing_preload_key?(records, name) }
+      return if associations.empty?
+
+      if Rails::VERSION::MAJOR >= 7
+        ActiveRecord::Associations::Preloader.new(records: records, associations: associations).call
+      else
+        ActiveRecord::Associations::Preloader.new.preload(records, associations)
+      end
+    end
+
+    # A missing key raises while resolving the query, out of MissingAttributeValve's reach, and
+    # takes down the whole list rather than the one field (PRD-1316 from the other direction).
+    # Not only a belongs_to: a has_one reads its owner key off this row too when it declares a
+    # primary_key of its own. Per record class, not projected_resource, because that is how the
+    # Preloader resolves the reflection — one record per class is enough, the select being shared.
+    def missing_preload_key?(records, association_name)
+      records.group_by(&:class).any? do |klass, klass_records|
+        association = klass._reflect_on_association(association_name)
+        next false if association.nil?
+
+        missing = preload_owner_keys(association).reject { |key| klass_records.first.has_attribute?(key) }
+        next false if missing.empty?
+
+        warn_cross_database_preload_skipped(association_name, missing)
+        true
+      end
+    end
+
+    def warn_cross_database_preload_skipped(association_name, missing_keys)
+      reason = "its \"#{missing_keys.join('", "')}\" key is not in the projected select"
+      return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])
+
+      FOREST_LOGGER.warn "The \"#{association_name}\" relation of the \"#{@collection&.name}\" " \
+        "collection lives in another database and cannot be preloaded (#{reason}) — it falls back " \
+        'to the lazy load, which cannot read that key either and resolves to a null relation.'
+    end
+
+    # The same question as missing_preload_key?, asked of a relation rather than of a page. A
+    # preload attached to a relation resolves after this method returns — per batch for an export,
+    # on #load for a list — so there is no record to test the key against, only the select the
+    # relation already carries. An empty one is SELECT *, which can never be missing anything; a
+    # narrowed one (a segment scope's .select, a default_scope's) can, and reading a key that is
+    # not there raises while resolving the query, out of MissingAttributeValve's reach, taking
+    # down the whole export where the lazy load it replaces degraded to a null relation.
+    def selectable_preloads(records, names)
+      return names if names.empty? || !records.respond_to?(:select_values)
+      return names if records.select_values.empty?
+
+      selected = selected_column_names(records)
+      return names if selected.include?('*')
+
+      names.reject do |name|
+        association = projected_resource.reflect_on_association(name)
+        next false if association.nil?
+
+        missing = preload_owner_keys(association).reject { |key| selected.include?(key.to_s) }
+        next false if missing.empty?
+
+        warn_unselected_preload_key(name, missing)
+        true
+      end
+    end
+
+    # Only a plain column reference can be read back off a select.
+    PLAIN_SELECT_REFERENCE = /\A(?:"?(?<table>\w+)"?\.)?"?(?<column>\w+|\*)"?\z/
+
+    def selected_column_names(records)
+      table = projected_resource.table_name
+
+      records.select_values.each_with_object(Set.new) do |value, names|
+        select_references(value).each do |reference|
+          match = PLAIN_SELECT_REFERENCE.match(reference)
+          next if match.nil? || (match[:table] && match[:table] != table)
+
+          names << match[:column]
+        end
+      end
+    end
+
+    # One select_value can name several columns, which splitting on commas recovers — but only
+    # while no parenthesis is in play: `COALESCE(uri, driver_id, name) AS x` would otherwise read
+    # as naming driver_id, and the preload that lets through raises on a column the row does not
+    # carry, which is the failure this guard exists to prevent. An expression names nothing here,
+    # so the preload is skipped and the relation left to the lazy load — the safe way to be wrong.
+    #
+    # SqlLiteral is a String, and is meant to be read like one. An Arel attribute is not, and
+    # carries its table and column apart, `products.*` included.
+    def select_references(value)
+      case value
+      when String, Symbol
+        text = value.to_s
+        text.include?('(') ? [] : text.split(',').map(&:strip)
+      when Arel::Attributes::Attribute
+        value.relation.respond_to?(:name) ? ["#{value.relation.name}.#{value.name}"] : []
+      else
+        []
+      end
+    end
+
+    # Re-checks the preloads a relation already carries, for the callers that attach them before
+    # the select is final — HasManyGetter builds its query in prepare_query and only projects in
+    # #perform. Judging the intermediate select drops preloads apply_projection was about to make
+    # safe: inherited_load_columns reads preload_values and selects their keys precisely because
+    # they are already attached. So the question is asked here, where the select is the one the
+    # query will run, and #preload only ever adds — removing one means rebuilding the relation.
+    def drop_unselected_preloads(records)
+      values = records.preload_values
+      return records if values.empty?
+
+      kept_names = selectable_preloads(records, association_names(values))
+      kept = values.select do |value|
+        names = value.is_a?(Hash) ? value.keys : [value]
+        names.all? { |name| kept_names.include?(name.to_sym) }
+      end
+
+      kept.size == values.size ? records : records.except(:preload).preload(kept)
+    end
+
+    def warn_unselected_preload_key(association_name, missing_keys)
+      reason = "its \"#{missing_keys.join('", "')}\" key is not in the query's select"
+      return unless PRELOAD_SKIPS_WARNED.add?([@collection&.name, association_name, reason])
+
+      FOREST_LOGGER.warn "The \"#{association_name}\" relation of the \"#{@collection&.name}\" " \
+        "collection cannot be preloaded (#{reason}) — it falls back to the lazy load, which reads " \
+        'it once per record where that key is on the row and resolves to a null relation where ' \
+        'it is not.'
     end
 
     # records_by_owner's keys are the exact objects the Preloader was given, not copies — no need
@@ -362,6 +512,19 @@ module ForestLiana
 
         select << "#{projected_resource.table_name}.#{association.foreign_type}"
         select_foreign_keys(select, projected_resource, association, joined?(association, joined_relations))
+      end
+
+      # A cross-database to-one relation is never joined, so select_foreign_keys names nothing
+      # owner-side for the has_one half of it — and the preloader reads that key off this row.
+      # Without it here the guard in preload_cross_database_associations fires on every page and
+      # the relation keeps being read once per record, which is the N+1 this file removes. Off
+      # @includes for the same reason as the polymorphic loop above: the preload runs over all of
+      # it, not only the requested subset.
+      cross_database_associations(projected_resource).each do |name|
+        association = projected_resource.reflect_on_association(name)
+        preload_owner_keys(association).each do |key|
+          select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
+        end
       end
 
       @field_names_requested.each do |path|
