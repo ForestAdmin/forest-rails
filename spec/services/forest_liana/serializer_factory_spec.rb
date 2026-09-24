@@ -130,9 +130,20 @@ module ForestLiana
           let!(:anonymous) { Driver.create!(firstname: nil) }
           let!(:car) { Car.create!(model: nil, driver: Driver.create!(firstname: 'other')) }
 
+          def resolve_pilot(record)
+            resolve(record, Car, :pilot, { 'Car' => [:pilot], 'Driver' => [:id] })
+          end
+
           # find_by(firstname: nil) emits `WHERE firstname IS NULL LIMIT 1`, which answers a row
-          # having nothing to do with this one.
+          # having nothing to do with this one. Asserted on the unscoped Car#pilot: a SQL scope
+          # excludes NULL on its own, so active_pilot's own `where.not` would carry the example
+          # and leave the nil-key guard untested.
           it 'answers nil rather than the first null-keyed row' do
+            expect(resolve_pilot(Car.find(car.id))).to be_nil
+            expect(resolve_pilot(preloaded([Car.find(car.id)], :pilot).first)).to be_nil
+          end
+
+          it 'answers nil on a scoped relation too' do
             expect(resolve_car(Car.find(car.id))).to be_nil
             expect(resolve_car(preloaded([Car.find(car.id)], :active_pilot).first)).to be_nil
           end
@@ -157,7 +168,8 @@ module ForestLiana
         context 'on a same-database relation the query joins' do
           let!(:retired) { Manufacturer.create!(name: 'retired') }
           let!(:product) do
-            Product.create!(name: 'retired', uri: 'https://example.test', manufacturer: retired)
+            Product.create!(name: 'thing', uri: 'https://example.test', maker_name: 'retired',
+                            manufacturer: retired)
           end
 
           def resolve_product(record)
@@ -174,7 +186,8 @@ module ForestLiana
 
           it 'answers the target both ways when the scope admits it' do
             maker = Manufacturer.create!(name: 'active')
-            kept = Product.create!(name: 'active', uri: 'https://example.test', manufacturer: maker)
+            kept = Product.create!(name: 'thing', uri: 'https://example.test', maker_name: 'active',
+                                   manufacturer: maker)
 
             expect(resolve_product(Product.eager_load(:maker).find(kept.id))).to eq(maker)
             expect(resolve_product(Product.find(kept.id))).to eq(maker)

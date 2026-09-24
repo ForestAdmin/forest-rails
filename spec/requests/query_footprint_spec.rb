@@ -139,6 +139,9 @@ describe 'SQL footprint of a front call', type: :request do
         get '/forest/Product.csv', params: export_params, headers: headers
         expect(response).to have_http_status(200)
         expect(response.body.lines.size).to eq(rows + 1)
+        # The columns this file is about: the attribute and the preloaded relation. Asserting the
+        # line count alone passes on a body whose every column is empty.
+        expect(response.body.lines.drop(1)).to all(match(/\A\d+,thing,.*,pilot\s*\z/))
       end
 
       expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }
@@ -181,6 +184,10 @@ describe 'SQL footprint of a front call', type: :request do
 
       expect(response).to have_http_status(200)
       expect(response.body.lines.size).to eq(3)
+      # The segment's own columns are served; the relation resolves to null, the lazy load having
+      # no more of that key than the preload did. That is what the guard costs, and what the log
+      # line says.
+      expect(response.body.lines.drop(1)).to all(match(/\A\d+,thing,\s*\z/))
       expect(FOREST_LOGGER).to have_received(:warn)
         .with(a_string_including('"driver"', '"Product"', '"driver_id"', "query's select"))
     end
@@ -1004,6 +1011,7 @@ describe 'SQL footprint of a front call', type: :request do
             params: export_params, headers: headers
         expect(response).to have_http_status(200)
         expect(response.body.lines.size).to eq(rows + 1)
+        expect(response.body.lines.drop(1)).to all(match(/\A\d+,thing,pilot\s*\z/))
       end
 
       expect(result.per_row_delta(table: 'drivers')).to eq(0), -> { result.delta_report(table: 'drivers') }

@@ -4,9 +4,11 @@ class Product < ApplicationRecord
 
   # Same database, but the same shape the serializer intercepts: a primary_key that is not the
   # target's, plus a scope. Joined rather than preloaded, so it pins that the intercept is about
-  # the declared key, not about crossing a database.
+  # the declared key, not about crossing a database. On a column of its own: a foreign key is not
+  # a serialized attribute, so keying this on `name` would take `name` off every Product payload
+  # in the suite.
   belongs_to :maker, -> { where.not(name: 'retired') }, class_name: 'Manufacturer',
-             primary_key: :name, foreign_key: :name, optional: true
+             primary_key: :name, foreign_key: :maker_name, optional: true
 
   # What a segment scope calling .select does to a relation before any getter sees it.
   scope :narrowed_select, -> { select(:id, :name) }
