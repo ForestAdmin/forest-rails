@@ -88,6 +88,70 @@ module ForestLiana
           ])
         end
       end
+
+      context 'when the related collection is scoped on a field of its own relationship' do
+        let(:scopes) {
+          {
+            'scopes' => {
+              'Tree' => { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'owner:name', 'operator' => 'equal', 'value' => 'Aegon' }] }
+            },
+            'team' => { 'id' => '1', 'name' => 'Operations' }
+          }
+        }
+
+        before(:each) do
+          Tree.find_by!(name: 'Lone Tree').update!(owner: User.create!(name: 'Aegon'))
+          Tree.find_by!(name: 'Old Tree').update!(owner: User.create!(name: 'Davos'))
+        end
+
+        it 'only aggregates the related records the scope keeps' do
+          getter = LeaderboardStatGetter.new(Island, params, user)
+          getter.perform
+
+          expect(getter.record.value).to eq([
+            { key: 'Skagos', value: 1 }
+          ])
+        end
+      end
+    end
+
+    describe 'on a scoped parent collection whose default_scope orders' do
+      let(:scopes) {
+        {
+          'scopes' => {
+            'Owner' => { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'name', 'operator' => 'not_equal', 'value' => 'Theon' }] }
+          },
+          'team' => { 'id' => '1', 'name' => 'Operations' }
+        }
+      }
+      let(:params) {
+        {
+          type: 'Leaderboard',
+          timezone: 'Europe/Paris',
+          relationshipFieldName: 'trees',
+          labelFieldName: 'name',
+          aggregator: 'Count',
+          limit: 5
+        }
+      }
+
+      before(:each) do
+        jon = Owner.create!(name: 'Jon', hired_at: 2.years.ago)
+        sansa = Owner.create!(name: 'Sansa', hired_at: 1.year.ago)
+
+        Tree.create!(name: 'Weirwood', owner_id: jon.id)
+        2.times { |index| Tree.create!(name: "Pine #{index}", owner_id: sansa.id) }
+      end
+
+      it 'ranks by the aggregate, not by the default_scope ordering' do
+        getter = LeaderboardStatGetter.new(Owner, params, user)
+        getter.perform
+
+        expect(getter.record.value).to eq([
+          { key: 'Sansa', value: 2 },
+          { key: 'Jon', value: 1 }
+        ])
+      end
     end
   end
 end

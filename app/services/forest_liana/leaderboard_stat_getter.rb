@@ -21,12 +21,15 @@ module ForestLiana
       #         the query starts from the parent: querying the related model leaves the parent
       #         table out of the FROM clause unless it happens to be one of its belongs_to.
       aggregation = aggregation_sql(@aggregate, @aggregate_field, @scoped_child_model)
+      child_key = @scoped_child_model.primary_key
 
+      # NOTICE: The related collection scope goes through a subquery: merging it would re-root its
+      #         joins onto the parent, and reorder drops the ordering of the parent default_scope.
       result = @scoped_parent_model
         .joins(@relationship_field_name)
-        .merge(@scoped_child_model)
+        .where(@scoped_child_model.table_name => { child_key => @scoped_child_model.select(child_key) })
         .group(@group_by)
-        .order(Arel.sql("#{alias_name} DESC"))
+        .reorder(Arel.sql("#{alias_name} DESC"))
         .limit(@limit)
         .pluck(@group_by, Arel.sql("#{aggregation} AS #{alias_name}"))
         .map { |key, value| { key: key, value: value } }
