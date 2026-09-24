@@ -145,6 +145,56 @@ describe 'SQL footprint of a front call', type: :request do
     end
   end
 
+  # A segment scope calling .select narrows @records before prepare_query returns, so
+  # "@unprojected_records is unprojected" never meant "selects everything" — only that this class
+  # did not narrow it. query_for_batch attaches its preload to that relation and find_in_batches
+  # resolves it per batch, long after any record could be checked, so the guard reads the select.
+  describe 'a list whose segment narrows the select' do
+    let(:collection) { ForestLiana.apimap.find { |entry| entry.name.to_s == 'Product' } }
+    let(:seed) do
+      lambda do |n|
+        n.times do
+          Product.create!(name: 'thing', uri: 'https://example.test',
+                          manufacturer: Manufacturer.create!(name: 'maker'),
+                          driver: Driver.create!(firstname: 'pilot'))
+        end
+      end
+    end
+    let(:params) do
+      { fields: { 'Product' => 'id,name,driver', 'driver' => 'firstname' }, page: page,
+        segment: 'narrowed', searchExtended: '0', timezone: 'Europe/Paris' }
+    end
+
+    before do
+      ForestLiana::BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+      collection.segments << ForestLiana::Model::Segment.new(name: 'narrowed', scope: :narrowed_select)
+      allow(FOREST_LOGGER).to receive(:warn)
+    end
+
+    after { collection.segments.reject! { |segment| segment.name == 'narrowed' } }
+
+    it 'exports the rows rather than failing on the key the segment left out' do
+      seed.call(2)
+
+      get '/forest/Product.csv',
+          params: params.merge(header: 'id,name,driver', filename: 'products'), headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(response.body.lines.size).to eq(3)
+      expect(FOREST_LOGGER).to have_received(:warn)
+        .with(a_string_including('"driver"', '"Product"', '"driver_id"', "query's select"))
+    end
+
+    it 'answers the list on the same segment' do
+      seed.call(2)
+
+      get '/forest/Product', params: params, headers: headers
+
+      expect(response).to have_http_status(200)
+      expect(listed_rows).to eq(2)
+    end
+  end
+
   describe 'a get-one' do
     it 'joins the same-database relation, reads the cross-database one once and loads every column' do
       manufacturer = Manufacturer.create!(name: 'maker')

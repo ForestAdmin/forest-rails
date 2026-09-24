@@ -256,6 +256,59 @@ module ForestLiana
       end
     end
 
+    # The relation-level half of the key guard: there is no record to read, only the select the
+    # relation carries, so what this can and cannot parse out of it decides whether the preload
+    # is attached at all.
+    describe '#selectable_preloads' do
+      before do
+        BaseGetter.const_get(:PRELOAD_SKIPS_WARNED).clear
+        getter.instance_variable_set(:@resource, Product)
+        getter.instance_variable_set(:@collection, Model::Collection.new(name: 'Product', fields: []))
+        allow(FOREST_LOGGER).to receive(:warn)
+      end
+
+      def kept(relation)
+        getter.send(:selectable_preloads, relation, [:driver])
+      end
+
+      it 'keeps everything when the query selects every column' do
+        expect(kept(Product.all)).to eq([:driver])
+      end
+
+      it 'keeps a key the select names, qualified or bare' do
+        expect(kept(Product.select('products.driver_id'))).to eq([:driver])
+        expect(kept(Product.select(:driver_id))).to eq([:driver])
+        expect(kept(Product.select('"products"."driver_id"'))).to eq([:driver])
+      end
+
+      it 'keeps a key a wildcard covers' do
+        expect(kept(Product.select('products.*'))).to eq([:driver])
+      end
+
+      it 'drops a key the select leaves out, and says so once' do
+        expect(kept(Product.select(:id, :name))).to eq([])
+        3.times { kept(Product.select(:id, :name)) }
+
+        expect(FOREST_LOGGER).to have_received(:warn).once
+          .with(a_string_including('"driver"', '"Product"', '"driver_id"', "query's select"))
+      end
+
+      # A qualified name belonging to another table says nothing about this row.
+      it 'drops a key only another table names' do
+        expect(kept(Product.select('manufacturers.driver_id'))).to eq([])
+      end
+
+      # Better a preload skipped than a 500: an expression this cannot read is treated as naming
+      # nothing, so the relation falls back to the load it had before it was preloaded at all.
+      it 'drops a key an unreadable expression might have carried' do
+        expect(kept(Product.select('COALESCE(driver_id, 0) AS driver_id'))).to eq([])
+      end
+
+      it 'leaves a name that is no association of the resource alone' do
+        expect(getter.send(:selectable_preloads, Product.select(:id), [:nowhere])).to eq([:nowhere])
+      end
+    end
+
     describe '#smart_field_preloads' do
       # Built by hand rather than through a request: this pins the tree #preload is handed, which
       # a request spec can only observe through the queries it ends up producing.
