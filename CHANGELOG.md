@@ -1,3 +1,10 @@
+## [9.22.3](https://github.com/ForestAdmin/forest-rails/compare/v9.22.2...v9.22.3) (2026-09-25)
+
+
+### Bug Fixes
+
+* **charts:** build a leaderboard from the parent collection so its table reaches the FROM clause ([#807](https://github.com/ForestAdmin/forest-rails/issues/807)) ([bd03ba2](https://github.com/ForestAdmin/forest-rails/commit/bd03ba22d1784b14e747e59bb82ad346e9b55274))
+
 ## [9.22.2](https://github.com/ForestAdmin/forest-rails/compare/v9.22.1...v9.22.2) (2026-09-24)
 
 
