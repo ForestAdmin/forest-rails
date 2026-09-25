@@ -1,22 +1,22 @@
 module ForestLiana
   module AggregationHelper
-    def resolve_field_path(field_param, default_field = 'id')
+    def resolve_field_path(field_param, default_field = 'id', resource = @resource)
       if field_param.blank?
-        default_field ||= @resource.primary_key || 'id'
-        return "#{@resource.table_name}.#{default_field}"
+        default_field ||= resource.primary_key || 'id'
+        return "#{resource.table_name}.#{default_field}"
       end
 
       if field_param.include?(':')
         association, field = field_param.split ':'
-        associated_resource = @resource.reflect_on_association(association.to_sym)
+        associated_resource = resource.reflect_on_association(association.to_sym)
         "#{associated_resource.table_name}.#{field}"
       else
-        "#{@resource.table_name}.#{field_param}"
+        "#{resource.table_name}.#{field_param}"
       end
     end
 
-    def aggregation_sql(type, field)
-      field_path = resolve_field_path(field)
+    def aggregation_sql(type, field, resource = @resource)
+      field_path = resolve_field_path(field, 'id', resource)
 
       case type
       when 'sum'
