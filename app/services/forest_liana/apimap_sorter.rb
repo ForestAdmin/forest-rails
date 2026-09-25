@@ -111,14 +111,23 @@ module ForestLiana
 
     def sort_array_of_objects(array)
       array.sort! do |element1, element2|
-        [element1['type'], element1['id']] <=>  [element2['type'], element2['id']]
+        comparison_key(element1, 'type', 'id') <=> comparison_key(element2, 'type', 'id')
       end
     end
 
     def sort_array_of_fields(array)
       array.sort do |field1, field2|
-        [field1['field'], field1['type']] <=>  [field2['field'], field2['type']]
+        comparison_key(field1, 'field', 'type') <=> comparison_key(field2, 'field', 'type')
       end
+    end
+
+    # NOTICE: A field 'type' is a String ('String'), an Array (['String'] for an array
+    # column) or a Hash (nested type), and those are not comparable with one another:
+    # `['String'] <=> 'String'` returns nil, which makes `sort` raise an ArgumentError.
+    # Comparing the JSON representation keeps the ordering total whatever the values are.
+    # Plain strings keep their previous relative order, so sorted apimaps do not churn.
+    def comparison_key(object, *keys)
+      keys.map { |key| object[key].to_json }
     end
 
     def reorder_keys_basic(object)
