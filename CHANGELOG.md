@@ -1,3 +1,10 @@
+## [9.22.4](https://github.com/ForestAdmin/forest-rails/compare/v9.22.3...v9.22.4) (2026-09-28)
+
+
+### Bug Fixes
+
+* **apimap-sorter:** keep sorting when fields share a name with different types ([#812](https://github.com/ForestAdmin/forest-rails/issues/812)) ([c8265df](https://github.com/ForestAdmin/forest-rails/commit/c8265df6598c91ab30ea7fc29b32ccfa66984680))
+
 ## [9.22.3](https://github.com/ForestAdmin/forest-rails/compare/v9.22.2...v9.22.3) (2026-09-25)
 
 
