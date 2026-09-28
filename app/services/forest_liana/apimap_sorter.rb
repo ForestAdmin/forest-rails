@@ -110,15 +110,16 @@ module ForestLiana
     private
 
     def sort_array_of_objects(array)
-      array.sort! do |element1, element2|
-        [element1['type'], element1['id']] <=>  [element2['type'], element2['id']]
-      end
+      array.sort_by! { |element| [element['type'].to_s, element['id'].to_s] }
     end
 
+    # NOTICE: A field 'type' is a String ('String'), an Array (['String'] for an array column)
+    # or a Hash (a nested type), and those are not comparable with one another:
+    # `['String'] <=> 'String'` returns nil, which makes `sort` raise an ArgumentError as soon
+    # as two fields share a name. Only the tie-breaker ever needs to be total, so JSON-ifying
+    # that one alone keeps the primary key byte-for-byte identical and the apimap churn-free.
     def sort_array_of_fields(array)
-      array.sort do |field1, field2|
-        [field1['field'], field1['type']] <=>  [field2['field'], field2['type']]
-      end
+      array.sort_by { |field| [field['field'].to_s, field['type'].to_json] }
     end
 
     def reorder_keys_basic(object)
