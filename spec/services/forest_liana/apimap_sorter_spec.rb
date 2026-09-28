@@ -180,40 +180,50 @@ module ForestLiana
         # swallowed it and returned a half-processed apimap: collections that were never
         # reached kept attributes outside KEYS_COLLECTION (such as 'search_fields'), and
         # the Forest API rejects those with `HTTP 400 ValidationFailedError`.
-        apimap = {
-          'meta': {
-            liana: 'forest-rails',
-            'liana_version': '1.5.24',
-          },
-          'data': [{
-            id: 'posts',
-            type: 'collections',
-            attributes: {
-              name: 'posts',
-              fields: [
-                { field: 'tags', type: ['String'] },
-                { field: 'tags', type: 'String' },
-                { field: 'meta', type: { fields: [{ field: 'locale', type: 'String' }] } },
-                { field: 'meta', type: 'String' },
-                { field: 'id', type: 'Number' },
-              ],
-            }
-          }, {
-            id: 'zebras',
-            type: 'collections',
-            attributes: {
-              'search_fields': ['name'],
-              fields: [
-                { field: 'id', type: 'Number' },
-              ],
-              name: 'zebras',
-            }
-          }]
-        }
+        let(:apimap) do
+          ActiveSupport::JSON.decode(ActiveSupport::JSON.encode({
+            'meta': {
+              stack: {
+                'orm_version': '4.34.9',
+                'database_type': 'postgresql',
+              },
+              liana: 'forest-rails',
+              'liana_version': '1.5.24',
+            },
+            'data': [{
+              id: 'posts',
+              type: 'collections',
+              attributes: {
+                name: 'posts',
+                fields: [
+                  { field: 'tags', type: ['String'] },
+                  { field: 'tags', type: 'String' },
+                  { field: 'meta', type: { fields: [{ field: 'locale', type: 'String' }] } },
+                  { field: 'meta', type: 'String' },
+                  { field: 'id', type: 'Number' },
+                ],
+              }
+            }, {
+              id: 'zebras',
+              type: 'collections',
+              attributes: {
+                'search_fields': ['name'],
+                fields: [
+                  { field: 'id', type: 'Number' },
+                ],
+                name: 'zebras',
+              }
+            }]
+          }))
+        end
 
-        apimap = ActiveSupport::JSON.encode(apimap)
-        apimap = ActiveSupport::JSON.decode(apimap)
-        apimap_sorted = ApimapSorter.new(apimap).perform
+        let(:apimap_sorted) { ApimapSorter.new(apimap).perform }
+
+        it 'should reorder the whole apimap without bailing out' do
+          expect(FOREST_LOGGER).not_to receive(:warn)
+
+          apimap_sorted
+        end
 
         it 'should sort the fields of the offending collection' do
           expect(apimap_sorted['data'][0]['attributes']['fields'].map { |field| field['field'] })
