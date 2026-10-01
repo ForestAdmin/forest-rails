@@ -335,18 +335,40 @@ module ForestLiana
       # association, so FieldPath would otherwise resolve it to a column of +model+ itself — the
       # collection its `reference` actually points to is checked instead, the same target
       # `fields_per_model` already resolves a caller-named smart relation to.
-      def resolve_owner(model, field_name)
+      def resolve_owner(model, field_name, smart_field_fallback: true)
         smart_field = smart_belongs_to_field(model, field_name)
 
         return [smart_field[:reference].split('.').first] if smart_field
 
-        FieldPath.leaf_collection_names(model, field_name)
+        targets = FieldPath.leaf_collection_names(model, field_name)
+        return targets if targets.any? { |name| collection_exposed?(name) }
+
+        # No relation to an unexposed target reaches the caller, so a computed smart field of the same
+        # name is the only field this name can mean: its block reads the root row. A polymorphic
+        # relation is kept whatever its targets, and keeps its check.
+        return [ForestLiana.name_for(model)] if smart_field_fallback && only_computed_smart_field?(model, field_name, targets)
+
+        targets
       end
 
       def smart_belongs_to_field(model, field_name)
-        forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
+        forest_collection_for(model)&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
+      end
 
-        forest_collection&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
+      # SchemaAdapter drops a relation to an excluded model, but keeps one whose target is missing from
+      # the apimap otherwise (a table absent at boot, a secondary database unreachable): skipped alike.
+      # A polymorphic relation's reference names the association, never one of its targets, so it stays.
+      def only_computed_smart_field?(model, field_name, unexposed_targets)
+        fields = forest_collection_for(model)&.fields.to_a.select { |field| field[:field].to_s == field_name }
+        fields = fields.reject do |field|
+          !field[:is_virtual] && unexposed_targets.include?(field[:reference].to_s.split('.').first)
+        end
+
+        fields.any? && fields.all? { |field| field[:is_virtual] && field[:reference].nil? && field[:integration].nil? }
+      end
+
+      def forest_collection_for(model)
+        ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
       end
 
       # No role can ever be granted `read` on a collection absent from the apimap — a denial
@@ -378,7 +400,10 @@ module ForestLiana
       # partition (not split) so an empty or colon-only path resolves to '' (the root, pinned
       # readable) instead of nil.
       def query_target_collections(root_model, path)
-        resolve_owner(root_model, path.partition(':').first)
+        head, separator, = path.partition(':')
+        # A traversal names the relation itself, never a smart field: a String has no sub-field, and
+        # what the query joins for it is the relation's table.
+        resolve_owner(root_model, head, smart_field_fallback: separator.empty?)
       end
 
       def query_usage(action, root_model, path)

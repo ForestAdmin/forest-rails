@@ -15,6 +15,7 @@ module ForestLiana
       @search = @params[:search].presence
       @user = user
       @filter_joins = []
+      @search_field_paths = []
     end
 
     def perform(resource)
@@ -31,6 +32,7 @@ module ForestLiana
       # already excludes itself on it and so can never be the reason @conditions_pushed is true.
       @conditions_pushed = false
       @lambda_contributed = false
+      @search_footprint_tracked = false
       @records = search_param
 
       caller_filter = @params[:filters].present? ? ForestLiana::ScopeManager.inject_context_variables(@params[:filters], @user) : nil
@@ -90,12 +92,13 @@ module ForestLiana
         # hadn't run at all — this can't currently tell "ran and did nothing" apart from "ran and
         # found real rows". Logged rather than silently discarded, since nothing else would ever
         # surface it to whoever built the smart-search hook.
-        if @lambda_contributed && !@conditions_pushed && malformed_uuid_search?
+        if @search_footprint_tracked && @lambda_contributed && !@conditions_pushed && malformed_uuid_search?
           FOREST_LOGGER.info "A smart-search lambda's result on the \"#{ForestLiana.name_for(root_model)}\" " \
             "collection was discarded: the search term (#{@search.inspect}) is UUID-shaped but " \
             'invalid, and no other condition constrained the query.'
         end
-        @records = @records.none unless @conditions_pushed || (@lambda_contributed && !malformed_uuid_search?)
+        # A host override of search_param that never calls super pushes no condition: its result is served as is.
+        @records = @records.none if @search_footprint_tracked && !@conditions_pushed && !(@lambda_contributed && !malformed_uuid_search?)
       end
 
       @records = sort_query
@@ -125,6 +128,7 @@ module ForestLiana
     end
 
     def search_param
+      @search_footprint_tracked = true
       @search_field_paths = []
 
       if @search

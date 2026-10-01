@@ -540,6 +540,89 @@ module ForestLiana
       end
     end
 
+    describe '#initialize' do
+      it 'starts with an empty search footprint' do
+        expect(builder.search_field_paths).to eq([])
+      end
+    end
+
+    describe 'when a host app overrides search_param without calling super' do
+      let(:builder_class) do
+        Class.new(described_class) do
+          def search_param
+            return @resource unless @search
+
+            @resource.where('LOWER(trees.name) LIKE ?', "%#{@search.downcase}%")
+          end
+        end
+      end
+      let(:builder) { builder_class.new(params, [], collection, user) }
+
+      before do
+        Tree.create!(name: 'Oak')
+        Tree.create!(name: 'Pine')
+      end
+      after { Tree.destroy_all }
+
+      context 'without a search' do
+        let(:params) { { searchExtended: '0' } }
+
+        it 'serves every record' do
+          expect(builder.perform(Tree.all).count).to eq(2)
+        end
+      end
+
+      context 'with a search the override matches' do
+        let(:params) { { search: 'oak', searchExtended: '0' } }
+
+        it "serves the override's result instead of emptying it" do
+          expect(builder.perform(Tree.all).map(&:name)).to eq(['Oak'])
+        end
+      end
+
+      context 'with a smart-search lambda and a malformed-UUID-shaped search' do
+        let(:builder_class) do
+          Class.new(described_class) do
+            def search_param
+              @resource
+            end
+          end
+        end
+
+        before do
+          allow(ForestLiana).to receive(:schema_for_resource).and_return(
+            ForestLiana::Model::Collection.new(
+              name: 'Tree', fields: [{ field: :custom, type: 'String', search: ->(query, _search) { query.where(name: 'Oak') } }]
+            )
+          )
+        end
+
+        let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
+
+        it "serves the lambda's result without logging it as discarded" do
+          expect(FOREST_LOGGER).not_to receive(:info).with(/was discarded/)
+
+          expect(builder.perform(Tree.all).map(&:name)).to eq(['Oak'])
+        end
+      end
+
+      context 'when the override calls super' do
+        let(:builder_class) do
+          Class.new(described_class) do
+            def search_param
+              super
+            end
+          end
+        end
+        let(:collection) { ForestLiana::Model::Collection.new(name: 'Tree', fields: [], search_fields: ['nonexistent']) }
+        let(:params) { { search: 'nothing-matches-this', searchExtended: '0' } }
+
+        it 'still answers no records when nothing could match' do
+          expect(builder.perform(Tree.all).count).to eq(0)
+        end
+      end
+    end
+
     describe 'a blank or whitespace-only search' do
       let(:params) { ActiveSupport::HashWithIndifferentAccess.new(search: '   ', searchExtended: '1') }
 
