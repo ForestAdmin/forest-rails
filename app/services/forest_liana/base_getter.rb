@@ -544,8 +544,14 @@ module ForestLiana
           # Skip ActiveStorage associations - already processed above
           next if is_active_storage_association?(association)
 
+          # NOTICE: A preloaded :through reads every hop past the first with a query of its own, so
+          #         their tables never reach this FROM clause: only the root row's key belongs here.
+          if through_chain.any? && !joined?(association, joined_relations)
+            preload_owner_keys(association).each do |key|
+              select << "#{projected_resource.table_name}.#{key}" if column?(projected_resource, key)
+            end
           # For :through associations, recursively add all intermediate foreign keys
-          if through_chain.any?
+          elsif through_chain.any?
             current_resource = projected_resource
             through_chain.reverse.each do |through_name|
               through_assoc = current_resource.reflect_on_association(through_name)
