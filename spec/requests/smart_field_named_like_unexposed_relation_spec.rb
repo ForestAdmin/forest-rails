@@ -18,6 +18,7 @@ describe 'A computed smart field named like a relation to an unexposed collectio
   let!(:boat) { Boat.create!(name: 'Karaboudjan', harbor: harbor, captain: captain) }
 
   let(:unexposed) { [] }
+  let(:relations_kept) { false }
 
   before do
     allow(ForestLiana::IpWhitelist).to receive(:retrieve) { true }
@@ -33,6 +34,8 @@ describe 'A computed smart field named like a relation to an unexposed collectio
     # ones, as SchemaAdapter does for a model left out of it.
     ForestLiana.apimap.each do |collection|
       allow(collection).to receive(:fields).and_wrap_original do |original|
+        next original.call if relations_kept
+
         original.call.reject { |field| unexposed.include?(field[:reference].to_s.split('.').first) }
       end
     end
@@ -81,6 +84,27 @@ describe 'A computed smart field named like a relation to an unexposed collectio
         expect(response.status).to eq(200)
         expect(body['data']['attributes']['license']).to eq('FR-4421')
       end
+    end
+  end
+
+  # A target missing from the apimap without being excluded (a table absent at boot, a secondary
+  # database unreachable) leaves its relation in the schema next to the smart field.
+  context 'when the relation to the unexposed target stays in the schema' do
+    let(:relations_kept) { true }
+
+    before { Rails.cache.write('forest.has_permission', false) }
+
+    include_examples 'serving the smart field off the root'
+
+    it "still refuses the unexposed target's own fields" do
+      unexposed << 'Harbor'
+
+      get '/forest/Boat', params: { fields: { 'Boat' => 'id,name,harbor', 'harbor' => 'name' }, page: page,
+                                    timezone: 'Europe/Paris' },
+                          headers: headers
+
+      expect(response.status).to eq(403)
+      expect(body['errors'].first['data']['unexposed_fields']).to eq(['name'])
     end
   end
 

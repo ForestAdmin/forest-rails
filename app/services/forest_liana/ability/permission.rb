@@ -343,10 +343,10 @@ module ForestLiana
         targets = FieldPath.leaf_collection_names(model, field_name)
         return targets if targets.any? { |name| collection_exposed?(name) }
 
-        # SchemaAdapter drops a relation whose target is left out of the apimap, so a computed smart
-        # field of the same name is the only field this name can mean: its block reads the root row.
-        # A polymorphic relation is kept whatever its targets, and keeps its check.
-        return [ForestLiana.name_for(model)] if smart_field_fallback && only_computed_smart_field?(model, field_name)
+        # No relation to an unexposed target reaches the caller, so a computed smart field of the same
+        # name is the only field this name can mean: its block reads the root row. A polymorphic
+        # relation is kept whatever its targets, and keeps its check.
+        return [ForestLiana.name_for(model)] if smart_field_fallback && only_computed_smart_field?(model, field_name, targets)
 
         targets
       end
@@ -355,8 +355,14 @@ module ForestLiana
         forest_collection_for(model)&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
 
-      def only_computed_smart_field?(model, field_name)
+      # SchemaAdapter drops a relation to an excluded model, but keeps one whose target is missing from
+      # the apimap otherwise (a table absent at boot, a secondary database unreachable): skipped alike.
+      # A polymorphic relation's reference names the association, never one of its targets, so it stays.
+      def only_computed_smart_field?(model, field_name, unexposed_targets)
         fields = forest_collection_for(model)&.fields.to_a.select { |field| field[:field].to_s == field_name }
+        fields = fields.reject do |field|
+          !field[:is_virtual] && unexposed_targets.include?(field[:reference].to_s.split('.').first)
+        end
 
         fields.any? && fields.all? { |field| field[:is_virtual] && field[:reference].nil? && field[:integration].nil? }
       end
