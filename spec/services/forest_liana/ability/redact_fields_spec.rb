@@ -299,11 +299,27 @@ module ForestLiana
         end
 
         describe 'a collection absent from the apimap' do
+          let(:fields) { [] }
+
           before do
             forest_collection = double('forest_collection')
             allow(forest_collection).to receive(:name).and_return('Tree')
             allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(forest_collection).to receive(:fields).and_return(fields)
             allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+          end
+
+          # SchemaAdapter drops `island` from the schema here, leaving a computed smart field of the
+          # same name as the only field the caller can mean (PRD-1429).
+          context 'when a computed smart field shares its name with the relation' do
+            let(:fields) { [{ field: :island, is_virtual: true }] }
+
+            it 'serves it off the root instead of refusing the request' do
+              write_permissions('Tree' => true)
+
+              expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: ['Tree']))
+                .to eq('Tree' => 'name,island')
+            end
           end
 
           it 'names it as unexposed rather than as merely denied, since no role can be granted read on it' do
@@ -325,6 +341,58 @@ module ForestLiana
 
             expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: []))
               .to eq({})
+          end
+        end
+
+        # The exposed relation still reaches the response alongside the smart field, so its read
+        # check stands: only an unexposed target hands the name over to the smart field.
+        describe 'a computed smart field sharing its name with an exposed relation' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Tree')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(forest_collection).to receive(:fields).and_return([{ field: :island, is_virtual: true }])
+            island_collection = double('island_collection')
+            allow(island_collection).to receive(:name).and_return('Island')
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection, island_collection])
+          end
+
+          it 'keeps checking the relation' do
+            write_permissions('Tree' => true, 'Island' => false)
+
+            expect { dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: ['Tree']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError) do |error|
+                expect(error.message).to eq("You are not allowed to read 'island' from the 'Island' collection.")
+                expect(error.data[:unexposed_fields]).to be_nil
+              end
+          end
+        end
+
+        # SchemaAdapter keeps a polymorphic relation in the schema even when none of its targets is
+        # exposed, so a computed smart field of the same name does not take the name over.
+        describe 'a computed smart field sharing its name with a polymorphic relation to unexposed targets' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Address')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(forest_collection).to receive(:fields).and_return(
+              [{ field: 'addressable', reference: 'addressable.id', relationship: 'BelongsTo', is_virtual: false },
+               { field: :addressable, is_virtual: true }]
+            )
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+            write_permissions('Address' => true)
+          end
+
+          it 'keeps refusing the root field' do
+            expect { dummy_class.redact_fields(user, Address, { 'Address' => 'line1,addressable' }, named_collections: ['Address']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError)
+          end
+
+          it "keeps refusing the targets' own fields" do
+            expect do
+              dummy_class.redact_fields(user, Address, { 'Address' => 'line1', 'addressable' => 'name' },
+                                        named_collections: %w[Address addressable])
+            end.to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError)
           end
         end
 
