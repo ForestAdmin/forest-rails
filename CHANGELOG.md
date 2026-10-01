@@ -1,3 +1,10 @@
+## [9.22.6](https://github.com/ForestAdmin/forest-rails/compare/v9.22.5...v9.22.6) (2026-10-01)
+
+
+### Bug Fixes
+
+* tolerate search_param overrides and smart fields named like unexposed relations ([#822](https://github.com/ForestAdmin/forest-rails/issues/822)) ([ce07ac8](https://github.com/ForestAdmin/forest-rails/commit/ce07ac844f0ec5da96cdc45147c89755fee374b7)), closes [#820](https://github.com/ForestAdmin/forest-rails/issues/820) [#821](https://github.com/ForestAdmin/forest-rails/issues/821) [#823](https://github.com/ForestAdmin/forest-rails/issues/823)
+
 ## [9.22.5](https://github.com/ForestAdmin/forest-rails/compare/v9.22.4...v9.22.5) (2026-10-01)
 
 
