@@ -291,7 +291,7 @@ module ForestLiana
             forest_collection = double('forest_collection')
             allow(forest_collection).to receive(:name).and_return('Tree')
             allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
-            allow(forest_collection).to receive(:computed_smart_fields).and_return([{ field: :island, is_virtual: true }])
+            allow(forest_collection).to receive(:fields).and_return([{ field: :island, is_virtual: true }])
             allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
             write_permissions('Tree' => true)
           end

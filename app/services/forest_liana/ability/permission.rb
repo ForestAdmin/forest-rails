@@ -345,7 +345,8 @@ module ForestLiana
 
         # SchemaAdapter drops a relation whose target is left out of the apimap, so a computed smart
         # field of the same name is the only field this name can mean: its block reads the root row.
-        return [ForestLiana.name_for(model)] if smart_field_fallback && computed_smart_field?(model, field_name)
+        # A polymorphic relation is kept whatever its targets, and keeps its check.
+        return [ForestLiana.name_for(model)] if smart_field_fallback && only_computed_smart_field?(model, field_name)
 
         targets
       end
@@ -354,8 +355,10 @@ module ForestLiana
         forest_collection_for(model)&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
       end
 
-      def computed_smart_field?(model, field_name)
-        !!forest_collection_for(model)&.computed_smart_fields&.any? { |field| field[:field].to_s == field_name }
+      def only_computed_smart_field?(model, field_name)
+        fields = forest_collection_for(model)&.fields.to_a.select { |field| field[:field].to_s == field_name }
+
+        fields.any? && fields.all? { |field| field[:is_virtual] && field[:reference].nil? && field[:integration].nil? }
       end
 
       def forest_collection_for(model)

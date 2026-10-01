@@ -29,6 +29,13 @@ describe 'A computed smart field named like a relation to an unexposed collectio
     allow(ForestLiana).to receive(:apimap).and_wrap_original do |original|
       original.call.reject { |collection| unexposed.include?(collection.name.to_s) }
     end
+    # The apimap was built at boot with every target exposed: drop the relations to the unexposed
+    # ones, as SchemaAdapter does for a model left out of it.
+    ForestLiana.apimap.each do |collection|
+      allow(collection).to receive(:fields).and_wrap_original do |original|
+        original.call.reject { |field| unexposed.include?(field[:reference].to_s.split('.').first) }
+      end
+    end
   end
 
   def body
