@@ -7,4 +7,5 @@ class Island < ActiveRecord::Base
   has_many :memberships
   has_many :members, through: :memberships, source: :user
   has_one :flag, dependent: :destroy
+  has_one :tree_by_age, class_name: 'Tree', primary_key: 'name', foreign_key: 'age'
 end

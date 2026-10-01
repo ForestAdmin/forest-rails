@@ -2,6 +2,7 @@ class User < ActiveRecord::Base
   has_many :trees_owned, class_name: 'Tree', inverse_of: :owner
   has_many :trees_cut, class_name: 'Tree', inverse_of: :cutter
   has_many :addresses, as: :addressable
+  has_many :memberships
 
   # The only has_and_belongs_to_many of the dummy.
   has_and_belongs_to_many :favourite_trees, class_name: 'Tree', join_table: 'trees_users'
