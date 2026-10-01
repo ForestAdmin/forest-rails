@@ -321,6 +321,27 @@ module ForestLiana
           end
         end
 
+        # A polymorphic relation's reference names the association (`addressable.id`), never one of
+        # its targets, so it stays next to the smart field and keeps the name.
+        describe 'a computed smart field sharing its name with a polymorphic relation to unexposed targets' do
+          before do
+            forest_collection = double('forest_collection')
+            allow(forest_collection).to receive(:name).and_return('Address')
+            allow(forest_collection).to receive(:fields_smart_belongs_to).and_return([])
+            allow(forest_collection).to receive(:fields).and_return(
+              [{ field: 'addressable', reference: 'addressable.id', relationship: 'BelongsTo', is_virtual: false },
+               { field: :addressable, is_virtual: true }]
+            )
+            allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+            write_permissions('Address' => true)
+          end
+
+          it 'keeps refusing a sort on it' do
+            expect { dummy_class.assert_can_read_query_fields(user, Address, sort_paths: ['addressable']) }
+              .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError)
+          end
+        end
+
         describe 'polymorphic' do
           it 'serves a filter on a relation whose every target is readable' do
             write_permissions('Address' => true, 'User' => true, 'Island' => true)
