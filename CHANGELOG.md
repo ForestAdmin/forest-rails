@@ -1,3 +1,10 @@
+## [9.22.5](https://github.com/ForestAdmin/forest-rails/compare/v9.22.4...v9.22.5) (2026-10-01)
+
+
+### Bug Fixes
+
+* **projection:** select the right keys for preloaded :through relations on related lists ([#819](https://github.com/ForestAdmin/forest-rails/issues/819)) ([c491eb3](https://github.com/ForestAdmin/forest-rails/commit/c491eb349daee386a20c5d8444d97433c186adaa))
+
 ## [9.22.4](https://github.com/ForestAdmin/forest-rails/compare/v9.22.3...v9.22.4) (2026-09-28)
 
 
