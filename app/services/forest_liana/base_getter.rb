@@ -544,8 +544,13 @@ module ForestLiana
           # Skip ActiveStorage associations - already processed above
           next if is_active_storage_association?(association)
 
+          # NOTICE: A preloaded :through only reads keys off the rows this query builds: the root
+          #         row, and the narrowed rows of a first hop it joins. Walking the whole chain would
+          #         name tables it never joins.
+          if through_chain.any? && !joined?(association, joined_relations)
+            select_preload_hop_keys(select, [association.name], joined_relations)
           # For :through associations, recursively add all intermediate foreign keys
-          if through_chain.any?
+          elsif through_chain.any?
             current_resource = projected_resource
             through_chain.reverse.each do |through_name|
               through_assoc = current_resource.reflect_on_association(through_name)
@@ -694,7 +699,11 @@ module ForestLiana
     # those rows are the narrowed ones built off the JOIN, so its key has to be named here too.
     # It was not, and the list answered 500 rather than the one field (PRD-1316).
     def select_dependency_preload_keys(select, relation_path, joined_relations)
-      chains = flatten_dependency_hops(relation_path.relations)
+      select_preload_hop_keys(select, relation_path.relations, joined_relations)
+    end
+
+    def select_preload_hop_keys(select, relations, joined_relations)
+      chains = flatten_dependency_hops(relations)
       return if chains.empty?
 
       narrowed_hops(chains, joined_relations).each do |owner, reflection|

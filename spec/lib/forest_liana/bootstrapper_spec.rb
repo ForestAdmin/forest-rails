@@ -66,8 +66,12 @@ module ForestLiana
         [
           Address,
           Article,
+          Boat,
+          Captain,
           Flag,
+          Harbor,
           Island,
+          License,
           Location,
           Manufacturer,
           Membership,
