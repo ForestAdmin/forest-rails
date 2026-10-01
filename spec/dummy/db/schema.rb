@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2026_09_24_120000) do
+ActiveRecord::Schema.define(version: 2026_10_01_120000) do
 
   create_table "addresses", force: :cascade do |t|
     t.string "line1"
@@ -29,6 +29,19 @@ ActiveRecord::Schema.define(version: 2026_09_24_120000) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "boats", force: :cascade do |t|
+    t.string "name"
+    t.integer "harbor_id"
+    t.integer "captain_id"
+    t.index ["captain_id"], name: "index_boats_on_captain_id"
+    t.index ["harbor_id"], name: "index_boats_on_harbor_id"
+  end
+
+  create_table "captains", force: :cascade do |t|
+    t.string "name"
+    t.string "license_number"
+  end
+
   create_table "flags", force: :cascade do |t|
     t.integer "island_id"
     t.string "color"
@@ -37,11 +50,20 @@ ActiveRecord::Schema.define(version: 2026_09_24_120000) do
     t.index ["island_id"], name: "index_flags_on_island_id"
   end
 
+  create_table "harbors", force: :cascade do |t|
+    t.string "name"
+  end
+
   create_table "isle", force: :cascade do |t|
     t.string "name"
     t.binary "map"
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "licenses", force: :cascade do |t|
+    t.string "number"
+    t.date "expires_on"
   end
 
   create_table "locations", force: :cascade do |t|
