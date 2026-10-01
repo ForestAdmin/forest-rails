@@ -92,7 +92,7 @@ module ForestLiana
         # hadn't run at all — this can't currently tell "ran and did nothing" apart from "ran and
         # found real rows". Logged rather than silently discarded, since nothing else would ever
         # surface it to whoever built the smart-search hook.
-        if @lambda_contributed && !@conditions_pushed && malformed_uuid_search?
+        if @search_footprint_tracked && @lambda_contributed && !@conditions_pushed && malformed_uuid_search?
           FOREST_LOGGER.info "A smart-search lambda's result on the \"#{ForestLiana.name_for(root_model)}\" " \
             "collection was discarded: the search term (#{@search.inspect}) is UUID-shaped but " \
             'invalid, and no other condition constrained the query.'

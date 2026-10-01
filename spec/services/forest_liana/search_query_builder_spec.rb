@@ -580,6 +580,32 @@ module ForestLiana
         end
       end
 
+      context 'with a smart-search lambda and a malformed-UUID-shaped search' do
+        let(:builder_class) do
+          Class.new(described_class) do
+            def search_param
+              @resource
+            end
+          end
+        end
+
+        before do
+          allow(ForestLiana).to receive(:schema_for_resource).and_return(
+            ForestLiana::Model::Collection.new(
+              name: 'Tree', fields: [{ field: :custom, type: 'String', search: ->(query, _search) { query.where(name: 'Oak') } }]
+            )
+          )
+        end
+
+        let(:params) { { search: 'abcdef12-3456-4ae-ad4f-5662757713a2', searchExtended: '0' } }
+
+        it "serves the lambda's result without logging it as discarded" do
+          expect(FOREST_LOGGER).not_to receive(:info).with(/was discarded/)
+
+          expect(builder.perform(Tree.all).map(&:name)).to eq(['Oak'])
+        end
+      end
+
       context 'when the override calls super' do
         let(:builder_class) do
           Class.new(described_class) do
