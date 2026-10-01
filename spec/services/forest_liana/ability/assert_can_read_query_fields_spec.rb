@@ -305,6 +305,20 @@ module ForestLiana
             expect { dummy_class.assert_can_read_query_fields(user, Tree, filter_paths: ['island:name']) }
               .to raise_error(ForestLiana::Ability::Exceptions::UnexposedQueryCollectionError)
           end
+
+          context 'when the relation stays in the schema next to the smart field' do
+            before do
+              allow(ForestLiana.apimap.first).to receive(:fields).and_return(
+                [{ field: :island, reference: 'Island.id', relationship: 'BelongsTo', is_virtual: false },
+                 { field: :island, is_virtual: true }]
+              )
+            end
+
+            it 'serves a sort on the smart field off the root all the same' do
+              expect { dummy_class.assert_can_read_query_fields(user, Tree, sort_paths: ['island']) }
+                .not_to raise_error
+            end
+          end
         end
 
         describe 'polymorphic' do

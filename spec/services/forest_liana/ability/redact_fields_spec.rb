@@ -322,6 +322,33 @@ module ForestLiana
             end
           end
 
+          # SchemaAdapter keeps the relation when Island is missing from the apimap without being
+          # excluded (a table absent at boot, a secondary database unreachable).
+          context 'when the relation stays in the schema next to the smart field' do
+            let(:fields) do
+              [{ field: :island, reference: 'Island.id', relationship: 'BelongsTo', is_virtual: false },
+               { field: :island, is_virtual: true }]
+            end
+
+            it 'serves the smart field off the root all the same' do
+              write_permissions('Tree' => true)
+
+              expect(dummy_class.redact_fields(user, Tree, { 'Tree' => 'name,island' }, named_collections: ['Tree']))
+                .to eq('Tree' => 'name,island')
+            end
+          end
+
+          context 'when only the relation stays in the schema' do
+            let(:fields) { [{ field: :island, reference: 'Island.id', relationship: 'BelongsTo', is_virtual: false }] }
+
+            it 'keeps refusing it' do
+              write_permissions('Tree' => true)
+
+              expect { dummy_class.redact_fields(user, Tree, { 'Tree' => 'island' }, named_collections: ['Tree']) }
+                .to raise_error(ForestLiana::Ability::Exceptions::UnauthorizedFieldsError)
+            end
+          end
+
           it 'names it as unexposed rather than as merely denied, since no role can be granted read on it' do
             write_permissions('Tree' => true, 'Island' => false)
 
