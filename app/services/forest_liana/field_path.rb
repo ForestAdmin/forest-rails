@@ -1,7 +1,7 @@
 module ForestLiana
   class FieldPath
     # An empty list (a polymorphic relation with no declared target) is read as denied by
-    # readable_leaves?, not as nothing to check.
+    # readable_leaves?, not as nothing to check: a query refuses it, a projection drops it.
     #
     # A prefix naming no relation raises rather than falling back to the root collection, which
     # is pinned readable upstream — a fallback would turn "does not resolve" into "allowed".
@@ -28,6 +28,10 @@ module ForestLiana
 
     def self.readable_leaves?(collection_names, readable_collection_names)
       collection_names.any? && collection_names.all? { |name| readable_collection_names.include?(name) }
+    end
+
+    def self.unresolved?(collection_names)
+      collection_names.empty?
     end
 
     def self.leaf_label(collection_names)
