@@ -205,7 +205,7 @@ module ForestLiana
             if readable.call(entry[:owners][collection_key])
               acc[collection_key] = entry[:field_names].join(',')
             else
-              denied << denial_entry(collection_key, entry[:owners][collection_key], readable_collection_names) if named
+              denied << denial_entry(collection_key, entry[:owners][collection_key], readable_collection_names) if named && !FieldPath.unresolved?(entry[:owners][collection_key])
             end
           else
             kept = entry[:field_names].select do |field_name|
@@ -216,7 +216,7 @@ module ForestLiana
                 # differs from root_name — prefix the message so it doesn't read as if 'field_name'
                 # were a bare field of the root.
                 display_path = collection_key == root_name ? field_name : "#{collection_key}:#{field_name}"
-                denied << denial_entry(field_name, entry[:owners][field_name], readable_collection_names, display_path) if named
+                denied << denial_entry(field_name, entry[:owners][field_name], readable_collection_names, display_path) if named && !FieldPath.unresolved?(entry[:owners][field_name])
                 false
               end
             end

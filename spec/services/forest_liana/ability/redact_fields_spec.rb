@@ -510,16 +510,17 @@ module ForestLiana
             %w[addresses addresses= address_ids address_ids=].each { |m| Island.undef_method(m) rescue nil }
           end
 
-          it 'treats a relation with no declared target as denied' do
+          it 'drops a relation with no declared target even when the caller named it' do
             write_permissions('Tree' => true)
             Tree.class_eval { belongs_to :subject, polymorphic: true, optional: true }
 
-            expect do
-              dummy_class.redact_fields(user, Tree, { 'subject' => 'id' }, named_collections: ['subject'])
-            end.to raise_error(
-              ForestLiana::Ability::Exceptions::UnauthorizedFieldsError,
-              "You are not allowed to read 'subject' from an unresolved polymorphic relation."
-            )
+            expect(dummy_class.redact_fields(user, Tree, { 'subject' => 'id' }, named_collections: ['subject']))
+              .to eq({})
+            expect(
+              dummy_class.redact_fields(
+                user, Tree, { 'Tree' => 'id,subject', 'subject' => 'id' }, named_collections: %w[Tree subject]
+              )
+            ).to eq('Tree' => 'id')
           ensure
             Tree._reflections.delete('subject')
             Tree._reflections.delete(:subject)
