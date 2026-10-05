@@ -1,3 +1,10 @@
+## [9.22.7](https://github.com/ForestAdmin/forest-rails/compare/v9.22.6...v9.22.7) (2026-10-05)
+
+
+### Bug Fixes
+
+* **permissions:** drop a polymorphic relation with no declared target instead of refusing the request ([#825](https://github.com/ForestAdmin/forest-rails/issues/825)) ([c8c9b4f](https://github.com/ForestAdmin/forest-rails/commit/c8c9b4fd6cec8de514bce83ce4388479c6ba52be)), closes [#824](https://github.com/ForestAdmin/forest-rails/issues/824)
+
 ## [9.22.6](https://github.com/ForestAdmin/forest-rails/compare/v9.22.5...v9.22.6) (2026-10-01)
 
 
