@@ -258,6 +258,19 @@ module ForestLiana
       end
     end
 
+    describe 'when sorting by a belongs_to association after another field' do
+      let(:resource) { Tree }
+      let(:fields) { { resource.name => 'id' } }
+      let(:sort) { 'id,-owner.name' }
+
+      it 'should load the association of the sort on a relation' do
+        getter.perform
+
+        expect(getter.includes).to contain_exactly(:owner)
+        expect(getter.records.map(&:id)).to eq [1, 2, 3, 4, 5]
+      end
+    end
+
     describe 'when sorting by a has_one association' do
       let(:resource) { Island }
       let(:sort) { 'location.coordinates' }

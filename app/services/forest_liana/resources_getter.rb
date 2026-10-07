@@ -168,7 +168,9 @@ module ForestLiana
       return [] unless @params.dig(:fields, @collection_name)
 
       associations_for_query = extract_associations_from_filter
-      associations_for_query << @params[:sort].split('.').first.to_sym if @params[:sort]&.include?('.')
+      @params[:sort]&.split(',')&.each do |sort_field|
+        associations_for_query << sort_field.delete_prefix('-').split('.').first.to_sym if sort_field.include?('.')
+      end
       @fields_to_serialize | associations_for_query
     end
 
