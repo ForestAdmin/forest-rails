@@ -1,3 +1,10 @@
+## [9.22.8](https://github.com/ForestAdmin/forest-rails/compare/v9.22.7...v9.22.8) (2026-10-07)
+
+
+### Bug Fixes
+
+* **sort:** load the association of every comma-separated sort field ([#826](https://github.com/ForestAdmin/forest-rails/issues/826)) ([208dd41](https://github.com/ForestAdmin/forest-rails/commit/208dd4195aeb38e359ffd3346e4bc546b7ec2055))
+
 ## [9.22.7](https://github.com/ForestAdmin/forest-rails/compare/v9.22.6...v9.22.7) (2026-10-05)
 
 
