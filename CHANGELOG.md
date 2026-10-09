@@ -1,3 +1,10 @@
+## [9.22.10](https://github.com/ForestAdmin/forest-rails/compare/v9.22.9...v9.22.10) (2026-10-09)
+
+
+### Performance Improvements
+
+* remember schema lookups by name instead of rescanning models on every request ([#829](https://github.com/ForestAdmin/forest-rails/issues/829)) ([5809327](https://github.com/ForestAdmin/forest-rails/commit/5809327a6061159f38db4b59ca0fb9426b44ebfd))
+
 ## [9.22.9](https://github.com/ForestAdmin/forest-rails/compare/v9.22.8...v9.22.9) (2026-10-09)
 
 
