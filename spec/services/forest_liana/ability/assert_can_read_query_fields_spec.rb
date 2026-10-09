@@ -67,6 +67,20 @@ module ForestLiana
           expect { dummy_class.assert_can_read_query_fields(user, Tree) }.not_to raise_error
         end
 
+        it 'reads the apimap once, however many paths are checked' do
+          write_permissions('Tree' => true, 'User' => true, 'Island' => true)
+          reads = 0
+          allow(ForestLiana).to receive(:apimap).and_wrap_original { |original| reads += 1; original.call }
+
+          expect do
+            dummy_class.assert_can_read_query_fields(
+              user, Tree, filter_paths: %w[owner:name island:name], sort_paths: %w[cutter:name name],
+                          search_paths: %w[owner:title]
+            )
+          end.not_to raise_error
+          expect(reads).to eq 1
+        end
+
         it 'serves a filter, a sort and a search on an unreadable collection once the option is on' do
           write_permissions('Tree' => true, 'Island' => false)
           ForestLiana.skip_relation_read_permissions = true

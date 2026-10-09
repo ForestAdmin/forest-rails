@@ -86,6 +86,10 @@ module ForestLiana
       def redact_fields(user, root_model, fields_hash, named_collections:)
         return fields_hash if fields_hash.nil?
 
+        with_apimap_index { redact_indexed_fields(user, root_model, fields_hash, named_collections) }
+      end
+
+      def redact_indexed_fields(user, root_model, fields_hash, named_collections)
         root_name = ForestLiana.name_for(root_model)
 
         resolved = fields_hash.each_with_object({}) do |(collection_key, csv), acc|
@@ -131,6 +135,10 @@ module ForestLiana
       # caller cannot read. +root_model+ is pinned readable — +browse+/+read+ already gate it
       # upstream — so it is never itself a refusal.
       def assert_can_read_query_fields(user, root_model, filter_paths: [], sort_paths: [], search_paths: [])
+        with_apimap_index { assert_indexed_query_fields(user, root_model, filter_paths, sort_paths, search_paths) }
+      end
+
+      def assert_indexed_query_fields(user, root_model, filter_paths, sort_paths, search_paths)
         root_name = ForestLiana.name_for(root_model)
 
         usages = filter_paths.map { |path| query_usage('filter on', root_model, path) } +
@@ -352,29 +360,39 @@ module ForestLiana
       end
 
       def smart_belongs_to_field(model, field_name)
-        forest_collection_for(model)&.fields_smart_belongs_to&.find { |field| field[:field].to_s == field_name }
+        apimap_index.smart_belongs_to(model, field_name)
       end
 
       # SchemaAdapter drops a relation to an excluded model, but keeps one whose target is missing from
       # the apimap otherwise (a table absent at boot, a secondary database unreachable): skipped alike.
       # A polymorphic relation's reference names the association, never one of its targets, so it stays.
       def only_computed_smart_field?(model, field_name, unexposed_targets)
-        fields = forest_collection_for(model)&.fields.to_a.select { |field| field[:field].to_s == field_name }
-        fields = fields.reject do |field|
+        fields = apimap_index.fields_named(model, field_name).reject do |field|
           !field[:is_virtual] && unexposed_targets.include?(field[:reference].to_s.split('.').first)
         end
 
         fields.any? && fields.all? { |field| field[:is_virtual] && field[:reference].nil? && field[:integration].nil? }
       end
 
-      def forest_collection_for(model)
-        ForestLiana.apimap.find { |collection| collection.name.to_s == ForestLiana.name_for(model) }
+      def apimap_index
+        @apimap_index || ApimapIndex.new(ForestLiana.apimap)
+      end
+
+      def with_apimap_index
+        return yield if @apimap_index
+
+        @apimap_index = ApimapIndex.new(ForestLiana.apimap)
+        begin
+          yield
+        ensure
+          @apimap_index = nil
+        end
       end
 
       # No role can ever be granted `read` on a collection absent from the apimap — a denial
       # message naming it as unreadable would point at a permission nobody can grant.
       def collection_exposed?(collection_name)
-        ForestLiana.apimap.any? { |collection| collection.name.to_s == collection_name }
+        apimap_index.exposed?(collection_name)
       end
 
       # unexposed/also_denied (each present iff non-empty) tell UnauthorizedFieldsError which of

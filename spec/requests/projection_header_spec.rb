@@ -225,6 +225,19 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
       expect(body['data']['relationships'].values.map(&:keys).uniq).to eq [%w[links]]
     end
 
+    # has_many_relationships rebuilds every to-many of the record. Called once per link it is
+    # quadratic in the to-many count, which on a wide collection outweighs the whole get-one.
+    it 'builds the to-many relationships once, however many links the record carries' do
+      builds = 0
+      allow_any_instance_of(ForestLiana::UserSpace::UserSerializer).to receive(:has_many_relationships)
+        .and_wrap_original { |original| builds += 1; original.call }
+
+      get "/forest/User/#{@user.id}", headers: projecting('id,name')
+
+      expect(body['data']['relationships'].keys.size).to eq 7
+      expect(builds).to eq 1
+    end
+
     # selects_from anchors on the query's own FROM, which a `selects_of('users')` filter would
     # not: a to-many preload reads FROM "trees" and names "trees_users", never `"users"`, so it
     # would be dropped before any assertion could see it.
