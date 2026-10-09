@@ -137,7 +137,7 @@ module ForestLiana
         end
 
         def type
-          ForestLiana.name_for(object.class).demodulize
+          @type ||= ForestLiana.name_for(object.class).demodulize
         end
 
         def format_name(attribute_name)
@@ -155,8 +155,9 @@ module ForestLiana
         def relationship_related_link(attribute_name)
           ret = {}
 
-          # Has many smart field
-          current = self.has_many_relationships[attribute_name]
+          # Has many smart field. Read off the class rather than has_many_relationships, which rebuilds
+          # every to-many on each call: once per serialized relation, so quadratic in their number.
+          current = self.class.to_many_associations&.[](attribute_name)
           if current.try(:[], :options).try(:[], :name) == attribute_name
             ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/#{attribute_name}"
             return ret
@@ -195,10 +196,9 @@ module ForestLiana
 
           if ret[:href].blank?
             begin
-              SchemaUtils.many_associations(object.class).each do |a|
-                if a.name == attribute_name
-                  ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
-                end
+              @many_association_names ||= SchemaUtils.many_associations(object.class).map(&:name)
+              if @many_association_names.include?(attribute_name)
+                ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError => exception
               FOREST_LOGGER.warn "Cannot load the association #{attribute_name} on #{object.class.name} #{object.id}.\n#{exception&.backtrace&.join("\n\t")}"
