@@ -1,3 +1,10 @@
+## [9.22.9](https://github.com/ForestAdmin/forest-rails/compare/v9.22.8...v9.22.9) (2026-10-09)
+
+
+### Performance Improvements
+
+* remove per-field apimap scans and quadratic relation links on wide collections ([#827](https://github.com/ForestAdmin/forest-rails/issues/827)) ([d4a28fb](https://github.com/ForestAdmin/forest-rails/commit/d4a28fb5931c76114b69e0e73f028cbae0dc691f))
+
 ## [9.22.8](https://github.com/ForestAdmin/forest-rails/compare/v9.22.7...v9.22.8) (2026-10-07)
 
 
