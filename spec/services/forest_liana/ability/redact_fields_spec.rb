@@ -171,7 +171,7 @@ module ForestLiana
         # a large schema, that cost outweighs the request it guards.
         it 'indexes the apimap once, however many fields are requested' do
           write_permissions('Tree' => true, 'User' => true, 'Island' => true)
-          expect(ForestLiana::Ability::ApimapIndex).to receive(:new).once.and_call_original
+          expect(ForestLiana::Ability::ApimapIndex).to receive(:new).with(ForestLiana.apimap).once.and_call_original
 
           redacted = dummy_class.redact_fields(
             user, Tree, { 'Tree' => 'id,name,age,owner,cutter,island', 'owner' => 'name', 'island' => 'name' },

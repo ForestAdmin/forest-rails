@@ -16,6 +16,10 @@ module ForestLiana
       value
     end
 
+    def self.reset!
+      @stores = nil
+    end
+
     def self.reset_if_stale
       models = ForestLiana.models
       apimap = ForestLiana.apimap

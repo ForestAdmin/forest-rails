@@ -65,6 +65,7 @@ RSpec.configure do |config|
   # own comment) — cleared before every example so one spec's warning can't silence another's,
   # regardless of run order or which file exercises the valve.
   config.before { ForestLiana::MissingAttributeValve::WARNED_ONCE.clear }
+  config.before { ForestLiana::LookupCache.reset! }
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!

@@ -69,7 +69,7 @@ module ForestLiana
 
         it 'indexes the apimap once, however many paths are checked' do
           write_permissions('Tree' => true, 'User' => true, 'Island' => true)
-          expect(ForestLiana::Ability::ApimapIndex).to receive(:new).once.and_call_original
+          expect(ForestLiana::Ability::ApimapIndex).to receive(:new).with(ForestLiana.apimap).once.and_call_original
 
           expect do
             dummy_class.assert_can_read_query_fields(
