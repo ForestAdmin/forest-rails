@@ -4,12 +4,16 @@ module ForestLiana
   # several. Any of the three being replaced or growing (the bootstrapper, a Forest collection
   # file, a code reload) drops everything remembered, so an answer never outlives what it read.
   module LookupCache
+    # A miss is not remembered: the router resolves a request's collection before authenticating
+    # it, so caching unknown names would let any caller grow this cache without bound.
     def self.fetch(namespace, key)
       reset_if_stale
       store = (@stores[namespace] ||= {})
       return store[key] if store.key?(key)
 
-      store[key] = yield
+      value = yield
+      store[key] = value unless value.nil?
+      value
     end
 
     def self.reset_if_stale

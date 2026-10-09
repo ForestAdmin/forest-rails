@@ -27,6 +27,12 @@ describe 'Lookups by name over the schema' do
       3.times { expect(ForestLiana::SchemaUtils.find_model_from_collection_name('Tree')).to eq Tree }
     end
 
+    it 'does not remember an unknown name, which any caller can send before authenticating' do
+      expect(ForestLiana::SchemaUtils).to receive(:scan_models_for_collection_name).with('Ghost').twice.and_call_original
+
+      2.times { expect(ForestLiana::SchemaUtils.find_model_from_collection_name('Ghost')).to be_nil }
+    end
+
     it 'still warns on each lookup of an unknown name' do
       expect(FOREST_LOGGER).to receive(:warn).with('No model found for collection Ghost').twice
 
