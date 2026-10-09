@@ -1,4 +1,5 @@
 require 'forest_liana/engine'
+require 'forest_liana/lookup_cache'
 
 module Forest
 end
@@ -69,14 +70,16 @@ module ForestLiana
   end
 
   def self.schema_for_resource resource
-    self.apimap.find do |collection|
-      SchemaUtils.find_model_from_collection_name(collection.name)
-        .try(:name) == resource.name
+    LookupCache.fetch(:schema_for_resource, resource.name) do
+      self.apimap.find do |collection|
+        SchemaUtils.find_model_from_collection_name(collection.name)
+          .try(:name) == resource.name
+      end
     end
   end
 
   def self.name_for(model)
-    self.names_overriden[model] || model.try(:name).gsub('::', '__')
+    LookupCache.fetch(:name_for, model) { self.names_overriden[model] || model.try(:name).gsub('::', '__') }
   end
 
   # TODO: Remove once lianas prior to 2.0.0 are not supported anymore.

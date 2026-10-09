@@ -169,10 +169,9 @@ module ForestLiana
 
         # Resolving each field against the apimap rescans every collection: on a wide collection and
         # a large schema, that cost outweighs the request it guards.
-        it 'reads the apimap once, however many fields are requested' do
+        it 'indexes the apimap once, however many fields are requested' do
           write_permissions('Tree' => true, 'User' => true, 'Island' => true)
-          reads = 0
-          allow(ForestLiana).to receive(:apimap).and_wrap_original { |original| reads += 1; original.call }
+          expect(ForestLiana::Ability::ApimapIndex).to receive(:new).with(ForestLiana.apimap).once.and_call_original
 
           redacted = dummy_class.redact_fields(
             user, Tree, { 'Tree' => 'id,name,age,owner,cutter,island', 'owner' => 'name', 'island' => 'name' },
@@ -180,7 +179,6 @@ module ForestLiana
           )
 
           expect(redacted).to eq('Tree' => 'id,name,age,owner,cutter,island', 'owner' => 'name', 'island' => 'name')
-          expect(reads).to eq 1
         end
 
         it 'checks nothing at all when only root collection fields are requested' do
