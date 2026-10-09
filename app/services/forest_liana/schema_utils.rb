@@ -31,6 +31,18 @@ module ForestLiana
     end
 
     def self.find_model_from_collection_name(collection_name, logs = false)
+      model_found = LookupCache.fetch(:model_from_collection_name, collection_name) do
+        scan_models_for_collection_name(collection_name)
+      end
+
+      if logs && model_found.nil?
+        FOREST_LOGGER.warn "No model found for collection #{collection_name}"
+      end
+
+      model_found
+    end
+
+    def self.scan_models_for_collection_name(collection_name)
       model_found = nil
       ForestLiana.models.each do |model|
         if model.abstract_class?
@@ -40,10 +52,6 @@ module ForestLiana
         end
 
         break if model_found
-      end
-
-      if logs && model_found.nil?
-        FOREST_LOGGER.warn "No model found for collection #{collection_name}"
       end
 
       model_found
