@@ -1,3 +1,10 @@
+## [9.22.11](https://github.com/ForestAdmin/forest-rails/compare/v9.22.10...v9.22.11) (2026-10-10)
+
+
+### Bug Fixes
+
+* **license:** relicense from GPL-3.0 to Apache-2.0 ([be8803b](https://github.com/ForestAdmin/forest-rails/commit/be8803b963b83535b3646705e6f4479e0014bcb8))
+
 ## [9.22.10](https://github.com/ForestAdmin/forest-rails/compare/v9.22.9...v9.22.10) (2026-10-09)
 
 
