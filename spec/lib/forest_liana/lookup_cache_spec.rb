@@ -98,6 +98,17 @@ describe 'Lookups by name over the schema' do
       ForestLiana.excluded_models = previous
     end
 
+    it 'drops a target left out of the included models after a first lookup' do
+      previous = ForestLiana.included_models
+      expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
+
+      ForestLiana.included_models = ['Address']
+
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to eq []
+    ensure
+      ForestLiana.included_models = previous
+    end
+
     it 'answers a relation from the lookup of its model' do
       expect(ForestLiana::QueryHelper).to receive(:scan_one_associations).with(Address).once.and_call_original
 

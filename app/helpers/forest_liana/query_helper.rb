@@ -1,10 +1,7 @@
 module ForestLiana
   module QueryHelper
-    # A relation (SearchQueryBuilder hands one over) reflects through its model, so it shares the
-    # model's entry.
     def self.get_one_associations(resource)
       model = resource.is_a?(ActiveRecord::Relation) ? resource.klass : resource
-      return scan_one_associations(model) unless model.is_a?(Class)
 
       LookupCache.fetch(:one_associations, model) { scan_one_associations(model).freeze }
     end
