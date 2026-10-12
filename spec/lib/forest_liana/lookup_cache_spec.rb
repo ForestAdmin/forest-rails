@@ -58,6 +58,10 @@ describe 'Lookups by name over the schema' do
       3.times { expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to eq [User] }
     end
 
+    it 'returns a frozen list' do
+      expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to be_frozen
+    end
+
     it 'remembers a relation no model targets' do
       orphan = double(name: :orphan)
       expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(:orphan).once.and_call_original
@@ -74,7 +78,7 @@ describe 'Lookups by name over the schema' do
 
       ForestLiana.models << target
 
-      expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to include(User, target)
+      expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to contain_exactly(User, target)
     ensure
       ForestLiana.models.delete(target)
     end
@@ -87,8 +91,24 @@ describe 'Lookups by name over the schema' do
       3.times { expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable] }
     end
 
+    it 'returns a frozen list' do
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to be_frozen
+    end
+
     it 'drops a target excluded after a first lookup' do
       previous = ForestLiana.excluded_models
+      expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
+
+      ForestLiana.excluded_models = previous + ['User']
+
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to eq []
+    ensure
+      ForestLiana.excluded_models = previous
+    end
+
+    it 'drops a target excluded by a replacement list of the same size' do
+      previous = ForestLiana.excluded_models
+      ForestLiana.excluded_models = previous + ['Tree']
       expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
 
       ForestLiana.excluded_models = previous + ['User']
