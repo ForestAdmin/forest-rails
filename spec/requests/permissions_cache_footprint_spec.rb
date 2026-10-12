@@ -12,6 +12,9 @@ describe 'Permission and scope reads of a request', type: :request do
   let(:readable) { %w[Tree Location User Island] }
   let(:refetched_readable) { readable }
   let(:scope) { { 'field' => 'name', 'operator' => 'present', 'value' => nil } }
+  let(:users) { [{ 'id' => 1, 'roleId' => 1 }] }
+  let(:refetched_users) { users }
+  let(:cache) { ActiveSupport::Cache::MemoryStore.new }
   let!(:tree) do
     user = User.create!(name: 'Michel')
     tree = Tree.create!(name: 'Lemon Tree', owner: user, cutter: user)
@@ -31,15 +34,17 @@ describe 'Permission and scope reads of a request', type: :request do
   end
 
   before do
-    allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+    allow(Rails).to receive(:cache).and_return(cache)
     @environment_fetches = 0
+    @users_fetches = 0
     allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions) do |_, path|
       case path
       when '/liana/v4/permissions/environment'
         @environment_fetches += 1
         environment(@environment_fetches == 1 ? readable : refetched_readable)
       when '/liana/v4/permissions/users'
-        [{ 'id' => 1, 'roleId' => 1 }]
+        @users_fetches += 1
+        @users_fetches == 1 ? users : refetched_users
       end
     end
     rendering = Net::HTTPOK.new('1.1', 200, 'OK')
@@ -94,11 +99,24 @@ describe 'Permission and scope reads of a request', type: :request do
     let(:refetched_readable) { %w[Tree Location User Island] }
 
     it 'refetches once and answers the rest of the request from the fresh permissions' do
+      cache.write('forest.has_permission', true)
       get '/forest/Tree', params: filtered.merge(page: { number: 1, size: 10 }), headers: auth_headers
 
       expect(response).to have_http_status(200)
       expect(JSON.parse(response.body)['included'].map { |record| record['type'] }).to include('User')
       expect(@environment_fetches).to eq(2)
+    end
+  end
+
+  describe 'when the user is missing from a stale users cache' do
+    let(:users) { [] }
+    let(:refetched_users) { [{ 'id' => 1, 'roleId' => 1 }] }
+
+    it 'refetches the users once and authorizes the request' do
+      get '/forest/Tree', params: filtered.merge(page: { number: 1, size: 10 }), headers: auth_headers
+
+      expect(response).to have_http_status(200)
+      expect(@users_fetches).to eq(2)
     end
   end
 end

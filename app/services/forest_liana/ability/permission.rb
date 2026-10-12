@@ -54,8 +54,8 @@ module ForestLiana
 
       # +refetch+ drops the cached permissions first. Only a caller about to refuse on a denial asks
       # for it (a stale, up to TTL-old cache may sit behind a permission granted moments ago): the
-      # refetch deletes the cluster-wide `forest.collections` entry, so a field that is merely
-      # redacted is answered from the cache.
+      # refetch rewrites the cluster-wide `forest.collections` entry and this request's copy, so a
+      # field that is merely redacted is answered from the cache.
       def read_permissions(user, collection_names, refetch: false)
         @read_permissions_cache ||= {}
         to_fetch = refetch ? collection_names.uniq : collection_names.uniq - @read_permissions_cache.keys
