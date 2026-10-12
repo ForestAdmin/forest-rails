@@ -31,7 +31,7 @@ describe 'Permission and scope reads of a request', type: :request do
   end
 
   before do
-    Rails.cache.clear
+    allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
     @environment_fetches = 0
     allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions) do |_, path|
       case path
