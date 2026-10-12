@@ -2,6 +2,8 @@ require 'jsonapi-serializers'
 
 module ForestLiana
   class SerializerFactory
+    # Keyed by the fields array itself, which serialize builds anew on each call.
+    FIELD_SETS = ObjectSpace::WeakMap.new
 
     def self.define_serializer(active_record_class, serializer)
       serializer_name = self.build_serializer_name(active_record_class)
@@ -268,16 +270,14 @@ module ForestLiana
           show_attr
         end
 
-        # The context is shared by every serializer of one serialize call, and so are its fields:
-        # each type's list becomes a Set once per call instead of being scanned per attribute.
+        private
+
         def field_set(collection)
           fields = @_fields[collection]
           return nil if fields.nil?
 
-          (@context[:_forest_field_sets] ||= {})[collection] ||= Set.new(fields)
+          FIELD_SETS[fields] ||= Set.new(fields)
         end
-
-        private
 
         def intercom_integration?
           ForestLiana.integrations

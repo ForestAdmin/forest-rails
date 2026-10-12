@@ -3,7 +3,6 @@ module ForestLiana
 
     def self.associations(active_record_class)
       model = active_record_class.is_a?(ActiveRecord::Relation) ? active_record_class.klass : active_record_class
-      return scan_associations(model) unless model.is_a?(Class)
 
       LookupCache.fetch(:associations, model) { scan_associations(model).freeze }
     end
