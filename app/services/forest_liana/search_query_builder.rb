@@ -20,8 +20,7 @@ module ForestLiana
 
     def perform(resource)
       @resource = @records = resource
-      @tables_associated_to_relations_name =
-        ForestLiana::QueryHelper.get_tables_associated_to_relations_name(@resource)
+      @tables_associated_to_relations_name = nil
       # Two different contributors, kept apart rather than folded into one flag: a lambda that
       # runs without raising isn't necessarily a lambda that filtered anything (one returning its
       # query untouched pushes no condition, constrains nothing). Conflating the two let a
@@ -265,10 +264,14 @@ module ForestLiana
     end
 
     def association_table_name(name)
-      QueryHelper.get_tables_associated_to_relations_name(@records).detect { |key, values|
+      tables_associated_to_relations_name.detect { |key, values|
         break key if Array(values).include?(name)
       }
 
+    end
+
+    def tables_associated_to_relations_name
+      @tables_associated_to_relations_name ||= QueryHelper.get_tables_associated_to_relations_name(@resource)
     end
 
     # Recorded here, checked separately by +assert_sort_readable!+: a count route runs this same

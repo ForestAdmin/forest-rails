@@ -259,6 +259,35 @@ module ForestLiana
       end
     end
 
+    describe 'the tables behind a sort on a relation' do
+      let(:params) { { sort: sort } }
+
+      context 'without a sort on a relation' do
+        let(:sort) { '-name' }
+
+        it 'never resolves them' do
+          expect(ForestLiana::QueryHelper).not_to receive(:get_tables_associated_to_relations_name)
+
+          builder.perform(Tree)
+        end
+      end
+
+      context 'with a sort on two relations' do
+        let(:sort) { '-owner.name,cutter.age' }
+
+        it 'resolves them once' do
+          expect(ForestLiana::QueryHelper).to receive(:get_tables_associated_to_relations_name)
+            .with(Tree).once.and_call_original
+
+          builder.perform(Tree)
+        end
+
+        it 'orders on the tables of both relations' do
+          expect(builder.perform(Tree).to_sql).to include('ORDER BY "users"."name" DESC, "users"."age" ASC')
+        end
+      end
+    end
+
     describe 'the footprint it reports' do
       # search_param and the SQL it emits are meant to come from the same `push_condition` calls;
       # this walks the emitted WHERE clause independently of the recording and compares the two as
