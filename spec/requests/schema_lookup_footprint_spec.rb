@@ -45,4 +45,18 @@ describe 'Schema scans of a list call', type: :request do
 
     expect(scans).to eq(1)
   end
+
+  it 'reflects on the serialized model once, whatever the number of rows' do
+    2.times { Address.create!(line1: 'Another street', city: 'Papeete', zipcode: '98713', addressable: user) }
+    scans = []
+    allow(ForestLiana::SchemaUtils).to receive(:scan_associations).and_wrap_original do |original, model|
+      scans << model
+      original.call(model)
+    end
+
+    list('Address' => 'id,line1,addressable', 'addressable' => 'id')
+
+    expect(JSON.parse(response.body)['data'].size).to eq(3)
+    expect(scans.count(Address)).to eq(1)
+  end
 end

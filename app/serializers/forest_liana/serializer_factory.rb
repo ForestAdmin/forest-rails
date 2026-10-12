@@ -196,8 +196,10 @@ module ForestLiana
 
           if ret[:href].blank?
             begin
-              @many_association_names ||= SchemaUtils.many_associations(object.class).map(&:name)
-              if @many_association_names.include?(attribute_name)
+              many_association_names = LookupCache.fetch(:many_association_names, object.class) do
+                SchemaUtils.many_associations(object.class).map(&:name).freeze
+              end
+              if many_association_names.include?(attribute_name)
                 ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError => exception
@@ -212,7 +214,7 @@ module ForestLiana
           return {} if self.class.to_one_associations.nil?
           data = {}
           self.class.to_one_associations.each do |attribute_name, attr_data|
-            relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+            relation = object.class.reflect_on_association(attribute_name)
             next if !should_include_attr?(attribute_name, attr_data)
 
             if relation && relation.belongs_to? && relation.polymorphic?.nil?
@@ -252,7 +254,7 @@ module ForestLiana
           collection = self.type
 
           unless @options.dig(:context, :unoptimized)
-            return false unless @options[:fields][collection]&.include?(attribute_name.to_sym)
+            return false unless field_set(collection)&.include?(attribute_name.to_sym)
           end
 
           # Allow "if: :show_title?" and "unless: :hide_title?" attribute options.
@@ -262,8 +264,17 @@ module ForestLiana
           show_attr = true
           show_attr &&= send(if_method_name) if if_method_name
           show_attr &&= !send(unless_method_name) if unless_method_name
-          show_attr &&= @_fields[type.to_s].include?(formatted_attribute_name) if @_fields[type.to_s]
+          show_attr &&= field_set(type.to_s).include?(formatted_attribute_name) if @_fields[type.to_s]
           show_attr
+        end
+
+        # The context is shared by every serializer of one serialize call, and so are its fields:
+        # each type's list becomes a Set once per call instead of being scanned per attribute.
+        def field_set(collection)
+          fields = @_fields[collection]
+          return nil if fields.nil?
+
+          (@context[:_forest_field_sets] ||= {})[collection] ||= Set.new(fields)
         end
 
         private

@@ -84,6 +84,17 @@ describe 'Lookups by name over the schema' do
     end
   end
 
+  describe 'ForestLiana::SchemaUtils.associations' do
+    it 'reflects on a model once for repeated lookups, a relation included' do
+      expect(ForestLiana::SchemaUtils).to receive(:scan_associations).with(Tree).once.and_call_original
+
+      expected = Tree.reflect_on_all_associations.map(&:name)
+      expect(ForestLiana::SchemaUtils.associations(Tree).map(&:name)).to match_array(expected)
+      expect(ForestLiana::SchemaUtils.associations(Tree.where(name: 'oak')).map(&:name)).to match_array(expected)
+      expect(ForestLiana::SchemaUtils.many_associations(Tree).map(&:macro).uniq - %i[has_many has_and_belongs_to_many]).to be_empty
+    end
+  end
+
   describe 'ForestLiana::QueryHelper.get_one_associations' do
     it 'computes the to-one associations of a model once for repeated lookups' do
       expect(ForestLiana::QueryHelper).to receive(:scan_one_associations).with(Address).once.and_call_original
