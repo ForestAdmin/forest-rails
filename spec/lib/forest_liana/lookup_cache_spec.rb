@@ -1,6 +1,17 @@
 require 'rails_helper'
 
 describe 'Lookups by name over the schema' do
+  describe 'ForestLiana::LookupCache.fetch' do
+    it 'answers a remembered lookup without allocating' do
+      ForestLiana::LookupCache.fetch(:spec, :key) { :value }
+
+      allocated = GC.stat(:total_allocated_objects)
+      1_000.times { ForestLiana::LookupCache.fetch(:spec, :key) { :value } }
+
+      expect(GC.stat(:total_allocated_objects) - allocated).to be < 100
+    end
+  end
+
   describe 'ForestLiana.name_for' do
     after { ForestLiana.names_overriden.delete(Tree) }
 
