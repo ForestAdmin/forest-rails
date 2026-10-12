@@ -198,10 +198,8 @@ module ForestLiana
 
           if ret[:href].blank?
             begin
-              many_association_names = LookupCache.fetch(:many_association_names, object.class) do
-                SchemaUtils.many_associations(object.class).map(&:name).freeze
-              end
-              if many_association_names.include?(attribute_name)
+              @many_association_names ||= SchemaUtils.many_associations(object.class).map(&:name)
+              if @many_association_names.include?(attribute_name)
                 ret[:href] = "/forest/#{ForestLiana.name_for(object.class)}/#{object.id}/relationships/#{attribute_name}"
               end
             rescue TypeError, ActiveRecord::StatementInvalid, NoMethodError => exception

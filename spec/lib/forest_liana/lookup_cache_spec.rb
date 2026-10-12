@@ -91,7 +91,10 @@ describe 'Lookups by name over the schema' do
       expected = Tree.reflect_on_all_associations.map(&:name)
       expect(ForestLiana::SchemaUtils.associations(Tree).map(&:name)).to match_array(expected)
       expect(ForestLiana::SchemaUtils.associations(Tree.where(name: 'oak')).map(&:name)).to match_array(expected)
-      expect(ForestLiana::SchemaUtils.many_associations(Tree).map(&:macro).uniq - %i[has_many has_and_belongs_to_many]).to be_empty
+    end
+
+    it 'keeps only the to-many associations for many_associations' do
+      expect(ForestLiana::SchemaUtils.many_associations(Tree).map(&:name)).to eq([:owner_named_trees])
     end
   end
 
