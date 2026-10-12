@@ -151,6 +151,23 @@ module ForestLiana
       end
     end
 
+    describe 'when a live query segment uses a context variable' do
+      let(:user) { { 'id' => '1', 'name' => 'Michel', 'rendering_id' => rendering_id } }
+      let(:getter) do
+        described_class.new(resource, {
+          page: { size: pageSize, number: pageNumber },
+          fields: { 'User' => 'id,name' },
+          segmentQuery: "SELECT id FROM users WHERE name = '{{currentUser.name}}'",
+        }, user)
+      end
+
+      it 'injects the variable into the query it runs' do
+        getter.perform
+
+        expect(getter.records.map(&:name)).to eq(['Michel'])
+      end
+    end
+
     describe 'when there are more records than the page size' do
       describe 'when asking for the 1st page and 15 records' do
         let(:pageSize) { 15 }

@@ -27,6 +27,8 @@ module ForestLiana
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
     end
 
+    around_action :with_request_cache
+
     # NOTICE: Calling the method set_paper_trail_whodunnit loads the PaperTrail
     #         gem and Forest detects the PaperTrail::Version automatically. This
     #         method is used to set the whodunnit field automatically to track
@@ -130,6 +132,10 @@ module ForestLiana
     end
 
     private
+
+    def with_request_cache(&block)
+      ForestLiana::RequestCache.with(&block)
+    end
 
     # NOTICE: What survives becomes(), which allocates a fresh instance and copies @attributes
     #         onto it and nothing else. Shared by both controllers' get_record, unlike the rest of

@@ -27,7 +27,7 @@ module ForestLiana
         while (match = regex.match(value_with_context_variables_injected))
           context_variable_key = match[1]
 
-          value_with_context_variables_injected.gsub!(
+          value_with_context_variables_injected = value_with_context_variables_injected.gsub(
             /{{#{context_variable_key}}}/,
             yield(context_variable_key)
           )

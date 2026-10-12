@@ -64,18 +64,21 @@ module ForestLiana
 
     def self.invalidate_scope_cache(rendering_id)
       Rails.cache.delete('forest.scopes.' + rendering_id.to_s)
+      RequestCache.delete("forest.scopes.#{rendering_id}")
     end
 
     def self.fetch_scopes(rendering_id)
-      Rails.cache.fetch("forest.scopes.#{rendering_id}", expires_in: @@scope_cache_expiration_delta) do
-        response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
-        raise 'Unable to fetch scopes' unless response.is_a?(Net::HTTPOK)
-        parsed_response = JSON.parse(response.body)
+      RequestCache.fetch("forest.scopes.#{rendering_id}") do
+        Rails.cache.fetch("forest.scopes.#{rendering_id}", expires_in: @@scope_cache_expiration_delta) do
+          response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
+          raise 'Unable to fetch scopes' unless response.is_a?(Net::HTTPOK)
+          parsed_response = JSON.parse(response.body)
 
-        {
-          'scopes' => decode_scope(parsed_response['collections']),
-          'team' => parsed_response['team']
-        }
+          {
+            'scopes' => decode_scope(parsed_response['collections']),
+            'team' => parsed_response['team']
+          }
+        end
       end
     end
 
