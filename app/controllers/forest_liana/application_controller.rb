@@ -256,11 +256,16 @@ module ForestLiana
           params_fields_hash = params_fields.to_hash
         end
 
+        forest_collection = nil
+        smart_relations = nil
         params_fields_hash.inject({}) do |fields, param_field|
           relation_name = param_field[0]
           relation_fields = param_field[1]
-          forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == model.to_s.gsub('::', '__') }
-          smart_relations = forest_collection.fields_smart_belongs_to
+          forest_collection ||= begin
+            collection_name = model.to_s.gsub('::', '__')
+            ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+          end
+          smart_relations ||= forest_collection.fields_smart_belongs_to
 
           if relation_name == ForestLiana.name_for(model)
             fields[relation_name] = relation_fields
