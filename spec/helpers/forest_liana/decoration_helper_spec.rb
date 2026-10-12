@@ -179,6 +179,19 @@ module ForestLiana
 
           expect(result[0][:search]).to eq(['name'])
         end
+
+        it 'compiles the search pattern once for every record and field' do
+          allow(Regexp).to receive(:new).and_call_original
+          expect(Regexp).to receive(:new).with('john', Regexp::IGNORECASE).once.and_call_original
+
+          described_class.decorate_for_search(records_serialized, field_names, search_value)
+        end
+
+        it 'decorates nothing when the search is not a valid pattern' do
+          result = described_class.decorate_for_search(records_serialized, field_names, '[john')
+
+          expect(result).to be_nil
+        end
       end
 
       context 'when no matches are found' do
@@ -226,6 +239,12 @@ module ForestLiana
         it 'raises ArgumentError with descriptive message' do
           expect {
             described_class.decorate_for_search(records_serialized, field_names, search_value)
+          }.to raise_error(ArgumentError, "Missing 'attributes' key in record #{records_serialized['data'][0]}")
+        end
+
+        it 'raises ArgumentError even when the search is not a valid pattern' do
+          expect {
+            described_class.decorate_for_search(records_serialized, field_names, '[john')
           }.to raise_error(ArgumentError, "Missing 'attributes' key in record #{records_serialized['data'][0]}")
         end
       end
