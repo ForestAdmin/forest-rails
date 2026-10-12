@@ -2,6 +2,12 @@ module ForestLiana
   class SchemaUtils
 
     def self.associations(active_record_class)
+      model = active_record_class.is_a?(ActiveRecord::Relation) ? active_record_class.klass : active_record_class
+
+      LookupCache.fetch(:associations, model) { scan_associations(model).freeze }
+    end
+
+    def self.scan_associations(active_record_class)
       active_record_class.reflect_on_all_associations.select do |association|
         begin
           polymorphic?(association) ? true : !is_active_type?(association.klass)

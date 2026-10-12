@@ -2,6 +2,8 @@ require 'jsonapi-serializers'
 
 module ForestLiana
   class SerializerFactory
+    # Keyed by the fields array itself, which serialize builds anew on each call.
+    FIELD_SETS = ObjectSpace::WeakMap.new
 
     def self.define_serializer(active_record_class, serializer)
       serializer_name = self.build_serializer_name(active_record_class)
@@ -212,7 +214,7 @@ module ForestLiana
           return {} if self.class.to_one_associations.nil?
           data = {}
           self.class.to_one_associations.each do |attribute_name, attr_data|
-            relation = object.class.reflect_on_all_associations.find { |a| a.name == attribute_name }
+            relation = object.class.reflect_on_association(attribute_name)
             next if !should_include_attr?(attribute_name, attr_data)
 
             if relation && relation.belongs_to? && relation.polymorphic?.nil?
@@ -252,7 +254,7 @@ module ForestLiana
           collection = self.type
 
           unless @options.dig(:context, :unoptimized)
-            return false unless @options[:fields][collection]&.include?(attribute_name.to_sym)
+            return false unless field_set(collection)&.include?(attribute_name.to_sym)
           end
 
           # Allow "if: :show_title?" and "unless: :hide_title?" attribute options.
@@ -262,11 +264,18 @@ module ForestLiana
           show_attr = true
           show_attr &&= send(if_method_name) if if_method_name
           show_attr &&= !send(unless_method_name) if unless_method_name
-          show_attr &&= @_fields[type.to_s].include?(formatted_attribute_name) if @_fields[type.to_s]
+          show_attr &&= field_set(type.to_s).include?(formatted_attribute_name) if @_fields[type.to_s]
           show_attr
         end
 
         private
+
+        def field_set(collection)
+          fields = @_fields[collection]
+          return nil if fields.nil?
+
+          FIELD_SETS[fields] ||= Set.new(fields)
+        end
 
         def intercom_integration?
           ForestLiana.integrations

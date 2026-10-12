@@ -1,5 +1,20 @@
 module ForestLiana
   describe SerializerFactory do
+    describe 'projected fields' do
+      it 'follows the fields of each serialize call, even when the calls share one context' do
+        tree = Tree.create!(name: 'Oak', owner: User.create!(name: 'Owner'))
+        serializer = described_class.new.serializer_for(Tree)
+        context = {}
+        attributes = lambda do |fields|
+          ForestAdmin::JSONAPI::Serializer.serialize(tree, serializer: serializer, context: context,
+                                                           fields: { 'Tree' => fields })['data']['attributes']
+        end
+
+        expect(attributes.call('id,name')).to include('name' => 'Oak')
+        expect(attributes.call('id,age')).not_to have_key('name')
+      end
+    end
+
     describe '#serializer_for has_one_relationships patch' do
       let(:user) { User.create!(name: 'PatchTest') }
       let(:island) { Island.create!(name: 'TestIsland') }
