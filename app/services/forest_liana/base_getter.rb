@@ -777,8 +777,7 @@ module ForestLiana
       # Handle composite primary keys - name might be an Array
       name_sym = name.is_a?(Array) ? name : name.to_sym
       ForestLiana::QueryHelper.get_one_associations(projected_resource)
-                              .select { |association| association.name == name_sym }
-                              .first
+                              .find { |association| association.name == name_sym }
     end
 
     def is_active_storage_association?(association)
