@@ -76,15 +76,21 @@ module ForestLiana
         end
       end
 
-      context 'when regex matching raises an exception' do
+      context 'when search_value is not a valid regex' do
         let(:search_value) { '[invalid_regex' }
 
-        it 'handles the exception gracefully' do
+        it 'does not match a value that does not contain it' do
           expect {
             described_class.detect_match_and_decorate(record, index, field_name, value, search_value, match_fields)
           }.not_to raise_error
 
           expect(match_fields).to be_empty
+        end
+
+        it 'matches a value that contains it literally' do
+          described_class.detect_match_and_decorate(record, index, field_name, 'a[invalid_regex', search_value, match_fields)
+
+          expect(match_fields[index][:search]).to eq(['name'])
         end
       end
 
@@ -96,6 +102,12 @@ module ForestLiana
           described_class.detect_match_and_decorate(record, index, field_name, value, search_value, match_fields)
 
           expect(match_fields[index][:search]).to include('name')
+        end
+
+        it 'does not match a value without the literal character' do
+          described_class.detect_match_and_decorate(record, index, field_name, 'testXemail', search_value, match_fields)
+
+          expect(match_fields).to be_empty
         end
       end
     end
@@ -179,6 +191,31 @@ module ForestLiana
 
           expect(result[0][:search]).to eq(['name'])
         end
+
+        it 'compiles the search pattern once for every record and field' do
+          allow(Regexp).to receive(:new).and_call_original
+          expect(Regexp).to receive(:new).with('john', Regexp::IGNORECASE).once.and_call_original
+
+          described_class.decorate_for_search(records_serialized, field_names, search_value)
+        end
+
+        it 'highlights a search holding regex metacharacters literally' do
+          records_serialized['data'][1]['attributes']['name'] = 'f(x)'
+
+          result = described_class.decorate_for_search(records_serialized, field_names, '(')
+
+          expect(result).to eq({ 1 => { id: '2', search: ['name'] } })
+        end
+
+        it 'does not read a quantifier as one' do
+          records_serialized['data'][1]['attributes']['name'] = 'aaa'
+
+          expect(described_class.decorate_for_search(records_serialized, field_names, 'a*')).to be_nil
+        end
+
+        it 'does not read an alternation as one' do
+          expect(described_class.decorate_for_search(records_serialized, field_names, 'zzz|john')).to be_nil
+        end
       end
 
       context 'when no matches are found' do
@@ -226,6 +263,12 @@ module ForestLiana
         it 'raises ArgumentError with descriptive message' do
           expect {
             described_class.decorate_for_search(records_serialized, field_names, search_value)
+          }.to raise_error(ArgumentError, "Missing 'attributes' key in record #{records_serialized['data'][0]}")
+        end
+
+        it 'raises ArgumentError even when the search holds regex metacharacters' do
+          expect {
+            described_class.decorate_for_search(records_serialized, field_names, '[john')
           }.to raise_error(ArgumentError, "Missing 'attributes' key in record #{records_serialized['data'][0]}")
         end
       end

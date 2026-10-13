@@ -54,8 +54,8 @@ module ForestLiana
 
       # +refetch+ drops the cached permissions first. Only a caller about to refuse on a denial asks
       # for it (a stale, up to TTL-old cache may sit behind a permission granted moments ago): the
-      # refetch deletes the cluster-wide `forest.collections` entry, so a field that is merely
-      # redacted is answered from the cache.
+      # refetch rewrites the cluster-wide `forest.collections` entry and this request's copy, so a
+      # field that is merely redacted is answered from the cache.
       def read_permissions(user, collection_names, refetch: false)
         @read_permissions_cache ||= {}
         to_fetch = refetch ? collection_names.uniq : collection_names.uniq - @read_permissions_cache.keys
@@ -251,17 +251,20 @@ module ForestLiana
       end
 
       def get_user_data(user_id, force_fetch = true)
-        cache = Rails.cache.fetch('forest.users', expires_in: TTL) do
-          users = {}
-          get_permissions('/liana/v4/permissions/users').each do |user|
-            users[user['id'].to_s] = user
-          end
+        cache = RequestCache.fetch('forest.users') do
+          Rails.cache.fetch('forest.users', expires_in: TTL) do
+            users = {}
+            get_permissions('/liana/v4/permissions/users').each do |user|
+              users[user['id'].to_s] = user
+            end
 
-          users
+            users
+          end
         end
 
         if !cache.key?(user_id.to_s) && force_fetch
           Rails.cache.delete('forest.users')
+          RequestCache.delete('forest.users')
           get_user_data(user_id, false)
         else
           cache[user_id.to_s]
@@ -273,9 +276,15 @@ module ForestLiana
       # followed failed, so during a Forest API incident every pod re-hit the dead API on every
       # request instead of riding on the last good payload until the TTL ran out.
       def get_collections_permissions_data(force_fetch = false)
-        Rails.cache.write('forest.collections', fetch_collections_permissions, expires_in: TTL) if force_fetch == true
+        if force_fetch == true
+          collections = fetch_collections_permissions
+          Rails.cache.write('forest.collections', collections, expires_in: TTL)
+          return RequestCache.write('forest.collections', collections)
+        end
 
-        Rails.cache.fetch('forest.collections', expires_in: TTL) { fetch_collections_permissions }
+        RequestCache.fetch('forest.collections') do
+          Rails.cache.fetch('forest.collections', expires_in: TTL) { fetch_collections_permissions }
+        end
       end
 
       def fetch_collections_permissions
@@ -285,9 +294,15 @@ module ForestLiana
       end
 
       def get_chart_data(rendering_id, force_fetch = false)
-        Rails.cache.write('forest.stats', fetch_chart_data(rendering_id), expires_in: TTL) if force_fetch == true
+        if force_fetch == true
+          stats = fetch_chart_data(rendering_id)
+          Rails.cache.write('forest.stats', stats, expires_in: TTL)
+          return RequestCache.write('forest.stats', stats)
+        end
 
-        Rails.cache.fetch('forest.stats', expires_in: TTL) { fetch_chart_data(rendering_id) }
+        RequestCache.fetch('forest.stats') do
+          Rails.cache.fetch('forest.stats', expires_in: TTL) { fetch_chart_data(rendering_id) }
+        end
       end
 
       def fetch_chart_data(rendering_id)
@@ -297,8 +312,10 @@ module ForestLiana
       end
 
       def has_permission_system?
-        Rails.cache.fetch('forest.has_permission') do
-          (get_permissions('/liana/v4/permissions/environment') == true) ? false : true
+        RequestCache.fetch('forest.has_permission') do
+          Rails.cache.fetch('forest.has_permission') do
+            (get_permissions('/liana/v4/permissions/environment') == true) ? false : true
+          end
         end
       end
 

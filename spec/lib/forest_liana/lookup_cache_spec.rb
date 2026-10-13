@@ -1,6 +1,17 @@
 require 'rails_helper'
 
 describe 'Lookups by name over the schema' do
+  describe 'ForestLiana::LookupCache.fetch' do
+    it 'answers a remembered lookup without allocating' do
+      ForestLiana::LookupCache.fetch(:spec, :key) { :value }
+
+      allocated = GC.stat(:total_allocated_objects)
+      1_000.times { ForestLiana::LookupCache.fetch(:spec, :key) { :value } }
+
+      expect(GC.stat(:total_allocated_objects) - allocated).to be < 100
+    end
+  end
+
   describe 'ForestLiana.name_for' do
     after { ForestLiana.names_overriden.delete(Tree) }
 
@@ -46,6 +57,108 @@ describe 'Lookups by name over the schema' do
       ForestLiana.models << ghost
 
       expect(ForestLiana::SchemaUtils.find_model_from_collection_name('Ghost')).to eq ghost
+    end
+  end
+
+  describe 'ForestLiana::SchemaUtils.polymorphic_models' do
+    let(:addressable) { Address.reflect_on_association(:addressable) }
+
+    it 'scans the models once for repeated lookups of a relation' do
+      expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(:addressable).once.and_call_original
+
+      3.times { expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to eq [User] }
+    end
+
+    it 'returns a frozen list' do
+      expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to be_frozen
+    end
+
+    it 'remembers a relation no model targets' do
+      orphan = double(name: :orphan)
+      expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(:orphan).once.and_call_original
+
+      2.times { expect(ForestLiana::SchemaUtils.polymorphic_models(orphan)).to eq [] }
+    end
+
+    it 'finds a target added to the models after a first lookup' do
+      target = Class.new(ActiveRecord::Base) do
+        self.table_name = 'trees'
+        has_many :addresses, as: :addressable
+      end
+      expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to eq [User]
+
+      ForestLiana.models << target
+
+      expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to contain_exactly(User, target)
+    ensure
+      ForestLiana.models.delete(target)
+    end
+  end
+
+  describe 'ForestLiana::SchemaUtils.associations' do
+    it 'reflects on a model once for repeated lookups, a relation included' do
+      expect(ForestLiana::SchemaUtils).to receive(:scan_associations).with(Tree).once.and_call_original
+
+      expected = Tree.reflect_on_all_associations.map(&:name)
+      expect(ForestLiana::SchemaUtils.associations(Tree).map(&:name)).to match_array(expected)
+      expect(ForestLiana::SchemaUtils.associations(Tree.where(name: 'oak')).map(&:name)).to match_array(expected)
+    end
+
+    it 'keeps only the to-many associations for many_associations' do
+      expect(ForestLiana::SchemaUtils.many_associations(Tree).map(&:name)).to eq([:owner_named_trees])
+    end
+  end
+
+  describe 'ForestLiana::QueryHelper.get_one_associations' do
+    it 'computes the to-one associations of a model once for repeated lookups' do
+      expect(ForestLiana::QueryHelper).to receive(:scan_one_associations).with(Address).once.and_call_original
+
+      3.times { expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable] }
+    end
+
+    it 'returns a frozen list' do
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to be_frozen
+    end
+
+    it 'drops a target excluded after a first lookup' do
+      previous = ForestLiana.excluded_models
+      expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
+
+      ForestLiana.excluded_models = previous + ['User']
+
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to eq []
+    ensure
+      ForestLiana.excluded_models = previous
+    end
+
+    it 'drops a target excluded by a replacement list of the same size' do
+      previous = ForestLiana.excluded_models
+      ForestLiana.excluded_models = previous + ['Tree']
+      expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
+
+      ForestLiana.excluded_models = previous + ['User']
+
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to eq []
+    ensure
+      ForestLiana.excluded_models = previous
+    end
+
+    it 'drops a target left out of the included models after a first lookup' do
+      previous = ForestLiana.included_models
+      expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
+
+      ForestLiana.included_models = ['Address']
+
+      expect(ForestLiana::QueryHelper.get_one_associations(Address)).to eq []
+    ensure
+      ForestLiana.included_models = previous
+    end
+
+    it 'answers a relation from the lookup of its model' do
+      expect(ForestLiana::QueryHelper).to receive(:scan_one_associations).with(Address).once.and_call_original
+
+      expect(ForestLiana::QueryHelper.get_one_associations(Address).map(&:name)).to eq [:addressable]
+      expect(ForestLiana::QueryHelper.get_one_associations(Address.where(city: 'Papeete')).map(&:name)).to eq [:addressable]
     end
   end
 

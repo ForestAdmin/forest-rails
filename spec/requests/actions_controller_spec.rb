@@ -764,5 +764,43 @@ describe 'Requesting Actions routes', :type => :request  do
         expect(result).not_to have_key('Island')
       end
     end
+
+    context 'with several requested relations' do
+      let(:smart_relations) do
+        [
+          { field: :organization, reference: 'Api__OrganizationsView.id', is_virtual: true, is_searchable: false, type: 'String' },
+          { field: :parent_island, reference: 'Island.id', is_virtual: true, is_searchable: false, type: 'String' }
+        ]
+      end
+      let(:forest_collection) { double('forest_collection', name: collection_name, fields_smart_belongs_to: smart_relations) }
+      let(:params_fields) do
+        ActionController::Parameters.new({ 'Island' => 'id,name', 'organization' => 'name', 'parent_island' => 'name' })
+      end
+
+      before do
+        allow(ForestLiana).to receive(:apimap).and_return([forest_collection])
+        allow(controller).to receive(:params).and_return(
+          ActionController::Parameters.new({ collection: 'Island', fields: params_fields.to_unsafe_h })
+        )
+      end
+
+      it 'finds the collection once' do
+        expect(forest_collection).to receive(:name).once.and_return(collection_name)
+
+        controller.send(:fields_per_model, params_fields, model)
+      end
+
+      it 'reads its smart belongs-to once' do
+        expect(forest_collection).to receive(:fields_smart_belongs_to).once.and_return(smart_relations)
+
+        controller.send(:fields_per_model, params_fields, model)
+      end
+
+      it 'keys every relation as it would alone' do
+        result = controller.send(:fields_per_model, params_fields, model)
+
+        expect(result).to eq('Island' => 'id,name', 'Api__OrganizationsView' => 'name', 'parent_island' => 'name')
+      end
+    end
   end
 end

@@ -124,6 +124,16 @@ module ForestLiana
             }
           )
         end
+
+        it 'injects each user their own values from a shared scope' do
+          other_user = user.merge('email' => 'other@forestadmin.com')
+
+          ForestLiana::RequestCache.with do
+            expect(described_class.get_scope(collection_name, user)['conditions'][0]['value']).to eq('jd@forestadmin.com')
+            expect(described_class.get_scope(collection_name, other_user)['conditions'][0]['value']).to eq('other@forestadmin.com')
+            expect(described_class.fetch_scopes(rendering_id)['scopes']['User']['conditions'][0]['value']).to eq('{{currentUser.email}}')
+          end
+        end
       end
 
       describe 'when target collection has no scopes' do
@@ -347,9 +357,14 @@ module ForestLiana
         end
 
         it 'should inject the context variables in the query' do
+          expect(described_class.inject_context_variables_on_query(query, user))
+            .to eq "SELECT id FROM users WHERE email = 'jd@forestadmin.com'"
+        end
+
+        it 'should leave the query it was given untouched' do
           described_class.inject_context_variables_on_query(query, user)
 
-          expect(query).to eq "SELECT id FROM users WHERE email = 'jd@forestadmin.com'"
+          expect(query).to eq "SELECT id FROM users WHERE email = '{{currentUser.email}}'"
         end
       end
     end

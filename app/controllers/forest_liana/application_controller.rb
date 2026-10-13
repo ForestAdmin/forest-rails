@@ -27,6 +27,8 @@ module ForestLiana
       Object.const_get('PaperTrail::Version').is_a?(Class) rescue false
     end
 
+    around_action :with_request_cache
+
     # NOTICE: Calling the method set_paper_trail_whodunnit loads the PaperTrail
     #         gem and Forest detects the PaperTrail::Version automatically. This
     #         method is used to set the whodunnit field automatically to track
@@ -130,6 +132,10 @@ module ForestLiana
     end
 
     private
+
+    def with_request_cache(&block)
+      ForestLiana::RequestCache.with(&block)
+    end
 
     # NOTICE: What survives becomes(), which allocates a fresh instance and copies @attributes
     #         onto it and nothing else. Shared by both controllers' get_record, unlike the rest of
@@ -256,11 +262,16 @@ module ForestLiana
           params_fields_hash = params_fields.to_hash
         end
 
+        forest_collection = nil
+        smart_relations = nil
         params_fields_hash.inject({}) do |fields, param_field|
           relation_name = param_field[0]
           relation_fields = param_field[1]
-          forest_collection = ForestLiana.apimap.find { |collection| collection.name.to_s == model.to_s.gsub('::', '__') }
-          smart_relations = forest_collection.fields_smart_belongs_to
+          forest_collection ||= begin
+            collection_name = model.to_s.gsub('::', '__')
+            ForestLiana.apimap.find { |collection| collection.name.to_s == collection_name }
+          end
+          smart_relations ||= forest_collection.fields_smart_belongs_to
 
           if relation_name == ForestLiana.name_for(model)
             fields[relation_name] = relation_fields

@@ -2,6 +2,12 @@ module ForestLiana
   class SchemaUtils
 
     def self.associations(active_record_class)
+      model = active_record_class.is_a?(ActiveRecord::Relation) ? active_record_class.klass : active_record_class
+
+      LookupCache.fetch(:associations, model) { scan_associations(model).freeze }
+    end
+
+    def self.scan_associations(active_record_class)
       active_record_class.reflect_on_all_associations.select do |association|
         begin
           polymorphic?(association) ? true : !is_active_type?(association.klass)
@@ -89,14 +95,14 @@ module ForestLiana
     end
 
     def self.polymorphic_models(relation)
-      models = []
-      ForestLiana.models.each do |model|
-        unless model.reflect_on_all_associations.select { |association| association.options[:as] == relation.name.to_sym }.empty?
-          models << model
-        end
-      end
+      name = relation.name.to_sym
+      LookupCache.fetch(:polymorphic_models, name) { scan_polymorphic_models(name).freeze }
+    end
 
-      models
+    def self.scan_polymorphic_models(name)
+      ForestLiana.models.select do |model|
+        model.reflect_on_all_associations.any? { |association| association.options[:as] == name }
+      end
     end
 
 
