@@ -5,12 +5,16 @@ module ForestLiana
   # replaced or growing (the bootstrapper, a Forest collection file, a code reload) drops everything
   # remembered, so an answer never outlives what it read.
   module LookupCache
-    SOURCES = %i[models apimap names_overriden included_models excluded_models].freeze
-
     # Swapped as a whole, so a thread never pairs new sources with the stores of old ones.
     Snapshot = Struct.new(:sources, :sizes, :stores) do
-      def current?(sources)
-        sources.each_with_index.all? { |source, i| source.equal?(self.sources[i]) && source.size == sizes[i] }
+      def current?(models, apimap, names, included, excluded)
+        same?(0, models) && same?(1, apimap) && same?(2, names) && same?(3, included) && same?(4, excluded)
+      end
+
+      private
+
+      def same?(index, source)
+        source.equal?(sources[index]) && source.size == sizes[index]
       end
     end
 
@@ -29,11 +33,17 @@ module ForestLiana
       @snapshot = nil
     end
 
+    # Runs on every lookup, thousands of times per list: a hit must not allocate.
     def self.current_stores
-      sources = SOURCES.map { |source| ForestLiana.public_send(source) }
+      models = ForestLiana.models
+      apimap = ForestLiana.apimap
+      names = ForestLiana.names_overriden
+      included = ForestLiana.included_models
+      excluded = ForestLiana.excluded_models
       snapshot = @snapshot
-      return snapshot.stores if snapshot&.current?(sources)
+      return snapshot.stores if snapshot&.current?(models, apimap, names, included, excluded)
 
+      sources = [models, apimap, names, included, excluded]
       snapshot = Snapshot.new(sources, sources.map(&:size), {})
       @snapshot = snapshot
       snapshot.stores
