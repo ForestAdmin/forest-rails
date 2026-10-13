@@ -1,3 +1,10 @@
+## [9.22.12](https://github.com/ForestAdmin/forest-rails/compare/v9.22.11...v9.22.12) (2026-10-13)
+
+
+### Performance Improvements
+
+* cut list, count and get-one CPU on large schemas (PRD-1524) ([#838](https://github.com/ForestAdmin/forest-rails/issues/838)) ([1c13446](https://github.com/ForestAdmin/forest-rails/commit/1c13446d681f5e60d801b1085253d5220cda298b)), closes [#831](https://github.com/ForestAdmin/forest-rails/issues/831) [#833](https://github.com/ForestAdmin/forest-rails/issues/833) [#835](https://github.com/ForestAdmin/forest-rails/issues/835) [#834](https://github.com/ForestAdmin/forest-rails/issues/834) [#837](https://github.com/ForestAdmin/forest-rails/issues/837)
+
 ## [9.22.11](https://github.com/ForestAdmin/forest-rails/compare/v9.22.10...v9.22.11) (2026-10-10)
 
 
