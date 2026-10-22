@@ -428,6 +428,73 @@ module ForestLiana
           expect {dummy_class.is_smart_action_authorized?(user, String, parameters, '/forest/actions/my_action', 'POST')}
             .to raise_error(ForestLiana::Ability::Exceptions::UnknownCollection, 'The collection String doesn\'t exist')
         end
+
+        it 'should run a bulk action on several ids' do
+          parameters[:data][:attributes][:ids] = ['1', '2']
+
+          expect(dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST')).to equal true
+        end
+
+        describe 'with a single-record action' do
+          let(:single_record_error) { 'This action can only be triggered on one record at a time.' }
+
+          before do
+            island_action = ForestLiana.apimap.find { |collection| collection.name.to_s == 'Island' }
+              .actions.find { |action| action.name == 'my_action' }
+            allow(island_action).to receive(:type).and_return('single')
+          end
+
+          it 'should return true on exactly one id' do
+            expect(dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST')).to equal true
+          end
+
+          [
+            ['two ids', { ids: ['1', '2'] }],
+            ['no id', { ids: [] }],
+            ['a select-all', { ids: ['1'], all_records: true }],
+          ].each do |description, selection|
+            it "should refuse #{description} before checking permissions" do
+              parameters[:data][:attributes].merge!(selection)
+              expect(SmartActionChecker).not_to receive(:new)
+
+              expect { dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST') }
+                .to raise_error(ForestLiana::Errors::HTTP422Error, single_record_error)
+            end
+          end
+
+          def sign(ids)
+            JWT.encode(
+              { data: { attributes: parameters[:data][:attributes].to_h.merge(ids: ids, requester_id: 2) } },
+              ForestLiana.env_secret,
+              'HS256'
+            )
+          end
+
+          it 'should refuse to approve a request naming several ids' do
+            parameters[:data][:attributes][:signed_approval_request] = sign(['1', '2'])
+            expect(SmartActionChecker).not_to receive(:new)
+
+            expect { dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST') }
+              .to raise_error(ForestLiana::Errors::HTTP422Error, single_record_error)
+          end
+
+          it 'should refuse several ids sent beside a signed request naming one' do
+            parameters[:data][:attributes][:ids] = ['1', '2']
+            parameters[:data][:attributes][:signed_approval_request] = sign(['1'])
+            expect(SmartActionChecker).not_to receive(:new)
+
+            expect { dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST') }
+              .to raise_error(ForestLiana::Errors::HTTP422Error, single_record_error)
+          end
+
+          it 'should refuse several ids without a permission system' do
+            Rails.cache.write('forest.has_permission', false)
+            parameters[:data][:attributes][:ids] = ['1', '2']
+
+            expect { dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST') }
+              .to raise_error(ForestLiana::Errors::HTTP422Error, single_record_error)
+          end
+        end
       end
 
       describe 'when the server doesn\'t return an success response' do
