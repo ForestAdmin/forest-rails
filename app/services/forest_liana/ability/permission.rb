@@ -354,9 +354,9 @@ module ForestLiana
         return unless schema_action&.type == 'single'
 
         selections = [parameters[:data][:attributes], signed_approval_attributes(parameters)].compact
-        return if selections.all? { |attributes| !attributes[:all_records] && Array(attributes[:ids]).length == 1 }
+        return if selections.all? { |attributes| SingleRecordSelection.allowed?(schema_action, attributes) }
 
-        raise ForestLiana::Errors::HTTP422Error.new('This action can only be triggered on one record at a time.')
+        raise ForestLiana::Errors::HTTP422Error.new(SingleRecordSelection::MESSAGE)
       end
 
       def signed_approval_attributes(parameters)
