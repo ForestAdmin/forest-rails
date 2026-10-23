@@ -751,6 +751,7 @@ module ForestLiana
 
       before do
         Rails.cache.write('forest.has_permission', false)
+        allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({ 'scopes' => {}, 'team' => { 'id' => '1', 'name' => 'Operations' } })
         allow(ForestLiana::ScopeManager).to receive(:append_scope).and_call_original
         allow(ForestLiana::ScopeManager).to receive(:get_scope).and_return(nil)
       end
