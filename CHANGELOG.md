@@ -1,3 +1,12 @@
+## [9.22.13](https://github.com/ForestAdmin/forest-rails/compare/v9.22.12...v9.22.13) (2026-10-23)
+
+
+### Bug Fixes
+
+* **smart-action:** refuse a single-record action given several records [PRD-1704] ([5e74f17](https://github.com/ForestAdmin/forest-rails/commit/5e74f17182af2cb0e35d69035946fd0d367c55d5))
+* **smart-action:** refuse a single-record action given several records [PRD-1704] ([2b4e91a](https://github.com/ForestAdmin/forest-rails/commit/2b4e91aa8ca9f367ea4c17fc5247d9a880a07538))
+* **smart-action:** refuse a single-record action's form hooks given several records [PRD-1704] ([b212bdf](https://github.com/ForestAdmin/forest-rails/commit/b212bdf4a138f33e7b1d10760500a2a80c687fa3))
+
 ## [9.22.12](https://github.com/ForestAdmin/forest-rails/compare/v9.22.11...v9.22.12) (2026-10-13)
 
 
