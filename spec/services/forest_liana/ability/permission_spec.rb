@@ -487,6 +487,13 @@ module ForestLiana
               .to raise_error(ForestLiana::Errors::HTTP422Error, single_record_error)
           end
 
+          it 'should leave an undecodable signed request to the permission check' do
+            parameters[:data][:attributes][:signed_approval_request] = 'not-a-jwt'
+            expect(Permission::SmartActionChecker).to receive(:new).and_return(instance_double(Permission::SmartActionChecker, can_execute?: true))
+
+            expect(dummy_class.is_smart_action_authorized?(user, Island, parameters, '/forest/actions/my_action', 'POST')).to equal true
+          end
+
           it 'should refuse several ids without a permission system' do
             Rails.cache.write('forest.has_permission', false)
             parameters[:data][:attributes][:ids] = ['1', '2']
