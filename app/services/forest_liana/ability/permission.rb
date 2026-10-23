@@ -35,6 +35,7 @@ module ForestLiana
       end
 
       def is_smart_action_authorized?(user, collection, parameters, endpoint, http_method)
+        ensure_single_record_selection(collection, parameters, endpoint, http_method)
         return true unless has_permission_system?
 
         user_data = get_user_data(user['id'])
@@ -346,6 +347,24 @@ module ForestLiana
         end
 
         actions
+      end
+
+      def ensure_single_record_selection(collection, parameters, endpoint, http_method)
+        schema_action = find_action_from_endpoint(ForestLiana.name_for(collection), endpoint, http_method)
+        return unless schema_action&.type == 'single'
+
+        selections = [parameters[:data][:attributes], signed_approval_attributes(parameters)].compact
+        return if selections.all? { |attributes| SingleRecordSelection.allowed?(schema_action, attributes) }
+
+        raise ForestLiana::Errors::HTTP422Error.new(SingleRecordSelection::MESSAGE)
+      end
+
+      def signed_approval_attributes(parameters)
+        return unless parameters[:data][:attributes][:signed_approval_request]
+
+        RequestPermission.decodeSignedApprovalRequest(parameters)[:data][:attributes]
+      rescue JWT::DecodeError
+        nil
       end
 
       def find_action_from_endpoint(collection_name, endpoint, http_method)

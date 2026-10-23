@@ -47,6 +47,12 @@ module ForestLiana
       {:field_changed => found_field_changed, :fields => fields, :params => params, :user => forest_user}
     end
 
+    def ensure_single_record_selection(action, attributes)
+      return if SingleRecordSelection.allowed?(action, attributes)
+
+      raise ForestLiana::Errors::HTTP422Error.new(SingleRecordSelection::MESSAGE)
+    end
+
     def handle_result(result, action)
       if result.nil? || !result.is_a?(Array)
         return render status: 500, json: { error: 'Error in smart action load hook: hook must return an array of fields' }
@@ -104,6 +110,8 @@ module ForestLiana
       if !action
         render status: 500, json: {error: 'Error in smart action load hook: cannot retrieve action from collection'}
       else
+        ensure_single_record_selection(action, load_request)
+
         # Get the smart action hook load context
         context = get_smart_action_load_ctx(action.fields)
 
@@ -131,6 +139,8 @@ module ForestLiana
       elsif !change_request[:fields].is_a?(Array)
         return render status: 500, json: {error: 'Error in smart action change hook: fields params must be an array'}
       end
+
+      ensure_single_record_selection(action, change_request)
 
       # Get the smart action hook change context
       context = get_smart_action_change_ctx(change_request[:fields], change_request[:changed_field])

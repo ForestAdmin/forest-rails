@@ -217,6 +217,47 @@ describe 'Requesting Actions routes', :type => :request  do
       end
     end
 
+    describe 'on a single-record action' do
+      let(:single_record_error) { 'This action can only be triggered on one record at a time.' }
+
+      before do
+        action = island.actions.find { |action| action.name == 'my_action' }
+        allow(action).to receive(:type).and_return('single')
+      end
+
+      def hook_params(attributes)
+        JSON.dump(data: { attributes: { collection_name: 'Island' }.merge(attributes) })
+      end
+
+      [
+        ['two ids', { ids: [1, 2] }],
+        ['no id', { ids: [] }],
+        ['a select-all', { ids: [1], all_records: true }],
+      ].each do |description, selection|
+        it "should refuse to load the form given #{description}" do
+          post '/forest/actions/my_action/hooks/load', params: hook_params(selection), headers: headers
+
+          expect(response.status).to eq(422)
+          expect(response.body).to include(single_record_error)
+        end
+      end
+
+      it 'should refuse a change given two ids' do
+        post '/forest/actions/my_action/hooks/change',
+          params: hook_params(ids: [1, 2], fields: [{ field: 'foo', hook: 'on_foo_changed' }], changed_field: 'foo'),
+          headers: headers
+
+        expect(response.status).to eq(422)
+        expect(response.body).to include(single_record_error)
+      end
+
+      it 'should load the form on exactly one id' do
+        post '/forest/actions/my_action/hooks/load', params: hook_params(ids: [1]), headers: headers
+
+        expect(response.status).to eq(200)
+      end
+    end
+
     describe 'call /change' do
       it 'should respond 200' do
         action = island.actions.select { |action| action.name == 'my_action' }.first
