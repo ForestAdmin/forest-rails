@@ -305,6 +305,55 @@ module ForestLiana
           )
         end
 
+        describe 'with a live query segment on the "select all" selection' do
+          let(:segment_query) { "SELECT id FROM isle WHERE name = 'foo'" }
+
+          before do
+            Rails.cache.write('forest.has_permission', false)
+          end
+
+          def select_all_parameters_with_segment
+            select_all_params = params.deep_dup
+            select_all_params['data']['attributes'][:all_records] = true
+            select_all_params['data']['attributes'][:ids] = []
+            select_all_params['data']['attributes'][:all_records_subset_query] =
+              select_all_params['data']['attributes'][:all_records_subset_query].merge('segmentQuery' => segment_query)
+            ActionController::Parameters.new(select_all_params).permit!
+          end
+
+          it 'refuses with AccessDenied when the query is not one of the requester\'s segments' do
+            allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(
+              'scopes' => {}, 'segments' => {}, 'team' => {'id' => '1', 'name' => 'Operations'}
+            )
+            action['approvalRequired'] = [1]
+            action['userApprovalEnabled'] = [7]
+            smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(
+              select_all_parameters_with_segment, Island, action, user, nil, forest_user
+            )
+
+            expect { smart_action_checker.can_execute? }
+              .to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+          end
+
+          it 'resolves the record ids when the query is one of the requester\'s segments' do
+            allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(
+              'scopes' => {},
+              'segments' => { 'Island' => [segment_query] },
+              'team' => {'id' => '1', 'name' => 'Operations'}
+            )
+            action['approvalRequired'] = [1]
+            action['userApprovalEnabled'] = [7]
+            smart_action_checker = ForestLiana::Ability::Permission::SmartActionChecker.new(
+              select_all_parameters_with_segment, Island, action, user, nil, forest_user
+            )
+
+            expect { smart_action_checker.can_execute? }
+              .to raise_error(ForestLiana::Ability::Exceptions::RequireApproval) do |error|
+                expect(error.data[:recordIds]).to eq(['1'])
+              end
+          end
+        end
+
         it 'should raise RequireApproval error if match approvalRequiredConditions' do
           parameters = ActionController::Parameters.new(params).permit!
           action['approvalRequired'] = [1]
