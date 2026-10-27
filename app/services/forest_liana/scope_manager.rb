@@ -64,15 +64,15 @@ module ForestLiana
     end
 
     def self.invalidate_scope_cache(rendering_id)
-      Rails.cache.delete('forest.scopes.' + rendering_id.to_s)
-      RequestCache.delete("forest.scopes.#{rendering_id}")
+      Rails.cache.delete(scope_cache_key(rendering_id))
+      RequestCache.delete(scope_cache_key(rendering_id))
     end
 
     def self.assert_can_execute_segment_query!(user, collection_name, query)
       return if Ability::ALLOWED_PERMISSION_LEVELS.include?(user['permission_level'])
       raise Ability::Exceptions::AccessDenied.new unless query.is_a?(String)
-      return if segment_query_allowed?(fetch_scopes(user['rendering_id']), collection_name, query)
-      return if segment_query_allowed?(refetch_scopes(user['rendering_id']), collection_name, query)
+      return if segment_query_allowed?(segment_scopes(user['rendering_id']), collection_name, query)
+      return if segment_query_allowed?(segment_scopes(user['rendering_id'], force_fetch: true), collection_name, query)
 
       raise Ability::Exceptions::AccessDenied.new
     end
@@ -82,6 +82,8 @@ module ForestLiana
       return false if allowed_queries.nil?
 
       allowed_set = allowed_queries.map { |allowed| normalize_segment_query(allowed) }
+      return true if allowed_set.include?(normalize_segment_query(query))
+
       parts = query.split(SEGMENT_UNION_SEPARATOR)
       parts.any? && parts.all? { |part| allowed_set.include?(normalize_segment_query(part)) }
     end
@@ -97,8 +99,8 @@ module ForestLiana
       RequestCache.fetch(key) { cached_scopes(key, rendering_id, force_fetch) }
     end
 
-    def self.refetch_scopes(rendering_id)
-      fetch_scopes(rendering_id, force_fetch: true)
+    def self.segment_scopes(rendering_id, force_fetch: false)
+      fetch_scopes(rendering_id, force_fetch: force_fetch)
     rescue StandardError
       raise Errors::PermissionsUnavailableError.new
     end
@@ -140,7 +142,7 @@ module ForestLiana
       end
     end
 
-    private_class_method :segment_query_allowed?, :normalize_segment_query, :refetch_scopes, :cached_scopes,
+    private_class_method :segment_query_allowed?, :normalize_segment_query, :segment_scopes, :cached_scopes,
                          :load_scopes, :scope_cache_key
   end
 end
