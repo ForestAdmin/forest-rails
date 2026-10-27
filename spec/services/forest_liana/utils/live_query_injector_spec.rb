@@ -4,9 +4,21 @@ module ForestLiana
       let(:context_variables) { ContextVariables.new(nil, nil, request_context_variables) }
       let(:request_context_variables) { {} }
 
-      def mysql_connection
+      def mysql_connection(sql_mode: 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION')
         connection = double('mysql connection', adapter_name: 'Mysql2')
-        allow(connection).to receive(:quote_string) { |value| value.gsub(/[\\'"]/) { |char| "\\#{char}" } }
+        allow(connection).to receive(:select_value).with('SELECT @@SESSION.sql_mode').and_return(sql_mode)
+        if sql_mode.include?('NO_BACKSLASH_ESCAPES')
+          allow(connection).to receive(:quote_string) { |value| value.gsub("'", "''") }
+        else
+          allow(connection).to receive(:quote_string) { |value| value.gsub(/[\\'"]/) { |char| "\\#{char}" } }
+        end
+        allow(connection).to receive(:quote) { |value| "'#{connection.quote_string(value)}'" }
+        connection
+      end
+
+      def sqlserver_connection
+        connection = double('sqlserver connection', adapter_name: 'SQLServer')
+        allow(connection).to receive(:quote_string) { |value| value.gsub("'", "''") }
         allow(connection).to receive(:quote) { |value| "'#{connection.quote_string(value)}'" }
         connection
       end
@@ -78,6 +90,36 @@ module ForestLiana
         it 'ends a dash-dash comment at the line break right after it' do
           expect(inject("SELECT 1 FROM t --\nWHERE id = ?", mysql_connection, record_id: 7))
             .to eq("SELECT 1 FROM t --\nWHERE id = 7")
+        end
+
+        it 'injects a plain value inside a backtick-quoted identifier' do
+          request_context_variables['x.value'] = 'name'
+
+          expect(inject('SELECT `{{x.value}}` AS value FROM t', mysql_connection))
+            .to eq('SELECT `name` AS value FROM t')
+        end
+
+        it 'refuses a value holding a backtick inside a backtick-quoted identifier' do
+          request_context_variables['x.value'] = 'name` FROM t WHERE 1=0 OR `1'
+
+          expect { inject('SELECT `{{x.value}}` AS value FROM t', mysql_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        describe 'when the session does not treat backslashes as escapes' do
+          let(:connection) { mysql_connection(sql_mode: 'STRICT_TRANS_TABLES,NO_BACKSLASH_ESCAPES') }
+
+          it 'reads a backslash as a plain character of a string literal' do
+            expect(inject("SELECT 1 FROM t WHERE a = 'x\\' AND id = {{x.value}}", connection))
+              .to eq("SELECT 1 FROM t WHERE a = 'x\\' AND id = '0 OR 1=1'")
+          end
+
+          it 'injects a value placed right after a backslash inside a string literal' do
+            request_context_variables['x.value'] = "a'b"
+
+            expect(inject("SELECT 1 FROM t WHERE a = '\\{{x.value}}'", connection))
+              .to eq("SELECT 1 FROM t WHERE a = '\\a''b'")
+          end
         end
 
         it 'leaves a hash comment untouched' do
@@ -191,6 +233,15 @@ module ForestLiana
 
           expect(inject('SELECT 1 /* a /* b */ FROM t WHERE id = {{x.value}}', sqlite_connection))
             .to eq("SELECT 1 /* a /* b */ FROM t WHERE id = '0 OR 1=1'")
+        end
+      end
+
+      describe 'on SQL Server' do
+        let(:request_context_variables) { { 'x.value' => '0 OR 1=1' } }
+
+        it 'leaves a nested block comment untouched' do
+          expect(inject('SELECT 1 /* a /* b */ {{x.value}} */ FROM t WHERE id = {{x.value}}', sqlserver_connection))
+            .to eq("SELECT 1 /* a /* b */ {{x.value}} */ FROM t WHERE id = '0 OR 1=1'")
         end
       end
 

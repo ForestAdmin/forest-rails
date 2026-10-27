@@ -26,6 +26,8 @@ module ForestLiana
         @mysql = connection.adapter_name.match?(/mysql|trilogy/i)
         @postgresql = connection.adapter_name.match?(/postg/i)
         @bracket_quotes = connection.adapter_name.match?(/sqlite|sqlserver/i)
+        @nested_comments = @postgresql || connection.adapter_name.match?(/sqlserver/i)
+        @backslash_escapes = @mysql && mysql_backslash_escapes?
       end
 
       def inject(query)
@@ -44,8 +46,8 @@ module ForestLiana
           return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
 
           word + inject_in_string(scan_escape_string(scanner), backslash_escapes: true, escape_backslashes: true)
-        elsif (string = scanner.scan(quoted_pattern("'", backslash_escapes: @mysql)))
-          inject_in_string(string, backslash_escapes: @mysql, escape_backslashes: false)
+        elsif (string = scanner.scan(quoted_pattern("'", backslash_escapes: @backslash_escapes)))
+          inject_in_string(string, backslash_escapes: @backslash_escapes, escape_backslashes: false)
         elsif (quoted = scan_quoted_text(scanner))
           inject_in_quoted_text(quoted)
         elsif (placeholder = scanner.scan(PLACEHOLDER))
@@ -55,9 +57,13 @@ module ForestLiana
         end
       end
 
+      def mysql_backslash_escapes?
+        !@connection.select_value('SELECT @@SESSION.sql_mode').to_s.include?('NO_BACKSLASH_ESCAPES')
+      end
+
       def scan_comment(scanner)
         scanner.scan(@mysql ? MYSQL_LINE_COMMENT : LINE_COMMENT) ||
-          scanner.scan(@postgresql ? NESTED_BLOCK_COMMENT : BLOCK_COMMENT) ||
+          scanner.scan(@nested_comments ? NESTED_BLOCK_COMMENT : BLOCK_COMMENT) ||
           (@mysql && scanner.scan(/#[^\n]*/))
       end
 
@@ -70,7 +76,7 @@ module ForestLiana
       end
 
       def scan_quoted_text(scanner)
-        scanner.scan(quoted_pattern('"', backslash_escapes: @mysql)) ||
+        scanner.scan(quoted_pattern('"', backslash_escapes: @backslash_escapes)) ||
           scanner.scan(quoted_pattern('`')) ||
           (@postgresql && scanner.scan(DOLLAR_QUOTED)) ||
           (@bracket_quotes && scanner.scan(BRACKET_QUOTED))
