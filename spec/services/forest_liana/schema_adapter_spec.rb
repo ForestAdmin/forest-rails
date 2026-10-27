@@ -122,6 +122,32 @@ module ForestLiana
           expect(uri_regex_validation[:value].match('\n')).to eq(nil)
         end
       end
+
+      context 'with a Devise model' do
+        let(:devise_model) do
+          stub_const('DeviseAccount', Class.new(ActiveRecord::Base) do
+            self.table_name = 'isle'
+
+            def self.devise_modules?
+              true
+            end
+          end)
+        end
+
+        after { ForestLiana.apimap.delete_if { |collection| collection.name.to_s == 'DeviseAccount' } }
+
+        it 'declares Change password as a single-record action' do
+          collection = described_class.new(devise_model).perform
+          action = collection.actions.find { |candidate| candidate.name == 'Change password' }
+
+          expect(action).to have_attributes(
+            id: 'DeviseAccount.Change password',
+            type: 'single',
+            endpoint: 'forest/actions/change-password',
+            http_method: 'POST'
+          )
+        end
+      end
     end
   end
 end

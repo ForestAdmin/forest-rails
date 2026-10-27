@@ -32,6 +32,7 @@ module ForestLiana
         collection.actions << ForestLiana::Model::Action.new({
           id: "#{collection.name}.Change password",
           name: "Change password",
+          type: 'single',
           fields: [{
             field: 'New password',
             type: 'String'
