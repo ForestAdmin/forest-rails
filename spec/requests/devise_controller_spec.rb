@@ -4,6 +4,7 @@ describe 'Change password action', type: :request do
   let(:rendering_id) { 13 }
   let(:role_id) { 1 }
   let(:trigger_roles) { [role_id] }
+  let(:approval_roles) { [] }
   let(:scope_filters) { { 'scopes' => {}, 'team' => { 'id' => '1', 'name' => 'Operations' } } }
   let(:cache) { ActiveSupport::Cache::MemoryStore.new }
   let(:island_collection) { ForestLiana.apimap.find { |collection| collection.name.to_s == 'Island' } }
@@ -54,7 +55,7 @@ describe 'Change password action', type: :request do
     change_password = {
       'triggerEnabled' => { 'roles' => trigger_roles },
       'triggerConditions' => [],
-      'approvalRequired' => { 'roles' => [] },
+      'approvalRequired' => { 'roles' => approval_roles },
       'approvalRequiredConditions' => [],
       'userApprovalEnabled' => { 'roles' => [] },
       'userApprovalConditions' => [],
@@ -116,6 +117,22 @@ describe 'Change password action', type: :request do
       expect(JSON.parse(response.body)['errors'].first).to include(
         'name' => 'CustomActionTriggerForbiddenError',
         'detail' => "You don't have the permission to trigger this action"
+      )
+    end
+  end
+
+  context 'when the user role must have the action approved' do
+    let(:approval_roles) { [role_id] }
+
+    it 'responds 403 asking for approval and leaves the password unchanged' do
+      expect_any_instance_of(Island).not_to receive(:password=)
+
+      change_password
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'].first).to include(
+        'name' => 'CustomActionRequiresApprovalError',
+        'detail' => 'This action requires to be approved.'
       )
     end
   end
