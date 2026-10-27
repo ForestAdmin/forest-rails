@@ -105,6 +105,20 @@ describe 'Change password action', type: :request do
     end
   end
 
+  context 'when the user scope excludes the targeted record at lookup' do
+    it 'resolves the record within the user scope and leaves the password unchanged' do
+      expect(ForestLiana::ScopeManager).to receive(:apply_scopes_on_records)
+        .with(Island, hash_including('id' => 38, 'rendering_id' => rendering_id), 'Island', 'Europe/Paris')
+        .and_return(Island.none)
+      expect_any_instance_of(Island).not_to receive(:password=)
+
+      change_password
+
+      expect(response.status).to eq(400)
+      expect(JSON.parse(response.body)).to eq('error' => 'Smart Action: target record not found')
+    end
+  end
+
   context 'when the user is not allowed to trigger the action on the collection' do
     let(:trigger_roles) { [] }
 
