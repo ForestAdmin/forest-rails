@@ -563,6 +563,17 @@ describe 'Requesting Actions routes', :type => :request  do
       end
     end
 
+    describe 'with a requester named outside a signed approval request' do
+      it 'should respond 422 and NOT perform the action' do
+        params[:data][:attributes][:requester_id] = 99
+        expect_any_instance_of(Forest::IslandsController).not_to receive(:test)
+
+        post '/forest/actions/test', params: JSON.dump(params), headers: headers
+
+        expect(response.status).to eq(422)
+      end
+    end
+
     describe 'with scopes' do
       before(:each) do
         allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }

@@ -5,6 +5,7 @@ describe 'Change password action', type: :request do
   let(:role_id) { 1 }
   let(:trigger_roles) { [role_id] }
   let(:approval_roles) { [] }
+  let(:approver_roles) { [] }
   let(:scope_filters) { { 'scopes' => {}, 'team' => { 'id' => '1', 'name' => 'Operations' } } }
   let(:cache) { ActiveSupport::Cache::MemoryStore.new }
   let(:island_collection) { ForestLiana.apimap.find { |collection| collection.name.to_s == 'Island' } }
@@ -12,6 +13,7 @@ describe 'Change password action', type: :request do
     ForestLiana::Model::Action.new(
       id: 'Island.Change password',
       name: 'Change password',
+      type: 'single',
       fields: [{ field: 'New password', type: 'String' }]
     )
   end
@@ -57,7 +59,7 @@ describe 'Change password action', type: :request do
       'triggerConditions' => [],
       'approvalRequired' => { 'roles' => approval_roles },
       'approvalRequiredConditions' => [],
-      'userApprovalEnabled' => { 'roles' => [] },
+      'userApprovalEnabled' => { 'roles' => approver_roles },
       'userApprovalConditions' => [],
       'selfApprovalEnabled' => { 'roles' => [] }
     }
@@ -195,9 +197,75 @@ describe 'Change password action', type: :request do
       change_password
 
       expect(response.status).to eq(422)
-      expect(JSON.parse(response.body)['errors'].first).to include(
-        'detail' => 'This action cannot be triggered on a select-all selection.'
+      expect(JSON.parse(response.body)['errors'].first).to include('detail' => ForestLiana::SingleRecordSelection::MESSAGE)
+    end
+  end
+
+  context 'when the request targets several records' do
+    let(:attributes) { super().merge(ids: %w[1 2]) }
+
+    it 'responds 422 and leaves the password unchanged' do
+      expect_any_instance_of(Island).not_to receive(:password=)
+
+      change_password
+
+      expect(response.status).to eq(422)
+      expect(JSON.parse(response.body)['errors'].first).to include('detail' => ForestLiana::SingleRecordSelection::MESSAGE)
+    end
+  end
+
+  context 'when the request names a requester outside a signed approval request' do
+    let(:attributes) { super().merge(requester_id: 99) }
+
+    it 'responds 422 and leaves the password unchanged' do
+      expect_any_instance_of(Island).not_to receive(:password=)
+
+      change_password
+
+      expect(response.status).to eq(422)
+    end
+  end
+
+  context 'when an approver executes a signed approval request' do
+    let(:approval_roles) { [role_id] }
+    let(:approver_roles) { [role_id] }
+    let(:approved_ids) { ['1'] }
+    let(:signed_approval_request) do
+      JWT.encode(
+        { data: { attributes: attributes.merge(ids: approved_ids, requester_id: 99) } },
+        ForestLiana.env_secret,
+        'HS256'
       )
+    end
+    let(:params) do
+      {
+        data: {
+          attributes: attributes.except(:values).merge(signed_approval_request: signed_approval_request),
+          type: 'custom-action-requests'
+        },
+        timezone: 'Europe/Paris'
+      }
+    end
+
+    it 'responds 204 and sets the approved password on the targeted record' do
+      expect_any_instance_of(Island).to receive(:password=).with('n3w-p4ssw0rd').and_call_original
+
+      change_password
+
+      expect(response.status).to eq(204)
+    end
+
+    context 'and the approved request targets several records' do
+      let(:approved_ids) { %w[1 2] }
+
+      it 'responds 422 and leaves the password unchanged' do
+        expect_any_instance_of(Island).not_to receive(:password=)
+
+        change_password
+
+        expect(response.status).to eq(422)
+        expect(JSON.parse(response.body)['errors'].first).to include('detail' => ForestLiana::SingleRecordSelection::MESSAGE)
+      end
     end
   end
 end
