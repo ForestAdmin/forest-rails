@@ -232,6 +232,25 @@ module ForestLiana
         }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
       end
 
+      it 'accepts a configured query sent without its trailing semicolon' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, 'SELECT id FROM users WHERE id > 10')
+        }.not_to raise_error
+      end
+
+      it 'refuses an empty query' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, '')
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+      end
+
+      it 'refuses a query that is not a string, without fetching the rendering' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, [segment_query])
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+        expect(ForestLiana::ForestApiRequester).not_to have_received(:get)
+      end
+
       %w[admin editor developer].each do |permission_level|
         it "lets a #{permission_level} run any query, without fetching the rendering" do
           expect {
@@ -269,6 +288,17 @@ module ForestLiana
             described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
           }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
           expect(ForestLiana::ForestApiRequester).to have_received(:get).exactly(2).times
+        end
+
+        it 'keeps the cached rendering and answers 503 when the refetch fails' do
+          unavailable = Net::HTTPServiceUnavailable.new({}, 503, '')
+          allow(ForestLiana::ForestApiRequester).to receive(:get)
+            .and_return(api_response(scopes_without_the_segment), unavailable)
+
+          expect {
+            described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+          }.to raise_error(ForestLiana::Errors::PermissionsUnavailableError)
+          expect(Rails.cache.read("forest.scopes.#{rendering_id}")['segments']).to eq('User' => [])
         end
 
         it 'refetches a cache entry from before segments were cached, before deciding' do
