@@ -635,6 +635,89 @@ describe 'Requesting Tree resources', :type => :request  do
     end
   end
 
+  describe 'live query segment permission' do
+    let(:listed_segment_query) { 'SELECT id FROM trees WHERE name IS NOT NULL' }
+    let(:unlisted_segment_query) { 'SELECT id FROM trees WHERE 1 = 0' }
+
+    restricted_token = JWT.encode({
+      id: 1,
+      email: 'michael.kelso@that70.show',
+      first_name: 'Michael',
+      last_name: 'Kelso',
+      team: 'Operations',
+      rendering_id: 16,
+      exp: Time.now.to_i + 2.weeks.to_i,
+      permission_level: 'user'
+    }, ForestLiana.auth_secret, 'HS256')
+
+    restricted_headers = headers.merge('Authorization' => "Bearer #{restricted_token}")
+
+    let(:list_params) {
+      {
+        fields: { 'Tree' => 'id,name' },
+        page: { 'number' => '1', 'size' => '10' },
+        searchExtended: '0',
+        sort: '-id',
+        timezone: 'Europe/Paris'
+      }
+    }
+
+    it 'refuses a listing whose segment query is not one of the team segments' do
+      get '/forest/Tree', params: list_params.merge(segmentQuery: unlisted_segment_query), headers: restricted_headers
+
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'][0]['name']).to eq('AccessDenied')
+    end
+
+    it 'serves the listing when the rendering lists that exact segment query' do
+      allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return(
+        'scopes' => {},
+        'segments' => { 'Tree' => [listed_segment_query] },
+        'team' => { 'id' => '1', 'name' => 'Operations' }
+      )
+
+      get '/forest/Tree', params: list_params.merge(segmentQuery: listed_segment_query), headers: restricted_headers
+
+      expect(response.status).to eq(200)
+      expect(JSON.parse(response.body)['data'][0]['attributes']['name']).to eq('Lemon Tree')
+    end
+
+    it 'refuses the count the same way' do
+      get '/forest/Tree/count', params: { segmentQuery: unlisted_segment_query, timezone: 'Europe/Paris' }, headers: restricted_headers
+
+      expect(response.status).to eq(403)
+    end
+
+    it 'refuses the csv export the same way' do
+      get '/forest/Tree.csv', params: { segmentQuery: unlisted_segment_query, header: 'id,name' }, headers: restricted_headers
+
+      expect(response.status).to eq(403)
+    end
+
+    it 'refuses a select-all bulk delete without deleting anything' do
+      params = {
+        data: {
+          attributes: {
+            collection_name: 'Tree',
+            all_records: true,
+            all_records_subset_query: { segmentQuery: unlisted_segment_query }
+          }
+        }
+      }
+
+      delete '/forest/Tree', params: JSON.dump(params), headers: restricted_headers
+
+      expect(response.status).to eq(403)
+      expect(Tree.count).to eq(1)
+    end
+
+    it 'still serves an admin an unlisted segment query' do
+      get '/forest/Tree', params: list_params.merge(segmentQuery: unlisted_segment_query), headers: headers
+
+      expect(response.status).to eq(200)
+    end
+  end
+
   describe 'csv' do
     it 'should return CSV with correct headers and data' do
       params = {
