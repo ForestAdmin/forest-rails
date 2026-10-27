@@ -240,6 +240,25 @@ module ForestLiana
         }.not_to raise_error
       end
 
+      it 'accepts a configured segment that itself holds the union separator' do
+        union_segment = "#{segment_query}/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT id FROM users WHERE id = 1"
+        scopes_body['collections']['User']['segments'] = [union_segment]
+        allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(api_response(scopes_body))
+
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, union_segment)
+        }.not_to raise_error
+      end
+
+      it 'answers 503 when the rendering cannot be fetched on a cold cache' do
+        allow(ForestLiana::ForestApiRequester).to receive(:get)
+          .and_return(Net::HTTPServiceUnavailable.new({}, 503, ''))
+
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+        }.to raise_error(ForestLiana::Errors::PermissionsUnavailableError)
+      end
+
       it 'refuses an empty query' do
         expect {
           described_class.assert_can_execute_segment_query!(user, collection_name, '')

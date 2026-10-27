@@ -195,7 +195,7 @@ module ForestLiana
           ActiveSupport::Notifications.unsubscribe(subscriber)
         end
 
-        expect(queries.join).not_to include('SELECT id FROM (')
+        expect(queries).to be_empty
       end
     end
 
