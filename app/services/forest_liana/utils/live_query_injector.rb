@@ -5,8 +5,10 @@ module ForestLiana
     class LiveQueryInjector
       PLACEHOLDER = /\{\{([^}]+)\}\}|\?/
       VERBATIM_VALUE = /\A(?:\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)*|true|false)\z/i
-      CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\r\n\0]/
-      COMMENT = %r{--[^\n]*|/\*.*?(?:\*/|\z)}m
+      CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\]\r\n\0]/
+      BLOCK_COMMENT = %r{/\*.*?(?:\*/|\z)}m
+      NESTED_BLOCK_COMMENT = %r{(?<comment>/\*(?:[^/*]|/(?!\*)|\*(?!/)|\g<comment>)*(?:\*/|\z))}m
+      BRACKET_QUOTED = /\[[^\]]*\]?/
       WORD = /[[:alpha:]_][[:alnum:]_$]*/
       DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*|)\$.*?(?:\$\1\$|\z)/m
 
@@ -20,6 +22,7 @@ module ForestLiana
         @connection = connection
         @mysql = connection.adapter_name.match?(/mysql|trilogy/i)
         @postgresql = connection.adapter_name.match?(/postg/i)
+        @bracket_quotes = connection.adapter_name.match?(/sqlite|sqlserver/i)
       end
 
       def inject(query)
@@ -32,7 +35,7 @@ module ForestLiana
       private
 
       def next_token(scanner)
-        if (comment = scanner.scan(COMMENT) || (@mysql && scanner.scan(/#[^\n]*/)))
+        if (comment = scan_comment(scanner))
           comment
         elsif (word = scanner.scan(WORD))
           return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
@@ -50,10 +53,17 @@ module ForestLiana
         end
       end
 
+      def scan_comment(scanner)
+        scanner.scan(/--[^\n]*/) ||
+          scanner.scan(@postgresql ? NESTED_BLOCK_COMMENT : BLOCK_COMMENT) ||
+          (@mysql && scanner.scan(/#[^\n]*/))
+      end
+
       def scan_quoted_text(scanner)
         scanner.scan(quoted_pattern('"', backslash_escapes: @mysql)) ||
           scanner.scan(quoted_pattern('`')) ||
-          (@postgresql && scanner.scan(DOLLAR_QUOTED))
+          (@postgresql && scanner.scan(DOLLAR_QUOTED)) ||
+          (@bracket_quotes && scanner.scan(BRACKET_QUOTED))
       end
 
       def quoted_pattern(quote, backslash_escapes: false)
@@ -83,8 +93,8 @@ module ForestLiana
         replace_placeholders(quoted) do |text, placeholder|
           if text.match?(CHARACTERS_CLOSING_QUOTED_TEXT)
             raise ForestLiana::Errors::LiveQueryError.new(
-              "Live Query Chart: The value of #{placeholder} cannot contain quotes, backslashes, dollar signs " \
-              'or line breaks when it is written between double quotes, backticks or dollar quotes.'
+              "Live Query Chart: The value of #{placeholder} cannot contain quotes, brackets, backslashes, " \
+              'dollar signs or line breaks when it is written inside a quoted identifier or a dollar-quoted string.'
             )
           end
           text

@@ -122,9 +122,44 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
+        it 'leaves a nested block comment untouched' do
+          expect(inject('SELECT 1 /* a /* b */ {{x.value}} */ FROM t WHERE id = {{x.value}}', postgresql_connection))
+            .to eq("SELECT 1 /* a /* b */ {{x.value}} */ FROM t WHERE id = '0 OR 1=1'")
+        end
+
         it 'leaves a block comment untouched' do
           expect(inject('SELECT 1 /* {{x.value}} ? */ FROM t WHERE id = ?', postgresql_connection, record_id: 'abc'))
             .to eq("SELECT 1 /* {{x.value}} ? */ FROM t WHERE id = 'abc'")
+        end
+      end
+
+      describe 'on SQLite' do
+        let(:request_context_variables) { { 'x.value' => 'users' } }
+
+        def sqlite_connection
+          connection = double('sqlite connection', adapter_name: 'SQLite')
+          allow(connection).to receive(:quote_string) { |value| value.gsub("'", "''") }
+          allow(connection).to receive(:quote) { |value| "'#{connection.quote_string(value)}'" }
+          connection
+        end
+
+        it 'injects a plain value inside a bracket-quoted identifier' do
+          expect(inject('SELECT COUNT(*) AS value FROM [{{x.value}}]', sqlite_connection))
+            .to eq('SELECT COUNT(*) AS value FROM [users]')
+        end
+
+        it 'refuses a value holding a closing bracket inside a bracket-quoted identifier' do
+          request_context_variables['x.value'] = 'users] WHERE 1=0 OR [1'
+
+          expect { inject('SELECT COUNT(*) AS value FROM [{{x.value}}]', sqlite_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        it 'reads a nested block comment marker as plain comment text' do
+          request_context_variables['x.value'] = '0 OR 1=1'
+
+          expect(inject('SELECT 1 /* a /* b */ FROM t WHERE id = {{x.value}}', sqlite_connection))
+            .to eq("SELECT 1 /* a /* b */ FROM t WHERE id = '0 OR 1=1'")
         end
       end
 
