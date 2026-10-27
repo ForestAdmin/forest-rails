@@ -231,6 +231,8 @@ module ForestLiana
     end
 
     def apply_live_query_segment
+      ScopeManager.assert_can_execute_segment_query!(@user, @collection_name, @params[:segmentQuery])
+
       LiveQueryChecker.new(@params[:segmentQuery], 'Live Query Segment').validate
 
       begin

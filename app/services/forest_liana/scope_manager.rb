@@ -67,6 +67,28 @@ module ForestLiana
       RequestCache.delete("forest.scopes.#{rendering_id}")
     end
 
+    def self.assert_can_execute_segment_query!(user, collection_name, query)
+      return if Ability::ALLOWED_PERMISSION_LEVELS.include?(user['permission_level'])
+      return if segment_query_allowed?(user, collection_name, query)
+
+      invalidate_scope_cache(user['rendering_id'])
+      return if segment_query_allowed?(user, collection_name, query)
+
+      raise Ability::Exceptions::AccessDenied.new
+    end
+
+    def self.segment_query_allowed?(user, collection_name, query)
+      segments = fetch_scopes(user['rendering_id'])['segments'] || {}
+      allowed_queries = segments[collection_name]
+      return false if allowed_queries.nil?
+
+      union_queries = query.split('/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION ')
+      return allowed_queries.include?(query) if union_queries.length == 1
+
+      allowed_set = allowed_queries.map { |allowed| allowed.gsub(/;\s*/, '').strip }
+      union_queries.all? { |union_query| allowed_set.include?(union_query.strip) }
+    end
+
     def self.fetch_scopes(rendering_id)
       RequestCache.fetch("forest.scopes.#{rendering_id}") do
         Rails.cache.fetch("forest.scopes.#{rendering_id}", expires_in: @@scope_cache_expiration_delta) do
@@ -76,6 +98,7 @@ module ForestLiana
 
           {
             'scopes' => decode_scope(parsed_response['collections']),
+            'segments' => decode_segments(parsed_response['collections']),
             'team' => parsed_response['team']
           }
         end
@@ -89,6 +112,12 @@ module ForestLiana
       end
 
       scopes
+    end
+
+    def self.decode_segments(raw_collections)
+      raw_collections.each_with_object({}) do |(collection_name, value), segments|
+        segments[collection_name] = value['segments'] unless value['segments'].nil?
+      end
     end
   end
 end
