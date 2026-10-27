@@ -52,9 +52,20 @@ module ForestLiana
         ).to eq(0)
       end
 
-      it 'refuses a final query holding more than one statement' do
+      it 'compares a record id holding a semicolon as a single value' do
+        expect(value_of('SELECT COUNT(*) AS value FROM users WHERE id = ?', record_id: '1; DELETE FROM users')).to eq(0)
+        expect(User.count).to eq(3)
+      end
+
+      it 'matches a string id holding a semicolon' do
+        User.create!(name: 'a;b')
+
+        expect(value_of("SELECT COUNT(*) AS value FROM users WHERE name = '?'", record_id: 'a;b')).to eq(1)
+      end
+
+      it 'refuses a query that chains statements before any value is injected' do
         expect {
-          value_of('SELECT COUNT(*) AS value FROM users WHERE id = ?', record_id: '1; DELETE FROM users')
+          value_of('SELECT COUNT(*) AS value FROM users WHERE id = ?; DELETE FROM users', record_id: 1)
         }.to raise_error(ForestLiana::Errors::LiveQueryError, /You cannot chain SQL/)
         expect(User.count).to eq(3)
       end
@@ -208,6 +219,27 @@ module ForestLiana
             context_variables: { 'dropdown.selectedValue' => '{{other.value}}?' }
           )
         ).to eq(1)
+      end
+
+      it 'matches a string holding a semicolon' do
+        User.create!(name: 'a;b')
+
+        expect(
+          value_of(
+            "SELECT COUNT(*) AS value FROM users WHERE name = '{{dropdown.selectedValue}}'",
+            context_variables: { 'dropdown.selectedValue' => 'a;b' }
+          )
+        ).to eq(1)
+      end
+
+      it 'compares a value holding a semicolon and a second statement as a single value' do
+        expect(
+          value_of(
+            'SELECT COUNT(*) AS value FROM users WHERE name = {{dropdown.selectedValue}}',
+            context_variables: { 'dropdown.selectedValue' => 'Sam; DELETE FROM users' }
+          )
+        ).to eq(0)
+        expect(User.count).to eq(3)
       end
 
       it 'raises on a variable the request does not provide' do

@@ -13,11 +13,11 @@ module ForestLiana
     end
 
     def perform
+      query = @params['query'].strip
+      LiveQueryChecker.new(query, 'Live Query Chart').validate()
+
       context_variables = Utils::ContextVariables.new(nil, nil, @params['contextVariables'])
-      raw_query = Utils::LiveQueryInjector.inject(@params['query'].strip, context_variables, @params['record_id'])
-
-      LiveQueryChecker.new(raw_query, 'Live Query Chart').validate()
-
+      raw_query = Utils::LiveQueryInjector.inject(query, context_variables, @params['record_id'])
       result = ActiveRecord::Base.connection.execute(raw_query)
 
       case @params['type']
