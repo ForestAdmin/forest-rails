@@ -187,6 +187,8 @@ module ForestLiana
         }
       }
 
+      let(:rendering_path) { "/liana/v4/permissions/renderings/#{rendering_id}" }
+
       def api_response(body)
         body = JSON.generate(body)
         response = Net::HTTPOK.new({}, 200, body)
@@ -277,7 +279,7 @@ module ForestLiana
           expect {
             described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
           }.not_to raise_error
-          expect(ForestLiana::ForestApiRequester).to have_received(:get).exactly(2).times
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with(rendering_path).exactly(2).times
         end
 
         it 'still refuses when the refetched rendering denies it too' do
@@ -287,7 +289,7 @@ module ForestLiana
           expect {
             described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
           }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
-          expect(ForestLiana::ForestApiRequester).to have_received(:get).exactly(2).times
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with(rendering_path).exactly(2).times
         end
 
         it 'keeps the cached rendering and answers 503 when the refetch fails' do
@@ -308,7 +310,7 @@ module ForestLiana
           expect {
             described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
           }.not_to raise_error
-          expect(ForestLiana::ForestApiRequester).to have_received(:get).once
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with(rendering_path).once
         end
       end
     end
