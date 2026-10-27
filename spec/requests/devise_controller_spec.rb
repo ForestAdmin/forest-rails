@@ -170,18 +170,20 @@ describe 'Change password action', type: :request do
       expect(response.status).to eq(400)
       expect(JSON.parse(response.body)).to eq('error' => 'Smart Action: target record not found')
     end
+  end
 
-    context 'and the request selects all records' do
-      let(:attributes) { super().merge(all_records: true, all_records_ids_excluded: []) }
+  context 'when the request selects all records' do
+    let(:attributes) { super().merge(all_records: true, all_records_ids_excluded: []) }
 
-      it 'responds 400 and leaves the password unchanged' do
-        expect_any_instance_of(Island).not_to receive(:password=)
+    it 'responds 422 and leaves the password unchanged' do
+      expect_any_instance_of(Island).not_to receive(:password=)
 
-        change_password
+      change_password
 
-        expect(response.status).to eq(400)
-        expect(JSON.parse(response.body)).to eq('error' => 'Smart Action: target record not found')
-      end
+      expect(response.status).to eq(422)
+      expect(JSON.parse(response.body)['errors'].first).to include(
+        'detail' => 'This action cannot be triggered on a select-all selection.'
+      )
     end
   end
 end

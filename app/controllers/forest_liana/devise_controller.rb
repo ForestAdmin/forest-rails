@@ -1,15 +1,12 @@
 module ForestLiana
   class DeviseController < ForestLiana::SmartActionsController
-    rescue_from ActiveRecord::RecordNotFound, with: :render_target_not_found
+    # The inherited checks vouch for a select-all selection as a whole, never for ids.first,
+    # the one record written here.
+    before_action :refuse_select_all
 
     def change_password
       attributes = @parameters[:data][:attributes]
-      # The inherited scope check skips select-all requests, yet this action still writes ids.first.
-      scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(
-        @resource, forest_user, ForestLiana.name_for(@resource), attributes[:timezone]
-      )
-
-      user = scoped_records.find(attributes[:ids].first)
+      user = @resource.find(attributes[:ids].first)
       user.password = attributes[:values]['New password']
       user.save
 
@@ -24,8 +21,10 @@ module ForestLiana
 
     private
 
-    def render_target_not_found
-      render serializer: nil, json: { error: 'Smart Action: target record not found' }, status: :bad_request
+    def refuse_select_all
+      return unless @parameters[:data][:attributes][:all_records]
+
+      raise ForestLiana::Errors::HTTP422Error.new('This action cannot be triggered on a select-all selection.')
     end
   end
 end
