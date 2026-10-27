@@ -1,0 +1,102 @@
+require 'strscan'
+
+module ForestLiana
+  module Utils
+    class LiveQueryInjector
+      PLACEHOLDER = /\{\{([^}]+)\}\}|\?/
+      VERBATIM_VALUE = /\A(?:\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)*|true|false)\z/i
+      CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\r\n\0]/
+      COMMENT = %r{--[^\n]*|/\*.*?(?:\*/|\z)}m
+      WORD = /[[:alpha:]_][[:alnum:]_$]*/
+      DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*)?\$.*?(?:\$\1\$|\z)/m
+
+      def self.inject(query, context_variables, record_id, connection = ActiveRecord::Base.connection)
+        new(context_variables, record_id, connection).inject(query)
+      end
+
+      def initialize(context_variables, record_id, connection)
+        @context_variables = context_variables
+        @record_id = record_id
+        @connection = connection
+        @mysql = connection.adapter_name.match?(/mysql|trilogy/i)
+        @postgresql = connection.adapter_name.match?(/postg/i)
+      end
+
+      def inject(query)
+        scanner = StringScanner.new(query)
+        injected = +''
+        injected << next_token(scanner) until scanner.eos?
+        injected
+      end
+
+      private
+
+      def next_token(scanner)
+        if (comment = scanner.scan(COMMENT) || (@mysql && scanner.scan(/#[^\n]*/)))
+          comment
+        elsif (word = scanner.scan(WORD))
+          return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
+
+          word + inject_in_string(scanner.scan(quoted_pattern("'", backslash_escapes: true)), escape_backslashes: true)
+        elsif (string = scanner.scan(quoted_pattern("'", backslash_escapes: @mysql)))
+          inject_in_string(string, escape_backslashes: false)
+        elsif (quoted = scan_quoted_text(scanner))
+          inject_in_quoted_text(quoted)
+        elsif (placeholder = scanner.scan(PLACEHOLDER))
+          inject_in_code(placeholder)
+        else
+          scanner.getch
+        end
+      end
+
+      def scan_quoted_text(scanner)
+        scanner.scan(quoted_pattern('"', backslash_escapes: @mysql)) ||
+          scanner.scan(quoted_pattern('`')) ||
+          (@postgresql && scanner.scan(DOLLAR_QUOTED))
+      end
+
+      def quoted_pattern(quote, backslash_escapes: false)
+        escaped = Regexp.escape(quote)
+        content = backslash_escapes ? "[^#{escaped}\\\\]|\\\\.|#{escaped}#{escaped}" : "[^#{escaped}]|#{escaped}#{escaped}"
+        /#{escaped}(?:#{content})*#{escaped}?/m
+      end
+
+      def inject_in_code(placeholder)
+        replace_placeholders(placeholder) do |text|
+          text.match?(VERBATIM_VALUE) ? text : @connection.quote(text)
+        end
+      end
+
+      def inject_in_string(string, escape_backslashes:)
+        replace_placeholders(string) do |text|
+          escape_backslashes ? text.gsub(/[\\']/) { |character| character * 2 } : @connection.quote_string(text)
+        end
+      end
+
+      def inject_in_quoted_text(quoted)
+        replace_placeholders(quoted) do |text, placeholder|
+          if text.match?(CHARACTERS_CLOSING_QUOTED_TEXT)
+            raise ForestLiana::Errors::LiveQueryError.new(
+              "Live Query Chart: The value of #{placeholder} cannot contain quotes, backslashes, dollar signs " \
+              'or line breaks when it is written between double quotes, backticks or dollar quotes.'
+            )
+          end
+          text
+        end
+      end
+
+      def replace_placeholders(text)
+        text.gsub(PLACEHOLDER) do |placeholder|
+          context_variable_key = Regexp.last_match(1)
+          if context_variable_key
+            yield(ContextVariablesInjector.context_value(context_variable_key, @context_variables), placeholder)
+          elsif @record_id.nil?
+            placeholder
+          else
+            yield(@record_id.to_s, placeholder)
+          end
+        end
+      end
+    end
+  end
+end
