@@ -113,6 +113,20 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
+        it 'refuses a value right after a backslash in the continuation of an escape string' do
+          request_context_variables['x.value'] = "' OR true -- "
+
+          expect { inject("SELECT 1 FROM t WHERE a = E'a'\n  '\\{{x.value}}'", postgresql_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        it 'escapes backslashes of a value injected in the continuation of an escape string' do
+          request_context_variables['x.value'] = "a\\b"
+
+          expect(inject("SELECT 1 FROM t WHERE a = E'a'\n'{{x.value}}'", postgresql_connection))
+            .to eq("SELECT 1 FROM t WHERE a = E'a'\n'a\\\\b'")
+        end
+
         it 'injects a value placed right after an escaped backslash inside an escape string' do
           request_context_variables['x.value'] = "a'b"
 

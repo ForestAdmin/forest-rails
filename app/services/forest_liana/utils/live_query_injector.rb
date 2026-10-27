@@ -12,6 +12,7 @@ module ForestLiana
       NESTED_BLOCK_COMMENT = %r{(?<comment>/\*(?:[^/*]|/(?!\*)|\*(?!/)|\g<comment>)*(?:\*/|\z))}m
       BRACKET_QUOTED = /\[[^\]]*\]?/
       WORD = /[[:alpha:]_][[:alnum:]_$]*/
+      STRING_CONTINUATION = /[ \t\f\r]*\n[[:space:]]*(?=')/
       DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*|)\$.*?(?:\$\1\$|\z)/m
 
       def self.inject(query, context_variables, record_id, connection = ActiveRecord::Base.connection)
@@ -42,8 +43,7 @@ module ForestLiana
         elsif (word = scanner.scan(WORD))
           return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
 
-          escape_string = scanner.scan(quoted_pattern("'", backslash_escapes: true))
-          word + inject_in_string(escape_string, backslash_escapes: true, escape_backslashes: true)
+          word + inject_in_string(scan_escape_string(scanner), backslash_escapes: true, escape_backslashes: true)
         elsif (string = scanner.scan(quoted_pattern("'", backslash_escapes: @mysql)))
           inject_in_string(string, backslash_escapes: @mysql, escape_backslashes: false)
         elsif (quoted = scan_quoted_text(scanner))
@@ -59,6 +59,14 @@ module ForestLiana
         scanner.scan(@mysql ? MYSQL_LINE_COMMENT : LINE_COMMENT) ||
           scanner.scan(@postgresql ? NESTED_BLOCK_COMMENT : BLOCK_COMMENT) ||
           (@mysql && scanner.scan(/#[^\n]*/))
+      end
+
+      def scan_escape_string(scanner)
+        escape_string = scanner.scan(quoted_pattern("'", backslash_escapes: true))
+        while (continuation = scanner.scan(STRING_CONTINUATION))
+          escape_string << continuation << scanner.scan(quoted_pattern("'", backslash_escapes: true))
+        end
+        escape_string
       end
 
       def scan_quoted_text(scanner)
