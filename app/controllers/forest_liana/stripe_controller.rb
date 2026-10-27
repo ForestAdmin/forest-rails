@@ -1,5 +1,12 @@
 module ForestLiana
   class StripeController < ForestLiana::ApplicationController
+    include ForestLiana::Ability
+
+    rescue_from ForestLiana::Ability::Exceptions::TriggerForbidden, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::RequireApproval, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge, with: :render_error
+
+    before_action :authorize_refund, only: :refund
 
     def payments
       getter = StripePaymentsGetter.new(params, request.headers['Stripe-Secret-Key'],
@@ -27,7 +34,7 @@ module ForestLiana
 
     def refund
       begin
-        refunder = StripePaymentRefunder.new(params)
+        refunder = StripePaymentRefunder.new(@refund_parameters)
         refunder.perform
 
         render serializer: nil, json: {}
@@ -136,6 +143,28 @@ module ForestLiana
 
     def get_serializer_type(suffix)
       "#{params[:collection]}_#{suffix}"
+    end
+
+    private
+
+    def authorize_refund
+      parameters = ForestLiana::Ability::Permission::RequestPermission.decodeSignedApprovalRequest(params.permit!)
+      collection_name = parameters.dig(:data, :attributes, :collection_name).to_s
+      refund_action = find_refund_action(collection_name)
+      raise ForestLiana::Errors::HTTP422Error.new('The Refund action is not available on this collection.') unless refund_action
+
+      is_integration_action_authorized?(forest_user, collection_name, refund_action, params)
+      @refund_parameters = parameters
+    rescue JWT::DecodeError
+      raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
+    end
+
+    def find_refund_action(collection_name)
+      collection = ForestLiana.apimap.find do |candidate|
+        candidate.name.to_s == collection_name && candidate.integration == 'stripe'
+      end
+
+      collection&.actions&.find { |action| action.name == 'Refund' }
     end
   end
 end

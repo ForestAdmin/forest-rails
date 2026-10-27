@@ -53,6 +53,18 @@ module ForestLiana
         end
       end
 
+      # An integration collection (`<Model>_stripe_payments`, …) has no model, so a role's action
+      # conditions or a select-all selection cannot be resolved on it and are refused.
+      def is_integration_action_authorized?(user, collection_name, schema_action, parameters)
+        return true unless has_permission_system?
+
+        user_data = get_user_data(user['id'])
+        smart_action = get_collections_permissions_data.dig(collection_name, :actions, schema_action.name)
+        raise ForestLiana::Ability::Exceptions::TriggerForbidden.new unless user_data && smart_action
+
+        SmartActionChecker.new(parameters, nil, smart_action, user_data, schema_action.type, user).can_execute?
+      end
+
       # +refetch+ drops the cached permissions first. Only a caller about to refuse on a denial asks
       # for it (a stale, up to TTL-old cache may sit behind a permission granted moments ago): the
       # refetch rewrites the cluster-wide `forest.collections` entry and this request's copy, so a
