@@ -53,13 +53,14 @@ module ForestLiana
         end
       end
 
-      # An integration collection (`<Model>_stripe_payments`, …) has no model, so a role's action
-      # conditions or a select-all selection cannot be resolved on it and are refused.
-      def is_integration_action_authorized?(user, collection_name, schema_action, parameters)
+      # An integration collection (`<Model>_stripe_payments`, …) has no model: a select-all is not
+      # resolved for its approval, and a role condition on its action is refused as unsupported.
+      def is_integration_action_authorized?(user, collection_name, action_name, parameters)
         return true unless has_permission_system?
 
+        schema_action = find_integration_action(collection_name, action_name)
         user_data = get_user_data(user['id'])
-        smart_action = get_collections_permissions_data.dig(collection_name, :actions, schema_action.name)
+        smart_action = schema_action && get_collections_permissions_data.dig(collection_name, :actions, action_name)
         raise ForestLiana::Ability::Exceptions::TriggerForbidden.new unless user_data && smart_action
 
         SmartActionChecker.new(parameters, nil, smart_action, user_data, schema_action.type, user).can_execute?
@@ -377,6 +378,12 @@ module ForestLiana
         RequestPermission.decodeSignedApprovalRequest(parameters)[:data][:attributes]
       rescue JWT::DecodeError
         nil
+      end
+
+      def find_integration_action(collection_name, action_name)
+        collection = ForestLiana.apimap.find { |candidate| candidate.name.to_s == collection_name && candidate.integration.present? }
+
+        collection&.actions&.find { |action| action.name == action_name }
       end
 
       def find_action_from_endpoint(collection_name, endpoint, http_method)

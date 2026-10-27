@@ -43,7 +43,7 @@ module ForestLiana
           elsif @smart_action['approvalRequired'].include?(@user['roleId'])
             if condition_by_role_id(@smart_action['approvalRequiredConditions']).blank? || match_conditions('approvalRequiredConditions')
               # Global actions target no specific records — never resolve.
-              if @parameters[:data][:attributes][:all_records] && @action_type != 'global'
+              if @parameters[:data][:attributes][:all_records] && @action_type != 'global' && @collection
                 record_ids = select_all_record_ids
               end
 
@@ -83,6 +83,8 @@ module ForestLiana
         end
 
         def match_conditions(condition_name)
+          raise ForestLiana::Ability::Exceptions::UnsupportedConditionals.new unless @collection
+
           begin
             attributes = @parameters[:data][:attributes]
             condition = condition_by_role_id(@smart_action[condition_name])

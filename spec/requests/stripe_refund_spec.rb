@@ -195,19 +195,58 @@ describe 'Stripe payments refund', type: :request do
       super().merge(signed_approval_request: forged)
     end
 
-    it 'responds 403 and refunds nothing' do
+    it 'responds 400 and refunds nothing' do
       refund
 
-      expect(response.status).to eq(403)
+      expect(response.status).to eq(400)
+      expect(JSON.parse(response.body)['errors'].first['detail']).to eq('Invalid signed action parameters')
       expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
     end
   end
 
-  context 'when an approver sends a requester id outside a signed approval request' do
-    let(:role_id) { approver_role_id }
-    let(:trigger_roles) { [] }
-    let(:user_approval_roles) { [approver_role_id] }
+  context 'when the body carries a requester id outside a signed approval request' do
     let(:attributes) { super().merge(requester_id: 12) }
+
+    it 'responds 422 and refunds nothing, even for a role allowed to trigger the Refund action' do
+      refund
+
+      expect(response.status).to eq(422)
+      expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
+    end
+  end
+
+  context 'when the role can trigger the Refund action only under a condition' do
+    let(:trigger_conditions) do
+      [{ 'roleId' => role_id, 'filter' => { 'field' => 'amount', 'operator' => 'greater_than', 'value' => 0, 'source' => 'data' } }]
+    end
+
+    it 'responds 422 and refunds nothing, since role conditions are not supported on Stripe payments' do
+      refund
+
+      expect(response.status).to eq(422)
+      expect(JSON.parse(response.body)['errors'].first['name']).to eq('UnsupportedConditionalsFeatureError')
+      expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
+    end
+  end
+
+  context 'when a role needing approval selects every payment' do
+    let(:approval_roles) { [role_id] }
+    let(:user_approval_roles) { [approver_role_id] }
+    let(:attributes) { super().merge(all_records: true, all_records_ids_excluded: []) }
+
+    it 'responds 403 with the roles allowed to approve and refunds nothing' do
+      refund
+
+      expect(response.status).to eq(403)
+      error = JSON.parse(response.body)['errors'].first
+      expect(error['name']).to eq('CustomActionRequiresApprovalError')
+      expect(error['data']).to eq('roleIdsAllowedToApprove' => [approver_role_id])
+      expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
+    end
+  end
+
+  context 'when the request names a collection without the Stripe Refund action' do
+    let(:attributes) { super().merge(collection_name: 'Island') }
 
     it 'responds 403 and refunds nothing' do
       refund
@@ -218,53 +257,27 @@ describe 'Stripe payments refund', type: :request do
     end
   end
 
-  context 'when the role can trigger the Refund action only under a condition' do
-    let(:trigger_conditions) do
-      [{ 'roleId' => role_id, 'filter' => { 'field' => 'amount', 'operator' => 'greater_than', 'value' => 0, 'source' => 'data' } }]
-    end
-
-    it 'responds 409 and refunds nothing, since a condition cannot be evaluated on Stripe payments' do
-      refund
-
-      expect(response.status).to eq(409)
-      expect(JSON.parse(response.body)['errors'].first['name']).to eq('InvalidActionConditionError')
-      expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
-    end
-  end
-
-  context 'when a role needing approval selects every payment' do
-    let(:approval_roles) { [role_id] }
-    let(:user_approval_roles) { [approver_role_id] }
-    let(:attributes) { super().merge(all_records: true, all_records_ids_excluded: []) }
-
-    it 'responds 422 and refunds nothing, since the selection cannot be resolved for the approval' do
-      refund
-
-      expect(response.status).to eq(422)
-      expect(JSON.parse(response.body)['errors'].first['detail']).to eq('Unable to resolve the "select all" selection')
-      expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
-    end
-  end
-
-  context 'when the request names a collection without the Stripe Refund action' do
-    let(:attributes) { super().merge(collection_name: 'Island') }
-
-    it 'responds 422 and refunds nothing' do
-      refund
-
-      expect(response.status).to eq(422)
-      expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
-    end
-  end
-
   context 'when the request names no collection' do
     let(:attributes) { super().except(:collection_name) }
 
-    it 'responds 422 and refunds nothing' do
+    it 'responds 403 and refunds nothing' do
       refund
 
-      expect(response.status).to eq(422)
+      expect(response.status).to eq(403)
+      expect(JSON.parse(response.body)['errors'].first['name']).to eq('CustomActionTriggerForbiddenError')
       expect(ForestLiana::StripePaymentRefunder).not_to have_received(:new)
+    end
+  end
+
+  context 'when the project has no permission system and the request names no collection' do
+    let(:has_permission_system) { false }
+    let(:attributes) { super().except(:collection_name) }
+
+    it 'responds 200 and refunds each requested charge' do
+      refund
+
+      expect(response.status).to eq(200)
+      expect(refunded_ids).to eq([['ch_1', 'ch_2']])
     end
   end
 

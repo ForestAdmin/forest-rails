@@ -4,7 +4,7 @@ module ForestLiana
 
     rescue_from ForestLiana::Ability::Exceptions::TriggerForbidden, with: :render_error
     rescue_from ForestLiana::Ability::Exceptions::RequireApproval, with: :render_error
-    rescue_from ForestLiana::Ability::Exceptions::ApprovalSelectionTooLarge, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnsupportedConditionals, with: :render_error
 
     before_action :authorize_refund, only: :refund
 
@@ -148,23 +148,20 @@ module ForestLiana
     private
 
     def authorize_refund
-      parameters = ForestLiana::Ability::Permission::RequestPermission.decodeSignedApprovalRequest(params.permit!)
-      collection_name = parameters.dig(:data, :attributes, :collection_name).to_s
-      refund_action = find_refund_action(collection_name)
-      raise ForestLiana::Errors::HTTP422Error.new('The Refund action is not available on this collection.') unless refund_action
+      raise ForestLiana::Errors::HTTP422Error.new if params.dig(:data, :attributes, :requester_id).present?
 
-      is_integration_action_authorized?(forest_user, collection_name, refund_action, params)
+      parameters = refund_request_parameters
+      collection_name = parameters.dig(:data, :attributes, :collection_name).to_s
+      is_integration_action_authorized?(forest_user, collection_name, 'Refund', params)
       @refund_parameters = parameters
-    rescue JWT::DecodeError
-      raise ForestLiana::Ability::Exceptions::TriggerForbidden.new
     end
 
-    def find_refund_action(collection_name)
-      collection = ForestLiana.apimap.find do |candidate|
-        candidate.name.to_s == collection_name && candidate.integration == 'stripe'
-      end
+    def refund_request_parameters
+      return params.permit! unless params.dig(:data, :attributes, :signed_approval_request)
 
-      collection&.actions&.find { |action| action.name == 'Refund' }
+      ForestLiana::Ability::Permission::RequestPermission.decodeSignedApprovalRequest(params.permit!)
+    rescue JWT::DecodeError
+      raise ForestLiana::Errors::HTTP400Error.new('Invalid signed action parameters')
     end
   end
 end
