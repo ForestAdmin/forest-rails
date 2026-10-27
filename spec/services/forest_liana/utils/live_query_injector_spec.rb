@@ -51,6 +51,18 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
+        it 'refuses a value placed right after a backslash inside a string literal' do
+          request_context_variables['x.value'] = "' OR true -- "
+
+          expect { inject("SELECT 1 FROM t WHERE a = '\\{{x.value}}'", mysql_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        it 'refuses a record id placed right after a backslash inside a string literal' do
+          expect { inject("SELECT 1 FROM t WHERE a = '\\?'", mysql_connection, record_id: "' OR true -- ") }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
         it 'leaves a hash comment untouched' do
           expect(inject("SELECT 1 FROM t # {{x.value}} ?\nWHERE id = ?", mysql_connection, record_id: 7))
             .to eq("SELECT 1 FROM t # {{x.value}} ?\nWHERE id = 7")
@@ -75,6 +87,25 @@ module ForestLiana
         it 'leaves the hash operator outside comments' do
           expect(inject('SELECT 1 # {{x.value}} AS value FROM t', postgresql_connection))
             .to eq("SELECT 1 # '0 OR 1=1' AS value FROM t")
+        end
+
+        it 'refuses a value placed right after a backslash inside an escape string' do
+          request_context_variables['x.value'] = "' OR true -- "
+
+          expect { inject("SELECT 1 FROM t WHERE a = E'\\{{x.value}}'", postgresql_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        it 'injects a value placed right after an escaped backslash inside an escape string' do
+          request_context_variables['x.value'] = "a'b"
+
+          expect(inject("SELECT 1 FROM t WHERE a = E'\\\\{{x.value}}'", postgresql_connection))
+            .to eq("SELECT 1 FROM t WHERE a = E'\\\\a''b'")
+        end
+
+        it 'quotes a value placed after an untagged dollar-quoted string' do
+          expect(inject('SELECT $$a$$ AS value FROM t WHERE id = {{x.value}}', postgresql_connection))
+            .to eq("SELECT $$a$$ AS value FROM t WHERE id = '0 OR 1=1'")
         end
 
         it 'injects a plain value inside a dollar-quoted string' do

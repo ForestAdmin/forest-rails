@@ -8,7 +8,7 @@ module ForestLiana
       CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\r\n\0]/
       COMMENT = %r{--[^\n]*|/\*.*?(?:\*/|\z)}m
       WORD = /[[:alpha:]_][[:alnum:]_$]*/
-      DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*)?\$.*?(?:\$\1\$|\z)/m
+      DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*|)\$.*?(?:\$\1\$|\z)/m
 
       def self.inject(query, context_variables, record_id, connection = ActiveRecord::Base.connection)
         new(context_variables, record_id, connection).inject(query)
@@ -37,9 +37,10 @@ module ForestLiana
         elsif (word = scanner.scan(WORD))
           return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
 
-          word + inject_in_string(scanner.scan(quoted_pattern("'", backslash_escapes: true)), escape_backslashes: true)
+          escape_string = scanner.scan(quoted_pattern("'", backslash_escapes: true))
+          word + inject_in_string(escape_string, backslash_escapes: true, escape_backslashes: true)
         elsif (string = scanner.scan(quoted_pattern("'", backslash_escapes: @mysql)))
-          inject_in_string(string, escape_backslashes: false)
+          inject_in_string(string, backslash_escapes: @mysql, escape_backslashes: false)
         elsif (quoted = scan_quoted_text(scanner))
           inject_in_quoted_text(quoted)
         elsif (placeholder = scanner.scan(PLACEHOLDER))
@@ -67,8 +68,13 @@ module ForestLiana
         end
       end
 
-      def inject_in_string(string, escape_backslashes:)
-        replace_placeholders(string) do |text|
+      def inject_in_string(string, backslash_escapes:, escape_backslashes:)
+        replace_placeholders(string) do |text, placeholder, preceding_text|
+          if backslash_escapes && preceding_text[/\\*\z/].length.odd?
+            raise ForestLiana::Errors::LiveQueryError.new(
+              "Live Query Chart: #{placeholder} cannot follow a backslash inside a string."
+            )
+          end
           escape_backslashes ? text.gsub(/[\\']/) { |character| character * 2 } : @connection.quote_string(text)
         end
       end
@@ -88,12 +94,14 @@ module ForestLiana
       def replace_placeholders(text)
         text.gsub(PLACEHOLDER) do |placeholder|
           context_variable_key = Regexp.last_match(1)
+          preceding_text = Regexp.last_match.pre_match
           if context_variable_key
-            yield(ContextVariablesInjector.context_value(context_variable_key, @context_variables), placeholder)
+            value = ContextVariablesInjector.context_value(context_variable_key, @context_variables)
+            yield(value, placeholder, preceding_text)
           elsif @record_id.nil?
             placeholder
           else
-            yield(@record_id.to_s, placeholder)
+            yield(@record_id.to_s, placeholder, preceding_text)
           end
         end
       end
