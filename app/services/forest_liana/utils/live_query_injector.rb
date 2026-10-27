@@ -6,6 +6,8 @@ module ForestLiana
       PLACEHOLDER = /\{\{([^}]+)\}\}|\?/
       VERBATIM_VALUE = /\A(?:\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)*|true|false)\z/i
       CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\]\r\n\0]/
+      LINE_COMMENT = /--[^\n]*/
+      MYSQL_LINE_COMMENT = /--(?=[[:space:][:cntrl:]]|\z)[^\n]*/
       BLOCK_COMMENT = %r{/\*.*?(?:\*/|\z)}m
       NESTED_BLOCK_COMMENT = %r{(?<comment>/\*(?:[^/*]|/(?!\*)|\*(?!/)|\g<comment>)*(?:\*/|\z))}m
       BRACKET_QUOTED = /\[[^\]]*\]?/
@@ -54,7 +56,7 @@ module ForestLiana
       end
 
       def scan_comment(scanner)
-        scanner.scan(/--[^\n]*/) ||
+        scanner.scan(@mysql ? MYSQL_LINE_COMMENT : LINE_COMMENT) ||
           scanner.scan(@postgresql ? NESTED_BLOCK_COMMENT : BLOCK_COMMENT) ||
           (@mysql && scanner.scan(/#[^\n]*/))
       end

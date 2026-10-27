@@ -63,6 +63,23 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
+        it 'reads two dashes not followed by a space as code' do
+          request_context_variables['x.value'] = '5'
+
+          expect(inject('SELECT 1--{{x.value}} AS value FROM t', mysql_connection))
+            .to eq('SELECT 1--5 AS value FROM t')
+        end
+
+        it 'leaves a dash-dash-space comment untouched' do
+          expect(inject("SELECT 1 FROM t -- {{x.value}} ?\nWHERE id = ?", mysql_connection, record_id: 7))
+            .to eq("SELECT 1 FROM t -- {{x.value}} ?\nWHERE id = 7")
+        end
+
+        it 'ends a dash-dash comment at the line break right after it' do
+          expect(inject("SELECT 1 FROM t --\nWHERE id = ?", mysql_connection, record_id: 7))
+            .to eq("SELECT 1 FROM t --\nWHERE id = 7")
+        end
+
         it 'leaves a hash comment untouched' do
           expect(inject("SELECT 1 FROM t # {{x.value}} ?\nWHERE id = ?", mysql_connection, record_id: 7))
             .to eq("SELECT 1 FROM t # {{x.value}} ?\nWHERE id = 7")
