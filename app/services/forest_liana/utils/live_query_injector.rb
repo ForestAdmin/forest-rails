@@ -3,7 +3,7 @@ require 'strscan'
 module ForestLiana
   module Utils
     class LiveQueryInjector
-      PLACEHOLDER = /\{\{([^}]+)\}\}|\?/
+      PLACEHOLDER = Regexp.union(ContextVariablesInjector::PLACEHOLDER, '?')
       VERBATIM_VALUE = /\A(?:\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)*|true|false)\z/i
       CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\]\r\n\0]/
       LINE_COMMENT = /--[^\n]*/

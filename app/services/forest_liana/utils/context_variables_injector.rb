@@ -1,6 +1,7 @@
 module ForestLiana
   module Utils
     class ContextVariablesInjector
+      PLACEHOLDER = /{{([^}]+)}}/
 
       def self.inject_context_in_value(value, context_variables)
         inject_context_in_value_custom(value) do |context_variable_key|
@@ -24,10 +25,9 @@ module ForestLiana
         return value unless value.is_a?(String)
 
         value_with_context_variables_injected = value
-        regex = /{{([^}]+)}}/
         encountered_variables = []
 
-        while (match = regex.match(value_with_context_variables_injected))
+        while (match = PLACEHOLDER.match(value_with_context_variables_injected))
           context_variable_key = match[1]
 
           value_with_context_variables_injected = value_with_context_variables_injected.gsub(

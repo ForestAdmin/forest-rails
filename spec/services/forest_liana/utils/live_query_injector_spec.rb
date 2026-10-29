@@ -245,6 +245,10 @@ module ForestLiana
         end
       end
 
+      it 'reads {{...}} with the grammar of the filter injector' do
+        expect(LiveQueryInjector::PLACEHOLDER.source).to include(ContextVariablesInjector::PLACEHOLDER.source)
+      end
+
       describe 'value formats outside literals' do
         let(:request_context_variables) do
           {
