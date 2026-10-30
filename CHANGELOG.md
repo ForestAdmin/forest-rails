@@ -1,3 +1,15 @@
+## [9.22.15](https://github.com/ForestAdmin/forest-rails/compare/v9.22.14...v9.22.15) (2026-10-30)
+
+
+### Bug Fixes
+
+* **devise:** apply smart action permissions and scope to change-password [PRD-1757] ([d7f4871](https://github.com/ForestAdmin/forest-rails/commit/d7f487156516ee821ebf4ed70ee05e348426fd1d))
+* **devise:** check the action permission and scope on change-password [PRD-1757] ([056d525](https://github.com/ForestAdmin/forest-rails/commit/056d525e00baf6a6232cc7ac7ab6d7f0bda18c18))
+* **devise:** declare change-password as a single-record action [PRD-1757] ([e998575](https://github.com/ForestAdmin/forest-rails/commit/e9985752739b3da7da305b929e02de27e84e936d))
+* **devise:** refuse a select-all selection on change-password [PRD-1757] ([b6906ea](https://github.com/ForestAdmin/forest-rails/commit/b6906ea7e4efda972cc457ef2b42976fa9726783))
+* **devise:** resolve the change-password target within the user scope [PRD-1757] ([2934314](https://github.com/ForestAdmin/forest-rails/commit/2934314be99a319667c930b3f385ed8160e9975f))
+* **smart-action:** only read the requester from a signed approval request [PRD-1757] ([346d61a](https://github.com/ForestAdmin/forest-rails/commit/346d61af52e8705333fbc897867fb1487620ac84))
+
 ## [9.22.14](https://github.com/ForestAdmin/forest-rails/compare/v9.22.13...v9.22.14) (2026-10-30)
 
 
