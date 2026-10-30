@@ -6,11 +6,13 @@ module ForestLiana
     rescue_from ForestLiana::Ability::Exceptions::ActionConditionError, with: :render_error
     include ForestLiana::Ability
     if Rails::VERSION::MAJOR < 4
+      before_filter :refuse_requester_id_outside_signed_request
       before_filter :get_smart_action_request
       before_filter :find_resource
       before_filter :check_permission_for_smart_route
       before_filter :ensure_record_ids_in_scope
     else
+      before_action :refuse_requester_id_outside_signed_request
       before_action :get_smart_action_request
       before_action :find_resource
       before_action :check_permission_for_smart_route
@@ -18,6 +20,10 @@ module ForestLiana
     end
 
     private
+
+    def refuse_requester_id_outside_signed_request
+      raise ForestLiana::Errors::HTTP422Error.new if params.dig(:data, :attributes, :requester_id)
+    end
 
     def get_smart_action_request
       begin

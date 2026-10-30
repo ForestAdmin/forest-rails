@@ -1,11 +1,15 @@
 module ForestLiana
-  class DeviseController < ForestLiana::ApplicationController
-    def change_password
-      resource = SchemaUtils.find_model_from_collection_name(
-        params['data']['attributes']['collection_name'])
+  class DeviseController < ForestLiana::SmartActionsController
+    rescue_from ActiveRecord::RecordNotFound, with: :render_target_not_found
 
-      user = resource.find(params['data']['attributes']['ids'].first)
-      user.password = params['data']['attributes']['values']['New password']
+    def change_password
+      attributes = @parameters[:data][:attributes]
+      # The inherited scope check skips composite primary keys.
+      scoped_records = ForestLiana::ScopeManager.apply_scopes_on_records(
+        @resource, forest_user, ForestLiana.name_for(@resource), @parameters[:timezone]
+      )
+      user = scoped_records.find(attributes[:ids].first)
+      user.password = attributes[:values]['New password']
       user.save
 
       if user.valid?
@@ -16,6 +20,11 @@ module ForestLiana
         }
       end
     end
+
+    private
+
+    def render_target_not_found
+      render serializer: nil, json: { error: 'Smart Action: target record not found' }, status: :bad_request
+    end
   end
 end
-
