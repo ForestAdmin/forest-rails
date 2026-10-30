@@ -1,3 +1,17 @@
+## [9.22.14](https://github.com/ForestAdmin/forest-rails/compare/v9.22.13...v9.22.14) (2026-10-30)
+
+
+### Bug Fixes
+
+* **live-query:** follow the MySQL session mode and SQL Server comments ([8ccdedc](https://github.com/ForestAdmin/forest-rails/commit/8ccdedc25da6215621a3d71cf63029b4ac3c56cd))
+* **live-query:** quote record id and context variable values in charts ([c072773](https://github.com/ForestAdmin/forest-rails/commit/c0727736cf908c60e2451626c16f6507d26721a2))
+* **live-query:** quote record id and context variable values in charts ([faf7b7e](https://github.com/ForestAdmin/forest-rails/commit/faf7b7e2ec0b80745fc87fb41211870096fa7d06))
+* **live-query:** read MySQL dash comments only when a space follows ([86ccfc7](https://github.com/ForestAdmin/forest-rails/commit/86ccfc742e9fbf50e37a709175e3e4e387665bd3))
+* **live-query:** read nested PostgreSQL comments and SQLite bracket identifiers ([962c129](https://github.com/ForestAdmin/forest-rails/commit/962c129f8770b9a14d761428705b59bb07e7e6c0))
+* **live-query:** read the continuation lines of a PostgreSQL E'' string ([c9187aa](https://github.com/ForestAdmin/forest-rails/commit/c9187aa31b73a5f03e614758a0d5dd05f3c9c389))
+* **live-query:** read untagged dollar quotes and refuse values after a backslash ([aa04132](https://github.com/ForestAdmin/forest-rails/commit/aa041326e4c3db4e9f5b21f4f8703f677c580b6d))
+* **live-query:** validate the chart query before values are injected ([afcd1b3](https://github.com/ForestAdmin/forest-rails/commit/afcd1b3a8b31154567872bd8170a49ca65ee5066))
+
 ## [9.22.13](https://github.com/ForestAdmin/forest-rails/compare/v9.22.12...v9.22.13) (2026-10-23)
 
 
