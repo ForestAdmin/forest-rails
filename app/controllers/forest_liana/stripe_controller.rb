@@ -1,5 +1,12 @@
 module ForestLiana
   class StripeController < ForestLiana::ApplicationController
+    include ForestLiana::Ability
+
+    rescue_from ForestLiana::Ability::Exceptions::TriggerForbidden, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::RequireApproval, with: :render_error
+    rescue_from ForestLiana::Ability::Exceptions::UnsupportedConditionals, with: :render_error
+
+    before_action :authorize_refund, only: :refund
 
     def payments
       getter = StripePaymentsGetter.new(params, request.headers['Stripe-Secret-Key'],
@@ -27,7 +34,7 @@ module ForestLiana
 
     def refund
       begin
-        refunder = StripePaymentRefunder.new(params)
+        refunder = StripePaymentRefunder.new(@refund_parameters)
         refunder.perform
 
         render serializer: nil, json: {}
@@ -136,6 +143,25 @@ module ForestLiana
 
     def get_serializer_type(suffix)
       "#{params[:collection]}_#{suffix}"
+    end
+
+    private
+
+    def authorize_refund
+      raise ForestLiana::Errors::HTTP422Error.new if params.dig(:data, :attributes, :requester_id).present?
+
+      parameters = refund_request_parameters
+      collection_name = parameters.dig(:data, :attributes, :collection_name).to_s
+      is_integration_action_authorized?(forest_user, collection_name, 'Refund', params)
+      @refund_parameters = parameters
+    end
+
+    def refund_request_parameters
+      return params.permit! unless params.dig(:data, :attributes, :signed_approval_request)
+
+      ForestLiana::Ability::Permission::RequestPermission.decodeSignedApprovalRequest(params.permit!)
+    rescue JWT::DecodeError
+      raise ForestLiana::Errors::HTTP400Error.new('Invalid signed action parameters')
     end
   end
 end
