@@ -2,6 +2,7 @@ module ForestLiana
   class ScopeManager
     # 5 minutes expiration cache
     @@scope_cache_expiration_delta = 300
+    SEGMENT_UNION_SEPARATOR = '/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION '
 
     def self.apply_scopes_on_records(records, user, collection_name, timezone)
       scope_filters = get_scope(collection_name, user)
@@ -63,23 +64,67 @@ module ForestLiana
     end
 
     def self.invalidate_scope_cache(rendering_id)
-      Rails.cache.delete('forest.scopes.' + rendering_id.to_s)
-      RequestCache.delete("forest.scopes.#{rendering_id}")
+      Rails.cache.delete(scope_cache_key(rendering_id))
+      RequestCache.delete(scope_cache_key(rendering_id))
     end
 
-    def self.fetch_scopes(rendering_id)
-      RequestCache.fetch("forest.scopes.#{rendering_id}") do
-        Rails.cache.fetch("forest.scopes.#{rendering_id}", expires_in: @@scope_cache_expiration_delta) do
-          response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
-          raise 'Unable to fetch scopes' unless response.is_a?(Net::HTTPOK)
-          parsed_response = JSON.parse(response.body)
+    def self.assert_can_execute_segment_query!(user, collection_name, query)
+      return if Ability::ALLOWED_PERMISSION_LEVELS.include?(user['permission_level'])
+      raise Ability::Exceptions::AccessDenied.new unless query.is_a?(String)
+      return if segment_query_allowed?(segment_scopes(user['rendering_id']), collection_name, query)
+      return if segment_query_allowed?(segment_scopes(user['rendering_id'], force_fetch: true), collection_name, query)
 
-          {
-            'scopes' => decode_scope(parsed_response['collections']),
-            'team' => parsed_response['team']
-          }
-        end
+      raise Ability::Exceptions::AccessDenied.new
+    end
+
+    def self.segment_query_allowed?(scopes, collection_name, query)
+      allowed_queries = (scopes['segments'] || {})[collection_name]
+      return false if allowed_queries.nil?
+
+      allowed_set = allowed_queries.map { |allowed| normalize_segment_query(allowed) }
+      return true if allowed_set.include?(normalize_segment_query(query))
+
+      parts = query.split(SEGMENT_UNION_SEPARATOR)
+      parts.any? && parts.all? { |part| allowed_set.include?(normalize_segment_query(part)) }
+    end
+
+    def self.normalize_segment_query(query)
+      query.sub(/[\s;]+\z/, '').strip
+    end
+
+    def self.fetch_scopes(rendering_id, force_fetch: false)
+      key = scope_cache_key(rendering_id)
+      return RequestCache.write(key, cached_scopes(key, rendering_id, force_fetch)) if force_fetch
+
+      RequestCache.fetch(key) { cached_scopes(key, rendering_id, force_fetch) }
+    end
+
+    def self.segment_scopes(rendering_id, force_fetch: false)
+      fetch_scopes(rendering_id, force_fetch: force_fetch)
+    rescue StandardError
+      raise Errors::PermissionsUnavailableError.new
+    end
+
+    def self.cached_scopes(key, rendering_id, force_fetch)
+      Rails.cache.fetch(key, expires_in: @@scope_cache_expiration_delta, force: force_fetch) do
+        load_scopes(rendering_id)
       end
+    end
+
+    def self.load_scopes(rendering_id)
+      response = ForestLiana::ForestApiRequester.get("/liana/v4/permissions/renderings/#{rendering_id}")
+      raise 'Unable to fetch scopes' unless response.is_a?(Net::HTTPOK)
+      parsed_response = JSON.parse(response.body)
+
+      {
+        'scopes' => decode_scope(parsed_response['collections']),
+        'segments' => decode_segments(parsed_response['collections']),
+        'team' => parsed_response['team']
+      }
+    end
+
+    def self.scope_cache_key(rendering_id)
+      "forest.scopes.#{rendering_id}"
     end
 
     def self.decode_scope(raw_scopes)
@@ -90,5 +135,14 @@ module ForestLiana
 
       scopes
     end
+
+    def self.decode_segments(raw_collections)
+      raw_collections.each_with_object({}) do |(collection_name, value), segments|
+        segments[collection_name] = value['segments'] unless value['segments'].nil?
+      end
+    end
+
+    private_class_method :segment_query_allowed?, :normalize_segment_query, :segment_scopes, :cached_scopes,
+                         :load_scopes, :scope_cache_key
   end
 end

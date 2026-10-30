@@ -70,6 +70,7 @@ module ForestLiana
           expect(Rails.cache.read('forest.scopes.' + rendering_id.to_s)).to eq(
             {
               'scopes' => {'User' => {'aggregator' => 'and', 'conditions'=>[{'field' => 'id', 'operator' => 'greater_than', 'value' => '1'}]}},
+              'segments' => {'User' => []},
               'team' => {'id' => '1', 'name' => 'Operations'},
             })
         end
@@ -120,6 +121,7 @@ module ForestLiana
           expect(Rails.cache.read('forest.scopes.' + rendering_id.to_s)).to eq(
             {
               'scopes' => {'User' => {'aggregator' => 'and', 'conditions'=>[{'field' => 'email', 'operator' => 'equal', 'value' => '{{currentUser.email}}'}]}},
+              'segments' => {'User' => []},
               'team' => {'id' => '1', 'name' => 'Operations'},
             }
           )
@@ -165,9 +167,169 @@ module ForestLiana
           expect(Rails.cache.read('forest.scopes.' + rendering_id.to_s)).to eq(
                                                                               {
                                                                                 'scopes' => {},
+                                                                                'segments' => {'User' => []},
                                                                                 'team' => {'id' => '1', 'name' => 'Operations'},
                                                                               }
                                                                             )
+        end
+      end
+    end
+
+    describe '.assert_can_execute_segment_query!' do
+      let(:segment_query) { 'SELECT id FROM users WHERE name IS NOT NULL' }
+      let(:other_segment_query) { 'SELECT id FROM users WHERE id > 10;' }
+      let(:scopes_body) {
+        {
+          'collections' => {
+            'User' => { 'scope' => nil, 'segments' => [segment_query, other_segment_query] }
+          },
+          'team' => {'id' => '1', 'name' => 'Operations'}
+        }
+      }
+
+      let(:rendering_path) { "/liana/v4/permissions/renderings/#{rendering_id}" }
+
+      def api_response(body)
+        body = JSON.generate(body)
+        response = Net::HTTPOK.new({}, 200, body)
+        allow(response).to receive(:body).and_return(body)
+        response
+      end
+
+      before do
+        allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(api_response(scopes_body))
+      end
+
+      it 'accepts a query the rendering lists for the collection' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+        }.not_to raise_error
+      end
+
+      it 'refuses a query the rendering does not list' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, 'SELECT id FROM users WHERE 1 = 0')
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+      end
+
+      it 'refuses a collection the rendering payload carries no segments for' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, 'Island', segment_query)
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+      end
+
+      it 'accepts a UNION of configured segments, ignoring their trailing semicolons' do
+        union = "#{segment_query}/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT id FROM users WHERE id > 10"
+
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, union)
+        }.not_to raise_error
+      end
+
+      it 'refuses a UNION holding one unconfigured segment' do
+        union = "#{segment_query}/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT id FROM users WHERE 1 = 0"
+
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, union)
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+      end
+
+      it 'accepts a configured query sent without its trailing semicolon' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, 'SELECT id FROM users WHERE id > 10')
+        }.not_to raise_error
+      end
+
+      it 'accepts a configured segment that itself holds the union separator' do
+        union_segment = "#{segment_query}/*MULTI-SEGMENTS-QUERIES-UNION*/ UNION SELECT id FROM users WHERE id = 1"
+        scopes_body['collections']['User']['segments'] = [union_segment]
+        allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(api_response(scopes_body))
+
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, union_segment)
+        }.not_to raise_error
+      end
+
+      it 'answers 503 when the rendering cannot be fetched on a cold cache' do
+        allow(ForestLiana::ForestApiRequester).to receive(:get)
+          .and_return(Net::HTTPServiceUnavailable.new({}, 503, ''))
+
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+        }.to raise_error(ForestLiana::Errors::PermissionsUnavailableError)
+      end
+
+      it 'refuses an empty query' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, '')
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+      end
+
+      it 'refuses a query that is not a string, without fetching the rendering' do
+        expect {
+          described_class.assert_can_execute_segment_query!(user, collection_name, [segment_query])
+        }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+        expect(ForestLiana::ForestApiRequester).not_to have_received(:get)
+      end
+
+      %w[admin editor developer].each do |permission_level|
+        it "lets a #{permission_level} run any query, without fetching the rendering" do
+          expect {
+            described_class.assert_can_execute_segment_query!(
+              user.merge('permission_level' => permission_level), collection_name, 'SELECT id FROM users WHERE 1 = 0'
+            )
+          }.not_to raise_error
+
+          expect(ForestLiana::ForestApiRequester).not_to have_received(:get)
+        end
+      end
+
+      describe 'when the cached rendering may be stale' do
+        let(:scopes_without_the_segment) {
+          body = scopes_body.deep_dup
+          body['collections']['User']['segments'] = []
+          body
+        }
+
+        it 'refetches the rendering once before refusing a fresher rendering could allow' do
+          allow(ForestLiana::ForestApiRequester).to receive(:get)
+            .and_return(api_response(scopes_without_the_segment), api_response(scopes_body))
+
+          expect {
+            described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+          }.not_to raise_error
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with(rendering_path).exactly(2).times
+        end
+
+        it 'still refuses when the refetched rendering denies it too' do
+          allow(ForestLiana::ForestApiRequester).to receive(:get)
+            .and_return(api_response(scopes_without_the_segment))
+
+          expect {
+            described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+          }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with(rendering_path).exactly(2).times
+        end
+
+        it 'keeps the cached rendering and answers 503 when the refetch fails' do
+          unavailable = Net::HTTPServiceUnavailable.new({}, 503, '')
+          allow(ForestLiana::ForestApiRequester).to receive(:get)
+            .and_return(api_response(scopes_without_the_segment), unavailable)
+
+          expect {
+            described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+          }.to raise_error(ForestLiana::Errors::PermissionsUnavailableError)
+          expect(Rails.cache.read("forest.scopes.#{rendering_id}")['segments']).to eq('User' => [])
+        end
+
+        it 'refetches a cache entry from before segments were cached, before deciding' do
+          Rails.cache.write("forest.scopes.#{rendering_id}", {'scopes' => {}, 'team' => {}})
+          allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(api_response(scopes_body))
+
+          expect {
+            described_class.assert_can_execute_segment_query!(user, collection_name, segment_query)
+          }.not_to raise_error
+          expect(ForestLiana::ForestApiRequester).to have_received(:get).with(rendering_path).once
         end
       end
     end

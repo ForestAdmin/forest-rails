@@ -153,6 +153,13 @@ module ForestLiana
 
     describe 'when a live query segment uses a context variable' do
       let(:user) { { 'id' => '1', 'name' => 'Michel', 'rendering_id' => rendering_id } }
+      let(:scopes) {
+        {
+          'scopes' => {},
+          'segments' => { 'User' => ["SELECT id FROM users WHERE name = '{{currentUser.name}}'"] },
+          'team' => {'id' => '1', 'name' => 'Operations'}
+        }
+      }
       let(:getter) do
         described_class.new(resource, {
           page: { size: pageSize, number: pageNumber },
@@ -165,6 +172,30 @@ module ForestLiana
         getter.perform
 
         expect(getter.records.map(&:name)).to eq(['Michel'])
+      end
+    end
+
+    describe 'when the live query segment is not one of the user\'s rendering segments' do
+      let(:getter) do
+        described_class.new(resource, {
+          page: { size: pageSize, number: pageNumber },
+          fields: { 'User' => 'id,name' },
+          segmentQuery: 'SELECT id FROM users WHERE name IS NOT NULL',
+        }, user)
+      end
+
+      it 'raises AccessDenied from the constructor, before any SQL runs' do
+        queries = []
+        subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+          queries << payload[:sql] unless payload[:name] == 'SCHEMA' || payload[:cached]
+        end
+        begin
+          expect { getter }.to raise_error(ForestLiana::Ability::Exceptions::AccessDenied)
+        ensure
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+        end
+
+        expect(queries).to be_empty
       end
     end
 
