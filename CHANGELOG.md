@@ -1,3 +1,12 @@
+## [9.22.16](https://github.com/ForestAdmin/forest-rails/compare/v9.22.15...v9.22.16) (2026-10-30)
+
+
+### Bug Fixes
+
+* **stripe:** answer refund requests like the forest-express integration ([4e44992](https://github.com/ForestAdmin/forest-rails/commit/4e449928bea228491ca94fe436f079680447e5fa))
+* **stripe:** check the Refund action permission before refunding payments ([c594f99](https://github.com/ForestAdmin/forest-rails/commit/c594f99593c0a619352e283c9e56293aa5d7f617))
+* **stripe:** check the Refund action permission before refunding payments [PRD-1758] ([09d580e](https://github.com/ForestAdmin/forest-rails/commit/09d580e838ac0a048ccc9e2cc905a9042529235f))
+
 ## [9.22.15](https://github.com/ForestAdmin/forest-rails/compare/v9.22.14...v9.22.15) (2026-10-30)
 
 
