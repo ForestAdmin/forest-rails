@@ -4,7 +4,7 @@ module ForestLiana
   module Utils
     class LiveQueryInjector
       PLACEHOLDER = Regexp.union(ContextVariablesInjector::PLACEHOLDER, '?')
-      VERBATIM_VALUE = /\A(?:\d+(?:\.\d+)?(?:,\d+(?:\.\d+)?)*|true|false)\z/i
+      VERBATIM_VALUE = /\A(?:\d+(?:\.\d+)?(?:\s*,\s*\d+(?:\.\d+)?)*|true|false)\z/i
       CHARACTERS_CLOSING_QUOTED_TEXT = /["`'\\$\]\r\n\0]/
       LINE_COMMENT = /--[^\n]*/
       MYSQL_LINE_COMMENT = /--(?=[[:space:][:cntrl:]]|\z)[^\n]*/
@@ -14,8 +14,9 @@ module ForestLiana
       WORD = /[[:alpha:]_][[:alnum:]_$]*/
       STRING_CONTINUATION = /[ \t\f\r]*\n[[:space:]]*(?=')/
       DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*|)\$.*?(?:\$\1\$|\z)/m
-      # Characters that cannot open a comment, a word, a quoted text or a placeholder.
-      NEUTRAL_TEXT = /[^[:alpha:]_'"`$\[{?\-\/#]+/
+      # Every character next_token can open a token on, besides letters and underscores.
+      TOKEN_OPENERS = %q('"`$[{?-/#)
+      NEUTRAL_TEXT = /[^[:alpha:]_#{Regexp.escape(TOKEN_OPENERS)}]+/
       QUOTED_PATTERNS = ["'", '"', '`'].product([false, true]).to_h do |quote, backslash_escapes|
         escaped = Regexp.escape(quote)
         content = backslash_escapes ? "[^#{escaped}\\\\]|\\\\.|#{escaped}#{escaped}" : "[^#{escaped}]|#{escaped}#{escaped}"
@@ -35,7 +36,9 @@ module ForestLiana
         @postgresql = connection.adapter_name.match?(/postg/i)
         @bracket_quotes = connection.adapter_name.match?(/sqlite|sqlserver/i)
         @nested_comments = @postgresql || connection.adapter_name.match?(/sqlserver/i)
-        @backslash_escapes = @mysql && mysql_backslash_escapes?
+        sql_mode = @mysql ? mysql_sql_mode : ''
+        @backslash_escapes = @mysql && !sql_mode.include?('NO_BACKSLASH_ESCAPES')
+        @double_quoted_strings = @mysql && !sql_mode.include?('ANSI_QUOTES')
       end
 
       def inject(query)
@@ -55,9 +58,15 @@ module ForestLiana
         elsif (word = scanner.scan(WORD))
           return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
 
-          word + inject_in_string(scan_escape_string(scanner), backslash_escapes: true, escape_backslashes: true)
+          word + inject_in_string(scan_escape_string(scanner), backslash_escapes: true) do |text|
+            text.gsub(/[\\']/) { |character| character * 2 }
+          end
         elsif (string = scanner.scan(quoted_pattern("'", backslash_escapes: @backslash_escapes)))
-          inject_in_string(string, backslash_escapes: @backslash_escapes, escape_backslashes: false)
+          inject_in_string(string, backslash_escapes: @backslash_escapes) { |text| @connection.quote_string(text) }
+        elsif @double_quoted_strings && (string = scanner.scan(quoted_pattern('"', backslash_escapes: @backslash_escapes)))
+          inject_in_string(string, backslash_escapes: @backslash_escapes) do |text|
+            @backslash_escapes ? @connection.quote_string(text) : text.gsub('"', '""')
+          end
         elsif (quoted = scan_quoted_text(scanner))
           inject_in_quoted_text(quoted)
         elsif (placeholder = scanner.scan(PLACEHOLDER))
@@ -67,8 +76,10 @@ module ForestLiana
         end
       end
 
-      def mysql_backslash_escapes?
-        !@connection.select_value('SELECT @@SESSION.sql_mode').to_s.include?('NO_BACKSLASH_ESCAPES')
+      def mysql_sql_mode
+        RequestCache.fetch([:mysql_sql_mode, @connection]) do
+          @connection.select_value('SELECT @@SESSION.sql_mode').to_s
+        end
       end
 
       def scan_comment(scanner)
@@ -102,14 +113,14 @@ module ForestLiana
         end
       end
 
-      def inject_in_string(string, backslash_escapes:, escape_backslashes:)
+      def inject_in_string(string, backslash_escapes:, &escape)
         replace_placeholders(string) do |text, placeholder, preceding_text|
           if backslash_escapes && preceding_text[/\\*\z/].length.odd?
             raise ForestLiana::Errors::LiveQueryError.new(
               "#{@error_prefix}#{placeholder} cannot follow a backslash inside a string."
             )
           end
-          escape_backslashes ? text.gsub(/[\\']/) { |character| character * 2 } : @connection.quote_string(text)
+          escape.call(text)
         end
       end
 

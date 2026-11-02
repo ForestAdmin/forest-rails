@@ -37,6 +37,20 @@ module ForestLiana
       describe 'on MySQL' do
         let(:request_context_variables) { { 'x.value' => '0 OR 1=1' } }
 
+        it 'reads the session sql_mode once per request and connection' do
+          connection = mysql_connection
+          other_connection = mysql_connection
+
+          RequestCache.with do
+            2.times { inject('SELECT 1 FROM t WHERE id = {{x.value}}', connection) }
+            inject('SELECT 1 FROM t WHERE id = {{x.value}}', other_connection)
+          end
+          inject('SELECT 1 FROM t WHERE id = {{x.value}}', connection)
+
+          expect(connection).to have_received(:select_value).with('SELECT @@SESSION.sql_mode').twice
+          expect(other_connection).to have_received(:select_value).with('SELECT @@SESSION.sql_mode').once
+        end
+
         it 'reads a backslash-escaped quote as part of the string literal' do
           expect(inject("SELECT 1 FROM t WHERE a = 'it\\'s' AND id = {{x.value}}", mysql_connection))
             .to eq("SELECT 1 FROM t WHERE a = 'it\\'s' AND id = '0 OR 1=1'")
@@ -56,10 +70,25 @@ module ForestLiana
             .to eq('SELECT 1 FROM t WHERE a = "Aragorn"')
         end
 
-        it 'refuses a value holding a quote inside a double-quoted string' do
-          request_context_variables['x.value'] = 'a" OR "1'
+        it 'escapes a value injected inside a double-quoted string with the connection' do
+          request_context_variables['x.value'] = %q(O'Brien" OR "1)
 
-          expect { inject('SELECT 1 FROM t WHERE a = "{{x.value}}"', mysql_connection) }
+          expect(inject('SELECT 1 FROM t WHERE a = "{{x.value}}"', mysql_connection))
+            .to eq(%q(SELECT 1 FROM t WHERE a = "O\'Brien\" OR \"1"))
+        end
+
+        it 'refuses a value placed right after a backslash inside a double-quoted string' do
+          request_context_variables['x.value'] = '" OR true -- '
+
+          expect { inject('SELECT 1 FROM t WHERE a = "\\{{x.value}}"', mysql_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        it 'refuses a value holding a quote inside a double-quoted identifier when the session uses ANSI quotes' do
+          request_context_variables['x.value'] = 'a" OR "1'
+          connection = mysql_connection(sql_mode: 'REAL_AS_FLOAT,PIPES_AS_CONCAT,ANSI_QUOTES,IGNORE_SPACE,ANSI')
+
+          expect { inject('SELECT 1 FROM t WHERE "{{x.value}}" = 1', connection) }
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
@@ -119,6 +148,13 @@ module ForestLiana
 
             expect(inject("SELECT 1 FROM t WHERE a = '\\{{x.value}}'", connection))
               .to eq("SELECT 1 FROM t WHERE a = '\\a''b'")
+          end
+
+          it 'doubles the double quotes of a value injected inside a double-quoted string' do
+            request_context_variables['x.value'] = %q(O'Brien" OR "1)
+
+            expect(inject('SELECT 1 FROM t WHERE a = "\\{{x.value}}"', connection))
+              .to eq(%q(SELECT 1 FROM t WHERE a = "\\O'Brien"" OR ""1"))
           end
         end
 
@@ -272,6 +308,7 @@ module ForestLiana
             'n.value' => '42',
             'd.value' => '4.5',
             'l.value' => '1,2,3',
+            'spaced.value' => '1, 2 ,3',
             'b.value' => 'FALSE',
             'neg.value' => '-1',
             's.value' => 'DESC'
@@ -279,10 +316,10 @@ module ForestLiana
         end
 
         it 'injects unsigned numbers, lists of numbers and booleans as they are, everything else as a string' do
-          query = 'SELECT {{n.value}}, {{d.value}}, ({{l.value}}), {{b.value}}, {{neg.value}}, {{s.value}}'
+          query = 'SELECT {{n.value}}, {{d.value}}, ({{l.value}}), ({{spaced.value}}), {{b.value}}, {{neg.value}}, {{s.value}}'
 
           expect(inject(query, postgresql_connection))
-            .to eq("SELECT 42, 4.5, (1,2,3), FALSE, '-1', 'DESC'")
+            .to eq("SELECT 42, 4.5, (1,2,3), (1, 2 ,3), FALSE, '-1', 'DESC'")
         end
       end
     end
