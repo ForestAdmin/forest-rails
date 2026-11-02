@@ -228,6 +228,23 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
+        it 'prefixes the error with the chart label by default' do
+          request_context_variables['x.value'] = 'users]'
+
+          expect { inject('SELECT COUNT(*) AS value FROM [{{x.value}}]', sqlite_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError, /\ALive Query Chart: The value of {{x.value}}/)
+        end
+
+        it 'prefixes the error with the prefix it is given' do
+          request_context_variables['x.value'] = 'users]'
+
+          expect {
+            LiveQueryInjector.inject(
+              'SELECT COUNT(*) AS value FROM [{{x.value}}]', context_variables, nil, sqlite_connection, error_prefix: ''
+            )
+          }.to raise_error(ForestLiana::Errors::LiveQueryError, /\AThe value of {{x.value}}/)
+        end
+
         it 'reads a nested block comment marker as plain comment text' do
           request_context_variables['x.value'] = '0 OR 1=1'
 

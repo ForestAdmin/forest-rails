@@ -24,21 +24,7 @@ module ForestLiana
       def self.inject_context_in_value_custom(value)
         return value unless value.is_a?(String)
 
-        value_with_context_variables_injected = value
-        encountered_variables = []
-
-        while (match = PLACEHOLDER.match(value_with_context_variables_injected))
-          context_variable_key = match[1]
-
-          value_with_context_variables_injected = value_with_context_variables_injected.gsub(
-            /{{#{context_variable_key}}}/,
-            yield(context_variable_key)
-          )
-
-          encountered_variables.push(context_variable_key)
-        end
-
-        value_with_context_variables_injected
+        value.gsub(PLACEHOLDER) { yield(Regexp.last_match(1)) }
       end
 
       def self.inject_context_in_filter(filter, context_variables)

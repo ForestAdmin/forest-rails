@@ -15,12 +15,13 @@ module ForestLiana
       STRING_CONTINUATION = /[ \t\f\r]*\n[[:space:]]*(?=')/
       DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*|)\$.*?(?:\$\1\$|\z)/m
 
-      def self.inject(query, context_variables, record_id, connection = ActiveRecord::Base.connection)
-        new(context_variables, record_id, connection).inject(query)
+      def self.inject(query, context_variables, record_id, connection = ActiveRecord::Base.connection, error_prefix: 'Live Query Chart: ')
+        new(context_variables, record_id, connection, error_prefix).inject(query)
       end
 
-      def initialize(context_variables, record_id, connection)
+      def initialize(context_variables, record_id, connection, error_prefix = 'Live Query Chart: ')
         @context_variables = context_variables
+        @error_prefix = error_prefix
         @record_id = record_id
         @connection = connection
         @mysql = connection.adapter_name.match?(/mysql|trilogy/i)
@@ -98,7 +99,7 @@ module ForestLiana
         replace_placeholders(string) do |text, placeholder, preceding_text|
           if backslash_escapes && preceding_text[/\\*\z/].length.odd?
             raise ForestLiana::Errors::LiveQueryError.new(
-              "Live Query Chart: #{placeholder} cannot follow a backslash inside a string."
+              "#{@error_prefix}#{placeholder} cannot follow a backslash inside a string."
             )
           end
           escape_backslashes ? text.gsub(/[\\']/) { |character| character * 2 } : @connection.quote_string(text)
@@ -109,7 +110,7 @@ module ForestLiana
         replace_placeholders(quoted) do |text, placeholder|
           if text.match?(CHARACTERS_CLOSING_QUOTED_TEXT)
             raise ForestLiana::Errors::LiveQueryError.new(
-              "Live Query Chart: The value of #{placeholder} cannot contain quotes, brackets, backslashes, " \
+              "#{@error_prefix}The value of #{placeholder} cannot contain quotes, brackets, backslashes, " \
               'dollar signs or line breaks when it is written inside a quoted identifier or a dollar-quoted string.'
             )
           end

@@ -366,6 +366,46 @@ module ForestLiana
 
           expect(query).to eq "SELECT id FROM users WHERE email = '{{currentUser.email}}'"
         end
+
+        it 'should escape a value written inside a string' do
+          user['first_name'] = "x' OR '1'='1"
+
+          expect(described_class.inject_context_variables_on_query(
+            "SELECT id FROM users WHERE first_name = '{{currentUser.first_name}}'", user
+          )).to eq "SELECT id FROM users WHERE first_name = 'x'' OR ''1''=''1'"
+        end
+
+        it 'should quote a value written outside a string' do
+          user['first_name'] = '0 OR 1=1'
+
+          expect(described_class.inject_context_variables_on_query(
+            'SELECT id FROM users WHERE first_name = {{currentUser.first_name}}', user
+          )).to eq "SELECT id FROM users WHERE first_name = '0 OR 1=1'"
+        end
+
+        it 'should inject a numeric value as is' do
+          expect(described_class.inject_context_variables_on_query(
+            'SELECT id FROM users WHERE id = {{currentUser.id}}', user
+          )).to eq 'SELECT id FROM users WHERE id = 1'
+        end
+
+        it 'should not fetch the scopes when the query has no context variable' do
+          query_without_variable = 'SELECT id FROM users WHERE id > 1'
+
+          expect(described_class.inject_context_variables_on_query(query_without_variable, user))
+            .to eq query_without_variable
+          expect(ForestLiana::ForestApiRequester).not_to have_received(:get)
+        end
+
+        it 'should not prefix the error it raises with the chart label' do
+          user['first_name'] = 'a"b'
+
+          expect {
+            described_class.inject_context_variables_on_query(
+              'SELECT id FROM users WHERE "{{currentUser.first_name}}" = 1', user
+            )
+          }.to raise_error(ForestLiana::Errors::LiveQueryError, /\AThe value of {{currentUser.first_name}}/)
+        end
       end
     end
   end
