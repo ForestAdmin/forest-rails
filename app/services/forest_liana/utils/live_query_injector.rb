@@ -14,6 +14,13 @@ module ForestLiana
       WORD = /[[:alpha:]_][[:alnum:]_$]*/
       STRING_CONTINUATION = /[ \t\f\r]*\n[[:space:]]*(?=')/
       DOLLAR_QUOTED = /\$([[:alpha:]_][[:alnum:]_]*|)\$.*?(?:\$\1\$|\z)/m
+      # Characters that cannot open a comment, a word, a quoted text or a placeholder.
+      NEUTRAL_TEXT = /[^[:alpha:]_'"`$\[{?\-\/#]+/
+      QUOTED_PATTERNS = ["'", '"', '`'].product([false, true]).to_h do |quote, backslash_escapes|
+        escaped = Regexp.escape(quote)
+        content = backslash_escapes ? "[^#{escaped}\\\\]|\\\\.|#{escaped}#{escaped}" : "[^#{escaped}]|#{escaped}#{escaped}"
+        [[quote, backslash_escapes], /#{escaped}(?:#{content})*#{escaped}?/m]
+      end.freeze
 
       def self.inject(query, context_variables, record_id, connection = ActiveRecord::Base.connection, error_prefix: 'Live Query Chart: ')
         new(context_variables, record_id, connection, error_prefix).inject(query)
@@ -41,7 +48,9 @@ module ForestLiana
       private
 
       def next_token(scanner)
-        if (comment = scan_comment(scanner))
+        if (neutral = scanner.scan(NEUTRAL_TEXT))
+          neutral
+        elsif (comment = scan_comment(scanner))
           comment
         elsif (word = scanner.scan(WORD))
           return word unless @postgresql && word.casecmp?('e') && scanner.peek(1) == "'"
@@ -84,9 +93,7 @@ module ForestLiana
       end
 
       def quoted_pattern(quote, backslash_escapes: false)
-        escaped = Regexp.escape(quote)
-        content = backslash_escapes ? "[^#{escaped}\\\\]|\\\\.|#{escaped}#{escaped}" : "[^#{escaped}]|#{escaped}#{escaped}"
-        /#{escaped}(?:#{content})*#{escaped}?/m
+        QUOTED_PATTERNS[[quote, backslash_escapes]]
       end
 
       def inject_in_code(placeholder)
