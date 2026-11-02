@@ -30,8 +30,26 @@ module ForestLiana
         connection
       end
 
+      # NEUTRAL_TEXT is only a shortcut: a token opener missing from TOKEN_OPENERS shows up as a different outcome without it.
       def inject(query, connection, record_id: nil)
-        LiveQueryInjector.inject(query, context_variables, record_id, connection)
+        outcome = injection_outcome(query, connection, record_id)
+        neutral_text = LiveQueryInjector::NEUTRAL_TEXT
+        stub_const('ForestLiana::Utils::LiveQueryInjector::NEUTRAL_TEXT', /(?!)/)
+        outcome_without_shortcut = injection_outcome(query, connection, record_id)
+        stub_const('ForestLiana::Utils::LiveQueryInjector::NEUTRAL_TEXT', neutral_text)
+
+        expect(outcome_without_shortcut.map { |value| value.is_a?(Exception) ? value.message : value })
+          .to eq(outcome.map { |value| value.is_a?(Exception) ? value.message : value })
+        injected, error = outcome
+        raise error if error
+
+        injected
+      end
+
+      def injection_outcome(query, connection, record_id)
+        [LiveQueryInjector.inject(query, context_variables, record_id, connection), nil]
+      rescue ForestLiana::Errors::LiveQueryError => error
+        [nil, error]
       end
 
       describe 'on MySQL' do
@@ -41,11 +59,12 @@ module ForestLiana
           connection = mysql_connection
           other_connection = mysql_connection
 
+          query = 'SELECT 1 FROM t WHERE id = {{x.value}}'
           RequestCache.with do
-            2.times { inject('SELECT 1 FROM t WHERE id = {{x.value}}', connection) }
-            inject('SELECT 1 FROM t WHERE id = {{x.value}}', other_connection)
+            2.times { LiveQueryInjector.inject(query, context_variables, nil, connection) }
+            LiveQueryInjector.inject(query, context_variables, nil, other_connection)
           end
-          inject('SELECT 1 FROM t WHERE id = {{x.value}}', connection)
+          LiveQueryInjector.inject(query, context_variables, nil, connection)
 
           expect(connection).to have_received(:select_value).with('SELECT @@SESSION.sql_mode').twice
           expect(other_connection).to have_received(:select_value).with('SELECT @@SESSION.sql_mode').once
