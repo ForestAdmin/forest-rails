@@ -1,3 +1,10 @@
+## [9.22.17](https://github.com/ForestAdmin/forest-rails/compare/v9.22.16...v9.22.17) (2026-11-03)
+
+
+### Bug Fixes
+
+* quote context variable values in live query segments ([#846](https://github.com/ForestAdmin/forest-rails/issues/846)) ([3b41dd5](https://github.com/ForestAdmin/forest-rails/commit/3b41dd571232d1c9cda4f2adba2ae043e1da1ec9))
+
 ## [9.22.16](https://github.com/ForestAdmin/forest-rails/compare/v9.22.15...v9.22.16) (2026-10-30)
 
 
