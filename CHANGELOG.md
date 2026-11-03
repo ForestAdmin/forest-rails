@@ -1,3 +1,10 @@
+## [9.22.18](https://github.com/ForestAdmin/forest-rails/compare/v9.22.17...v9.22.18) (2026-11-03)
+
+
+### Bug Fixes
+
+* align live query segments with the rendering configuration ([#844](https://github.com/ForestAdmin/forest-rails/issues/844)) ([4f2905d](https://github.com/ForestAdmin/forest-rails/commit/4f2905d702cda211867ceaf30d0fc61bdd3cc19f))
+
 ## [9.22.17](https://github.com/ForestAdmin/forest-rails/compare/v9.22.16...v9.22.17) (2026-11-03)
 
 
