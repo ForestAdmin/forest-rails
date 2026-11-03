@@ -166,6 +166,47 @@ module ForestLiana
 
         expect(getter.records.map(&:name)).to eq(['Michel'])
       end
+
+      describe 'when the variable value carries SQL' do
+        let(:user) { { 'id' => '1', 'name' => "Michel' OR '1'='1", 'rendering_id' => rendering_id } }
+
+        it 'matches the value as a literal in the records' do
+          getter.perform
+
+          expect(getter.records).to be_empty
+        end
+
+        it 'matches the value as a literal in the count' do
+          getter.count
+
+          expect(getter.count).to eq 0
+        end
+      end
+
+      describe 'when every record of the segment is selected' do
+        def ids_from_request(user)
+          params = ActionController::Parameters.new(
+            data: {
+              attributes: {
+                collection_name: 'User',
+                all_records: true,
+                all_records_subset_query: {
+                  segmentQuery: "SELECT id FROM users WHERE name = '{{currentUser.name}}'",
+                },
+              },
+            },
+          )
+          described_class.get_ids_from_request(params, user)
+        end
+
+        it 'injects the variable into the query that selects the ids' do
+          expect(ids_from_request(user)).to eq(User.where(name: 'Michel').pluck(:id))
+        end
+
+        it 'matches a value carrying SQL as a literal' do
+          expect(ids_from_request(user.merge('name' => "Michel' OR '1'='1"))).to be_empty
+        end
+      end
     end
 
     describe 'when there are more records than the page size' do

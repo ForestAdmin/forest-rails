@@ -51,6 +51,26 @@ module ForestLiana
 
           expect(result).to eq('It should be POWER of rank RANK. But POWER can be duplicated.')
         end
+
+        it 'does not inject variables again into an injected value' do
+          result = described_class.inject_context_in_value_custom('Hi {{currentUser.firstName}}') do
+            '{{currentUser.firstName}}'
+          end
+
+          expect(result).to eq('Hi {{currentUser.firstName}}')
+        end
+
+        it 'inserts a value holding backslash sequences as is' do
+          result = described_class.inject_context_in_value_custom('Hi {{currentUser.firstName}}!') { "\\0 \\' \\1" }
+
+          expect(result).to eq("Hi \\0 \\' \\1!")
+        end
+
+        it 'replaces a variable whose key holds regular expression characters' do
+          result = described_class.inject_context_in_value_custom('Hi {{currentUser.tags.a+b}}') { |key| key }
+
+          expect(result).to eq('Hi currentUser.tags.a+b')
+        end
       end
 
       context('when inject_context_in_value is called') do

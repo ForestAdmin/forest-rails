@@ -30,12 +30,45 @@ module ForestLiana
         connection
       end
 
+      # NEUTRAL_TEXT is only a shortcut: a token opener missing from TOKEN_OPENERS shows up as a different outcome without it.
       def inject(query, connection, record_id: nil)
-        LiveQueryInjector.inject(query, context_variables, record_id, connection)
+        outcome = injection_outcome(query, connection, record_id)
+        neutral_text = LiveQueryInjector::NEUTRAL_TEXT
+        stub_const('ForestLiana::Utils::LiveQueryInjector::NEUTRAL_TEXT', /(?!)/)
+        outcome_without_shortcut = injection_outcome(query, connection, record_id)
+        stub_const('ForestLiana::Utils::LiveQueryInjector::NEUTRAL_TEXT', neutral_text)
+
+        expect(outcome_without_shortcut.map { |value| value.is_a?(Exception) ? value.message : value })
+          .to eq(outcome.map { |value| value.is_a?(Exception) ? value.message : value })
+        injected, error = outcome
+        raise error if error
+
+        injected
+      end
+
+      def injection_outcome(query, connection, record_id)
+        [LiveQueryInjector.inject(query, context_variables, record_id, connection), nil]
+      rescue ForestLiana::Errors::LiveQueryError => error
+        [nil, error]
       end
 
       describe 'on MySQL' do
         let(:request_context_variables) { { 'x.value' => '0 OR 1=1' } }
+
+        it 'reads the session sql_mode once per request and connection' do
+          connection = mysql_connection
+          other_connection = mysql_connection
+
+          query = 'SELECT 1 FROM t WHERE id = {{x.value}}'
+          RequestCache.with do
+            2.times { LiveQueryInjector.inject(query, context_variables, nil, connection) }
+            LiveQueryInjector.inject(query, context_variables, nil, other_connection)
+          end
+          LiveQueryInjector.inject(query, context_variables, nil, connection)
+
+          expect(connection).to have_received(:select_value).with('SELECT @@SESSION.sql_mode').twice
+          expect(other_connection).to have_received(:select_value).with('SELECT @@SESSION.sql_mode').once
+        end
 
         it 'reads a backslash-escaped quote as part of the string literal' do
           expect(inject("SELECT 1 FROM t WHERE a = 'it\\'s' AND id = {{x.value}}", mysql_connection))
@@ -56,10 +89,25 @@ module ForestLiana
             .to eq('SELECT 1 FROM t WHERE a = "Aragorn"')
         end
 
-        it 'refuses a value holding a quote inside a double-quoted string' do
-          request_context_variables['x.value'] = 'a" OR "1'
+        it 'escapes a value injected inside a double-quoted string with the connection' do
+          request_context_variables['x.value'] = %q(O'Brien" OR "1)
 
-          expect { inject('SELECT 1 FROM t WHERE a = "{{x.value}}"', mysql_connection) }
+          expect(inject('SELECT 1 FROM t WHERE a = "{{x.value}}"', mysql_connection))
+            .to eq(%q(SELECT 1 FROM t WHERE a = "O\'Brien\" OR \"1"))
+        end
+
+        it 'refuses a value placed right after a backslash inside a double-quoted string' do
+          request_context_variables['x.value'] = '" OR true -- '
+
+          expect { inject('SELECT 1 FROM t WHERE a = "\\{{x.value}}"', mysql_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError)
+        end
+
+        it 'refuses a value holding a quote inside a double-quoted identifier when the session uses ANSI quotes' do
+          request_context_variables['x.value'] = 'a" OR "1'
+          connection = mysql_connection(sql_mode: 'REAL_AS_FLOAT,PIPES_AS_CONCAT,ANSI_QUOTES,IGNORE_SPACE,ANSI')
+
+          expect { inject('SELECT 1 FROM t WHERE "{{x.value}}" = 1', connection) }
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
@@ -119,6 +167,13 @@ module ForestLiana
 
             expect(inject("SELECT 1 FROM t WHERE a = '\\{{x.value}}'", connection))
               .to eq("SELECT 1 FROM t WHERE a = '\\a''b'")
+          end
+
+          it 'doubles the double quotes of a value injected inside a double-quoted string' do
+            request_context_variables['x.value'] = %q(O'Brien" OR "1)
+
+            expect(inject('SELECT 1 FROM t WHERE a = "\\{{x.value}}"', connection))
+              .to eq(%q(SELECT 1 FROM t WHERE a = "\\O'Brien"" OR ""1"))
           end
         end
 
@@ -228,6 +283,23 @@ module ForestLiana
             .to raise_error(ForestLiana::Errors::LiveQueryError)
         end
 
+        it 'prefixes the error with the chart label by default' do
+          request_context_variables['x.value'] = 'users]'
+
+          expect { inject('SELECT COUNT(*) AS value FROM [{{x.value}}]', sqlite_connection) }
+            .to raise_error(ForestLiana::Errors::LiveQueryError, /\ALive Query Chart: The value of {{x.value}}/)
+        end
+
+        it 'prefixes the error with the prefix it is given' do
+          request_context_variables['x.value'] = 'users]'
+
+          expect {
+            LiveQueryInjector.inject(
+              'SELECT COUNT(*) AS value FROM [{{x.value}}]', context_variables, nil, sqlite_connection, error_prefix: ''
+            )
+          }.to raise_error(ForestLiana::Errors::LiveQueryError, /\AThe value of {{x.value}}/)
+        end
+
         it 'reads a nested block comment marker as plain comment text' do
           request_context_variables['x.value'] = '0 OR 1=1'
 
@@ -255,6 +327,7 @@ module ForestLiana
             'n.value' => '42',
             'd.value' => '4.5',
             'l.value' => '1,2,3',
+            'spaced.value' => '1, 2 ,3',
             'b.value' => 'FALSE',
             'neg.value' => '-1',
             's.value' => 'DESC'
@@ -262,10 +335,10 @@ module ForestLiana
         end
 
         it 'injects unsigned numbers, lists of numbers and booleans as they are, everything else as a string' do
-          query = 'SELECT {{n.value}}, {{d.value}}, ({{l.value}}), {{b.value}}, {{neg.value}}, {{s.value}}'
+          query = 'SELECT {{n.value}}, {{d.value}}, ({{l.value}}), ({{spaced.value}}), {{b.value}}, {{neg.value}}, {{s.value}}'
 
           expect(inject(query, postgresql_connection))
-            .to eq("SELECT 42, 4.5, (1,2,3), FALSE, '-1', 'DESC'")
+            .to eq("SELECT 42, 4.5, (1,2,3), (1, 2 ,3), FALSE, '-1', 'DESC'")
         end
       end
     end
