@@ -53,6 +53,8 @@ module ForestLiana
         end
 
         it 'leaves out the targets of another owner with a relation of the same name' do
+          # Rails 6.1 remembers the class a name resolved to, across examples.
+          ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference)
           note = stub_const('PolyNote', Class.new(ActiveRecord::Base) do
             self.table_name = 'articles'
             belongs_to :addressable, polymorphic: true
@@ -69,8 +71,6 @@ module ForestLiana
         ensure
           ForestLiana.models.delete(note)
           ForestLiana.models.delete(harbor)
-          # Rails 6.1 remembers the class a name resolved to, so a later PolyNote would resolve to this one.
-          ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference)
         end
 
         it 'should remove the polymorphic attributes(_id and _type)' do

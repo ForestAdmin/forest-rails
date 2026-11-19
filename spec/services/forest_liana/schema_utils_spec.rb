@@ -64,12 +64,11 @@ module ForestLiana
         model
       end
 
-      after do
-        declared.each { |model| ForestLiana.models.delete(model) }
-        # Rails 6.1 remembers the class a name resolved to, so the next example's PolyNote would
-        # resolve to this one.
-        ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference)
-      end
+      # Rails 6.1 remembers the class a name resolved to, across examples: PolyNote would resolve to
+      # the class an earlier example declared under that name.
+      before { ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference) }
+
+      after { declared.each { |model| ForestLiana.models.delete(model) } }
 
       def targets(model, relation = :addressable)
         described_class.polymorphic_models(model.reflect_on_association(relation))

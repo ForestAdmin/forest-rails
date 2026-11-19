@@ -26,6 +26,8 @@ describe 'A polymorphic relation sharing its name with another owner\'s', type: 
   end
 
   before do
+    # Rails 6.1 remembers the class a name resolved to, across examples.
+    ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference)
     ForestLiana.models.push(*namesakes)
 
     Rails.cache.clear
