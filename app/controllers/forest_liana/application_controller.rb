@@ -353,6 +353,11 @@ module ForestLiana
               elsif record_relationships[field_name] &&
                 record_relationships[field_name]['data']
                 relationship_id = record_relationships[field_name]['data']['id']
+                # The front names the reference field first, then any sub-field a segment condition
+                # reads; it names none for a polymorphic relation, whose export falls back to the id.
+                reference_field = params[:fields][field_name].to_s.split(',').first
+                next relationship_id if reference_field.blank?
+
                 relationship_type = record_relationships[field_name]['data']['type']
                 relationship_object = included.select do |object|
                   object['id'] == relationship_id && object['type'] == relationship_type
@@ -360,7 +365,7 @@ module ForestLiana
 
                 relationship_object = relationship_object.first
                 if relationship_object && relationship_object['attributes']
-                  relationship_object['attributes'][params[:fields][field_name]]
+                  relationship_object['attributes'][reference_field]
                 else
                   nil
                 end

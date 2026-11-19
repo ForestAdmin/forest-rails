@@ -74,4 +74,23 @@ describe 'A polymorphic relation sharing its name with another owner\'s', type: 
     expect(response.body.lines.first.strip).to eq('id,line1,addressable')
   end
 
+  it 'exports the id of the target, as the list shows it, when no field of the target is named' do
+    get '/forest/Address.csv',
+        params: { fields: { 'Address' => 'id,line1,addressable' },
+                  header: 'id,line1,addressable', timezone: 'Europe/Paris' },
+        headers: headers
+
+    expect(response.status).to eq(200)
+    expect(response.body.lines.second.strip).to eq("#{address.id},1 Palm Street,#{user.id}")
+  end
+
+  it 'still exports the named field of the target' do
+    get '/forest/Address.csv',
+        params: { fields: { 'Address' => 'id,line1,addressable', 'addressable' => 'name' },
+                  header: 'id,line1,addressable', timezone: 'Europe/Paris' },
+        headers: headers
+
+    expect(response.status).to eq(200)
+    expect(response.body.lines.second.strip).to eq("#{address.id},1 Palm Street,Michel")
+  end
 end
