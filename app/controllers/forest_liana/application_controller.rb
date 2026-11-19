@@ -73,6 +73,11 @@ module ForestLiana
       @polymorphic_target_readable ||= lambda do |relation, target|
         checked = SchemaUtils.polymorphic_models(relation).find { |model| target.is_a?(model) }
         readable_collection?(forest_user, ForestLiana.name_for(checked || target.class))
+      rescue ForestLiana::Errors::PermissionsUnavailableError
+        # A CSV row is serialized after its 200 went out: withholding the target beats truncating
+        # the file.
+        FOREST_LOGGER.warn "Polymorphic target withheld, its read permission being unavailable: #{target.class.name}"
+        false
       end
     end
 
@@ -332,6 +337,9 @@ module ForestLiana
       # column instead of 403ing the file whenever it doesn't error there either.
       requested_fields = fields_per_model(params[:fields], model)
       fields_to_serialize = redact_fields(forest_user, model, requested_fields, named_collections: [])
+      # The rows are serialized while the response streams, once the request cache is gone: the
+      # read permission of every model a polymorphic row may point at is answered now.
+      read_permissions(forest_user, ForestLiana.models.map { |candidate| ForestLiana.name_for(candidate) })
 
       set_headers_file
       set_headers_streaming

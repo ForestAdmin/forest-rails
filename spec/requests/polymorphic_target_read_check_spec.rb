@@ -95,4 +95,21 @@ describe 'Serving the target a polymorphic relation points at', type: :request d
   it 'leaves the cell of a withheld target empty in the CSV export' do
     expect(export_rows).to contain_exactly("#{to_user.id},#{user.id}", "#{to_island.id},")
   end
+
+  # The rows of an export are serialized while the response streams, after the request cache is
+  # gone: a permission asked for then could reach the Forest API mid-file.
+  it 'answers the read permission of every model before the CSV export streams' do
+    expect_any_instance_of(ForestLiana::ResourcesController).to receive(:read_permissions)
+      .with(anything, array_including('Island', 'User')).and_call_original
+    allow_any_instance_of(ForestLiana::ResourcesController).to receive(:read_permissions).and_call_original
+
+    export_rows
+  end
+
+  it 'withholds the target rather than failing when its read permission is unavailable' do
+    allow_any_instance_of(ForestLiana::ResourcesController).to receive(:readable_collection?)
+      .and_raise(ForestLiana::Errors::PermissionsUnavailableError)
+
+    expect(export_rows).to contain_exactly("#{to_user.id},", "#{to_island.id},")
+  end
 end
