@@ -315,14 +315,7 @@ module ForestLiana
     end
 
     def get_polymorphic_types(relation)
-      types = []
-      ForestLiana.models.each do |model|
-        unless model.reflect_on_all_associations.select { |association| association.options[:as] == relation.name.to_sym }.empty?
-          types << model.name
-        end
-      end
-
-      types
+      SchemaUtils.polymorphic_models(relation).map(&:name)
     end
 
     def automatic_inverse_of(association)

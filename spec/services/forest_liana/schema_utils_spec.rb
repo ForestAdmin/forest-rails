@@ -53,5 +53,80 @@ module ForestLiana
         expect(field).to include(is_filterable: true, is_sortable: true)
       end
     end
+
+    describe '.polymorphic_models' do
+      let(:declared) { [] }
+
+      def declare(name, superclass = ActiveRecord::Base, &body)
+        model = stub_const(name, Class.new(superclass, &body))
+        ForestLiana.models << model
+        declared << model
+        model
+      end
+
+      after { declared.each { |model| ForestLiana.models.delete(model) } }
+
+      def targets(model, relation = :addressable)
+        described_class.polymorphic_models(model.reflect_on_association(relation))
+      end
+
+      it 'keeps the targets of another owner with a polymorphic relation of the same name apart' do
+        note = declare('PolyNote') do
+          self.table_name = 'articles'
+          belongs_to :addressable, polymorphic: true
+        end
+        harbor = declare('PolyHarbor') do
+          self.table_name = 'harbors'
+          has_many :poly_notes, as: :addressable
+        end
+
+        expect(targets(Address)).to eq [User]
+        expect(targets(note)).to eq [harbor]
+      end
+
+      it 'falls back to the targets of its namesakes when none of them points back at the owner' do
+        note = declare('PolyNote') do
+          self.table_name = 'articles'
+          belongs_to :addressable, polymorphic: true
+        end
+
+        expect(targets(note)).to eq [User]
+      end
+
+      it 'finds a target whose inverse points at the base class of an STI owner' do
+        declare('PolyStop') { self.table_name = 'locations' }
+        bus_stop = declare('PolyBusStop', PolyStop) { belongs_to :addressable, polymorphic: true }
+        harbor = declare('PolyHarbor') do
+          self.table_name = 'harbors'
+          has_many :poly_stops, as: :addressable
+        end
+
+        expect(targets(bus_stop)).to eq [harbor]
+      end
+
+      it 'finds a target whose inverse points at a subclass of an STI owner' do
+        stop = declare('PolyStop') do
+          self.table_name = 'locations'
+          belongs_to :addressable, polymorphic: true
+        end
+        declare('PolyBusStop', stop)
+        harbor = declare('PolyHarbor') do
+          self.table_name = 'harbors'
+          has_many :poly_bus_stops, as: :addressable
+        end
+
+        expect(targets(stop)).to eq [harbor]
+      end
+
+      it 'skips a target whose inverse names a class that does not exist, with a warning' do
+        declare('PolyHarbor') do
+          self.table_name = 'harbors'
+          has_many :poly_ghosts, as: :addressable
+        end
+
+        expect(FOREST_LOGGER).to receive(:warn).with(/poly_ghosts on class PolyHarbor/)
+        expect(targets(Address)).to eq [User]
+      end
+    end
   end
 end

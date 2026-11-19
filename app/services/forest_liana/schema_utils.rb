@@ -94,15 +94,34 @@ module ForestLiana
 
     end
 
+    # Keyed on the reflection itself, not [owner, name]: a hit must not allocate (see LookupCache).
     def self.polymorphic_models(relation)
-      name = relation.name.to_sym
-      LookupCache.fetch(:polymorphic_models, name) { scan_polymorphic_models(name).freeze }
+      LookupCache.fetch(:polymorphic_models, relation) { scan_polymorphic_models(relation).freeze }
     end
 
-    def self.scan_polymorphic_models(name)
-      ForestLiana.models.select do |model|
-        model.reflect_on_all_associations.any? { |association| association.options[:as] == name }
+    # A relation whose real targets declare no inverse falls back to the namesakes' targets, the
+    # only ones it ever had: an empty list would drop it from every response.
+    def self.scan_polymorphic_models(relation)
+      name = relation.name.to_sym
+      owner = relation.active_record
+
+      inverses = ForestLiana.models.each_with_object({}) do |model, acc|
+        matching = model.reflect_on_all_associations.select { |association| association.options[:as] == name }
+        acc[model] = matching if matching.any?
       end
+
+      owned = inverses.select { |_model, associations| associations.any? { |association| targets_owner?(association, owner) } }.keys
+      owned.empty? ? inverses.keys : owned
+    end
+
+    # Both directions for STI: the belongs_to may sit on a subclass while the inverse targets the
+    # base class, or the other way round.
+    def self.targets_owner?(association, owner)
+      target = association.klass
+      target <= owner || owner <= target
+    rescue NameError
+      FOREST_LOGGER.warn "Unknown association #{association.name} on class #{association.active_record.name}"
+      false
     end
 
 
