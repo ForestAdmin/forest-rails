@@ -57,10 +57,23 @@ module ForestLiana
     def serialize_model(record, options = {})
       options[:is_collection] = false
       options[:context] = { unoptimized: options[:fields].nil? }.merge(options[:context] || {})
+      readable = polymorphic_target_readable
+      options[:context][:polymorphic_target_readable] ||= readable if readable
 
       json = ForestAdmin::JSONAPI::Serializer.serialize(record, options)
 
       force_utf8_encoding(json)
+    end
+
+    # The read check passes on the targets a polymorphic relation declares, yet a row may point at
+    # any model: the target each row actually points at is checked too, before it is serialized.
+    def polymorphic_target_readable
+      return unless forest_user && respond_to?(:readable_collection?, true)
+
+      @polymorphic_target_readable ||= lambda do |relation, target|
+        checked = SchemaUtils.polymorphic_models(relation).find { |model| target.is_a?(model) }
+        readable_collection?(forest_user, ForestLiana.name_for(checked || target.class))
+      end
     end
 
     def serialize_models(records, options = {}, fields_searched = [])
@@ -68,6 +81,8 @@ module ForestLiana
       if options[:fields].nil?
         options[:context] = { unoptimized: true }.merge(options[:context] || {})
       end
+      readable = polymorphic_target_readable
+      options[:context] = (options[:context] || {}).merge(polymorphic_target_readable: readable) if readable
 
       json = ForestAdmin::JSONAPI::Serializer.serialize(records, options)
 

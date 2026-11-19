@@ -407,7 +407,9 @@ module ForestLiana
               serializer.send(serializer_association(a), a.name) {
                 if [:has_one, :belongs_to].include?(a.macro)
                   begin
-                    object.send(a.name)
+                    target = object.send(a.name)
+                    readable = @context[:polymorphic_target_readable]
+                    target && readable && !readable.call(a, target) ? nil : target
                   rescue ActiveRecord::RecordNotFound
                     nil
                   end
