@@ -69,6 +69,8 @@ module ForestLiana
         ensure
           ForestLiana.models.delete(note)
           ForestLiana.models.delete(harbor)
+          # Rails 6.1 remembers the class a name resolved to, so a later PolyNote would resolve to this one.
+          ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference)
         end
 
         it 'should remove the polymorphic attributes(_id and _type)' do
