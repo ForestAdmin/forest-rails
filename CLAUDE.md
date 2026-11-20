@@ -29,8 +29,13 @@ The commands CI runs (`.github/workflows/build.yml`):
   - Branch naming: `security/fix-<gem>-<cve-id>`
   - Example commit: `fix(deps): bump <gem> to <version> [<CVE>]`
   - PRs must have the `:lock: security` label
-- Security fixes in **our own code**: the convention above does not apply. See
-  "Vulnerability fixes on public repositories" below.
+- Security fixes in **our own code**: the branch and commit conventions above do not
+  apply.
+  - On a private repository, keep the `:lock: security` label: it is what notifies
+    first-level support to prioritise the review.
+  - On a public repository, drop the label too, and tell first-level support through
+    the Linear ticket or the private security channel instead. See "Vulnerability
+    fixes on public repositories" below.
 
 ## Security
 
@@ -65,7 +70,8 @@ When fixing a vulnerability in our own code on a public repository:
 - Use neutral wording in the branch name, commit messages, PR title and description,
   code comments, changelog and release notes. Write "Harden filter validation", not
   "Fix SQL injection in filters". No `security/` branch prefix, no `:lock: security`
-  label, no CVE id before the advisory is published.
+  label, no CVE id before the advisory is published. Since that label is what notifies
+  first-level support, flag the PR to them privately instead.
 - No exploit details, payloads or proof of concept anywhere in the repository,
   including test names and fixtures. Keep regression tests neutral: name them by the
   behaviour kept, not by the attack. Write "scopes records to the caller's project",
