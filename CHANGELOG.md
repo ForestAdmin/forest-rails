@@ -1,3 +1,10 @@
+## [9.22.19](https://github.com/ForestAdmin/forest-rails/compare/v9.22.18...v9.22.19) (2026-11-20)
+
+
+### Bug Fixes
+
+* check read permissions on the real targets of a polymorphic relation ([#847](https://github.com/ForestAdmin/forest-rails/issues/847)) ([b75401c](https://github.com/ForestAdmin/forest-rails/commit/b75401c24744f18b38818dc06641071f1307afd3))
+
 ## [9.22.18](https://github.com/ForestAdmin/forest-rails/compare/v9.22.17...v9.22.18) (2026-11-03)
 
 
