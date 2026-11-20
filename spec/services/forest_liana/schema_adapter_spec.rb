@@ -52,6 +52,27 @@ module ForestLiana
           )
         end
 
+        it 'leaves out the targets of another owner with a relation of the same name' do
+          # Rails 6.1 remembers the class a name resolved to, across examples.
+          ActiveSupport::Dependencies::Reference.clear! if defined?(ActiveSupport::Dependencies::Reference)
+          note = stub_const('PolyNote', Class.new(ActiveRecord::Base) do
+            self.table_name = 'articles'
+            belongs_to :addressable, polymorphic: true
+          end)
+          harbor = stub_const('PolyHarbor', Class.new(ActiveRecord::Base) do
+            self.table_name = 'harbors'
+            has_many :poly_notes, as: :addressable
+          end)
+          ForestLiana.models.push(note, harbor)
+          adapter = described_class.new(Address)
+
+          expect(adapter.send(:get_polymorphic_types, Address.reflect_on_association(:addressable))).to eq ['User']
+          expect(adapter.send(:get_polymorphic_types, note.reflect_on_association(:addressable))).to eq ['PolyHarbor']
+        ensure
+          ForestLiana.models.delete(note)
+          ForestLiana.models.delete(harbor)
+        end
+
         it 'should remove the polymorphic attributes(_id and _type)' do
           collection = ForestLiana.apimap.find do |object|
             object.name.to_s == ForestLiana.name_for(Address)

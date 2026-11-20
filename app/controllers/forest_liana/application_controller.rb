@@ -57,10 +57,28 @@ module ForestLiana
     def serialize_model(record, options = {})
       options[:is_collection] = false
       options[:context] = { unoptimized: options[:fields].nil? }.merge(options[:context] || {})
+      readable = polymorphic_target_readable
+      options[:context][:polymorphic_target_readable] ||= readable if readable
 
       json = ForestAdmin::JSONAPI::Serializer.serialize(record, options)
 
       force_utf8_encoding(json)
+    end
+
+    # The read check passes on the targets a polymorphic relation declares, yet a row may point at
+    # any model: the target each row actually points at is checked too, before it is serialized.
+    def polymorphic_target_readable
+      return unless forest_user && respond_to?(:readable_collection?, true)
+
+      @polymorphic_target_readable ||= lambda do |relation, target|
+        checked = SchemaUtils.polymorphic_models(relation).find { |model| target.is_a?(model) }
+        readable_collection?(forest_user, ForestLiana.name_for(checked || target.class))
+      rescue ForestLiana::Errors::PermissionsUnavailableError
+        # A CSV row is serialized after its 200 went out: withholding the target beats truncating
+        # the file.
+        FOREST_LOGGER.warn "Polymorphic target withheld, its read permission being unavailable: #{target.class.name}"
+        false
+      end
     end
 
     def serialize_models(records, options = {}, fields_searched = [])
@@ -68,6 +86,8 @@ module ForestLiana
       if options[:fields].nil?
         options[:context] = { unoptimized: true }.merge(options[:context] || {})
       end
+      readable = polymorphic_target_readable
+      options[:context] = (options[:context] || {}).merge(polymorphic_target_readable: readable) if readable
 
       json = ForestAdmin::JSONAPI::Serializer.serialize(records, options)
 
@@ -317,6 +337,9 @@ module ForestLiana
       # column instead of 403ing the file whenever it doesn't error there either.
       requested_fields = fields_per_model(params[:fields], model)
       fields_to_serialize = redact_fields(forest_user, model, requested_fields, named_collections: [])
+      # The rows are serialized while the response streams, once the request cache is gone: the
+      # read permission of every model a polymorphic row may point at is answered now.
+      read_permissions(forest_user, ForestLiana.models.map { |candidate| ForestLiana.name_for(candidate) })
 
       set_headers_file
       set_headers_streaming
@@ -353,6 +376,11 @@ module ForestLiana
               elsif record_relationships[field_name] &&
                 record_relationships[field_name]['data']
                 relationship_id = record_relationships[field_name]['data']['id']
+                # The front names the reference field first, then any sub-field a segment condition
+                # reads; it names none for a polymorphic relation, whose export falls back to the id.
+                reference_field = params[:fields][field_name].to_s.split(',').first
+                next relationship_id if reference_field.blank?
+
                 relationship_type = record_relationships[field_name]['data']['type']
                 relationship_object = included.select do |object|
                   object['id'] == relationship_id && object['type'] == relationship_type
@@ -360,7 +388,7 @@ module ForestLiana
 
                 relationship_object = relationship_object.first
                 if relationship_object && relationship_object['attributes']
-                  relationship_object['attributes'][params[:fields][field_name]]
+                  relationship_object['attributes'][reference_field]
                 else
                   nil
                 end

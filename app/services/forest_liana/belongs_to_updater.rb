@@ -27,8 +27,12 @@ module ForestLiana
           if @data.nil?
             new_value = nil
           else
-            association_klass = SchemaUtils.polymorphic_models(@association).select { |a| a.name == @data[:type] }.first
-            new_value = association_klass.find(@data[:id]) if @data && @data[:id]
+            association_klass = SchemaUtils.polymorphic_models(@association).find { |model| model.name == @data[:type] }
+            unless association_klass
+              raise ForestLiana::Errors::HTTP422Error.new("#{@data[:type]} is not a target of #{@association.name}")
+            end
+
+            new_value = association_klass.find(@data[:id]) if @data[:id]
           end
         else
           new_value = @association.klass.find(@data[:id]) if @data && @data[:id]

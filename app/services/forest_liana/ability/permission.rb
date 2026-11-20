@@ -66,6 +66,12 @@ module ForestLiana
         SmartActionChecker.new(parameters, nil, smart_action, user_data, schema_action.type, user).can_execute?
       end
 
+      # Asked once per serialized row: a collection already answered allocates nothing.
+      def readable_collection?(user, collection_name)
+        read_permissions(user, [collection_name]) unless @read_permissions_cache&.key?(collection_name)
+        @read_permissions_cache[collection_name]
+      end
+
       # +refetch+ drops the cached permissions first. Only a caller about to refuse on a denial asks
       # for it (a stale, up to TTL-old cache may sit behind a permission granted moments ago): the
       # refetch rewrites the cluster-wide `forest.collections` entry and this request's copy, so a

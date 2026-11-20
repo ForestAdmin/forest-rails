@@ -64,9 +64,18 @@ describe 'Lookups by name over the schema' do
     let(:addressable) { Address.reflect_on_association(:addressable) }
 
     it 'scans the models once for repeated lookups of a relation' do
-      expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(:addressable).once.and_call_original
+      expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(addressable).once.and_call_original
 
       3.times { expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to eq [User] }
+    end
+
+    it 'answers a remembered relation without allocating' do
+      ForestLiana::SchemaUtils.polymorphic_models(addressable)
+
+      allocated = GC.stat(:total_allocated_objects)
+      1_000.times { ForestLiana::SchemaUtils.polymorphic_models(addressable) }
+
+      expect(GC.stat(:total_allocated_objects) - allocated).to be < 100
     end
 
     it 'returns a frozen list' do
@@ -74,17 +83,17 @@ describe 'Lookups by name over the schema' do
     end
 
     it 'remembers a relation no model targets' do
-      orphan = double(name: :orphan)
-      expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(:orphan).once.and_call_original
+      orphan = double(name: :orphan, active_record: Address)
+      expect(ForestLiana::SchemaUtils).to receive(:scan_polymorphic_models).with(orphan).once.and_call_original
 
       2.times { expect(ForestLiana::SchemaUtils.polymorphic_models(orphan)).to eq [] }
     end
 
     it 'finds a target added to the models after a first lookup' do
-      target = Class.new(ActiveRecord::Base) do
+      target = stub_const('AddressableTree', Class.new(ActiveRecord::Base) do
         self.table_name = 'trees'
         has_many :addresses, as: :addressable
-      end
+      end)
       expect(ForestLiana::SchemaUtils.polymorphic_models(addressable)).to eq [User]
 
       ForestLiana.models << target

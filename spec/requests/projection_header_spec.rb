@@ -19,6 +19,11 @@ describe 'Requesting resources with the Forest-Projection header', :type => :req
     allow_any_instance_of(ForestLiana::Ability).to receive(:forest_authorize!) { true }
     allow(ForestLiana::ScopeManager).to receive(:fetch_scopes)
       .and_return({ 'scopes' => {}, 'team' => { 'id' => '1', 'name' => 'Operations' } })
+
+    # The permissions another spec left in Rails.cache would otherwise decide these requests.
+    Rails.cache.clear
+    allow_any_instance_of(ForestLiana::Ability::Fetch).to receive(:get_permissions)
+      .with('/liana/v4/permissions/environment').and_return(true)
   end
 
   let(:auth_headers) do

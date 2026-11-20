@@ -340,6 +340,9 @@ module ForestLiana
           before do
             # temporarily add a polymorphic association on Tree
             Tree.class_eval { belongs_to :addressable, polymorphic: true, optional: true }
+            allow(SchemaUtils).to receive(:polymorphic_models).and_call_original
+            allow(SchemaUtils).to receive(:polymorphic_models)
+              .with(Tree.reflect_on_association(:addressable)).and_return([User, Island])
 
             allow_any_instance_of(described_class).to receive(:prepare_query).and_return(nil)
             allow(ForestLiana).to receive(:name_for).and_return('trees')
