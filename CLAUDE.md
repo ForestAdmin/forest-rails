@@ -44,8 +44,8 @@ Apply these on every change:
   right project, environment and user. Never trust an ID coming from the request.
 - Any input coming from a user, a customer agent, a webhook or an LLM is validated
   before use. No string concatenation in queries or shell commands.
-- No secret, token, PII, customer data or customer name in code, logs, error messages,
-  test fixtures or prompts.
+- No secret, token, PII, customer schema, customer identifier or customer name in code,
+  logs, error messages, test fixtures, issues or prompts.
 - On public repositories, the same holds for branch names, commit messages, and PR and
   issue titles, descriptions, comments and reviews, which also carry no description of
   an open or accepted weakness and no details of private repositories. Refer to a
