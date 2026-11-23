@@ -1,3 +1,10 @@
+## [9.22.20](https://github.com/ForestAdmin/forest-rails/compare/v9.22.19...v9.22.20) (2026-11-23)
+
+
+### Bug Fixes
+
+* **deps:** cap json below 3 for activesupport before 7.2.4 ([#850](https://github.com/ForestAdmin/forest-rails/issues/850)) ([ec6c9b2](https://github.com/ForestAdmin/forest-rails/commit/ec6c9b23bb85f0e9ff580e9c285e7fcc9535aba0))
+
 ## [9.22.19](https://github.com/ForestAdmin/forest-rails/compare/v9.22.18...v9.22.19) (2026-11-20)
 
 
