@@ -19,6 +19,11 @@ module ForestLiana
       (@includes + includes_for_smart_belongs_to).map(&:to_s)
     end
 
+    # Each read of records goes through here, CSV batches included: see RelatedRecordScopes.
+    def redact_related_records(records, model = @resource)
+      RelatedRecordScopes.redact(records, model, @user, @params[:timezone])
+    end
+
     private
 
     def compute_includes

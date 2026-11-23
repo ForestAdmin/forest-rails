@@ -95,7 +95,7 @@ module ForestLiana
       # On the page, not @records: count and query_for_batch build off the same relation.
       preload_cross_database_associations(records, cross_database_associations(@resource))
 
-      records
+      redact_related_records(records)
     end
 
     def columns_for_cross_database_association(association_name)

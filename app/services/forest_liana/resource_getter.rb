@@ -24,7 +24,7 @@ module ForestLiana
       )
       scoped_records = apply_projection(scoped_records, eager_loads) if project?
 
-      @record = find_record(scoped_records, @resource, @params[:id])
+      @record = redact_related_records([find_record(scoped_records, @resource, @params[:id])]).first
     end
 
     def projection?

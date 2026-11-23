@@ -359,7 +359,7 @@ module ForestLiana
       self.response_body = Enumerator.new do |content|
         content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
-          records.each do |record|
+          getter.redact_related_records(records).each do |record|
             json = serialize_model(record, {
               include: getter.includes.map(&:to_s),
               fields: fields_to_serialize
