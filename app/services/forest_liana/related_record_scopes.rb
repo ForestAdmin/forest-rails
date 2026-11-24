@@ -6,40 +6,47 @@ module ForestLiana
   # Each related collection is checked with one query under its own scope, so values compare as
   # they do when listing that collection.
   module RelatedRecordScopes
-    TO_ONE_MACROS = %i[belongs_to has_one].freeze
-
-    def self.redact(records, model, user, timezone)
+    # includes names the relations the response serializes: one the getter left unloaded, such as
+    # a relation whose scope reads the owner record, is loaded here rather than by the serializer.
+    def self.redact(records, model, user, timezone, includes)
       associations = flagged_associations(model, user)
       return records if associations.empty?
 
       records = records.to_a
-      associations.each { |association| redact_association(records, association, user, timezone) }
+      served = includes.map(&:to_s)
+      associations.each do |association|
+        redact_association(records, association, user, timezone, served.include?(association.name.to_s))
+      end
 
       records
     end
 
+    # The validated list the serializer walks: a relation whose model cannot be resolved is left out.
     def self.flagged_associations(model, user)
-      model.reflect_on_all_associations.select do |association|
-        TO_ONE_MACROS.include?(association.macro) &&
-          !association.polymorphic? &&
+      SchemaUtils.one_associations(model).select do |association|
+        !association.polymorphic? &&
           !association.is_a?(ActiveRecord::Reflection::ThroughReflection) &&
           ScopeManager.applies_to_related_records?(ForestLiana.name_for(association.klass), user)
       end
     end
 
-    def self.redact_association(records, association, user, timezone)
-      loaded = records.compact.map { |record| record.association(association.name) }
-                      .select { |related| related.loaded? && related.target }
+    def self.redact_association(records, association, user, timezone, served)
+      relations = records.compact.map { |record| record.association(association.name) }
+      relations.each(&:load_target) if served
+      loaded = relations.select { |related| related.loaded? && related.target }
       return if loaded.empty?
 
       klass = association.klass
-      ids = loaded.map { |related| related.target.id }.uniq
+      keys = Array(klass.primary_key)
+      key_of = ->(record) { keys.map { |key| record[key] } }
+      ids = loaded.map { |related| key_of.call(related.target) }.uniq
+      condition = keys.one? ? { keys.first => ids.map(&:first) } : { keys => ids }
       in_scope = ScopeManager.apply_scopes_on_records(
-        klass.unscoped.where(klass.primary_key => ids), user, ForestLiana.name_for(klass), timezone
+        klass.unscoped.where(condition), user, ForestLiana.name_for(klass), timezone
       )
-      visible = in_scope.pluck(klass.arel_table[klass.primary_key]).to_set
+      visible = in_scope.pluck(*keys.map { |key| klass.arel_table[key] }).map { |row| Array(row) }.to_set
 
-      loaded.each { |related| related.target = nil unless visible.include?(related.target.id) }
+      loaded.each { |related| related.target = nil unless visible.include?(key_of.call(related.target)) }
     end
 
     private_class_method :flagged_associations, :redact_association

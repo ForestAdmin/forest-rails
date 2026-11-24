@@ -21,7 +21,7 @@ module ForestLiana
 
     # Each read of records goes through here, CSV batches included: see RelatedRecordScopes.
     def redact_related_records(records, model = @resource)
-      RelatedRecordScopes.redact(records, model, @user, @params[:timezone])
+      RelatedRecordScopes.redact(records, model, @user, @params[:timezone], @includes)
     end
 
     private

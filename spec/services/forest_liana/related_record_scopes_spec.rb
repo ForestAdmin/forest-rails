@@ -98,5 +98,94 @@ module ForestLiana
         expect(owners_by_tree(getter.redact_related_records(batch))).to eq([[lemon.id, michel.id], [ginger.id, nil]])
       end
     end
+
+    describe 'a relation whose scope reads the owner record' do
+      let(:tree_scope) do
+        { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'name', 'operator' => 'equal', 'value' => 'Lemon Tree' }] }
+      end
+      let(:scopes) do
+        { 'scopes' => { 'Tree' => tree_scope }, 'related_record_scopes' => ['Tree'], 'team' => { 'id' => '1', 'name' => 'Operations' } }
+      end
+
+      it 'empties the related record the list did not eager load' do
+        lemon_island = Island.create!(name: 'Lemon Tree')
+        ginger_island = Island.create!(name: 'Ginger Tree')
+        Tree.create!(name: 'Lemon Tree', island: lemon_island, owner: michel, cutter: michel)
+        Tree.create!(name: 'Ginger Tree', island: ginger_island, owner: michel, cutter: michel)
+        getter = ResourcesGetter.new(
+          Island,
+          { page: { size: 10, number: 1 }, sort: 'id', fields: { 'Island' => 'id,name,eponymous_tree', 'eponymous_tree' => 'name' } },
+          user
+        )
+
+        getter.perform
+        trees = getter.records.to_a.select { |record| record.name.end_with?('Tree') }.sort_by(&:id).map { |record| record.eponymous_tree&.name }
+
+        expect(trees).to eq(['Lemon Tree', nil])
+      end
+    end
+
+    describe 'a relation whose model cannot be resolved' do
+      it 'still empties the out-of-scope related records of the other relations' do
+        stub_const('UnresolvedRelationTree', Class.new(ActiveRecord::Base) do
+          self.table_name = 'trees'
+          belongs_to :owner, class_name: 'User'
+          belongs_to :missing, class_name: 'NoSuchModelAnywhere', optional: true
+        end)
+        records = UnresolvedRelationTree.where(id: [lemon.id, ginger.id]).includes(:owner).to_a
+
+        redacted = RelatedRecordScopes.redact(records, UnresolvedRelationTree, user, nil, [:owner])
+
+        expect(owners_by_tree(redacted)).to eq([[lemon.id, michel.id], [ginger.id, nil]])
+      end
+    end
+
+    describe 'a related record with a composite primary key', if: Rails.gem_version >= Gem::Version.new('7.1') do
+      let(:scopes) do
+        {
+          'scopes' => { 'Slot' => { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'label', 'operator' => 'equal', 'value' => 'kept' }] } },
+          'related_record_scopes' => ['Slot'],
+          'team' => { 'id' => '1', 'name' => 'Operations' }
+        }
+      end
+
+      before do
+        connection = ActiveRecord::Base.connection
+        connection.create_table(:slots, primary_key: %i[shelf position], force: true) do |t|
+          t.integer :shelf
+          t.integer :position
+          t.string :label
+        end
+        connection.create_table(:bookings, force: true) do |t|
+          t.integer :slot_shelf
+          t.integer :slot_position
+        end
+        stub_const('Slot', Class.new(ActiveRecord::Base) do
+          self.table_name = 'slots'
+          self.primary_key = %i[shelf position]
+        end)
+        stub_const('Booking', Class.new(ActiveRecord::Base) do
+          self.table_name = 'bookings'
+          belongs_to :slot, foreign_key: %i[slot_shelf slot_position], optional: true
+        end)
+      end
+
+      after do
+        ActiveRecord::Base.connection.drop_table(:bookings, if_exists: true)
+        ActiveRecord::Base.connection.drop_table(:slots, if_exists: true)
+      end
+
+      it 'compares the keys of each related record as a whole' do
+        Slot.create!(shelf: 1, position: 1, label: 'kept')
+        Slot.create!(shelf: 1, position: 2, label: 'other')
+        Booking.create!(slot_shelf: 1, slot_position: 1)
+        Booking.create!(slot_shelf: 1, slot_position: 2)
+        records = Booking.order(:id).includes(:slot).to_a
+
+        redacted = RelatedRecordScopes.redact(records, Booking, user, nil, [:slot])
+
+        expect(redacted.map { |booking| booking.slot&.label }).to eq(['kept', nil])
+      end
+    end
   end
 end
