@@ -59,9 +59,21 @@ Apply these on every change:
 Customers upgrade at their own pace, so old versions stay exposed after a fix ships.
 When fixing a vulnerability in our own code on a public repository:
 
-- Prefer the temporary private fork that comes with a GitHub private security advisory:
-  no public PR, review comments or CI logs until the advisory is published. When a
-  public PR is unavoidable, the rules below apply.
+- Fix in a normal public PR by default, under the rules below: the diff reaches every
+  reader at release anyway, and CI, review and the release run as usual. Publish the
+  advisory once the release is out, naming the fixed version.
+- Use the temporary private fork of a GitHub security advisory only when an attacker
+  could exploit the flaw and the diff alone shows how. A bug with no attacker, such as a
+  retry that applies a write twice, is not a vulnerability: public PR. The fork runs no
+  CI and can never report the required checks, so:
+  - run the full test suite locally, rebased on the default branch together with every
+    other open advisory of the repository;
+  - an admin lifts the required checks for the merge from the advisory page, and
+    restores them right after;
+  - the merge lands as one squash headed `Merge commit from fork`, which commit linting
+    and the release tooling read as untyped: follow it with a conventional
+    `fix(<scope>)` commit touching each fixed package, and publish the advisory only
+    once that release is out.
 - Use neutral wording in the branch name, commit messages, PR title and description,
   code comments, changelog and release notes. Write "Harden filter validation", not
   "Fix SQL injection in filters". No `security/` branch prefix, no `:lock: security`
