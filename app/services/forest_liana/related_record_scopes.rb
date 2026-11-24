@@ -32,7 +32,14 @@ module ForestLiana
 
     def self.redact_association(records, association, user, timezone, served)
       relations = records.compact.map { |record| record.association(association.name) }
-      relations.each(&:load_target) if served
+      # An owner whose select left out its key cannot load the relation, and the serializer
+      # resolves it to null: only loadable relations are loaded here.
+      owner_keys = Array(association.join_foreign_key).map(&:to_s)
+      if served
+        relations.each do |related|
+          related.load_target if owner_keys.all? { |key| related.owner.has_attribute?(key) }
+        end
+      end
       loaded = relations.select { |related| related.loaded? && related.target }
       return if loaded.empty?
 

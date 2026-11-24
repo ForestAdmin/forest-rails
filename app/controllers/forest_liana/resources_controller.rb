@@ -264,7 +264,7 @@ module ForestLiana
       )
       fields_to_serialize = keep_relationship_links(fields_to_serialize) if requested_fields
 
-      serialize_model(get_record(record), {
+      serialize_model(served_records([record], getter).first, {
         include: requested_fields ? getter.includes_for_serialization : record_includes,
         fields: fields_to_serialize
       })
@@ -307,7 +307,7 @@ module ForestLiana
     end
 
     def render_jsonapi getter
-      records = getter.records.map { |record| get_record(record) }
+      records = served_records(getter.records, getter)
       requested_fields = fields_per_model(params[:fields], @resource)
       fields_to_serialize = requested_fields || default_fields_to_serialize(@resource, includes(getter))
       fields_to_serialize = redact_fields(

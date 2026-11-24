@@ -164,9 +164,11 @@ module ForestLiana
           self.table_name = 'slots'
           self.primary_key = %i[shelf position]
         end)
+        # Rails 7.1 declares a composite foreign key with query_constraints, 7.2 and later with foreign_key.
+        key_option = Rails.gem_version < Gem::Version.new('7.2') ? :query_constraints : :foreign_key
         stub_const('Booking', Class.new(ActiveRecord::Base) do
           self.table_name = 'bookings'
-          belongs_to :slot, foreign_key: %i[slot_shelf slot_position], optional: true
+          belongs_to :slot, key_option => %i[slot_shelf slot_position], optional: true
         end)
       end
 

@@ -76,4 +76,36 @@ describe 'converting a record to its STI collection class', type: :request do
     expect(became.association(:island)).not_to be_loaded
     expect(became.island).to eq(island)
   end
+
+  # The getter empties a related record under the subclass's relation, and becomes() leaves that
+  # entry behind when the base class defines the relation differently: what is served is checked
+  # again under the class the record became.
+  describe 'with a related record its flagged scope hides' do
+    let(:user) { { 'id' => '1', 'rendering_id' => 13 } }
+
+    before do
+      allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({
+        'scopes' => { 'Island' => { 'aggregator' => 'and', 'conditions' => [
+          { 'field' => 'name', 'operator' => 'equal', 'value' => 'elsewhere' }
+        ] } },
+        'related_record_scopes' => ['Island'],
+        'team' => { 'id' => '1', 'name' => 'Operations' }
+      })
+    end
+
+    it 'serves the converted record with the related record still empty' do
+      island = Island.create!(name: 'nowhere')
+      town = Town.where(id: Town.create!(island_id: island.id).id).preload(:island).first
+      getter = ForestLiana::ResourcesGetter.new(
+        Location, { fields: { 'Location' => 'id,island', 'island' => 'name' }, timezone: 'Europe/Paris' }, user
+      )
+      controller = ForestLiana::ResourcesController.new
+      controller.instance_variable_set(:@resource, Location)
+      allow(controller).to receive(:is_sti_model?).and_return(true)
+
+      served = controller.send(:served_records, getter.redact_related_records([town]), getter)
+
+      expect(served.first.island).to be_nil
+    end
+  end
 end

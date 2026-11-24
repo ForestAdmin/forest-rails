@@ -169,6 +169,17 @@ module ForestLiana
     #         would serve the subclass's target under the base class's field — plausible, wrong,
     #         and raising nothing. Only entries both classes reflect identically are carried over;
     #         anything else is left to load lazily, the behaviour it had before this existed.
+    # Converts what the getter read with get_record. The getter emptied related records the
+    # related collection's scope hides under the class each record was loaded as, and an entry
+    # the two classes define differently stays behind on becomes(): an STI record is checked
+    # again under the class it became, which is the relation the serializer reads.
+    def served_records(records, getter)
+      converted = records.map { |record| get_record(record) }
+      return converted if getter.nil? || !is_sti_model?
+
+      getter.redact_related_records(converted)
+    end
+
     def carry_preloaded_associations(record, became)
       cache = record.instance_variable_get(:@association_cache) || {}
       carried = cache.select do |name, _|
