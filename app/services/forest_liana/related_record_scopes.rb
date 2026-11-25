@@ -68,7 +68,15 @@ module ForestLiana
       )
       visible = in_scope.pluck(*keys.map { |key| klass.arel_table[key] }).map { |row| Array(row) }.to_set
 
-      loaded.each { |related| related.target = nil unless visible.include?(key_of.call(related.target)) }
+      loaded.each do |related|
+        next if visible.include?(key_of.call(related.target))
+
+        related.target = nil
+        # A listed page's polymorphic preload defines a reader returning the target it loaded,
+        # which the serializer would read past the emptied association.
+        name = related.reflection.name
+        related.owner.singleton_class.send(:remove_method, name) if related.owner.singleton_methods(false).include?(name)
+      end
     end
 
     private_class_method :flagged_associations, :redact_association, :redact_targets

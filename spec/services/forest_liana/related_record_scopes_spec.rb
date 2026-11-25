@@ -162,6 +162,20 @@ module ForestLiana
         expect(redacted.map { |address| address.addressable&.id }).to eq([michel.id, nil])
       end
 
+      it 'empties the targets a listed page preloaded' do
+        Address.create!(line1: 'a', city: 'c', zipcode: 'z', addressable: michel)
+        Address.create!(line1: 'b', city: 'c', zipcode: 'z', addressable: robert)
+        getter = ResourcesGetter.new(
+          Address,
+          { page: { size: 10, number: 1 }, sort: 'id', fields: { 'Address' => 'id,addressable', 'addressable' => 'name' } },
+          user
+        )
+
+        getter.perform
+
+        expect(getter.records.map { |address| address.addressable&.id }).to eq([michel.id, nil])
+      end
+
       context 'when the target collection is not flagged' do
         let(:flagged) { [] }
 
