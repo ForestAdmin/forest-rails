@@ -22,19 +22,26 @@ module ForestLiana
     end
 
     # The validated list the serializer walks: a relation whose model cannot be resolved is left out.
+    # A polymorphic relation is kept whenever one of its targets may be flagged: each target class
+    # is checked on its own once the records are loaded.
     def self.flagged_associations(model, user)
       SchemaUtils.one_associations(model).select do |association|
-        !association.polymorphic? &&
-          !association.is_a?(ActiveRecord::Reflection::ThroughReflection) &&
+        if association.polymorphic?
+          true
+        else
           ScopeManager.applies_to_related_records?(ForestLiana.name_for(association.klass), user)
+        end
       end
     end
 
     def self.redact_association(records, association, user, timezone, served)
       relations = records.compact.map { |record| record.association(association.name) }
       # An owner whose select left out its key cannot load the relation, and the serializer
-      # resolves it to null: only loadable relations are loaded here.
-      owner_keys = Array(association.join_foreign_key).map(&:to_s)
+      # resolves it to null: only loadable relations are loaded here. A has_one :through is keyed
+      # on the owner through its first hop.
+      owner_reflection = association.is_a?(ActiveRecord::Reflection::ThroughReflection) ? association.through_reflection : association
+      owner_keys = Array(owner_reflection.join_foreign_key).map(&:to_s)
+      owner_keys << association.foreign_type.to_s if association.polymorphic?
       if served
         relations.each do |related|
           related.load_target if owner_keys.all? { |key| related.owner.has_attribute?(key) }
@@ -43,7 +50,15 @@ module ForestLiana
       loaded = relations.select { |related| related.loaded? && related.target }
       return if loaded.empty?
 
-      klass = association.klass
+      loaded.group_by { |related| association.polymorphic? ? related.klass : association.klass }.each do |klass, targets|
+        next if association.polymorphic? &&
+                !ScopeManager.applies_to_related_records?(ForestLiana.name_for(klass), user)
+
+        redact_targets(targets, klass, user, timezone)
+      end
+    end
+
+    def self.redact_targets(loaded, klass, user, timezone)
       keys = Array(klass.primary_key)
       key_of = ->(record) { keys.map { |key| record[key] } }
       ids = loaded.map { |related| key_of.call(related.target) }.uniq
@@ -56,6 +71,6 @@ module ForestLiana
       loaded.each { |related| related.target = nil unless visible.include?(key_of.call(related.target)) }
     end
 
-    private_class_method :flagged_associations, :redact_association
+    private_class_method :flagged_associations, :redact_association, :redact_targets
   end
 end

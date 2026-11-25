@@ -105,6 +105,8 @@ module ForestLiana
       redact_related_records(records)
     end
 
+    # Returns the records unchanged, still a Relation, when no related scope is flagged, and an
+    # Array once one is applied: both are enumerated the same way by the serializer.
     def redact_related_records(records, model = model_association)
       super
     end

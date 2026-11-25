@@ -125,6 +125,56 @@ module ForestLiana
       end
     end
 
+    describe 'a has_one :through relation' do
+      let(:scopes) do
+        {
+          'scopes' => { 'Location' => { 'aggregator' => 'and', 'conditions' => [{ 'field' => 'coordinates', 'operator' => 'equal', 'value' => 'kept' }] } },
+          'related_record_scopes' => ['Location'],
+          'team' => { 'id' => '1', 'name' => 'Operations' }
+        }
+      end
+
+      after { Location.delete_all }
+
+      it 'empties the related record outside its flagged scope' do
+        other_island = Island.create!(name: 'Other')
+        Location.create!(coordinates: 'kept', island: island)
+        Location.create!(coordinates: 'hidden', island: other_island)
+        other = Tree.create!(name: 'Other Tree', island: other_island, owner: michel, cutter: michel)
+        records = Tree.where(id: [lemon.id, other.id]).order(:id).to_a
+
+        redacted = RelatedRecordScopes.redact(records, Tree, user, nil, [:location])
+
+        expect(redacted.map { |tree| tree.location&.coordinates }).to eq(['kept', nil])
+      end
+    end
+
+    describe 'a polymorphic relation' do
+      after { Address.delete_all }
+
+      it 'empties the targets outside the flagged scope of their own collection' do
+        kept = Address.create!(line1: 'a', city: 'c', zipcode: 'z', addressable: michel)
+        hidden = Address.create!(line1: 'b', city: 'c', zipcode: 'z', addressable: robert)
+        records = Address.where(id: [kept.id, hidden.id]).order(:id).to_a
+
+        redacted = RelatedRecordScopes.redact(records, Address, user, nil, [:addressable])
+
+        expect(redacted.map { |address| address.addressable&.id }).to eq([michel.id, nil])
+      end
+
+      context 'when the target collection is not flagged' do
+        let(:flagged) { [] }
+
+        it 'serves every target unchanged' do
+          hidden = Address.create!(line1: 'b', city: 'c', zipcode: 'z', addressable: robert)
+
+          redacted = RelatedRecordScopes.redact([hidden], Address, user, nil, [:addressable])
+
+          expect(redacted.first.addressable).to eq(robert)
+        end
+      end
+    end
+
     describe 'a relation whose model cannot be resolved' do
       it 'still empties the out-of-scope related records of the other relations' do
         stub_const('UnresolvedRelationTree', Class.new(ActiveRecord::Base) do

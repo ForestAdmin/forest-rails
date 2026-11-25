@@ -264,7 +264,14 @@ module ForestLiana
       )
       fields_to_serialize = keep_relationship_links(fields_to_serialize) if requested_fields
 
-      serialize_model(served_records([record], getter).first, {
+      served = served_records([record], getter).first
+      # create and update read the record back with no getter: the relation the client just set
+      # is emptied like any other read when its collection's scope hides it.
+      if getter.nil?
+        served = RelatedRecordScopes.redact([served], @resource, forest_user, params[:timezone], record_includes).first
+      end
+
+      serialize_model(served, {
         include: requested_fields ? getter.includes_for_serialization : record_includes,
         fields: fields_to_serialize
       })
