@@ -1,3 +1,10 @@
+# [9.23.0](https://github.com/ForestAdmin/forest-rails/compare/v9.22.20...v9.23.0) (2026-11-26)
+
+
+### Features
+
+* **scopes:** apply a related collection's scope when the server flags it ([#851](https://github.com/ForestAdmin/forest-rails/issues/851)) ([fe074de](https://github.com/ForestAdmin/forest-rails/commit/fe074dea226321c03e539aa3f4494af8feb342e1))
+
 ## [9.22.20](https://github.com/ForestAdmin/forest-rails/compare/v9.22.19...v9.22.20) (2026-11-23)
 
 
