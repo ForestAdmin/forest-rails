@@ -35,7 +35,7 @@ module ForestLiana
           end
         end
 
-        user[context_variable_key[USER_VALUE_PREFIX.length..]]
+        user[context_variable_key[USER_VALUE_PREFIX.length..].underscore]
       end
     end
   end
