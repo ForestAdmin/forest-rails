@@ -98,11 +98,17 @@ module ForestLiana
 
       # Left a Relation (not resolved yet) when there is nothing to preload - some callers still
       # want #to_sql off this, and paid for nothing before this fix.
-      return records if polymorphic_associations.empty?
+      return redact_related_records(records) if polymorphic_associations.empty?
 
       records = records.to_a
       preload_polymorphic_associations(records, polymorphic_associations)
-      records
+      redact_related_records(records)
+    end
+
+    # Returns the records unchanged, still a Relation, when no related scope is flagged, and an
+    # Array once one is applied: both are enumerated the same way by the serializer.
+    def redact_related_records(records, model = model_association)
+      super
     end
 
     def includes_for_serialization

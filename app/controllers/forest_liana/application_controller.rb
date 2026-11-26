@@ -157,6 +157,17 @@ module ForestLiana
       ForestLiana::RequestCache.with(&block)
     end
 
+    # Converts what the getter read with get_record. The getter emptied related records the
+    # related collection's scope hides under the class each record was loaded as, and an entry
+    # the two classes define differently stays behind on becomes(): an STI record is checked
+    # again under the class it became, which is the relation the serializer reads.
+    def served_records(records, getter)
+      converted = records.map { |record| get_record(record) }
+      return converted if getter.nil? || !is_sti_model?
+
+      getter.redact_related_records(converted)
+    end
+
     # NOTICE: What survives becomes(), which allocates a fresh instance and copies @attributes
     #         onto it and nothing else. Shared by both controllers' get_record, unlike the rest of
     #         their rendering, because getting it wrong is a correctness bug rather than a
@@ -359,7 +370,7 @@ module ForestLiana
       self.response_body = Enumerator.new do |content|
         content << ::CSV::Row.new(field_names_requested, csv_header, true).to_s
         getter.query_for_batch.find_in_batches() do |records|
-          records.each do |record|
+          getter.redact_related_records(records).each do |record|
             json = serialize_model(record, {
               include: getter.includes.map(&:to_s),
               fields: fields_to_serialize

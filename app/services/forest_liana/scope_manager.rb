@@ -65,6 +65,12 @@ module ForestLiana
       Utils::LiveQueryInjector.inject(query, context_variables, nil, connection, error_prefix: '')
     end
 
+    # Whether the collection's scope also hides its records reached through a relation. Scopes
+    # cached before the server sent the flag read as not flagged.
+    def self.applies_to_related_records?(collection_name, user)
+      (fetch_scopes(user['rendering_id'])['related_record_scopes'] || []).include?(collection_name)
+    end
+
     def self.invalidate_scope_cache(rendering_id)
       Rails.cache.delete(scope_cache_key(rendering_id))
       RequestCache.delete(scope_cache_key(rendering_id))
@@ -121,6 +127,8 @@ module ForestLiana
       {
         'scopes' => decode_scope(parsed_response['collections']),
         'segments' => decode_segments(parsed_response['collections']),
+        'related_record_scopes' => parsed_response['collections']
+          .select { |_, value| value['appliesToRelatedRecords'] == true }.keys,
         'team' => parsed_response['team']
       }
     end

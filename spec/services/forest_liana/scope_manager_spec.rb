@@ -71,6 +71,7 @@ module ForestLiana
             {
               'scopes' => {'User' => {'aggregator' => 'and', 'conditions'=>[{'field' => 'id', 'operator' => 'greater_than', 'value' => '1'}]}},
               'segments' => {'User' => []},
+              'related_record_scopes' => [],
               'team' => {'id' => '1', 'name' => 'Operations'},
             })
         end
@@ -122,6 +123,7 @@ module ForestLiana
             {
               'scopes' => {'User' => {'aggregator' => 'and', 'conditions'=>[{'field' => 'email', 'operator' => 'equal', 'value' => '{{currentUser.email}}'}]}},
               'segments' => {'User' => []},
+              'related_record_scopes' => [],
               'team' => {'id' => '1', 'name' => 'Operations'},
             }
           )
@@ -168,10 +170,42 @@ module ForestLiana
                                                                               {
                                                                                 'scopes' => {},
                                                                                 'segments' => {'User' => []},
+                                                                                'related_record_scopes' => [],
                                                                                 'team' => {'id' => '1', 'name' => 'Operations'},
                                                                               }
                                                                             )
         end
+      end
+    end
+
+    describe '.applies_to_related_records?' do
+      let(:body) do
+        JSON.generate(
+          {
+            'collections' => {
+              'User' => { 'scope' => nil, 'segments' => [], 'appliesToRelatedRecords' => true },
+              'Tree' => { 'scope' => nil, 'segments' => [], 'appliesToRelatedRecords' => false },
+              'Island' => { 'scope' => nil, 'segments' => [] }
+            },
+            'stats' => [],
+            'team' => { 'id' => '1', 'name' => 'Operations' }
+          }
+        )
+      end
+      let(:response) { Net::HTTPOK.new({}, 200, body) }
+
+      before do
+        allow(ForestLiana::ForestApiRequester).to receive(:get).and_return(response)
+        allow(response).to receive(:body).and_return(body)
+      end
+
+      it 'is true for a collection the server flags' do
+        expect(described_class.applies_to_related_records?('User', user)).to be(true)
+      end
+
+      it 'is false for a collection sent with the flag off or without it' do
+        expect(described_class.applies_to_related_records?('Tree', user)).to be(false)
+        expect(described_class.applies_to_related_records?('Island', user)).to be(false)
       end
     end
 

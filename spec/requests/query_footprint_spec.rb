@@ -192,6 +192,28 @@ describe 'SQL footprint of a front call', type: :request do
         .with(a_string_including('"driver"', '"Product"', '"driver_id"', "query's select"))
     end
 
+    context 'when the related collection has a scope flagged for related records' do
+      before do
+        allow(ForestLiana::ScopeManager).to receive(:fetch_scopes).and_return({
+          'scopes' => { 'Driver' => { 'aggregator' => 'and', 'conditions' => [
+            { 'field' => 'firstname', 'operator' => 'equal', 'value' => 'pilot' }
+          ] } },
+          'related_record_scopes' => ['Driver'],
+          'team' => { 'id' => '1', 'name' => 'Operations' }
+        })
+      end
+
+      it 'exports the rows with the relation left empty' do
+        seed.call(2)
+
+        get '/forest/Product.csv',
+            params: params.merge(header: 'id,name,driver', filename: 'products'), headers: headers
+
+        expect(response).to have_http_status(200)
+        expect(response.body.lines.drop(1)).to match([/\A\d+,thing,\s*\z/, /\A\d+,thing,\s*\z/])
+      end
+    end
+
     it 'answers the list on the same segment' do
       seed.call(2)
 

@@ -214,7 +214,7 @@ module ForestLiana
         forest_user, @association.klass, fields_to_serialize,
         named_collections: requested_fields ? requested_fields.keys : []
       )
-      records = getter.records.map { |record| get_record(record) }
+      records = served_records(getter.records, getter)
 
       json = serialize_models(
         records,
